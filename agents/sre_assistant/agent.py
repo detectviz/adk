@@ -1,53 +1,49 @@
-# 說明：SRE 主助理（簡化），以工具呼叫為核心並加入繁體中文註解。
 
+# -*- coding: utf-8 -*-
+# 說明：SRE 主助理，改用 runtime.ToolRunner 與 ToolRequest/Response（繁體中文註解）。
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, List
-from .tools import prometheus_tool as prom
-from .tools import loki_tool as loki
-from .tools import k8s_tool as k8s
-from .tools import alertmanager_tool as am
-from .tools import grafana_tool as graf
+from typing import Optional, Dict, Any
+import datetime as dt
+from .runtime.tool_runner import ToolRunner
+from ...contracts.messages.sre_messages import ToolRequest, MetricQuery, TimeRange, LogQuery
 
 @dataclass
 class IncidentInput:
     service: str
     namespace: str = "default"
-    cluster: str = "cluster-1"
     start_ms: Optional[int] = None
     end_ms: Optional[int] = None
     symptom: Optional[str] = None  # e.g., 5xx surge
 
 class SREAssistant:
-    """簡化版 SRE Agent。以工具呼叫為核心，不依賴外部 ADK。"""
+    def __init__(self) -> None:
+        self.runner = ToolRunner()
 
     def investigate(self, inc: IncidentInput) -> Dict[str, Any]:
-        # 1) 指標檢查
-        q = f'rate(http_requests_total{{service="{inc.service}",status=~"5.."}}[5m])'
-        import datetime as _dt
-        end = _dt.datetime.utcfromtimestamp((inc.end_ms or 0)/1000.0) if inc.end_ms else _dt.datetime.utcnow()
-        start = _dt.datetime.utcfromtimestamp((inc.start_ms or 0)/1000.0) if inc.start_ms else end - _dt.timedelta(minutes=30)
-        m = prom.query_range(q, start=start, end=end, step="30s")
+        end_ms = inc.end_ms or int(dt.datetime.utcnow().timestamp()*1000)
+        start_ms = inc.start_ms or int((dt.datetime.utcnow() - dt.timedelta(minutes=30)).timestamp()*1000)
+        tr = TimeRange(start_ms=start_ms, end_ms=end_ms)
 
-        # 2) 日誌比對
-        lq = f'{ {{"service": "{inc.service}", "namespace": "{inc.namespace}"}} } |= "error"'
-        logs = loki.query_range(str(lq), start=start, end=end, limit=200, direction="backward")
+        # 1) 指標檢查（ToolRunner → Prometheus）
+        promql = f'rate(http_requests_total{{service="{inc.service}",status=~"5.."}}[5m])'
+        prom_req = ToolRequest(name="prom.query_range", metric=MetricQuery(promql=promql, range=tr), params={"step":"30s"})
+        prom_resp = self.runner.invoke("prom.query_range", prom_req)
 
-        # 3) 叢集事件
-        events = k8s.get_events(namespace=inc.namespace)
+        # 2) 日誌比對（ToolRunner → Loki）
+        logql = f'{{service="{inc.service}",namespace="{inc.namespace}"}} |= "error"'
+        log_req = ToolRequest(name="loki.query_range", log=LogQuery(logql=logql, range=tr, limit=200, direction="backward"))
+        log_resp = self.runner.invoke("loki.query_range", log_req)
 
-        # 4) 匯總
-        summary = {
+        # 3) 叢集事件（ToolRunner → K8s）
+        k8s_req = ToolRequest(name="k8s.get_events", params={}, k8s=None)
+        k8s_resp = self.runner.invoke("k8s.get_events", k8s_req)
+
+        # 4) 匯總輸出
+        return {
             "service": inc.service,
-            "metrics_query": q,
-            "logs_filter": lq,
-            "metrics_raw": m,
-            "logs_raw": logs,
-            "k8s_events": events,
+            "metrics_query": promql,
+            "logs_query": logql,
+            "metrics_raw": prom_resp.data,
+            "logs_raw": log_resp.data,
+            "k8s_events": k8s_resp.data,
         }
-        return summary
-
-    def annotate(self, text: str, dashboard_uid: Optional[str] = None, panel_id: Optional[int] = None) -> Dict[str, Any]:
-        return graf.annotate(text=text, dashboard_uid=dashboard_uid, panel_id=panel_id, tags=["sre-assistant"])
-
-    def list_alerts(self, selector: str = "") -> List[Dict[str, Any]]:
-        return am.list_alerts(selector)
