@@ -13,3 +13,41 @@ message ToolRequest {
     repeated string args = 3;
     map<string, string> metadata = 4;
 }
+
+message AgentRequest {
+  string agent_id = 1;
+  repeated Observation observations = 2;
+  map<string, string> metadata = 3;
+}
+
+message AgentResponse {
+  string agent_id = 1;
+  repeated Action actions = 2;
+  StateSnapshot snapshot = 3;
+  string status = 4; // "ok" / "error"
+  string error_message = 5;
+}
+
+message Observation {
+  string source = 1;
+  int64 timestamp = 2;
+  string type = 3;
+  bytes payload = 4; // JSON 或二進位資料
+}
+
+message Action {
+  string name = 1;
+  map<string, string> params = 2;
+  repeated Event events = 3;
+}
+
+message Event {
+  string name = 1;
+  int64 timestamp = 2;
+  string detail = 3;
+}
+
+message StateSnapshot {
+  map<string, string> kv = 1;
+  int64 last_updated = 2;
+}
