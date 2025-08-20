@@ -14,7 +14,7 @@
 
 # --- Variables ---
 PYTHON_ADK_MAIN = agents.sre_assistant
-GO_CORE_MAIN = core/main.go
+GO_CORE_MAIN = core/cmd/bridge-cli/main.go
 GO_CORE_PID_FILE = /tmp/sre_assistant_core.pid
 PYTHON_ADK_PID_FILE = /tmp/sre_assistant_adk.pid
 
