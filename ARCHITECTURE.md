@@ -50,59 +50,67 @@ README.md → AGENT.md → [ARCHITECTURE.md] → SPEC.md → TASKS.md
 
 ```bash
 sre-assistant/
-├── contracts/               # -> 獨立的、版本化的「法律」
-│   └── v1/
-│       └── agent_bridge.proto
+├── contracts/              # 🔥 契約層（語言無關）
+│   ├── proto/             # gRPC 定義
+│   └── schemas/           # JSON Schema
 │
-├── orchestrator/            # -> 完全獨立的「市政廳」 (Go 專案)
-│   ├── cmd/
-│   ├── internal/
-│   └── plugins/
+├── core/                  # 🔥 Go 協調核心
+│   ├── cmd/               # 啟動入口
+│   ├── internal/          # 內部實現
+│   │   ├── orchestrator/ # 協調器
+│   │   ├── bridge/       # Tool Bridge
+│   │   └── security/     # 安全管理
+│   └── tools/             # Shell 工具腳本
+│       ├── diagnostic/    # 診斷腳本
+│       ├── config/        # 配置腳本
+│       └── remediation/   # 修復腳本
 │
-├── adk-runtime/             # -> 完全獨立的「創新中心」 (Python 專案)
-│   ├── adk/                 # 核心開發套件 (BaseAgent, ToolRegistry...)
-│   ├── agents/              # 所有專家 Agent 的家
-│   └── tools/               # 所有可複用工具的庫
+├── agents/                # 🔥 Python Agent 層
+│   ├── sre_assistant/    # 主助理
+│   │   ├── __init__.py
+│   │   ├── assistant.py  # SREAssistant 實現
+│   │   └── intent.py     # 意圖理解
+│   ├── experts/          # 專家 Agents
+│   │   ├── diagnostic/   # 診斷專家
+│   │   ├── postmortem/   # 複盤專家
+│   │   └── remediation/  # 修復專家
+│   └── framework/        # ADK 框架
+│       ├── base.py       # Agent 基類
+│       ├── tools.py      # Tool 包裝
+│       └── memory.py     # 狀態管理
 │
-├── tests/ 
-├── eval/
-├── deployment/
-├── project.toml
-├── .env.example
-└── Makefile                
+├── deploy/               # 部署配置
+│   ├── docker/          # Docker 相關
+│   ├── k8s/             # Kubernetes 配置
+│   └── compose/         # Docker Compose
+│
+├── tests/               # 測試套件
+│   ├── unit/           # 單元測試
+│   ├── integration/    # 集成測試
+│   └── e2e/            # 端到端測試
+│
+├── docs/                # 文檔
+│   ├── architecture/   # 架構文檔
+│   ├── api/            # API 文檔
+│   └── guides/         # 使用指南
+│
+├── scripts/            # 輔助腳本
+│   ├── setup.sh       # 環境設置
+│   ├── test.sh        # 測試腳本
+│   └── deploy.sh      # 部署腳本
+│
+├── Makefile           # 構建自動化
+├── project.toml       # 專案配置
+├── README.md          # 專案說明
+└── .env.example       # 環境變數範例
 ```
 
-## 1. contracts/ 
-
-- **職責單一**: 這是整個架構中**最重要**的目錄。它用 proto 檔案定義了 Go 和 Python 兩個世界之間唯一的、神聖的通訊協定。  
-- **強制解耦**: 這種設計**從物理上**阻止了 Go 和 Python 之間產生任何直接的、混亂的依賴。任何跨語言的互動，都必須先在這裡進行明確的、深思熟慮的定義。這正是避免技術債的關鍵所在。
-
-
-## 2. orchestrator/
-
-- **職責單一**: 這裡只存放 Go 程式碼，負責平台的核心穩定性、資源管理和安全。  
-- **可預測的擴展**: 在 go-platform/ 內部，我們可以遵循標準的 Go 專案佈局（如 cmd/, internal/, pkg/）。這種內部結構的複雜性被完美地封裝在 go-platform 這個頂層目錄中，不會影響到其他部分。
-
-## 3. adk-runtime/ - 清晰的邊界
-
-- **職責單一**: 這裡只存放 Python 程式碼，負責所有 Agent 的智慧邏輯和快速迭代。  
-- **可預測的擴展**: 這是未來擴展最頻繁的地方，而這種簡潔的頂層結構恰好支持了其內部的有序擴展。一個理想的內部結構會是：
-- 您可以看到，所有的複雜性（多個 Agent、多個 Tool）都被有組織地管理在 python-adk-runtime 這個清晰的邊界之內。
-
-## 4. tests/, eval/, deployment/ - 專業工程實踐的體現
- 
-- tests/: 成為存放**端到端 (End-to-End) 整合測試**的最佳場所。這些測試的職責是驗證 orchestrator 和 adk-runtime 是否能透過 contracts 成功協同工作。  
-- eval/: 預留了**模型評估 (Evaluation)** 的空間。這非常有遠見，因為當我們的 Agent 變得越來越複雜時，我們將需要一個獨立的地方來存放評估腳本、數據集和報告，以客觀地衡量 Agent 的決策品質。  
-- deployment/: 將所有與部署相關的配置（如 Kubernetes YAML, Docker Compose, Terraform）集中管理，使得平台的部署和維運變得標準化和可重複。
-
-## 5. project.toml, .env.example, Makefile - 統一的專案管理
-
-這三個根檔案為整個專案提供了統一的管理入口：  
-
-- project.toml (或 pyproject.toml): 標示著這是一個現代化的 Python 專案，並統一管理 Python 相關的依賴和配置。  
-- .env.example: 為新加入的開發者提供了最清晰的環境變數配置指南。  
-- Makefile: 作為頂層的「總指揮」，提供了如 make test, make build, make deploy 這樣簡潔的、與語言無關的命令，隱藏了底層的複雜性。
-
+1. contracts/: 這是整個架構中**最重要**的目錄。它用 proto 檔案定義了 Go 和 Python 兩個世界之間唯一的、神聖的通訊協定。  
+2. core/: 這裡只存放 Go 程式碼，負責平台的核心穩定性、資源管理和安全。  
+3. agents/: 這裡只存放 Python 程式碼，負責所有 Agent 的智慧邏輯和快速迭代。  
+4. project.toml (或 pyproject.toml): 標示著這是一個現代化的 Python 專案，並統一管理 Python 相關的依賴和配置。  
+5. .env.example: 為新加入的開發者提供了最清晰的環境變數配置指南。  
+6. Makefile: 作為頂層的「總指揮」，提供了如 make test, make build, make deploy 這樣簡潔的、與語言無關的命令，隱藏了底層的複雜性。
 
 ### 核心設計理念
 
