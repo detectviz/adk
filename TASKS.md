@@ -223,10 +223,10 @@ graph TB
 
 ### 7.1 工具執行能力 ✓
 
-- [ ] Shell 腳本可獨立執行
-- [ ] Go Bridge 可調用腳本
-- [ ] Python Agent 可通過 Bridge 調用
-- [ ] 結果可正確解析和返回
+- [x] Shell 腳本可獨立執行
+- [x] Go Bridge 可調用腳本
+- [x] Python Agent 可通過 Bridge 調用
+- [x] 結果可正確解析和返回
 
 ### 7.2 對話推理能力 ✓
 

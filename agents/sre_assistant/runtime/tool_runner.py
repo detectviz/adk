@@ -5,7 +5,7 @@ import os, time
 from typing import Set
 from .structured_logger import info, warn, error
 from .bridge_client import BridgeClient
-from ....contracts.messages.sre_messages import ToolRequest, ToolResponse
+from contracts.messages.sre_messages import ToolRequest, ToolResponse
 
 _DEFAULT_ALLOW = {"bridge.exec"}
 
