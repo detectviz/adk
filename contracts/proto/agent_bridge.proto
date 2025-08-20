@@ -1,0 +1,15 @@
+syntax = "proto3";
+package sre.assistant.v1;
+
+service AgentBridge {
+    rpc ExecuteTool(ToolRequest) returns (ToolResponse);
+    rpc RegisterAgent(AgentInfo) returns (RegisterResponse);
+    rpc HealthCheck(Empty) returns (HealthStatus);
+}
+
+message ToolRequest {
+    string category = 1;
+    string name = 2;
+    repeated string args = 3;
+    map<string, string> metadata = 4;
+}

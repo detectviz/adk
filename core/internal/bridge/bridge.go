@@ -1,10 +1,12 @@
 package bridge
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"time"
 )
 
 type ToolBridge struct {
@@ -15,6 +17,13 @@ type ToolResult struct {
 	Status  string          `json:"status"`
 	Message string          `json:"message"`
 	Data    json.RawMessage `json:"data"`
+}
+
+type ToolExecutor interface {
+	Execute(ctx context.Context, req *ToolRequest) (*ToolResult, error)
+	WithTimeout(duration time.Duration) ToolExecutor
+	WithRetry(attempts int) ToolExecutor
+	WithCircuitBreaker(threshold int) ToolExecutor
 }
 
 // 執行 Shell 腳本工具

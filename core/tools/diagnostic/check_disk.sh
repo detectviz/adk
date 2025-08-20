@@ -14,6 +14,11 @@ output_json() {
 # 主邏輯
 check_disk_usage() {
     local threshold=${1:-80}  # 預設閾值 80%
+ 
+    # 需要添加：
+    # - 參數驗證（是否為數字，範圍檢查）
+    # - 路徑注入防護
+    # - 權限檢查
     
     # 獲取磁碟使用資訊
     disk_info=$(df -h | grep -E '^/dev/' | awk '{print $5" "$6}')
