@@ -1,53 +1,58 @@
+
 syntax = "proto3";
 package sre.assistant.v1;
 
+option go_package = "sre-assistant/contracts/gen/go/sre/assistant/v1;assistantv1";
+
+
+// Agent 與工具的橋接服務
 service AgentBridge {
+    // 執行工具（同步）
     rpc ExecuteTool(ToolRequest) returns (ToolResponse);
+    // 註冊 Agent（可選）
     rpc RegisterAgent(AgentInfo) returns (RegisterResponse);
+    // 健康檢查（可選）
     rpc HealthCheck(Empty) returns (HealthStatus);
+    // 探勘可用工具
+    rpc DiscoverTools(Empty) returns (ToolsResponse);
 }
 
+// ---- 請求與回應 ----
 message ToolRequest {
-    string category = 1;
-    string name = 2;
-    repeated string args = 3;
-    map<string, string> metadata = 4;
+    string category = 1;             // 工具分類：diagnostic/config/remediation
+    string name = 2;                  // 工具名稱（對應檔名）
+    repeated string args = 3;         // 參數（直接傳入腳本）
+    map<string, string> metadata = 4; // 額外上下文（非必填）
 }
 
-message AgentRequest {
-  string agent_id = 1;
-  repeated Observation observations = 2;
-  map<string, string> metadata = 3;
+message ToolResponse {
+    bool success = 1;  // 是否成功（工具邏輯層面）
+    string status = 2; // ok / warning / error / dry_run
+    string message = 3;
+    string data = 4;   // JSON 字串
 }
 
-message AgentResponse {
-  string agent_id = 1;
-  repeated Action actions = 2;
-  StateSnapshot snapshot = 3;
-  string status = 4; // "ok" / "error"
-  string error_message = 5;
+message Empty {}
+
+message AgentInfo {
+    string name = 1;
+    map<string, string> labels = 2;
 }
 
-message Observation {
-  string source = 1;
-  int64 timestamp = 2;
-  string type = 3;
-  bytes payload = 4; // JSON 或二進位資料
+message RegisterResponse {
+    bool ok = 1;
+    string message = 2;
 }
 
-message Action {
-  string name = 1;
-  map<string, string> params = 2;
-  repeated Event events = 3;
+message HealthStatus {
+    string status = 1; // serving / not_serving
+    int64 timestamp = 2;
 }
 
-message Event {
-  string name = 1;
-  int64 timestamp = 2;
-  string detail = 3;
+message ToolsResponse {
+    map<string, ToolList> tools = 1; // 類別 → 工具列表
 }
 
-message StateSnapshot {
-  map<string, string> kv = 1;
-  int64 last_updated = 2;
+message ToolList {
+    repeated string names = 1;
 }

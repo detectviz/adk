@@ -1,33 +1,22 @@
+
 #!/bin/bash
-# 功能：檢查記憶體使用率
+# 功能：檢查記憶體使用率，輸出 JSON 結果
+# 參數：$1 閾值百分比（預設 80）
+set -euo pipefail
 
-set -e
+threshold="${1:-80}"
 
-check_memory_usage() {
-    local threshold=${1:-80}
-    
-    # 獲取記憶體資訊
-    mem_total=$(free -b | grep Mem | awk '{print $2}')
-    mem_used=$(free -b | grep Mem | awk '{print $3}')
-    mem_available=$(free -b | grep Mem | awk '{print $7}')
-    
-    # 計算使用率
-    usage_percent=$((mem_used * 100 / mem_total))
-    
-    # 構建 JSON 結果
-    data="{
-        "total_bytes": $mem_total,
-        "used_bytes": $mem_used,
-        "available_bytes": $mem_available,
-        "usage_percent": $usage_percent
-    }"
-    
-    # 判斷狀態
-    if [ "$usage_percent" -gt "$threshold" ]; then
-        echo "{"status":"warning","message":"Memory usage high","data":$data}"
-    else
-        echo "{"status":"ok","message":"Memory healthy","data":$data}"
-    fi
-}
+mem_total=$(free -m | awk '/Mem:/ {print $2}')
+mem_used=$(free -m | awk '/Mem:/ {print $3}')
+mem_available=$(free -m | awk '/Mem:/ {print $7}')
 
-check_memory_usage "$@"
+usage_percent=$((mem_used * 100 / mem_total))
+
+status="ok"
+message="Memory healthy"
+if [ "$usage_percent" -gt "$threshold" ]; then
+  status="warning"
+  message="Memory usage high"
+fi
+
+printf '{"status":"%s","message":"%s","data":{"total_mb":%s,"used_mb":%s,"available_mb":%s,"usage_percent":%s}}\n'       "$status" "$message" "$mem_total" "$mem_used" "$mem_available" "$usage_percent"

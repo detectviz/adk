@@ -60,3 +60,9 @@ make up
 ```
 
 啟動成功後，您可以透過 ADK Web UI (http://localhost:8000) 開始與您的 SRE Assistant 互動。
+
+
+## SRE Assistant 工具整合
+- 新增工具：Prometheus、Loki、Kubernetes、Alertmanager、Grafana 註記。
+- 環境變數：請參考 `.env.example`。
+- 測試：見 `tests/unit/`，以 `pytest` 搭配 monkeypatch 模擬 HTTP。

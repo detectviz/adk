@@ -1,58 +1,41 @@
+
 #!/bin/bash
-# 功能：檢查磁碟使用率
+# 功能：檢查磁碟使用率，輸出 JSON 結果
+# 參數：$1 閾值百分比（預設 80）
+set -euo pipefail
 
-set -e
+threshold="${1:-80}"
 
-# 標準化輸出格式（JSON）
-output_json() {
-    local status=$1
-    local message=$2
-    local data=$3
-    echo "{"status":"$status","message":"$message","data":$data}"
-}
+# 取得檔案系統使用率（過濾 tmpfs 與 devtmpfs）
+disk_info=$(df -P -x tmpfs -x devtmpfs | awk 'NR>1 {print $6" "$5}' | sed 's/%//')
 
-# 主邏輯
-check_disk_usage() {
-    local threshold=${1:-80}  # 預設閾值 80%
- 
-    # 需要添加：
-    # - 參數驗證（是否為數字，範圍檢查）
-    # - 路徑注入防護
-    # - 權限檢查
-    
-    # 獲取磁碟使用資訊
-    disk_info=$(df -h | grep -E '^/dev/' | awk '{print $5" "$6}')
-    
-    # 構建 JSON 數據
-    data="["
-    first=true
-    while IFS= read -r line; do
-        usage=$(echo $line | awk '{print $1}' | sed 's/%//')
-        mount=$(echo $line | awk '{print $2}')
-        
-        if [ "$first" = true ]; then
-            first=false
-        else
-            data="$data,"
-        fi
-        
-        status="ok"
-        if [ "$usage" -gt "$threshold" ]; then
-            status="warning"
-        fi
-        
-        data="$data{"mount":"$mount","usage":$usage,"status":"$status"}"
-    done <<< "$disk_info"
-    data="$data]"
-    
-    # 判斷整體狀態
-    if echo "$disk_info" | awk '{print $1}' | sed 's/%//' | 
-       awk -v t="$threshold" '{if($1>t) exit 1}'; then
-        output_json "ok" "All disks healthy" "$data"
-    else
-        output_json "warning" "Some disks above threshold" "$data"
-    fi
-}
+status="ok"
+issues=0
+items=()
 
-# 執行
-check_disk_usage "$@"
+while read -r mount usage; do
+  if [ -z "$mount" ]; then
+    continue
+  fi
+  item_status="ok"
+  if [ "$usage" -ge "$threshold" ]; then
+    item_status="warning"
+    status="warning"
+    issues=$((issues+1))
+  fi
+  items+=( "{"mount":"$mount","usage_percent":$usage,"status":"$item_status"}" )
+done <<< "$disk_info"
+
+data="["
+if [ ${#items[@]} -gt 0 ]; then
+  data="${data}$(IFS=,; echo "${items[*]}")"
+fi
+data="${data}]"
+
+message="All disks healthy"
+if [ "$status" != "ok" ]; then
+  message="Some disks above threshold"
+fi
+
+# 輸出單行 JSON（保持與 ToolBridge 約定一致）
+printf '{"status":"%s","message":"%s","data":%s}\n' "$status" "$message" "$data"

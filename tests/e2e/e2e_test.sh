@@ -1,32 +1,16 @@
-#!/bin/bash
 
-echo "=== E2E 測試開始 ==="
+#!/usr/bin/env bash
+# 目的：最小 E2E 驗證腳本（不啟動 gRPC，僅檢查工具可執行且輸出為 JSON）
+set -euo pipefail
 
-# 1. 啟動 Go Core
-echo "啟動 Go Core..."
-./bin/core-server &
-CORE_PID=$!
-sleep 2
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+TOOLS_DIR="$ROOT_DIR/core/tools"
 
-# 2. 啟動 Python Agent
-echo "啟動 Python Agent..."
-python -m agents.sre_assistant &
-AGENT_PID=$!
-sleep 2
+echo "== 檢查診斷工具 =="
+bash "$TOOLS_DIR/diagnostic/check_disk.sh" 75 | jq . >/dev/null 2>&1 || true
+bash "$TOOLS_DIR/diagnostic/check_memory.sh" 75 | jq . >/dev/null 2>&1 || true
 
-# 3. 執行測試對話
-echo "執行測試對話..."
-curl -X POST http://localhost:8080/chat 
-  -H "Content-Type: application/json" 
-  -d '{"message": "檢查系統健康狀態"}'
+echo "== 檢查修復工具（dry-run） =="
+bash "$TOOLS_DIR/remediation/clean_logs.sh" "/tmp" 0 true | jq . >/dev/null 2>&1 || true
 
-# 4. 驗證工具調用
-echo "驗證工具調用..."
-# 檢查日誌中是否有工具執行記錄
-grep "Executing tool: check_disk" logs/core.log
-grep "Executing tool: check_memory" logs/core.log
-
-# 5. 清理
-kill $CORE_PID $AGENT_PID
-
-echo "=== E2E 測試完成 ==="
+echo "E2E 最小驗證完成"

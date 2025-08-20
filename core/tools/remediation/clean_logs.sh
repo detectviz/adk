@@ -1,29 +1,29 @@
+
 #!/bin/bash
-# 功能：清理日誌文件
+# 功能：清理指定目錄中的舊日誌（*.log），輸出 JSON 結果
+# 參數：$1 日誌目錄（預設 /var/log）
+#      $2 天數（預設 30）
+#      $3 是否為模擬模式 dry_run=true|false（預設 false）
+set -euo pipefail
 
-set -e
+log_dir="${1:-/var/log}"
+days="${2:-30}"
+dry_run="${3:-false}"
 
-clean_logs() {
-    local log_dir=${1:-/var/log}
-    local days=${2:-30}
-    local dry_run=${3:-false}
-    
-    # 查找舊日誌
-    old_logs=$(find "$log_dir" -name "*.log" -type f -mtime +$days)
-    count=$(echo "$old_logs" | wc -l)
-    
-    if [ "$dry_run" = "true" ]; then
-        # 模擬模式
-        echo "{"status":"dry_run","message":"Would delete $count files","data":{"files":$count}}"
-    else
-        # 實際清理
-        if [ -n "$old_logs" ]; then
-            echo "$old_logs" | xargs rm -f
-            echo "{"status":"ok","message":"Cleaned $count log files","data":{"files":$count}}"
-        else
-            echo "{"status":"ok","message":"No old logs to clean","data":{"files":0}}"
-        fi
-    fi
-}
+mapfile -t files < <(find "$log_dir" -type f -name "*.log" -mtime +$days 2>/dev/null || true)
+count="${#files[@]}"
 
-clean_logs "$@"
+if [ "$dry_run" = "true" ]; then
+  printf '{"status":"dry_run","message":"Would delete %s files","data":{"files":%s}}\n' "$count" "$count"
+  exit 0
+fi
+
+if [ "$count" -gt 0 ]; then
+  # 逐一刪除避免引號問題
+  for f in "${files[@]}"; do
+    rm -f -- "$f"
+  done
+  printf '{"status":"ok","message":"Cleaned %s log files","data":{"files":%s}}\n' "$count" "$count"
+else
+  printf '{"status":"ok","message":"No old logs to clean","data":{"files":0}}\n'
+fi
