@@ -4,7 +4,7 @@
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
 from .runtime.tool_runner import ToolRunner
-from ...contracts.messages.sre_messages import ToolRequest
+from contracts.messages.sre_messages import ToolRequest
 
 @dataclass
 class IncidentInput:
