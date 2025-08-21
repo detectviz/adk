@@ -1,4 +1,4 @@
-"""Basic evalualtion for Machine Learning Engineering Agent"""
+"""機器學習工程代理的基本評估"""
 
 import pathlib
 
@@ -19,7 +19,7 @@ def load_env():
 
 @pytest.mark.asyncio
 async def test_basic_interaction():
-    """Test the agent's basic ability on a few examples."""
+    """在幾個範例上測試代理的基本能力。"""
     await AgentEvaluator.evaluate(
         "machine_learning_engineering",
         str(pathlib.Path(__file__).parent / "./simple.test.json"),

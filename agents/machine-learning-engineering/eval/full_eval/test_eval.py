@@ -1,4 +1,4 @@
-"""Basic evalualtion for Machine Learning Engineering Agent"""
+"""機器學習工程代理的基本評估"""
 
 import pathlib
 
@@ -19,7 +19,7 @@ def load_env():
 
 @pytest.mark.asyncio
 async def test_full_interaction(monkeypatch):
-    """Test the agent's full ability on a task."""
+    """測試代理在任務上的完整能力。"""
     monkeypatch.setattr(config.CONFIG, "exec_timeout", 30)
     await AgentEvaluator.evaluate(
         "machine_learning_engineering",

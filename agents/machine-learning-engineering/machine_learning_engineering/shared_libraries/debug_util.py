@@ -1,4 +1,4 @@
-"""Utility functions for debug agents."""
+"""除錯代理的公用程式函式。"""
 
 from typing import Optional
 import functools
@@ -20,7 +20,7 @@ from machine_learning_engineering.shared_libraries import config
 def check_rollback(
     callback_context: callback_context_module.CallbackContext,
 ) -> Optional[types.Content]:
-    """Checks if rollback is needed and updates related states."""
+    """檢查是否需要回滾並更新相關狀態。"""
     agent_name = callback_context.agent_name
     if agent_name.startswith("ablation"):
         return None
@@ -31,7 +31,7 @@ def check_rollback(
     )
     result_dict = callback_context.state.get(code_execution_result_state_key, {})
     if result_dict.get("returncode", 1) == 1:
-        # Rollback is needed
+        # 需要回滾
         callback_context.state[code_execution_result_state_key] = {}
     return None
 
@@ -41,7 +41,7 @@ def get_bug_summary(
     llm_response: llm_response_module.LlmResponse,
     prefix: str,
 ) -> Optional[llm_response_module.LlmResponse]:
-    """Gets the bug summary."""
+    """獲取錯誤摘要。"""
     response_text = common_util.get_text_from_response(llm_response)
     clean_bug = response_text.replace("```", "")
     suffix = code_util.get_updated_suffix(callback_context=callback_context)
@@ -59,7 +59,7 @@ def skip_bug_summary(
     llm_request: llm_request_module.LlmRequest,
     prefix: str,
 ) -> Optional[llm_response_module.LlmResponse]:
-    """Skips the bug summary if there are no bugs."""
+    """如果沒有錯誤，則跳過錯誤摘要。"""
     agent_name = callback_context.agent_name
     suffix = code_util.get_updated_suffix(callback_context=callback_context)
     code_execution_result_state_key = code_util.get_code_execution_result_state_key(
@@ -82,7 +82,7 @@ def check_bug_existence(
     callback_context: callback_context_module.CallbackContext,
     llm_request: llm_request_module.LlmRequest,
 ) -> Optional[llm_response_module.LlmResponse]:
-    """Checks if a bug exists in the code."""
+    """檢查程式碼中是否存在錯誤。"""
     agent_name = callback_context.agent_name
     suffix = code_util.get_updated_suffix(callback_context=callback_context)
     code_execution_result_state_key = code_util.get_code_execution_result_state_key(
@@ -98,7 +98,7 @@ def check_bug_existence(
 def get_bug_summary_agent_instruction(
     context: callback_context_module.ReadonlyContext,
 ) -> str:
-    """Gets the bug summary agent instruction."""
+    """獲取錯誤摘要代理的指令。"""
     agent_name = context.agent_name
     suffix = code_util.get_updated_suffix(callback_context=context)
     code_execution_result_state_key = code_util.get_code_execution_result_state_key(
@@ -128,7 +128,7 @@ def get_bug_summary_agent_instruction(
     elif agent_name.startswith("submission"):
         filename = "final_solution.py"
     else:
-        raise ValueError(f"Unexpected agent name: {agent_name}.")
+        raise ValueError(f"非預期的代理名稱：{agent_name}。")
     bug = result_dict.get("stderr", "")
     return debug_prompt.BUG_SUMMARY_INSTR.format(
         bug=bug,
@@ -140,7 +140,7 @@ def get_debug_agent_instruction(
     context: callback_context_module.ReadonlyContext,
     prefix: str,
 ) -> str:
-    """Gets the debug agent instruction."""
+    """獲取除錯代理的指令。"""
     task_description = context.state.get("task_description", "")
     agent_name = context.agent_name
     suffix = code_util.get_updated_suffix(callback_context=context)
@@ -167,7 +167,7 @@ def get_code_from_response(
     llm_response: llm_response_module.LlmResponse,
     do_eval: bool = True,
 ) -> Optional[llm_response_module.LlmResponse]:
-    """Gets the code from the response."""
+    """從回應中獲取程式碼。"""
     response_text = common_util.get_text_from_response(llm_response)
     code = response_text.replace("```python", "").replace("```", "")
     agent_name = callback_context.agent_name
@@ -205,7 +205,7 @@ def get_debug_inner_loop_agent(
     prefix: str,
     suffix: str,
 ) -> agents.LoopAgent:
-    """Gets the debug_inner_loop_agent."""
+    """獲取 debug_inner_loop_agent。"""
     bug_summary_agent = agents.Agent(
         model=config.CONFIG.agent_model,
         name=code_util.get_name_with_prefix_and_suffix(
@@ -213,7 +213,7 @@ def get_debug_inner_loop_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description="Summarize the bug of the code.",
+        description="總結程式碼的錯誤。",
         instruction=get_bug_summary_agent_instruction,
         before_model_callback=functools.partial(
             skip_bug_summary,
@@ -235,7 +235,7 @@ def get_debug_inner_loop_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description="Debug the given code.",
+        description="對給定的程式碼進行除錯。",
         instruction=functools.partial(
             get_debug_agent_instruction,
             prefix=prefix,
@@ -254,7 +254,7 @@ def get_debug_inner_loop_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description="Debug the given code until it succeeds.",
+        description="對給定的程式碼進行除錯，直到成功為止。",
         sub_agents=[debug_agent],
         max_iterations=config.CONFIG.max_debug_round,
     )
@@ -264,7 +264,7 @@ def get_debug_inner_loop_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description="Debug the given code until it succeeds.",
+        description="對給定的程式碼進行除錯，直到成功為止。",
         sub_agents=[
             bug_summary_agent,
             debug_loop_agent,
@@ -281,7 +281,7 @@ def get_run_and_debug_agent(
     instruction_func: agents.llm_agent.InstructionProvider,
     before_model_callback: Optional[agents.llm_agent.BeforeModelCallback],
 ) -> agents.LoopAgent:
-    """Gets the run and debug agent."""
+    """獲取執行和除錯代理。"""
     if prefix.startswith("ensemble_plan_implement"):
         use_data_leakage_checker = False
     else:
@@ -293,7 +293,7 @@ def get_run_and_debug_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description=f"{agent_description}.",
+        description=f"{agent_description}。",
         instruction=instruction_func,
         before_model_callback=before_model_callback,
         after_model_callback=functools.partial(
@@ -312,7 +312,7 @@ def get_run_and_debug_agent(
             suffix=suffix,
         )
         run_sequential_sub_agents.append(data_leakage_checker_agent)
-        additional_agent_description = " and check if there are data leakage issues"
+        additional_agent_description = " 並檢查是否存在資料洩漏問題"
     else:
         additional_agent_description = ""
     run_sequential_agent = agents.SequentialAgent(
@@ -321,7 +321,7 @@ def get_run_and_debug_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description=f"{agent_description}{additional_agent_description}.",
+        description=f"{agent_description}{additional_agent_description}。",
         sub_agents=run_sequential_sub_agents,
     )
     run_loop_agent = agents.LoopAgent(
@@ -331,7 +331,7 @@ def get_run_and_debug_agent(
             suffix=suffix,
         ),
         description=(
-            f"{agent_description} until it succeeds."
+            f"{agent_description} 直到成功為止。"
         ),
         sub_agents=[run_sequential_agent],
         max_iterations=config.CONFIG.max_retry,
@@ -346,7 +346,7 @@ def get_run_and_debug_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description=f"{agent_description} and debug the code.",
+        description=f"{agent_description} 並對程式碼進行除錯。",
         sub_agents=[
             run_loop_agent,
             debug_inner_loop_agent,
@@ -359,7 +359,7 @@ def get_run_and_debug_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description=f"{agent_description} and debug the code until it succeeds.",
+        description=f"{agent_description} 並對程式碼進行除錯，直到成功為止。",
         sub_agents=[run_and_debug_sequential_agent],
         max_iterations=config.CONFIG.max_rollback_round,
     )

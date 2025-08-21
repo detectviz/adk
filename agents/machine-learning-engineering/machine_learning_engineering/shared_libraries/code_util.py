@@ -1,4 +1,4 @@
-"""Code related utility functions."""
+"""程式碼相關的公用程式函式。"""
 
 from typing import Any
 import subprocess
@@ -47,7 +47,7 @@ def run_python_code(
 
 
 def extract_performance_from_text(text: str) -> float | None:
-    """Extracts the final validation performance score from the text."""
+    """從文字中提取最終驗證性能分數。"""
     lines = text.splitlines()
     performance_value = None
     for line in lines:
@@ -67,7 +67,7 @@ def get_name_with_prefix_and_suffix(
     prefix: str = "",
     suffix: str = "",
 ) -> str:
-    """Gets the name with the specified prefix and suffix."""
+    """獲取帶有指定前綴和後綴的名稱。"""
     new_name = base_name
     if prefix:
         new_name = prefix + "_" + new_name
@@ -79,7 +79,7 @@ def get_name_with_prefix_and_suffix(
 def get_updated_suffix(
     callback_context: callback_context_module.CallbackContext,
 ) -> str:
-    """Gets the suffix string."""
+    """獲取後綴字串。"""
     agent_name = callback_context.agent_name
     if agent_name.startswith("model_eval"):
         model_id = agent_name.split("_")[-1]
@@ -107,7 +107,7 @@ def get_updated_suffix(
     elif agent_name.startswith("submission"):
         suffix = ""
     else:
-        raise ValueError(f"Unexpected agent name: {agent_name}.")
+        raise ValueError(f"非預期的代理名稱：{agent_name}。")
     return suffix
 
 
@@ -115,7 +115,7 @@ def get_code_state_key(
     agent_name: str,
     suffix: str,
 ) -> str:
-    """Gets the state key for the code."""
+    """獲取程式碼的狀態鍵。"""
     if agent_name.startswith("model_eval"):
         key = f"init_code_{suffix}"
     elif agent_name.startswith("merger"):
@@ -131,7 +131,7 @@ def get_code_state_key(
     elif agent_name.startswith("submission"):
         key = "submission_code"
     else:
-        raise ValueError(f"Unexpected agent name: {agent_name}.")
+        raise ValueError(f"非預期的代理名稱：{agent_name}。")
     return key
 
 
@@ -139,7 +139,7 @@ def get_code_execution_result_state_key(
     agent_name: str,
     suffix: str,
 ) -> str:
-    """Gets the state key for the code execution result."""
+    """獲取程式碼執行結果的狀態鍵。"""
     if agent_name.startswith("model_eval"):
         key = f"init_code_exec_result_{suffix}"
     elif agent_name.startswith("merger"):
@@ -155,7 +155,7 @@ def get_code_execution_result_state_key(
     elif agent_name.startswith("submission"):
         key = "submission_code_exec_result"
     else:
-        raise ValueError(f"Unexpected agent name: {agent_name}.")
+        raise ValueError(f"非預期的代理名稱：{agent_name}。")
     return key
 
 
@@ -163,7 +163,7 @@ def get_run_code_condition(
     agent_name: str,
     raw_code: str,
 ) -> bool:
-    """Gets the condition for running the code."""
+    """獲取執行程式碼的條件。"""
     if agent_name.startswith("ensemble_plan_implement"):
         if "debug_agent" not in agent_name:
             return True
@@ -187,7 +187,7 @@ def get_run_code_condition(
 def evaluate_code(
     callback_context: callback_context_module.CallbackContext,
 ) -> None:
-    """Evaluates the given code."""
+    """評估給定的程式碼。"""
     lower = callback_context.state.get("lower", True)
     exec_timeout = callback_context.state.get("exec_timeout", 1800)
     agent_name = callback_context.agent_name
@@ -224,7 +224,7 @@ def evaluate_code(
         task_id = "ensemble"
         py_filepath = "final_solution.py"
     else:
-        raise ValueError(f"Unexpected agent name: {agent_name}.")
+        raise ValueError(f"非預期的代理名稱：{agent_name}。")
     if get_run_code_condition(
         agent_name=agent_name,
         raw_code=raw_code,

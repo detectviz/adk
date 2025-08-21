@@ -1,65 +1,65 @@
-"""Defines the prompts for the ensemble agent."""
+"""定義集成 (ensemble) 代理的提示。"""
 
 
-INIT_ENSEMBLE_PLAN_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- We will now provide {num_solutions} Python Solutions used for the competiton.
-- Your task is to propose a plan to ensemble the {num_solutions} solutions to achieve the best performance.
-
-{python_solutions}
-
-# Your task
-- Suggest a plan to ensemble the {num_solutions} solutions. You should concentrate how to merge, not the other parts like hyperparameters.
-- The suggested plan should be easy to novel, effective, and easy to implement.
-- All the provided data is already prepared and available in the `./input` directory. There is no need to unzip any files.
-
-# Respone format
-- Your response should be an outline/sketch of your proposed solution in natural language.
-- There should be no additional headings or text in your response.
-- Plan should not modify the original solutions too much since exeuction error can occur."""
-
-ENSEMBLE_PLAN_IMPLEMENT_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- In order to win this competition, you need to ensemble {num_solutions} Python Solutions for better performance based on the ensemble plan.
-- We will now provide the Python Solutions and the ensemble plan.
+INIT_ENSEMBLE_PLAN_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 我們現在將提供 {num_solutions} 個用於競賽的 Python 解決方案。
+- 您的任務是提出一個計畫，對這 {num_solutions} 個解決方案進行集成，以達到最佳性能。
 
 {python_solutions}
 
-# Ensemble Plan
+# 您的任務
+- 建議一個計畫來集成這 {num_solutions} 個解決方案。您應該專注於如何合併，而不是像超參數等其他部分。
+- 建議的計畫應該易於創新、有效且易於實作。
+- 所有提供的資料都已準備好並可在 `./input` 目錄中找到。無需解壓縮任何檔案。
+
+# 回應格式
+- 您的回應應該是您提議的解決方案的自然語言大綱/草圖。
+- 您的回應中不應有額外的標題或文字。
+- 計畫不應過度修改原始解決方案，因為可能會發生執行錯誤。"""
+
+ENSEMBLE_PLAN_IMPLEMENT_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 為了贏得這場競賽，您需要根據集成計畫對 {num_solutions} 個 Python 解決方案進行集成以獲得更好的性能。
+- 我們現在將提供 Python 解決方案和集成計畫。
+
+{python_solutions}
+
+# 集成計畫
 {plan}
 
-# Your task
-- Implement the ensemble plan with the provided solutions.
-- Unless mentioned in the ensemble plan, do not modify the origianl Python Solutions too much.
-- All the provided data is already prepared and available in the `./input` directory. There is no need to unzip any files.
-- The code should implement the proposed solution and print the value of the evaluation metric computed on a hold-out validation set.
+# 您的任務
+- 使用提供的解決方案實作集成計畫。
+- 除非集成計畫中提及，否則不要過度修改原始的 Python 解決方案。
+- 所有提供的資料都已準備好並可在 `./input` 目錄中找到。無需解壓縮任何檔案。
+- 程式碼應實作提議的解決方案，並印出在保留驗證集上計算的評估指標值。
 
-# Response format required
-- Your response should be a single markdown code block (wrapped in ```) which is the ensemble of {num_solutions} Python Solutions.
-- There should be no additional headings or text in your response.
-- Do not modify original Python Solutions especially the submission part due to formatting issue of submission.csv.
-- Do not subsample or introduce dummy variables. You have to provide full new Python Solution using the {num_solutions} provided solutions.
-- Print out or return a final performance metric in your answer in a clear format with the exact words: 'Final Validation Performance: {{final_validation_score}}'.
-- The code should be a single-file Python program that is self-contained and can be executed as-is.
-- Do not modify the original codes too much and implement the plan since new errors can occur."""
+# 必要的回應格式
+- 您的回應應該是一個單一的 markdown 程式碼區塊（用 ``` 包裹），這是 {num_solutions} 個 Python 解決方案的集成。
+- 您的回應中不應有額外的標題或文字。
+- 由於 submission.csv 的格式問題，請勿修改原始 Python 解決方案，尤其是提交部分。
+- 不要進行二次取樣或引入虛擬變數。您必須使用提供的 {num_solutions} 個解決方案提供一個完整的新 Python 解決方案。
+- 在您的答案中以清晰的格式印出或返回最終性能指標，並使用確切的詞語：'Final Validation Performance: {{final_validation_score}}'。
+- 程式碼應該是一個獨立的、可以按原樣執行的單一檔案 Python 程式。
+- 不要過度修改原始程式碼並實作計畫，因為可能會出現新的錯誤。"""
 
-ENSEMBLE_PLAN_REFINE_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- In order to win this competition, you have to ensemble {num_solutions} Python Solutions for better performance.
-- We will provide the Python Solutions and the ensemble plans you have tried.
+ENSEMBLE_PLAN_REFINE_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 為了贏得這場競賽，您必須集成 {num_solutions} 個 Python 解決方案以獲得更好的性能。
+- 我們將提供您已嘗試過的 Python 解決方案和集成計畫。
 
 {python_solutions}
 
-# Ensemble plans you have tried
+# 您已嘗試過的集成計畫
 
 {prev_plans_and_scores}
 
-# Your task
-- Suggest a better plan to ensemble the {num_solutions} solutions. You should concentrate how to merge, not the other parts like hyperparameters.
-- The suggested plan must be easy to implement, novel, and effective.
-- The suggested plan should be differ from the previous plans you have tried and should receive a {criteria} score.
+# 您的任務
+- 建議一個更好的計畫來集成這 {num_solutions} 個解決方案。您應該專注於如何合併，而不是像超參數等其他部分。
+- 建議的計畫必須易於實作、新穎且有效。
+- 建議的計畫應與您之前嘗試過的計畫不同，並應獲得 {criteria} 的分數。
 
-# Response format
-- Your response should be an outline/sketch of your proposed solution in natural language.
-- There should be no additional headings or text in your response.
-- Plan should not modify the original solutions too much since exeuction error can occur."""
+# 回應格式
+- 您的回應應該是您提議的解決方案的自然語言大綱/草圖。
+- 您的回應中不應有額外的標題或文字。
+- 計畫不應過度修改原始解決方案，因為可能會發生執行錯誤。"""

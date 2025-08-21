@@ -1,36 +1,36 @@
-"""Defines the prompts for data leakage checker."""
+"""定義資料洩漏檢查器的提示。"""
 
-CHECK_LEAKAGE_INSTR = """# Python code
+CHECK_LEAKAGE_INSTR = """# Python 程式碼
 ```python
 {code}
 ```
 
-# Your task
-- Extract the code block where the validation and test samples are preprocessed using training samples.
-- Check that the model is trained with only training samples.
-- Check that before printing the final validation score, the model is not trained the validation samples.
-- Also check whether the validation and test samples are preprocessed correctly, preventing information from the validation or test samples from influencing the training process (i.e., preventing data leakage).
+# 您的任務
+- 提取使用訓練樣本對驗證和測試樣本進行預處理的程式碼區塊。
+- 檢查模型是否僅使用訓練樣本進行訓練。
+- 檢查在印出最終驗證分數之前，模型沒有使用驗證樣本進行訓練。
+- 同時檢查驗證和測試樣本是否被正確預處理，以防止來自驗證或測試樣本的資訊影響訓練過程（即防止資料洩漏）。
 
-# Requirement
-- If data leakage is present on validation and test samples, answer 'Yes Data Leakage'.
-- If data leakage is not present on validation and test samples, answer 'No Data Leakage'.
+# 需求
+- 如果驗證和測試樣本上存在資料洩漏，請回答 'Yes Data Leakage'。
+- 如果驗證和測試樣本上不存在資料洩漏，請回答 'No Data Leakage'。
 
-Use this JSON schema:
+使用此 JSON 結構描述：
 Answer = {{'leakage_status': str, 'code_block': str}}
-Return: list[Answer]
+返回: list[Answer]
 """
 
-LEAKAGE_REFINE_INSTR = """# Python code
+LEAKAGE_REFINE_INSTR = """# Python 程式碼
 ```python
 {code}
 ```
 
-# Your task
-- In the above Python code, the validation and test samples are influencing the training process, i.e., not correctly preprocessed.
-- Ensure that the model is trained with only training samples.
-- Ensure that before printing the final validation score, the model is not trained on the validation samples.
-- Refine the code to prevent such data leakage problem.
+# 您的任務
+- 在上面的 Python 程式碼中，驗證和測試樣本正在影響訓練過程，即未被正確預處理。
+- 確保模型僅使用訓練樣本進行訓練。
+- 確保在印出最終驗證分數之前，模型沒有在驗證樣本上進行訓練。
+- 優化程式碼以防止此類資料洩漏問題。
 
-# Requirement
-- Your response should be a single markdown code block.
-- Note that all the variables are defined earlier. Just modify it with the above code."""
+# 需求
+- 您的回應應該是一個單一的 markdown 程式碼區塊。
+- 請注意，所有變數都已在前面定義。只需根據上面的程式碼進行修改。"""

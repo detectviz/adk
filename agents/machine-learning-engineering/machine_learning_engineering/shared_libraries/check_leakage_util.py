@@ -1,4 +1,4 @@
-"""Utility functions for leakage check agent."""
+"""洩漏檢查代理的公用程式函式。"""
 
 from typing import Optional
 import json
@@ -19,7 +19,7 @@ from machine_learning_engineering.shared_libraries import config
 def get_check_leakage_agent_instruction(
     context: callback_context_module.ReadonlyContext,
 ) -> str:
-    """Gets the check leakage agent instruction."""
+    """獲取檢查洩漏代理的指令。"""
     agent_name = context.agent_name
     suffix = code_util.get_updated_suffix(callback_context=context)
     code_state_key = code_util.get_code_state_key(
@@ -35,7 +35,7 @@ def get_check_leakage_agent_instruction(
 def get_refine_leakage_agent_instruction(
     context: callback_context_module.ReadonlyContext,
 ) -> str:
-    """Gets the refine leakage agent instruction."""
+    """獲取優化洩漏代理的指令。"""
     agent_name = context.agent_name
     suffix = code_util.get_updated_suffix(callback_context=context)
     code_state_key = code_util.get_code_state_key(
@@ -49,7 +49,7 @@ def get_refine_leakage_agent_instruction(
 
 
 def parse_leakage_status(text: str) -> tuple[str, str]:
-    """Parses the leakage status from the text."""
+    """從文字中解析洩漏狀態。"""
     start_idx, end_idx = text.find("["), text.rfind("]")+1
     text = text[start_idx:end_idx]
     result = json.loads(text)[0]
@@ -63,7 +63,7 @@ def update_extract_status(
     llm_response: llm_response_module.LlmResponse,
     prefix: str,
 ) -> Optional[llm_response_module.LlmResponse]:
-    """Updates the status of extraction."""
+    """更新提取狀態。"""
     response_text = common_util.get_text_from_response(llm_response)
     agent_name = callback_context.agent_name
     suffix = code_util.get_updated_suffix(callback_context=callback_context)
@@ -109,7 +109,7 @@ def check_extract_status(
     llm_request: llm_request_module.LlmRequest,
     prefix: str,
 ) -> Optional[llm_response_module.LlmResponse]:
-    """Checks the status of extraction."""
+    """檢查提取狀態。"""
     suffix = code_util.get_updated_suffix(callback_context=callback_context)
     extract_status_key = code_util.get_name_with_prefix_and_suffix(
         base_name="extract_status",
@@ -133,7 +133,7 @@ def replace_leakage_code(
     llm_response: llm_response_module.LlmResponse,
     prefix: str,
 ) -> Optional[llm_response_module.LlmResponse]:
-    """Replace the code block that has the data leakage issue."""
+    """取代存在資料洩漏問題的程式碼區塊。"""
     response_text = common_util.get_text_from_response(llm_response)
     refined_code_block = response_text.replace("```python", "").replace("```", "")
     agent_name = callback_context.agent_name
@@ -160,7 +160,7 @@ def check_data_leakage(
     llm_request: llm_request_module.LlmRequest,
     prefix: str,
 ) -> Optional[llm_response_module.LlmResponse]:
-    """Checks if the code has the data leakage issue."""
+    """檢查程式碼是否存在資料洩漏問題。"""
     suffix = code_util.get_updated_suffix(callback_context=callback_context)
     leakage_status_key = code_util.get_name_with_prefix_and_suffix(
         base_name="leakage_status",
@@ -183,7 +183,16 @@ def get_data_leakage_checker_agent(
     prefix: str,
     suffix: str,
 ) -> agents.SequentialAgent:
-    """Gets the data leakage checker agent."""
+    """
+    建構並返回一個用於檢查和修正資料洩漏問題的循序代理。
+
+    這個代理包含兩個主要部分：
+    1.  一個迴圈代理 (`check_leakage_loop_agent`)，它會反覆執行 `check_leakage_agent`
+        來偵測程式碼中是否存在資料洩漏，直到成功提取出洩漏狀態為止。
+    2.  一個 `refine_leakage_agent`，如果偵測到洩漏，它會根據指令來修正程式碼。
+
+    這個組合代理確保了在繼續執行之前，能夠識別並處理潛在的資料洩漏問題。
+    """
     check_leakage_agent = agents.Agent(
         model=config.CONFIG.agent_model,
         name=code_util.get_name_with_prefix_and_suffix(
@@ -191,7 +200,7 @@ def get_data_leakage_checker_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description="Check if the code has the data leakage issue.",
+        description="檢查程式碼是否存在資料洩漏問題。",
         instruction=get_check_leakage_agent_instruction,
         before_model_callback=functools.partial(
             check_extract_status,
@@ -212,7 +221,7 @@ def get_data_leakage_checker_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description="Check if the code has the data leakage issue until extraction succeeds.",
+        description="檢查程式碼是否存在資料洩漏問題，直到提取成功為止。",
         sub_agents=[
             check_leakage_agent,
         ],
@@ -225,7 +234,7 @@ def get_data_leakage_checker_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description="Refine the code to address the data leakage issue.",
+        description="優化程式碼以解決資料洩漏問題。",
         instruction=get_refine_leakage_agent_instruction,
         before_model_callback=functools.partial(
             check_data_leakage,
@@ -243,7 +252,7 @@ def get_data_leakage_checker_agent(
             prefix=prefix,
             suffix=suffix,
         ),
-        description="Check and refine the code to address the data leakage issue.",
+        description="檢查並優化程式碼以解決資料洩漏問題。",
         sub_agents=[
             check_leakage_loop_agent,
             refine_leakage_agent,
