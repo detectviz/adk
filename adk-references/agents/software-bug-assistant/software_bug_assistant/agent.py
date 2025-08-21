@@ -12,6 +12,9 @@
 # 請參閱授權以了解特定語言下的權限和
 # 限制。
 
+# 此檔案定義了主要的「軟體助理」代理 (Agent)。
+# 它匯入了代理所需的指令、所有可用的工具，並將它們組合在一起以建立一個 Agent 實例。
+
 from google.adk.agents import Agent
 
 from .prompt import agent_instruction

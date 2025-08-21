@@ -40,6 +40,7 @@ def get_current_date() -> dict:
 
 
 # ----- 內建工具範例 -----
+# 建立一個專門用於 Google 搜尋的子代理 (sub-agent)
 search_agent = Agent(
     model="gemini-2.5-flash",
     name="search_agent",
@@ -49,14 +50,17 @@ search_agent = Agent(
     tools=[google_search],
 )
 
+# 將子代理包裝成一個工具，供主代理使用
 search_tool = AgentTool(search_agent)
 
 # ----- 第三方工具 (LangChainTool) 範例 -----
+# 初始化 Stack Exchange API 包裝器
 stack_exchange_tool = StackExchangeTool(api_wrapper=StackExchangeAPIWrapper())
 # 使用 LangchainTool 將 LangChain 工具轉換為 ADK 工具
 langchain_tool = LangchainTool(stack_exchange_tool)
 
 # ----- Google Cloud 工具 (MCP Toolbox for Databases) 範例 -----
+# 從環境變數取得 Toolbox 伺服器的 URL，預設為本機
 TOOLBOX_URL = os.getenv("MCP_TOOLBOX_URL", "http://127.0.0.1:5000")
 
 # 初始化 Toolbox 用戶端
@@ -66,6 +70,7 @@ toolbox_tools = toolbox.load_toolset("tickets_toolset")
 
 
 # ----- MCP 工具 (streamable-http) 範例 -----
+# 建立一個 MCP 工具集，用於與 GitHub MCP 伺服器互動
 mcp_tools = MCPToolset(
     connection_params=StreamableHTTPConnectionParams(
         url="https://api.githubcopilot.com/mcp/",
@@ -73,7 +78,7 @@ mcp_tools = MCPToolset(
             "Authorization": "Bearer " + os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"),
         },
     ),
-    # 唯讀工具
+    # 篩選要使用的工具，這裡只使用唯讀的工具
     tool_filter=[
         "search_repositories",
         "search_issues",
