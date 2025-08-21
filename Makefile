@@ -21,3 +21,22 @@ e2e:
 
 accept:
 	bash scripts/accept_v141.sh
+
+
+adk-web:
+	python -m pip install -q 'google-adk[web]' google-genai
+	python adk_web_server.py
+
+dev-full:
+	python -m pip install -q 'google-adk[web]' google-genai fastapi uvicorn
+	# 背景啟動 REST API
+	uvicorn sre_assistant.server.app:app --host 0.0.0.0 --port 8000 &
+	# 前景啟動 ADK Web Dev UI
+	python adk_web_server.py
+
+
+obs-up:
+	docker compose -f obs/docker-compose.yml up -d
+
+obs-down:
+	docker compose -f obs/docker-compose.yml down -v

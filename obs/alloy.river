@@ -1,0 +1,60 @@
+
+// -*- river -*-
+// Grafana Alloy 設定：接收 OTLP（4317 gRPC / 4318 HTTP），輸出到 Tempo（traces）、Mimir（metrics via remote_write）、Loki（logs）、Pyroscope（profiles）
+
+otelcol.receiver.otlp "from_app" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+}
+
+otelcol.processor.batch "default" {}
+otelcol.processor.memory_limiter "default" {
+  check_interval = "2s"
+  limit_mib = 512
+  spike_limit_mib = 128
+}
+
+// traces → Tempo
+otelcol.exporter.otlp "to_tempo" {
+  client {
+    endpoint = "http://tempo:4317"
+    tls { insecure = true }
+  }
+  retry_on_failure { enabled = true }
+}
+
+// metrics → Mimir (Prometheus remote_write API)
+otelcol.exporter.prometheusremotewrite "to_mimir" {
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+  }
+}
+
+// logs → Loki
+otelcol.exporter.loki "to_loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+  default_labels_enabled = true
+}
+
+// profiles → Pyroscope（採直接 agent → server 更佳；此處保留寫入匯出器以供其他來源）
+pyroscope.write "to_pyro" {
+  endpoint {
+    url = "http://pyroscope:4040"
+  }
+}
+
+// OpenTelemetry Collector service pipelines
+otelcol.service "main" {
+  pipelines {
+    traces  = [otelcol.receiver.otlp.from_app, otelcol.processor.batch.default, otelcol.exporter.otlp.to_tempo]
+    metrics = [otelcol.receiver.otlp.from_app, otelcol.processor.batch.default, otelcol.exporter.prometheusremotewrite.to_mimir]
+    logs    = [otelcol.receiver.otlp.from_app, otelcol.processor.batch.default, otelcol.exporter.loki.to_loki]
+    // profiles 目前多數語言以直推 Pyroscope 為主；若來源為 eBPF/pprof 可另行接入 pyroscope.* 組件
+  }
+}

@@ -11,7 +11,11 @@ from fastapi.responses import StreamingResponse, HTMLResponse
 from pydantic import BaseModel
 import json
 from ..core.telemetry import init_tracing
+from ..core.profiling_pyroscope import init_pyroscope
+from ..core.otel_logging import init_otel_logging
 init_tracing()
+init_pyroscope()
+init_otel_logging()
 
 from ..adk_app.runtime import RUNNER, run_chat  # Runner 與同步封裝
 from ..core.auth import require_api_key, AuthError

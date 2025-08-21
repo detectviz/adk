@@ -1,39 +1,32 @@
 
-# SRE Assistant（ADK 顯式工具範式）
+# SRE Assistant (ADK)
+
+ADK 驅動的智慧 SRE 助理。以單一協調器代理，結合診斷/修復/覆盤專家與顯式工具，支援 HITL、RAG、真連接 Prometheus/K8s/Grafana，並內建 ADK Web Dev UI。
 
 ## 快速開始
 ```bash
-make dev
-make api
-# 另開終端測試
-curl -H 'X-API-Key: devkey' -H 'Content-Type: application/json' \
-  -d '{"message":"diagnose cpu","session_id":"demo"}' \
-  localhost:8000/api/v1/chat | jq .
+make dev opt adk
+make api         # 啟動 REST API → http://localhost:8000
+make adk-web     # 啟動 ADK Dev UI → http://localhost:8080
 ```
 
-## 主要端點
-- `POST /api/v1/chat` 對話入口（含 SLO 建議）
-- `GET  /api/v1/tools` 工具清單（require_approval、risk_level）
-- `GET  /api/v1/tools/{name}/spec` 工具規格 YAML 展示（JSON）
-- `GET  /api/v1/decisions` 決策回放
-- `POST /api/v1/replay` 重跑既有決策
-- `POST /api/v1/rag/entries` / `.../status` / `.../retrieve`
-- `GET  /metrics` Prometheus 指標
-- 健康檢查：`/health/live`、`/health/ready`
+### 重要環境變數
+- `SESSION_BACKEND=memory|db`，`SESSION_DB_URI=sqlite:///./sessions.db`。
+- `PROM_URL`、`GRAFANA_URL`、`GRAFANA_TOKEN`、`KUBECONFIG|K8S_IN_CLUSTER`、`K8S_NS`、`K8S_DEPLOY`。
+- `RAG_CORPUS` 或 `PG_DSN`（pgvector）。
 
-## 工具註冊模式
-以「工具描述檔（YAML）+ 明確函式」註冊到 `ToolRegistry`：
-```python
-from adk_runtime.main import build_registry
-registry = build_registry()
-# registry.list_tools() -> { name: {spec, func}, ... }
-```
+## 主要能力
+- 對話：`/api/v1/chat`，或 SSE：`/api/v1/chat_sse`、`/api/v1/resume_sse`。
+- HITL：工具內觸發 `request_credential`，前端回傳 `FunctionResponse` 後續跑。
+- Dev UI：檢視 Sessions、Events、State、Tools 與即時互動。
 
-## 策略與安全
-- `SRESecurityPolicy` 合併 YAML 與動態規則（namespace 受保護、regex/enum、維護時窗）。
-- OpenAPI 已宣告 `ApiKeyHeader`，所有路徑需 `X-API-Key`。
-
-## 測試
+## 測試與驗收
 ```bash
-make test
+make test        # 單元與非 e2e
+make e2e         # 真連接 E2E（需設定環境）
+make accept      # 一鍵驗收（v14.1）
 ```
+
+## 文件
+- `SPEC.md`、`docs/ADK_WEB_UI.md`、`docs/ACCEPTANCE_V14_1.md`
+- `AGENT.md`、`TESTING_GUIDE.md`、`DEVELOPMENT_SETUP.md`
