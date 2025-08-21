@@ -1,138 +1,111 @@
-#  FOMC Research Agent
+# FOMC 研究代理
 
-The FOMC Research Agent uses a multi-agent, multi-modal architecture, combined
-with tool use, live web access and external database integration to generate a
-detailed analysis report on the latest meeting of the Federal Open Market
-Committee. This agent showcases a multi-stage, non-conversational agentic
-workflow as opposed to a conversational user interaction.
+FOMC 研究代理使用多代理 (multi-agent)、多模態 (multi-modal) 架構，結合工具使用、即時網路存取和外部資料庫整合，針對聯邦公開市場委員會 (Federal Open Market Committee) 的最新會議產生詳細的分析報告。此代理展示了一個多階段、非對話式的代理工作流程，而非傳統的對話式使用者互動。
 
-## Overview
+## 總覽
 
-The Federal Open Market Committee (FOMC) is the body of the United States
-government responsible for setting interest rate policy. Statements and
-press releases from the FOMC meetings are closely watched and thoroughly
-analyzed by financial market participants around the world.
+聯邦公開市場委員會 (FOMC) 是美國政府負責制定利率政策的機構。全球金融市場的參與者都會密切關注並深入分析 FOMC 會議的聲明和新聞稿。
 
-This agent shows how a multi-agent architecture might be used to generate
-detailed analysis reports on financial market events such as Fed meetings. The
-FOMC Research Agent is slightly different from other agents in that it is
-largely non-conversational -- most of the agent's work takes place through
-back-and-forth interactions between individual sub-agents. When necessary,
-it asks the user for a key piece of information, but in general it functions
-without human interaction.
+此代理展示了如何使用多代理 (multi-agent) 架構來產生關於聯準會會議等金融市場事件的詳細分析報告。FOMC 研究代理與其他代理略有不同，它在很大程度上是非對話式的——代理的大部分工作是透過各個子代理之間的來回互動完成的。在必要時，它會向使用者詢問關鍵資訊，但通常在沒有人為互動的情況下運作。
 
-This is the high-level workflow the agent follows to generate its analysis (note
-that step 3, "Review press conference video", is still in development).
+這是代理產生分析報告所遵循的高階工作流程 (請注意，步驟 3，「審查記者會影片」，仍在開發中)。
 ![FOMC Research agent workflow](<FOMC_Research_Agent_Workflow.png>)
 
-## Agent Details
-The key features of the FOMC Research Agent include:
+## 代理詳情
+FOMC 研究代理的主要功能包括：
 
-| Feature | Description |
+| 功能 | 描述 |
 | --- | --- |
-| *Interaction Type* | Workflow |
-| *Complexity* | Advanced |
-| *Agent Type* | Multi Agent |
-| *Components* | Tools, Multimodal, AgentTools |
-| *Vertical* | Financial Services |
+| *互動類型* | 工作流程 (Workflow) |
+| *複雜度* | 進階 |
+| *代理類型* | 多代理 (Multi Agent) |
+| *元件* | 工具 (Tools)、多模態 (Multimodal)、AgentTools |
+| *垂直領域* | 金融服務 (Financial Services) |
 
-### Agent Architecture
+### 代理架構
 
-This diagram shows the detailed architecture of the agents and tools used
-to implement this workflow.
+此圖表顯示了用於實現此工作流程的代理和工具的詳細架構。
 ![FOMC Research agent architecture](<fomc-research.svg>)
 
-### Key Features
+### 主要功能
 
-##### Agents
-* **root_agent:** Entry point for the agent workflow. Coordinates the activity of the other agents.
-* **research_agent:** Coordinates the retrieval of individual research components.
-* **analysis_agent:** Takes in the output of the `research_agent` and generates the analysis report.
-* **retrieve_meeting_data_agent:** Fetches FOMC meeting data from the web.
-* **extract_page_data_agent:** Extracts specific data from an HTML page.
-* **summarize_meeting_agent:** Reads the meeting transcript and generates a summary.
+##### 代理 (Agents)
+* **root_agent:** 代理工作流程的進入點。協調其他代理的活動。
+* **research_agent:** 協調各個研究元件的檢索。
+* **analysis_agent:** 接收 `research_agent` 的輸出並產生分析報告。
+* **retrieve_meeting_data_agent:** 從網路上擷取 FOMC 會議資料。
+* **extract_page_data_agent:** 從 HTML 頁面中提取特定資料。
+* **summarize_meeting_agent:** 讀取會議記錄並產生摘要。
 
-##### Tools
-* **fetch_page_tool**: Encapsulates an HTTP request for retrieving a web page.
-* **store_state_tool**: Stores specific information in the ToolContext.
-* **analyze_video_tool**: Processes and analyzes a YouTube video.
-* **compute_probability_tool**: Computes the probability of rate changes from Fed Futures pricing.
-* **compare_statements**: Compares the current and previous FOMC statements.
-* **fetch_transcript**: Retrieves the FOMC meeting transcript.
+##### 工具 (Tools)
+* **fetch_page_tool**: 封裝用於檢索網頁的 HTTP 請求。
+* **store_state_tool**: 在 ToolContext 中儲存特定資訊。
+* **analyze_video_tool**: 處理和分析 YouTube 影片。
+* **compute_probability_tool**: 根據聯邦基金利率期貨 (Fed Futures) 的定價計算利率變動的機率。
+* **compare_statements**: 比較當前和先前的 FOMC 聲明。
+* **fetch_transcript**: 檢索 FOMC 會議記錄。
 
-##### Callbacks
-* **rate_limit_callback**: Implements request rate limiting to minimize `429: Resource Exhausted` errors.
+##### 回呼 (Callbacks)
+* **rate_limit_callback**: 實作請求速率限制，以最小化 `429: Resource Exhausted` 錯誤。
 
-## Setup and Installation
-1.  **Prerequisites:**
+## 設定與安裝
+1.  **先決條件：**
 
-    **Google Cloud SDK and GCP Project:**
+    **Google Cloud SDK 和 GCP 專案：**
 
-    For the BigQuery setup and the Agent Engine deployment steps, you will need
-    a Google Cloud Project. Once you have created your project,
-    [install the Google Cloud SDK](https://cloud.google.com/sdk/docs/install).
-    Then run the following command to authenticate with your project:
+    對於 BigQuery 設定和 Agent Engine 部署步驟，您將需要一個 Google Cloud 專案。建立專案後，[安裝 Google Cloud SDK](https://cloud.google.com/sdk/docs/install)。然後執行以下指令來驗證您的專案：
     ```bash
     gcloud auth login
     ```
-    You also need to enable certain APIs. Run the following command to enable
-    the required APIs:
+    您還需要啟用某些 API。執行以下指令以啟用必要的 API：
     ```bash
     gcloud services enable aiplatform.googleapis.com
     gcloud services enable bigquery.googleapis.com
     ```
 
-2.  **Installation:**
+2.  **安裝：**
 
-    Clone this repository and change to the repo directory:
+    複製此儲存庫並切換到該儲存庫目錄：
     ```
     git clone https://github.com/google/adk-samples.git
     cd adk-samples/python/agents/fomc-research
     ```
 
-    Install [Poetry](https://python-poetry.org)
+    安裝 [Poetry](https://python-poetry.org)
 
-    If you have not installed poetry before, you can do so by running:
+    如果您之前沒有安裝過 poetry，可以透過執行以下指令來安裝：
     ```bash
     pip install poetry
     ```
 
-    Install the FOMC Research agent requirements:
+    安裝 FOMC 研究代理的依賴套件：
     ```bash
     poetry install
     ```
 
-    This will also install the released version of 'google-adk', the Google Agent Development Kit.
+    這也將安裝 `google-adk`（Google Agent Development Kit）的發行版本。
 
-3.  **Configuration:**
+3.  **設定：**
 
-    **Environment:**
+    **環境：**
 
-    There is a `.env-example` file included in the repository. Update this file
-    with the values appropriate to your project, and save it as `.env`. The values
-    in this file will be read into the environment of your application.
+    儲存庫中包含一個 `.env-example` 檔案。請使用適合您專案的值更新此檔案，並將其另存為 `.env`。此檔案中的值將被讀取到您應用程式的環境中。
 
-    Once you have created your `.env` file, if you're using the `bash` shell,
-    run the following command to export the variables from the `.env` file into your
-    local shell environment:
+    建立 `.env` 檔案後，如果您使用的是 `bash` shell，請執行以下指令將 `.env` 檔案中的變數匯出到您的本機 shell 環境中：
     ```bash
     set -o allexport
     . .env
     set +o allexport
     ```
-    If you aren't using `bash`, you may need to export the variables manually.
+    如果您不使用 `bash`，您可能需要手動匯出這些變數。
 
-    **BigQuery Setup:**
+    **BigQuery 設定：**
 
-    You need to create a BigQuery table containing the Fed Futures pricing data.
+    您需要建立一個包含聯邦基金利率期貨 (Fed Futures) 定價資料的 BigQuery 表。
 
-    The FOMC Research Agent repo contains a sample data file
-    (`sample_timeseries_data.csv`) with data covering the FOMC meetings on Jan
-    29 and Mar 19 2025. If you want to run the agent for other FOMC meetings you
-    will need to get additional data.
+    FOMC 研究代理儲存庫包含一個範例資料檔案 (`sample_timeseries_data.csv`)，其中包含 2025 年 1 月 29 日和 3 月 19 日 FOMC 會議的數據。如果您想針對其他 FOMC 會議執行此代理，則需要取得額外的資料。
 
-    To install this data file in a BigQuery table in your project, run the following
-    commands in the `fomc-research/deployment` directory:
+    要將此資料檔案安裝到您專案的 BigQuery 表中，請在 `fomc-research/deployment` 目錄中執行以下指令：
     ```bash
     python bigquery_setup.py --project_id=$GOOGLE_CLOUD_PROJECT \
         --dataset_id=$GOOGLE_CLOUD_BQ_DATASET \
@@ -140,46 +113,41 @@ to implement this workflow.
         --data_file=sample_timeseries_data.csv
     ```
 
-## Running the Agent
+## 執行代理
 
-**Using the ADK command line:**
+**使用 ADK 命令列：**
 
-From the `fomc-research` directory, run this command:
+在 `fomc-research` 目錄下，執行此指令：
 ```bash
 adk run fomc_research
 ```
-The initial output will include a command you can use to tail the agent log
-file. The command will be something like this:
+初始輸出將包含一個可用於追蹤代理日誌檔案的指令。該指令將類似於：
 ```bash
 tail -F /tmp/agents_log/agent.latest.log
 ```
 
-**Using the ADK Dev UI:**
+**使用 ADK 開發人員 UI：**
 
-From the `fomc-research` directory, run this command:
+在 `fomc-research` 目錄下，執行此指令：
 ```bash
 adk web .
 ```
-It will display a URL for the demo UI. Point your browser to that URL.
+它將顯示一個用於示範 UI 的 URL。請將您的瀏覽器指向該 URL。
 
-The UI will be blank initially. In the dropdown at the top left, choose `fomc_research`
-to load the agent.
+UI 最初將是空白的。在左上方的下拉式選單中，選擇 `fomc_research` 來載入代理。
 
-The logs from the agent will display on the console in real time as it runs. However,
-if you want to store a log of the interaction and also tail the interaction in real
-time, use the following commands:
+代理的日誌將在執行時即時顯示在控制台上。但是，如果您想儲存互動日誌並即時追蹤互動，請使用以下指令：
 
 ```bash
 adk web . > fomc_research_log.txt 2>&1 &
 tail -f fomc_research_log.txt
 ```
 
-### Example Interaction
+### 範例互動
 
-Begin the interaction by typing "Hello. What can you do for me?". After
-the first prompt, give the date: "2025-01-29".
+透過輸入「Hello. What can you do for me?」開始互動。在第一個提示後，給出日期：「2025-01-29」。
 
-The interaction will look something like this:
+互動將如下所示：
 ```
 $ adk run .
 Log setup complete: /tmp/agents_log/agent.20250405_140937.log
@@ -192,17 +160,13 @@ user: 2025-01-29
 [analysis_agent]: Here is a summary and analysis of the January 29, 2025 FOMC meeting, based on the available information:
 ...
 ```
-If the agent stops before completing the analysis, try asking it to continue.
+如果代理在完成分析前停止，請嘗試要求它繼續。
 
-## Deployment on Vertex AI Agent Engine
+## 在 Vertex AI Agent Engine 上部署
 
-To deploy the agent to Google Agent Engine, first follow
-[these steps](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/set-up)
-to set up your Google Cloud project for Agent Engine.
+要將代理部署到 Google Agent Engine，請先按照[這些步驟](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/set-up)設定您的 Google Cloud 專案以使用 Agent Engine。
 
-You also need to give BigQuery User and BigQuery Data Viewer permissions to the
-Reasoning Engine Service Agent. Run the following commands to grant the required
-permissions:
+您還需要將 BigQuery 使用者 (BigQuery User) 和 BigQuery 資料檢視者 (BigQuery Data Viewer) 權限授予 Reasoning Engine 服務代理。執行以下指令以授予所需權限：
 ```bash
 export RE_SA="service-${GOOGLE_CLOUD_PROJECT_NUMBER}@gcp-sa-aiplatform-re.iam.gserviceaccount.com"
 gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
@@ -214,35 +178,30 @@ gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
     --condition=None \
     --role="roles/bigquery.dataViewer"
 ```
-Next, you need to create a `.whl` file for your agent. From the `fomc-research`
-directory, run this command:
+接下來，您需要為您的代理建立一個 `.whl` 檔案。在 `fomc-research` 目錄下，執行此指令：
 ```bash
 poetry build --format=wheel --output=deployment
 ```
-This will create a file named `fomc_research-0.1-py3-none-any.whl` in the
-`deployment` directory.
+這將在 `deployment` 目錄中建立一個名為 `fomc_research-0.1-py3-none-any.whl` 的檔案。
 
-Then run the following command:
+然後執行以下指令：
 ```bash
 cd deployment
 python3 deploy.py --create
 ```
-When this command returns, if it succeeds it will print an AgentEngine resource
-name that looks something like this:
+當此指令成功返回時，它將印出一個 AgentEngine 資源名稱，如下所示：
 ```
 projects/************/locations/us-central1/reasoningEngines/7737333693403889664
 ```
-The last sequence of digits is the AgentEngine resource ID.
+最後一串數字是 AgentEngine 資源 ID。
 
-Once you have successfully deployed your agent, you can interact with it
-using the `test_deployment.py` script in the `deployment` directory. Store the
-agent's resource ID in an environment variable and run the following command:
+成功部署代理後，您可以使用 `deployment` 目錄中的 `test_deployment.py` 指令碼與其互動。將代理的資源 ID 儲存到環境變數中，並執行以下指令：
 ```bash
 export RESOURCE_ID=...
 export USER_ID=<any string>
 python test_deployment.py --resource_id=$RESOURCE_ID --user_id=$USER_ID
 ```
-The session will look something like this:
+會話將如下所示：
 ```
 Found agent with resource ID: ...
 Created session for user ID: ...
@@ -254,10 +213,9 @@ Input: 2025-01-29
 Response: I have stored the date you provided. Now I will retrieve the meeting data.
 ...
 ```
-Note that this is *not* a full-featured, production-ready CLI; it is just intended to
-show how to use the Agent Engine API to interact with a deployed agent.
+請注意，這 *不是* 一個功能齊全、可用於生產環境的命令列介面 (CLI)；它僅用於展示如何使用 Agent Engine API 與已部署的代理進行互動。
 
-The main part of the `test_deploy.py` script is approximately this code:
+`test_deploy.py` 指令碼的主要部分大致如下：
 
 ```python
 from vertexai import agent_engines
@@ -280,30 +238,26 @@ while True:
                 print(f"Response: {text_part}")
 ```
 
-To delete the agent, run the following command (using the resource ID returned previously):
+要刪除代理，請執行以下指令 (使用先前返回的資源 ID)：
 ```bash
 python3 deployment/deploy.py --delete --resource_id=$RESOURCE_ID
 ```
 
-## Troubleshooting
+## 疑難排解
 
-### "Malformed function call"
+### "Malformed function call" (函式呼叫格式錯誤)
 
-Occasionally the agent returns the error "Malformed function call". This is a
-Gemini model error which should be addressed in future model versions. Simply
-restart the UI and the agent will reset.
+代理偶爾會返回「Malformed function call」錯誤。這是 Gemini 模型的一個錯誤，應在未來的模型版本中得到解決。只需重新啟動 UI，代理就會重設。
 
-### Agent stops mid-workflow
+### 代理在工作流程中停止
 
-Sometimes the agent will stop mid-workflow, after completing one of the
-intermediate steps. When this happens, it frequently works just to tell the agent
-to continue, or another instruction to continue its operation.
+有時代理會在完成其中一個中間步驟後，在工作流程中停止。發生這種情況時，通常只需告訴代理繼續，或給予其他指令讓其繼續操作即可。
 
 
-## Disclaimer
+## 免責聲明
 
-This agent sample is provided for illustrative purposes only and is not intended for production use. It serves as a basic example of an agent and a foundational starting point for individuals or teams to develop their own agents.
+此代理範例僅供說明之用，不適用於生產環境。它作為代理的基本範例和一個基礎起點，供個人或團隊開發自己的代理。
 
-This sample has not been rigorously tested, may contain bugs or limitations, and does not include features or optimizations typically required for a production environment (e.g., robust error handling, security measures, scalability, performance considerations, comprehensive logging, or advanced configuration options).
+此範例未經嚴格測試，可能包含錯誤或限制，並且不包括生產環境通常所需的功能或優化 (例如，穩健的錯誤處理、安全措施、可擴展性、效能考量、全面的日誌記錄或進階設定選項)。
 
-Users are solely responsible for any further development, testing, security hardening, and deployment of agents based on this sample. We recommend thorough review, testing, and the implementation of appropriate safeguards before using any derived agent in a live or critical system.
+使用者對基於此範例的代理的任何進一步開發、測試、安全強化和部署負全部責任。我們建議在使用任何衍生代理於即時或關鍵系統之前，進行徹底的審查、測試和實施適當的保護措施。
