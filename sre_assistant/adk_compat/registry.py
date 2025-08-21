@@ -1,49 +1,42 @@
 
 # -*- coding: utf-8 -*-
-# 工具註冊表：以「工具描述 YAML + Python 函式」顯式註冊，提供查詢與檢索。
 from __future__ import annotations
-from typing import Dict, Any, Callable
-import yaml, os
+from typing import Any, Dict, Callable
+import yaml
+
+class ToolSpecError(Exception):
+    '''工具規格錯誤（參數缺失或描述有誤）'''
+    pass
 
 class ToolRegistry:
     def __init__(self):
-        # _tools 映射：name -> {spec: dict, func: callable}
         self._tools: Dict[str, Dict[str, Any]] = {}
 
-    def register_from_yaml(self, yaml_path: str, func: Callable):
-        """
-        讀取 YAML 規格，與函式成對註冊。
-        - 若重複註冊同名工具，後者會覆蓋前者（亦可改為禁止，視需求）。
-        """
+    def register_from_yaml(self, yaml_path: str, func: Callable[..., Any]) -> None:
         with open(yaml_path, "r", encoding="utf-8") as f:
             spec = yaml.safe_load(f)
-        name = spec.get("name")
-        if not name:
-            raise ValueError(f"YAML 無 name：{yaml_path}")
+        required_keys = ["name", "description", "args_schema", "returns_schema"]
+        for k in required_keys:
+            if k not in spec:
+                raise ToolSpecError(f"工具規格缺少必要欄位: {k} in {yaml_path}")
+        name = spec["name"]
         self._tools[name] = {"spec": spec, "func": func}
 
-    def register_dir(self, dir_path: str, mapping: Dict[str, Callable]):
-        """
-        批次註冊：指定資料夾內的所有 YAML 以檔名推導工具名稱。
-        mapping 需提供 name->函式 的對映。
-        """
-        for fn in os.listdir(dir_path):
-            if fn.endswith(".yaml"):
-                p = os.path.join(dir_path, fn)
-                spec = yaml.safe_load(open(p, "r", encoding="utf-8"))
-                name = spec.get("name")
-                if name in mapping:
-                    self._tools[name] = {"spec": spec, "func": mapping[name]}
+    def require(self, name: str) -> Dict[str, Any]:
+        if name not in self._tools:
+            raise KeyError(f"工具未註冊: {name}")
+        return self._tools[name]
+
+    def invoke(self, name: str, **kwargs):
+        entry = self.require(name)
+        spec = entry["spec"]
+        func = entry["func"]
+        args_schema = spec.get("args_schema", {})
+        required = args_schema.get("required", [])
+        for r in required:
+            if r not in kwargs:
+                raise ToolSpecError(f"缺少必要參數: {r} for tool {name}")
+        return func(**kwargs)
 
     def list_tools(self) -> Dict[str, Dict[str, Any]]:
-        return dict(self._tools)
-
-    def get_func(self, name: str) -> Callable | None:
-        ent = self._tools.get(name)
-        return ent["func"] if ent else None
-
-    def require(self, name: str) -> Dict[str, Any]:
-        ent = self._tools.get(name)
-        if not ent:
-            raise KeyError(name)
-        return ent
+        return {n: {"description": t["spec"].get("description", "")} for n, t in self._tools.items()}

@@ -45,14 +45,14 @@ parser.add_argument(
     action="store_true",
     dest="delete",
     required=False,
-    help="Delete deployed agent",
+    help="刪除已部署的代理",
 )
 parser.add_argument(
     "--resource_id",
     required="--delete" in sys.argv,
     action="store",
     dest="resource_id",
-    help="The resource id of the agent to be deleted in the format projects/PROJECT_ID/locations/LOCATION/reasoningEngines/REASONING_ENGINE_ID",
+    help="要刪除的代理的資源 ID，格式為 projects/PROJECT_ID/locations/LOCATION/reasoningEngines/REASONING_ENGINE_ID",
 )
 
 
@@ -62,16 +62,16 @@ if args.delete:
     try:
         agent_engines.get(resource_name=args.resource_id)
         agent_engines.delete(resource_name=args.resource_id)
-        print(f"Agent {args.resource_id} deleted successfully")
+        print(f"代理 {args.resource_id} 已成功刪除")
     except NotFound as e:
         print(e)
-        print(f"Agent {args.resource_id} not found")
+        print(f"找不到代理 {args.resource_id}")
 
 else:
-    logger.info("deploying app...")
+    logger.info("正在部署應用程式...")
     app = AdkApp(agent=root_agent, enable_tracing=False)
 
-    logging.debug("deploying agent to agent engine:")
+    logging.debug("正在將代理部署到代理引擎：")
     remote_app = agent_engines.create(
         app,
         requirements=[
@@ -80,7 +80,7 @@ else:
         extra_packages=[AGENT_WHL_FILE],
     )
 
-    logging.debug("testing deployment:")
+    logging.debug("正在測試部署：")
     session = remote_app.create_session(user_id="123")
     for event in remote_app.stream_query(
         user_id="123",
@@ -89,5 +89,5 @@ else:
     ):
         if event.get("content", None):
             print(
-                f"Agent deployed successfully under resource name: {remote_app.resource_name}"
+                f"代理已成功部署，資源名稱為：{remote_app.resource_name}"
             )

@@ -29,7 +29,7 @@ from customer_service.tools.tools import (
     update_salesforce_crm,
 )
 
-# Configure logging for the test file
+# 為測試檔案設定日誌記錄
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

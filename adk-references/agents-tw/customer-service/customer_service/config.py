@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Configuration module for the customer service agent."""
+"""客戶服務代理的設定模組。"""
 
 import os
 import logging
@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 
 
 class AgentModel(BaseModel):
-    """Agent model settings."""
+    """代理模型設定。"""
 
     name: str = Field(default="customer_service_agent")
-    model: str = Field(default="gemini-2.5-flash")
+    model: str = Field(default="gemini-1.5-flash")
 
 
 class Config(BaseSettings):
-    """Configuration settings for the customer service agent."""
+    """客戶服務代理的組態設定。"""
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(

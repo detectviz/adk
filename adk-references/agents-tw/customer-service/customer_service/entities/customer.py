@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Customer entity module."""
+"""客戶實體模組。"""
 
 from typing import List, Dict, Optional
 from pydantic import BaseModel, Field, ConfigDict
@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 class Address(BaseModel):
     """
-    Represents a customer's address.
+    代表客戶的地址。
     """
 
     street: str
@@ -31,7 +31,7 @@ class Address(BaseModel):
 
 class Product(BaseModel):
     """
-    Represents a product in a customer's purchase history.
+    代表客戶購買紀錄中的一項產品。
     """
 
     product_id: str
@@ -42,7 +42,7 @@ class Product(BaseModel):
 
 class Purchase(BaseModel):
     """
-    Represents a customer's purchase.
+    代表客戶的一次購買。
     """
 
     date: str
@@ -53,7 +53,7 @@ class Purchase(BaseModel):
 
 class CommunicationPreferences(BaseModel):
     """
-    Represents a customer's communication preferences.
+    代表客戶的通訊偏好。
     """
 
     email: bool = True
@@ -64,7 +64,7 @@ class CommunicationPreferences(BaseModel):
 
 class GardenProfile(BaseModel):
     """
-    Represents a customer's garden profile.
+    代表客戶的園藝資料。
     """
 
     type: str
@@ -77,7 +77,7 @@ class GardenProfile(BaseModel):
 
 class Customer(BaseModel):
     """
-    Represents a customer.
+    代表一位客戶。
     """
 
     account_number: str
@@ -99,26 +99,26 @@ class Customer(BaseModel):
 
     def to_json(self) -> str:
         """
-        Converts the Customer object to a JSON string.
+        將 Customer 物件轉換為 JSON 字串。
 
         Returns:
-            A JSON string representing the Customer object.
+            一個代表 Customer 物件的 JSON 字串。
         """
         return self.model_dump_json(indent=4)
 
     @staticmethod
     def get_customer(current_customer_id: str) -> Optional["Customer"]:
         """
-        Retrieves a customer based on their ID.
+        根據 ID 擷取客戶資料。
 
         Args:
-            customer_id: The ID of the customer to retrieve.
+            customer_id: 要擷取的客戶 ID。
 
         Returns:
-            The Customer object if found, None otherwise.
+            如果找到，則為 Customer 物件，否則為 None。
         """
-        # In a real application, this would involve a database lookup.
-        # For this example, we'll just return a dummy customer.
+        # 在實際的應用程式中，這會需要查詢資料庫。
+        # 在此範例中，我們只回傳一個虛構的客戶資料。
         return Customer(
             customer_id=current_customer_id,
             account_number="428765091",
@@ -131,7 +131,7 @@ class Customer(BaseModel):
             billing_address=Address(
                 street="123 Main St", city="Anytown", state="CA", zip="12345"
             ),
-            purchase_history=[  # Example purchase history
+            purchase_history=[  # 範例購買紀錄
                 Purchase(
                     date="2023-03-05",
                     items=[

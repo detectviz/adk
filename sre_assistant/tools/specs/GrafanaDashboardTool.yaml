@@ -1,30 +1,16 @@
 
-schema_version: '1.0'
 name: GrafanaDashboardTool
-description: 建立 Grafana 儀表板
+description: 依服務型態建立 Grafana 儀表板（模擬）
 args_schema:
   type: object
   required: [service_type]
   properties:
-    service_type:
-      type: string
-    title:
-      type: string
+    service_type: { type: string }
 returns_schema:
   type: object
   properties:
-    success: { type: boolean }
-    uid: { type: string }
+    dashboard_id: { type: string }
     url: { type: string }
-    title: { type: string }
-errors:
-  E_AUTH: 權限不足
-  E_BACKEND: 上游 API 失敗
-  E_TIMEOUT: 請求逾時
-  E_SCHEMA: 參數或輸出結構不符
-timeout_seconds: 45
-idempotent: false
-retry:
-  max_retries: 1
-cache_ttl_seconds: 120
-risk_level: Medium
+timeout_seconds: 30
+idempotent: true
+retry: { max_retries: 2, backoff: exponential }

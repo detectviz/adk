@@ -1,6 +1,5 @@
-# 工具規格檔（YAML）：此檔對應同名 Python 函式並由 ToolRegistry 載入
 
-schema_version: '1.0'\nname: RunbookLookupTool
+name: RunbookLookupTool
 description: 依服務名稱查詢對應 Runbook（模擬）
 args_schema:
   type: object

@@ -1,16 +1,20 @@
 
 # -*- coding: utf-8 -*-
-# RAG：以 SQLite FTS5 優先檢索，無 FTS 時落回 LIKE 檢索。
 from __future__ import annotations
-from typing import Any, Dict, List
-from .persistence import DB
+from typing import Dict, Any, List
 
-def rag_create_entry(title: str, content: str, author: str, tags: List[str], status: str = "draft") -> Dict[str, Any]:
-    return DB.rag_insert(title, content, author, tags, status)
+RAG_STORE: List[Dict[str, Any]] = []
 
-def rag_update_status(entry_id: int, status: str) -> Dict[str, Any] | None:
-    return DB.rag_update_status(entry_id, status)
+def knowledge_ingestion_tool(title: str, content: str, tags: list[str] | None = None):
+    RAG_STORE.append({"title": title, "content": content, "tags": tags or []})
+    return {"ok": True, "count": len(RAG_STORE)}
 
-def rag_retrieve_tool(query: str, top_k: int = 5, status_filter: List[str] | None = None) -> Dict[str, Any]:
-    items = DB.rag_search(query, top_k, status_filter)
-    return {"query": query, "hits": items}
+def rag_retrieve_tool(query: str, top_k: int = 3):
+    q = query.lower()
+    scored = []
+    for doc in RAG_STORE:
+        score = sum(1 for w in q.split() if w in doc["content"].lower())
+        if score > 0:
+            scored.append((score, doc))
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return {"snippets": [d for _, d in scored[:top_k]]}

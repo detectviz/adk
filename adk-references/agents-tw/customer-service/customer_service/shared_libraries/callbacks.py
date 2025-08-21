@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Callback functions for FOMC Research Agent."""
+"""FOMC 研究代理的回呼函式。"""
 
 import logging
 import time
@@ -37,12 +37,11 @@ RPM_QUOTA = 10
 def rate_limit_callback(
     callback_context: CallbackContext, llm_request: LlmRequest
 ) -> None:
-    """Callback function that implements a query rate limit.
+    """實作查詢速率限制的回呼函式。
 
     Args:
-      callback_context: A CallbackContext obj representing the active callback
-        context.
-      llm_request: A LlmRequest obj representing the active LLM request.
+      callback_context: 代表作用中回呼上下文的 CallbackContext 物件。
+      llm_request: 代表作用中 LLM 請求的 LlmRequest 物件。
     """
     for content in llm_request.contents:
         for part in content.parts:
@@ -77,7 +76,7 @@ def rate_limit_callback(
     if request_count > RPM_QUOTA:
         delay = RATE_LIMIT_SECS - elapsed_secs + 1
         if delay > 0:
-            logger.debug("Sleeping for %i seconds", delay)
+            logger.debug("正在休眠 %i 秒", delay)
             time.sleep(delay)
         callback_context.state["timer_start"] = now
         callback_context.state["request_count"] = 1
@@ -88,33 +87,33 @@ def rate_limit_callback(
 
 def validate_customer_id(customer_id: str, session_state: State) -> Tuple[bool, str]:
     """
-        Validates the customer ID against the customer profile in the session state.
+        根據會話狀態中的客戶個人資料驗證客戶 ID。
         
         Args:
-            customer_id (str): The ID of the customer to validate.
-            session_state (State): The session state containing the customer profile.
+            customer_id (str): 要驗證的客戶 ID。
+            session_state (State): 包含客戶個人資料的會話狀態。
         
         Returns:
-            A tuple containing an bool (True/False) and a String. 
-            When False, a string with the error message to pass to the model for deciding
-            what actions to take to remediate.
+            一個包含布林值 (True/False) 和字串的元組。
+            當為 False 時，字串中包含錯誤訊息，以傳遞給模型決定
+            要採取何種補救措施。
     """
     if 'customer_profile' not in session_state:
-        return False, "No customer profile selected. Please select a profile."
+        return False, "未選取客戶個人資料。請選取一個個人資料。"
 
     try:
-        # We read the profile from the state, where it is set deterministically
-        # at the beginning of the session.
+        # 我們從狀態中讀取個人資料，該狀態在會話開始時
+        # 就已確定性地設定。
         c = Customer.model_validate_json(session_state['customer_profile'])
         if customer_id == c.customer_id:
             return True, None
         else:
-            return False, "You cannot use the tool with customer_id " +customer_id+", only for "+c.customer_id+"."
+            return False, "您不能使用客戶 ID " +customer_id+" 的工具，只能使用 "+c.customer_id+" 的工具。"
     except ValidationError as e:
-        return False, "Customer profile couldn't be parsed. Please reload the customer data. "
+        return False, "無法解析客戶個人資料。請重新載入客戶資料。"
 
 def lowercase_value(value):
-    """Make dictionary lowercase"""
+    """將字典轉換為小寫"""
     if isinstance(value, dict):
         return (dict(k, lowercase_value(v)) for k, v in value.items())
     elif isinstance(value, str):
@@ -126,63 +125,63 @@ def lowercase_value(value):
         return value
 
 
-# Callback Methods
+# 回呼方法
 def before_tool(
     tool: BaseTool, args: Dict[str, Any], tool_context: CallbackContext
 ):
 
-    # i make sure all values that the agent is sending to tools are lowercase
+    # 我確保代理傳送給工具的所有值都是小寫
     lowercase_value(args)
 
-    # Several tools require customer_id as input. We don't want to rely
-    # solely on the model picking the right customer id. We validate it.
-    # Alternative: tools can fetch the customer_id from the state directly.
+    # 有幾個工具需要 customer_id 作為輸入。我們不希望
+    # 單獨依賴模型選擇正確的客戶 ID。我們對其進行驗證。
+    # 替代方案：工具可以直接從狀態中擷取 customer_id。
     if 'customer_id' in args:
         valid, err = validate_customer_id(args['customer_id'], tool_context.state)
         if not valid:
             return err
 
-    # Check for the next tool call and then act accordingly.
-    # Example logic based on the tool being called.
+    # 檢查下一個工具呼叫，然後採取相應的行動。
+    # 根據被呼叫的工具的範例邏輯。
     if tool.name == "sync_ask_for_approval":
         amount = args.get("value", None)
-        if amount <= 10:  # Example business rule
+        if amount <= 10:  # 範例業務規則
             return {
                 "status": "approved",
-                "message": "You can approve this discount; no manager needed."
+                "message": "您可以批准此折扣；不需要經理。"
             }
-        # Add more logic checks here as needed for your tools.
+        # 根據需要在此處新增更多邏輯檢查。
 
     if tool.name == "modify_cart":
         if (
             args.get("items_added") is True
             and args.get("items_removed") is True
         ):
-            return {"result": "I have added and removed the requested items."}
+            return {"result": "我已新增和移除所要求的商品。"}
     return None
 
 def after_tool(
     tool: BaseTool, args: Dict[str, Any], tool_context: ToolContext, tool_response: Dict
 ) -> Optional[Dict]:
 
-  # After approvals, we perform operations deterministically in the callback
-  # to apply the discount in the cart.
+  # 批准後，我們在回呼中確定性地執行操作
+  # 以在購物車中套用折扣。
   if tool.name == "sync_ask_for_approval":
     if tool_response['status'] == "approved":
-        logger.debug("Applying discount to the cart")
-        # Actually make changes to the cart
+        logger.debug("正在將折扣應用於購物車")
+        # 實際對購物車進行變更
 
   if tool.name == "approve_discount":
     if tool_response['status'] == "ok":
-        logger.debug("Applying discount to the cart")
-        # Actually make changes to the cart
+        logger.debug("正在將折扣應用於購物車")
+        # 實際對購物車進行變更
 
   return None
 
-# checking that the customer profile is loaded as state.
+# 檢查客戶個人資料是否已載入為狀態。
 def before_agent(callback_context: InvocationContext):
-    # In a production agent, this is set as part of the
-    # session creation for the agent. 
+    # 在生產環境的代理中，這是在為代理建立
+    # 會話時設定的。
     if "customer_profile" not in callback_context.state:
         callback_context.state["customer_profile"] = Customer.get_customer(
             "123"

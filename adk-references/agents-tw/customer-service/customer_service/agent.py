@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.§
 
-"""Agent module for the customer service agent."""
+"""客戶服務代理的代理模組。"""
 
 import logging
 import warnings
@@ -44,7 +44,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module=".*pydantic.*")
 
 configs = Config()
 
-# configure logging __name__
+# 設定日誌記錄器 __name__
 logger = logging.getLogger(__name__)
 
 

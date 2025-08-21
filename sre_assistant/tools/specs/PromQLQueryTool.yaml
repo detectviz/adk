@@ -1,30 +1,21 @@
 
-schema_version: '1.0'
 name: PromQLQueryTool
-description: 以 PromQL 查詢指標並回傳聚合結果
+description: 以 PromQL 查詢指標並回傳聚合結果（模擬）
 args_schema:
   type: object
   required: [query, range]
   properties:
-    query:
-      type: string
-    range:
-      type: string
+    query: { type: string }
+    range: { type: string, description: RFC3339 或相對時間範圍 }
 returns_schema:
   type: object
   properties:
-    series:
-      type: array
-    stats:
-      type: object
+    series: { type: array, items: { type: object } }
+    stats: { type: object, properties: { sample_count: { type: integer } } }
 errors:
   E_TIMEOUT: 查詢逾時
   E_BAD_QUERY: 語法錯誤
   E_BACKEND: 後端錯誤
-  E_SCHEMA: 參數或輸出結構不符
 timeout_seconds: 30
 idempotent: true
-retry:
-  max_retries: 1
-cache_ttl_seconds: 10
-risk_level: Low
+retry: { max_retries: 2, backoff: exponential }
