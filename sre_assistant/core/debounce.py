@@ -1,12 +1,13 @@
 
 # -*- coding: utf-8 -*-
-# 去抖動與重複抑制：避免同一短時間內重複請求造成資源浪費。
+# 去抖動：短時間內抑制相同語句觸發重複執行
 import time, hashlib
 from typing import Dict
+from .config import Config
 
 class Debouncer:
-    def __init__(self, ttl_seconds: int = 10):
-        self.ttl = ttl_seconds
+    def __init__(self, ttl_seconds: int | None = None):
+        self.ttl = ttl_seconds if ttl_seconds is not None else Config.DEBOUNCE_TTL
         self._hits: Dict[str, float] = {}
 
     def key_of(self, text: str) -> str:

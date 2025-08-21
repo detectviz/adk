@@ -1,8 +1,8 @@
 
 # -*- coding: utf-8 -*-
-# FastAPI 伺服器：API Key + RBAC + 限流；對話、HITL、RAG 端點。
+# FastAPI 伺服器：健康檢查分離、回放端點、RAG 與 HITL。
 from __future__ import annotations
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import FastAPI, HTTPException, Header, Depends, Query
 from fastapi.responses import Response
 from pydantic import BaseModel
 from ..core.assistant import SREAssistant
@@ -10,12 +10,13 @@ from ...adk_runtime.main import build_registry
 from ..core.hitl import APPROVALS
 from ..core.auth import require_api_key, require_role, AuthError
 from ..core.rag import rag_create_entry, rag_update_status, rag_retrieve_tool
+from ..core.debounce import DEBOUNCER
+from ..core.persistence import DB
 
 app = FastAPI(title="SRE Assistant API")
 registry = build_registry()
 assistant = SREAssistant(registry)
 
-# 依賴：驗證 API Key 並返回角色
 def auth_dep(x_api_key: str = Header(default="", alias="X-API-Key")) -> str:
     try:
         return require_api_key(x_api_key)
@@ -26,11 +27,25 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str | None = None
 
+@app.get("/health/live")
+def health_live():
+    return {"ok": True}
+
+@app.get("/health/ready")
+def health_ready():
+    try:
+        # 簡單讀一次 decisions 表做連線檢查
+        DB.list_decisions(limit=1)
+        return {"ok": True, "db": "ready"}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"db not ready: {e}")
+
 @app.post("/api/v1/chat")
 async def chat(req: ChatRequest, role: str = Depends(auth_dep)):
+    if not DEBOUNCER.allow(req.message):
+        raise HTTPException(status_code=409, detail="debounced")
     return await assistant.chat(req.message)
 
-# HITL 模型
 class ApprovalDecision(BaseModel):
     status: str  # approved | denied
     decided_by: str
@@ -60,12 +75,11 @@ async def execute_approval(aid: int, role: str = Depends(auth_dep)):
         raise HTTPException(status_code=400, detail=res)
     return res
 
-# RAG 管理端點（簡化）：需要 admin
+# RAG 管理與檢索
 class RagCreate(BaseModel):
     title: str
     content: str
     tags: list[str] | None = None
-
 @app.post("/api/v1/rag/entries")
 def create_rag_entry(body: RagCreate, role: str = Depends(auth_dep)):
     if not require_role(role, "admin"):
@@ -75,7 +89,6 @@ def create_rag_entry(body: RagCreate, role: str = Depends(auth_dep)):
 
 class RagApprove(BaseModel):
     status: str  # draft|approved|archived
-
 @app.post("/api/v1/rag/entries/{entry_id}/status")
 def set_rag_status(entry_id: int, body: RagApprove, role: str = Depends(auth_dep)):
     if not require_role(role, "admin"):
@@ -88,10 +101,22 @@ class RagQuery(BaseModel):
     query: str
     top_k: int = 5
     status_filter: list[str] | None = None
-
 @app.post("/api/v1/rag/retrieve")
 def rag_retrieve(body: RagQuery, role: str = Depends(auth_dep)):
     return rag_retrieve_tool(body.query, top_k=body.top_k, status_filter=body.status_filter)
+
+# 回放
+@app.get("/api/v1/decisions")
+def list_decisions(limit: int = Query(20, ge=1, le=200), offset: int = Query(0, ge=0), role: str = Depends(auth_dep)):
+    if not require_role(role, "viewer"):
+        raise HTTPException(status_code=403, detail="forbidden")
+    return {"items": DB.list_decisions(limit=limit, offset=offset)}
+
+@app.get("/api/v1/tool-executions")
+def list_tool_execs(limit: int = Query(20, ge=1, le=200), offset: int = Query(0, ge=0), role: str = Depends(auth_dep)):
+    if not require_role(role, "viewer"):
+        raise HTTPException(status_code=403, detail="forbidden")
+    return {"items": DB.list_tool_execs(limit=limit, offset=offset)}
 
 # Prometheus 指標
 try:
