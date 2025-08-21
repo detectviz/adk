@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Data Science Agent V2: generate nl2py and use code interpreter to run the code."""
+"""資料科學代理 V2：產生 nl2py 並使用程式碼直譯器 (Code Interpreter) 執行程式碼。"""
 import os
 from google.adk.code_executors import VertexAiCodeExecutor
 from google.adk.agents import Agent

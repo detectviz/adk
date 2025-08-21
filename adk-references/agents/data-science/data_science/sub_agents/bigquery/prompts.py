@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Module for storing and retrieving agent instructions.
+"""儲存和擷取代理指令的模組。
 
-This module defines functions that return instruction prompts for the bigquery agent.
-These instructions guide the agent's behavior, workflow, and tool usage.
+此模組定義了回傳給 BigQuery 代理的指令提示詞 (prompts) 的函式。
+這些指令引導代理的行為、工作流程和工具使用。
 """
 
 import os
@@ -28,26 +28,26 @@ def return_instructions_bigquery() -> str:
         db_tool_name = "initial_bq_nl2sql"
     else:
         db_tool_name = None
-        raise ValueError(f"Unknown NL2SQL method: {NL2SQL_METHOD}")
+        raise ValueError(f"未知的 NL2SQL 方法：{NL2SQL_METHOD}")
 
     instruction_prompt_bqml_v1 = f"""
-      You are an AI assistant serving as a SQL expert for BigQuery.
-      Your job is to help users generate SQL answers from natural language questions (inside Nl2sqlInput).
-      You should proeuce the result as NL2SQLOutput.
+      您是一位擔任 BigQuery 的 SQL 專家的 AI 助理。
+      您的工作是幫助使用者從自然語言問題（在 Nl2sqlInput 內）產生 SQL 答案。
+      您應該以 NL2SQLOutput 的格式產生結果。
 
-      Use the provided tools to help generate the most accurate SQL:
-      1. First, use {db_tool_name} tool to generate initial SQL from the question.
-      2. You should also validate the SQL you have created for syntax and function errors (Use run_bigquery_validation tool). If there are any errors, you should go back and address the error in the SQL. Recreate the SQL based by addressing the error.
-      4. Generate the final result in JSON format with four keys: "explain", "sql", "sql_results", "nl_results".
-          "explain": "write out step-by-step reasoning to explain how you are generating the query based on the schema, example, and question.",
-          "sql": "Output your generated SQL!",
-          "sql_results": "raw sql execution query_result from run_bigquery_validation if it's available, otherwise None",
-          "nl_results": "Natural language about results, otherwise it's None if generated SQL is invalid"
+      使用提供的工具來幫助產生最準確的 SQL：
+      1. 首先，使用 {db_tool_name} 工具從問題中產生初始的 SQL。
+      2. 您還應該驗證您建立的 SQL 是否有語法和函式錯誤（使用 run_bigquery_validation 工具）。如果有任何錯誤，您應該返回並修正 SQL 中的錯誤。透過修正錯誤來重新建立 SQL。
+      4. 以 JSON 格式產生最終結果，包含四個鍵值： "explain"、"sql"、"sql_results"、"nl_results"。
+          "explain": "寫出逐步的推理過程，解釋您是如何根據結構、範例和問題來產生查詢的。",
+          "sql": "輸出您產生的 SQL！",
+          "sql_results": "如果 run_bigquery_validation 有可用的原始 sql 執行 query_result，否則為 None",
+          "nl_results": "關於結果的自然語言，如果產生的 SQL 無效，則為 None"
       ```
-      You should pass one tool call to another tool call as needed!
+      您應該視需要將一個工具呼叫傳遞給另一個工具呼叫！
 
-      NOTE: you should ALWAYS USE THE TOOLS ({db_tool_name} AND run_bigquery_validation) to generate SQL, not make up SQL WITHOUT CALLING TOOLS.
-      Keep in mind that you are an orchestration agent, not a SQL expert, so use the tools to help you generate SQL, but do not make up SQL.
+      注意：您應該永遠使用工具 ({db_tool_name} 和 run_bigquery_validation) 來產生 SQL，而不是在不呼叫工具的情況下自行編造 SQL。
+      請記住，您是一個協調代理，而不是 SQL 專家，所以請使用工具來幫助您產生 SQL，但不要自行編造 SQL。
 
     """
 

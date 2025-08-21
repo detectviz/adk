@@ -19,11 +19,11 @@ import vertexai
 from vertexai import rag
 
 
-# Define the path to the .env file
+# 定義 .env 檔案的路徑
 env_file_path = Path(__file__).parent.parent.parent / ".env"
 print(env_file_path)
 
-# Load environment variables from the specified .env file
+# 從指定的 .env 檔案載入環境變數
 load_dotenv(dotenv_path=env_file_path)
 
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -33,16 +33,16 @@ display_name = "bqml_referenceguide_corpus"
 
 paths = [
     "gs://cloud-samples-data/adk-samples/data-science/bqml"
-]  # Supports Google Cloud Storage and Google Drive Links
+]  # 支援 Google Cloud Storage 和 Google Drive 連結
 
 
-# Initialize Vertex AI API once per session
+# 每個會話僅初始化一次 Vertex AI API
 vertexai.init(project=PROJECT_ID, location="us-central1")
 
 
 def create_RAG_corpus():
-    # Create RagCorpus
-    # Configure embedding model, for example "text-embedding-005".
+    # 建立 RagCorpus
+    # 設定嵌入模型，例如 "text-embedding-005"。
     embedding_model_config = rag.RagEmbeddingModelConfig(
         vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
             publisher_model="publishers/google/models/text-embedding-005"
@@ -75,29 +75,28 @@ def ingest_files(corpus_name):
     rag.import_files(
         corpus_name,
         paths,
-        transformation_config=transformation_config,  # Optional
-        max_embedding_requests_per_min=1000,  # Optional
+        transformation_config=transformation_config,  # 可選
+        max_embedding_requests_per_min=1000,  # 可選
     )
 
-    # List the files in the rag corpus
+    # 列出 rag 語料庫中的檔案
     rag.list_files(corpus_name)
 
 
 def rag_response(query: str) -> str:
-    """Retrieves contextually relevant information from a RAG corpus.
+    """從 RAG 語料庫中擷取與上下文相關的資訊。
 
     Args:
-        query (str): The query string to search within the corpus.
+        query (str): 要在語料庫中搜尋的查詢字串。
 
     Returns:
-        vertexai.rag.RagRetrievalQueryResponse: The response containing retrieved
-        information from the corpus.
+        vertexai.rag.RagRetrievalQueryResponse: 包含從語料庫中擷取資訊的回應。
     """
     corpus_name = os.getenv("BQML_RAG_CORPUS_NAME")
 
     rag_retrieval_config = rag.RagRetrievalConfig(
-        top_k=3,  # Optional
-        filter=rag.Filter(vector_distance_threshold=0.5),  # Optional
+        top_k=3,  # 可選
+        filter=rag.Filter(vector_distance_threshold=0.5),  # 可選
     )
     response = rag.retrieval_query(
         rag_resources=[
@@ -112,17 +111,17 @@ def rag_response(query: str) -> str:
 
 
 def write_to_env(corpus_name):
-    """Writes the corpus name to the specified .env file.
+    """將語料庫名稱寫入指定的 .env 檔案。
 
     Args:
-        corpus_name: The name of the corpus to write.
+        corpus_name: 要寫入的語料庫名稱。
     """
 
-    load_dotenv(env_file_path)  # Load existing variables if any
+    load_dotenv(env_file_path)  # 載入任何現有的變數
 
-    # Set the key-value pair in the .env file
+    # 在 .env 檔案中設定鍵值對
     set_key(env_file_path, "BQML_RAG_CORPUS_NAME", corpus_name)
-    print(f"BQML_RAG_CORPUS_NAME '{corpus_name}' written to {env_file_path}")
+    print(f"已將 BQML_RAG_CORPUS_NAME '{corpus_name}' 寫入 {env_file_path}")
 
 
 if __name__ == "__main__":
@@ -130,10 +129,10 @@ if __name__ == "__main__":
 
     corpus_name = os.getenv("BQML_RAG_CORPUS_NAME")
 
-    print("Creating the corpus.")
+    print("正在建立語料庫。")
     corpus_name = create_RAG_corpus()
-    print(f"Corpus name: {corpus_name}")
+    print(f"語料庫名稱：{corpus_name}")
 
-    print(f"Importing files to corpus: {corpus_name}")
+    print(f"正在將檔案匯入語料庫：{corpus_name}")
     ingest_files(corpus_name)
-    print(f"Files imported to corpus: {corpus_name}")
+    print(f"已將檔案匯入語料庫：{corpus_name}")
