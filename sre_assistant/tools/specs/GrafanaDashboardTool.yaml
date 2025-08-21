@@ -1,5 +1,6 @@
+# 工具規格檔（YAML）：此檔對應同名 Python 函式並由 ToolRegistry 載入
 
-name: GrafanaDashboardTool
+schema_version: '1.0'\nname: GrafanaDashboardTool
 description: 依服務型態建立 Grafana 儀表板（模擬）
 args_schema:
   type: object

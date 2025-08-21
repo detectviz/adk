@@ -1,5 +1,6 @@
+# 工具規格檔（YAML）：此檔對應同名 Python 函式並由 ToolRegistry 載入
 
-name: PromQLQueryTool
+schema_version: '1.0'\nname: PromQLQueryTool
 description: 以 PromQL 查詢指標並回傳聚合結果（模擬）
 args_schema:
   type: object

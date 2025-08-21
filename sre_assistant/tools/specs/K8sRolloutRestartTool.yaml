@@ -1,5 +1,6 @@
+# 工具規格檔（YAML）：此檔對應同名 Python 函式並由 ToolRegistry 載入
 
-name: K8sRolloutRestartTool
+schema_version: '1.0'\nname: K8sRolloutRestartTool
 description: 透過 rollout restart 重啟 Kubernetes Deployment Pods（模擬）
 args_schema:
   type: object

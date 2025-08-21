@@ -1,0 +1,1976 @@
+Directory structure:
+└── detectviz-sre-assistant/
+    └── adk-references/
+        └── agents/
+            └── fomc-research/
+                ├── README.md
+                ├── pyproject.toml
+                ├── .env-example
+                ├── deployment/
+                │   ├── bigquery_setup.py
+                │   ├── deploy.py
+                │   ├── sample_timeseries_data.csv
+                │   └── test_deployment.py
+                └── fomc_research/
+                    ├── __init__.py
+                    ├── agent.py
+                    ├── root_agent_prompt.py
+                    ├── shared_libraries/
+                    │   ├── __init__.py
+                    │   ├── callbacks.py
+                    │   ├── file_utils.py
+                    │   └── price_utils.py
+                    ├── sub_agents/
+                    │   ├── __init__.py
+                    │   ├── analysis_agent.py
+                    │   ├── analysis_agent_prompt.py
+                    │   ├── extract_page_data_agent.py
+                    │   ├── extract_page_data_agent_prompt.py
+                    │   ├── research_agent.py
+                    │   ├── research_agent_prompt.py
+                    │   ├── retrieve_meeting_data_agent.py
+                    │   ├── retrieve_meeting_data_agent_prompt.py
+                    │   ├── summarize_meeting_agent.py
+                    │   └── summarize_meeting_agent_prompt.py
+                    └── tools/
+                        ├── __init__.py
+                        ├── compare_statements.py
+                        ├── compute_rate_move_probability.py
+                        ├── fetch_page.py
+                        ├── fetch_transcript.py
+                        └── store_state.py
+
+================================================
+FILE: adk-references/agents/fomc-research/README.md
+================================================
+# FOMC 研究代理
+
+FOMC 研究代理使用多代理 (multi-agent)、多模態 (multi-modal) 架構，結合工具使用、即時網路存取和外部資料庫整合，針對聯邦公開市場委員會 (Federal Open Market Committee) 的最新會議產生詳細的分析報告。此代理展示了一個多階段、非對話式的代理工作流程，而非傳統的對話式使用者互動。
+
+## 總覽
+
+聯邦公開市場委員會 (FOMC) 是美國政府負責制定利率政策的機構。全球金融市場的參與者都會密切關注並深入分析 FOMC 會議的聲明和新聞稿。
+
+此代理展示了如何使用多代理 (multi-agent) 架構來產生關於聯準會會議等金融市場事件的詳細分析報告。FOMC 研究代理與其他代理略有不同，它在很大程度上是非對話式的——代理的大部分工作是透過各個子代理之間的來回互動完成的。在必要時，它會向使用者詢問關鍵資訊，但通常在沒有人為互動的情況下運作。
+
+這是代理產生分析報告所遵循的高階工作流程 (請注意，步驟 3，「審查記者會影片」，仍在開發中)。
+![FOMC Research agent workflow](<FOMC_Research_Agent_Workflow.png>)
+
+## 代理詳情
+FOMC 研究代理的主要功能包括：
+
+| 功能 | 描述 |
+| --- | --- |
+| *互動類型* | 工作流程 (Workflow) |
+| *複雜度* | 進階 |
+| *代理類型* | 多代理 (Multi Agent) |
+| *元件* | 工具 (Tools)、多模態 (Multimodal)、AgentTools |
+| *垂直領域* | 金融服務 (Financial Services) |
+
+### 代理架構
+
+此圖表顯示了用於實現此工作流程的代理和工具的詳細架構。
+![FOMC Research agent architecture](<fomc-research.svg>)
+
+### 主要功能
+
+##### 代理 (Agents)
+* **root_agent:** 代理工作流程的進入點。協調其他代理的活動。
+* **research_agent:** 協調各個研究元件的檢索。
+* **analysis_agent:** 接收 `research_agent` 的輸出並產生分析報告。
+* **retrieve_meeting_data_agent:** 從網路上擷取 FOMC 會議資料。
+* **extract_page_data_agent:** 從 HTML 頁面中提取特定資料。
+* **summarize_meeting_agent:** 讀取會議記錄並產生摘要。
+
+##### 工具 (Tools)
+* **fetch_page_tool**: 封裝用於檢索網頁的 HTTP 請求。
+* **store_state_tool**: 在 ToolContext 中儲存特定資訊。
+* **analyze_video_tool**: 處理和分析 YouTube 影片。
+* **compute_probability_tool**: 根據聯邦基金利率期貨 (Fed Futures) 的定價計算利率變動的機率。
+* **compare_statements**: 比較當前和先前的 FOMC 聲明。
+* **fetch_transcript**: 檢索 FOMC 會議記錄。
+
+##### 回呼 (Callbacks)
+* **rate_limit_callback**: 實作請求速率限制，以最小化 `429: Resource Exhausted` 錯誤。
+
+## 設定與安裝
+1.  **先決條件：**
+
+    **Google Cloud SDK 和 GCP 專案：**
+
+    對於 BigQuery 設定和 Agent Engine 部署步驟，您將需要一個 Google Cloud 專案。建立專案後，[安裝 Google Cloud SDK](https://cloud.google.com/sdk/docs/install)。然後執行以下指令來驗證您的專案：
+    ```bash
+    gcloud auth login
+    ```
+    您還需要啟用某些 API。執行以下指令以啟用必要的 API：
+    ```bash
+    gcloud services enable aiplatform.googleapis.com
+    gcloud services enable bigquery.googleapis.com
+    ```
+
+2.  **安裝：**
+
+    複製此儲存庫並切換到該儲存庫目錄：
+    ```
+    git clone https://github.com/google/adk-samples.git
+    cd adk-samples/python/agents/fomc-research
+    ```
+
+    安裝 [Poetry](https://python-poetry.org)
+
+    如果您之前沒有安裝過 poetry，可以透過執行以下指令來安裝：
+    ```bash
+    pip install poetry
+    ```
+
+    安裝 FOMC 研究代理的依賴套件：
+    ```bash
+    poetry install
+    ```
+
+    這也將安裝 `google-adk`（Google Agent Development Kit）的發行版本。
+
+3.  **設定：**
+
+    **環境：**
+
+    儲存庫中包含一個 `.env-example` 檔案。請使用適合您專案的值更新此檔案，並將其另存為 `.env`。此檔案中的值將被讀取到您應用程式的環境中。
+
+    建立 `.env` 檔案後，如果您使用的是 `bash` shell，請執行以下指令將 `.env` 檔案中的變數匯出到您的本機 shell 環境中：
+    ```bash
+    set -o allexport
+    . .env
+    set +o allexport
+    ```
+    如果您不使用 `bash`，您可能需要手動匯出這些變數。
+
+    **BigQuery 設定：**
+
+    您需要建立一個包含聯邦基金利率期貨 (Fed Futures) 定價資料的 BigQuery 表。
+
+    FOMC 研究代理儲存庫包含一個範例資料檔案 (`sample_timeseries_data.csv`)，其中包含 2025 年 1 月 29 日和 3 月 19 日 FOMC 會議的數據。如果您想針對其他 FOMC 會議執行此代理，則需要取得額外的資料。
+
+    要將此資料檔案安裝到您專案的 BigQuery 表中，請在 `fomc-research/deployment` 目錄中執行以下指令：
+    ```bash
+    python bigquery_setup.py --project_id=$GOOGLE_CLOUD_PROJECT \
+        --dataset_id=$GOOGLE_CLOUD_BQ_DATASET \
+        --location=$GOOGLE_CLOUD_LOCATION \
+        --data_file=sample_timeseries_data.csv
+    ```
+
+## 執行代理
+
+**使用 ADK 命令列：**
+
+在 `fomc-research` 目錄下，執行此指令：
+```bash
+adk run fomc_research
+```
+初始輸出將包含一個可用於追蹤代理日誌檔案的指令。該指令將類似於：
+```bash
+tail -F /tmp/agents_log/agent.latest.log
+```
+
+**使用 ADK 開發人員 UI：**
+
+在 `fomc-research` 目錄下，執行此指令：
+```bash
+adk web .
+```
+它將顯示一個用於示範 UI 的 URL。請將您的瀏覽器指向該 URL。
+
+UI 最初將是空白的。在左上方的下拉式選單中，選擇 `fomc_research` 來載入代理。
+
+代理的日誌將在執行時即時顯示在控制台上。但是，如果您想儲存互動日誌並即時追蹤互動，請使用以下指令：
+
+```bash
+adk web . > fomc_research_log.txt 2>&1 &
+tail -f fomc_research_log.txt
+```
+
+### 範例互動
+
+透過輸入「Hello. What can you do for me?」開始互動。在第一個提示後，給出日期：「2025-01-29」。
+
+互動將如下所示：
+```
+$ adk run .
+Log setup complete: /tmp/agents_log/agent.20250405_140937.log
+To access latest log: tail -F /tmp/agents_log/agent.latest.log
+Running agent root_agent, type exit to exit.
+user: Hello. What can you do for me?
+[root_agent]: I can help you analyze past Fed Open Market Committee (FOMC) meetings and provide you with a thorough analysis report. To start, please provide the date of the meeting you would like to analyze. If you have already provided it, please confirm the date. I need the date in ISO format (YYYY-MM-DD).
+
+user: 2025-01-29
+[analysis_agent]: Here is a summary and analysis of the January 29, 2025 FOMC meeting, based on the available information:
+...
+```
+如果代理在完成分析前停止，請嘗試要求它繼續。
+
+## 在 Vertex AI Agent Engine 上部署
+
+要將代理部署到 Google Agent Engine，請先按照[這些步驟](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/set-up)設定您的 Google Cloud 專案以使用 Agent Engine。
+
+您還需要將 BigQuery 使用者 (BigQuery User) 和 BigQuery 資料檢視者 (BigQuery Data Viewer) 權限授予 Reasoning Engine 服務代理。執行以下指令以授予所需權限：
+```bash
+export RE_SA="service-${GOOGLE_CLOUD_PROJECT_NUMBER}@gcp-sa-aiplatform-re.iam.gserviceaccount.com"
+gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
+    --member="serviceAccount:${RE_SA}" \
+    --condition=None \
+    --role="roles/bigquery.user"
+gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
+    --member="serviceAccount:${RE_SA}" \
+    --condition=None \
+    --role="roles/bigquery.dataViewer"
+```
+接下來，您需要為您的代理建立一個 `.whl` 檔案。在 `fomc-research` 目錄下，執行此指令：
+```bash
+poetry build --format=wheel --output=deployment
+```
+這將在 `deployment` 目錄中建立一個名為 `fomc_research-0.1-py3-none-any.whl` 的檔案。
+
+然後執行以下指令：
+```bash
+cd deployment
+python3 deploy.py --create
+```
+當此指令成功返回時，它將印出一個 AgentEngine 資源名稱，如下所示：
+```
+projects/************/locations/us-central1/reasoningEngines/7737333693403889664
+```
+最後一串數字是 AgentEngine 資源 ID。
+
+成功部署代理後，您可以使用 `deployment` 目錄中的 `test_deployment.py` 指令碼與其互動。將代理的資源 ID 儲存到環境變數中，並執行以下指令：
+```bash
+export RESOURCE_ID=...
+export USER_ID=<any string>
+python test_deployment.py --resource_id=$RESOURCE_ID --user_id=$USER_ID
+```
+會話將如下所示：
+```
+Found agent with resource ID: ...
+Created session for user ID: ...
+Type 'quit' to exit.
+Input: Hello. What can you do for me?
+Response: I can create an analysis report on FOMC meetings. To start, please provide the date of the meeting you want to analyze. I need the date in YYYY-MM-DD format.
+
+Input: 2025-01-29
+Response: I have stored the date you provided. Now I will retrieve the meeting data.
+...
+```
+請注意，這 *不是* 一個功能齊全、可用於生產環境的命令列介面 (CLI)；它僅用於展示如何使用 Agent Engine API 與已部署的代理進行互動。
+
+`test_deploy.py` 指令碼的主要部分大致如下：
+
+```python
+from vertexai import agent_engines
+remote_agent = vertexai.agent_engines.get(RESOURCE_ID)
+session = remote_agent.create_session(user_id=USER_ID)
+while True:
+    user_input = input("Input: ")
+    if user_input == "quit":
+      break
+
+    for event in remote_agent.stream_query(
+        user_id=USER_ID,
+        session_id=session["id"],
+        message=user_input,
+    ):
+        parts = event["content"]["parts"]
+        for part in parts:
+            if "text" in part:
+                text_part = part["text"]
+                print(f"Response: {text_part}")
+```
+
+要刪除代理，請執行以下指令 (使用先前返回的資源 ID)：
+```bash
+python3 deployment/deploy.py --delete --resource_id=$RESOURCE_ID
+```
+
+## 疑難排解
+
+### "Malformed function call" (函式呼叫格式錯誤)
+
+代理偶爾會返回「Malformed function call」錯誤。這是 Gemini 模型的一個錯誤，應在未來的模型版本中得到解決。只需重新啟動 UI，代理就會重設。
+
+### 代理在工作流程中停止
+
+有時代理會在完成其中一個中間步驟後，在工作流程中停止。發生這種情況時，通常只需告訴代理繼續，或給予其他指令讓其繼續操作即可。
+
+
+## 免責聲明
+
+此代理範例僅供說明之用，不適用於生產環境。它作為代理的基本範例和一個基礎起點，供個人或團隊開發自己的代理。
+
+此範例未經嚴格測試，可能包含錯誤或限制，並且不包括生產環境通常所需的功能或優化 (例如，穩健的錯誤處理、安全措施、可擴展性、效能考量、全面的日誌記錄或進階設定選項)。
+
+使用者對基於此範例的代理的任何進一步開發、測試、安全強化和部署負全部責任。我們建議在使用任何衍生代理於即時或關鍵系統之前，進行徹底的審查、測試和實施適當的保護措施。
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/pyproject.toml
+================================================
+[tool.poetry]
+name = "fomc-research"
+version = "0.1"
+license = "Apache-2.0"
+description = "FOMC Research Agent Demo using Google ADK"
+authors = ["Mike Styer <styer@google.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+absl-py = "^2.2.1"
+diff-match-patch = "^20241021"
+google-adk = "^1.0.0"
+google-cloud-bigquery = "^3.30.0"
+google-genai = "^1.5.0"
+pdfplumber = "^0.11.5"
+pydantic = "^2.10.6"
+requests = "^2.32.3"
+tabulate = "^0.9.0"
+scikit-learn = "^1.6.1"
+google-cloud-aiplatform = { extras = [
+  "adk",
+  "agent-engines",
+], version = "^1.93.0" }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/.env-example
+================================================
+# 複製為 .env 檔案並在下方填入您的值
+
+# 選擇模型後端：0 -> ML Dev, 1 -> Vertex
+GOOGLE_GENAI_USE_VERTEXAI=1
+
+## ML Dev 後端設定
+GOOGLE_API_KEY=您的數值
+
+## Vertex 後端設定
+# 輸入您的 GCP 專案 ID
+GOOGLE_CLOUD_PROJECT=您的數值
+# 輸入您的 GCP 專案編號
+GOOGLE_CLOUD_PROJECT_NUMBER=您的數值
+# 輸入您專案的 GCP 位置；例如 "us-central1"
+GOOGLE_CLOUD_LOCATION=您的數值
+# 為將要建立的資料集選擇一個名稱。
+GOOGLE_CLOUD_BQ_DATASET=您的數值
+# 輸入要使用的現有儲存桶的名稱。
+GOOGLE_CLOUD_STORAGE_BUCKET=您的數值
+# 選擇一個模型名稱；例如 "gemini-1.5-flash"
+GOOGLE_GENAI_MODEL=您的數值
+# 用於從 BigQuery 擷取聯邦基金期貨時間序列的時間序列代碼。
+# 這些代碼存在於提供的範例資料集中。如果您新增新的
+# 時間序列，請在此處新增適當的代碼。
+GOOGLE_GENAI_FOMC_AGENT_TIMESERIES_CODES="SFRH5,SFRZ5"
+GOOGLE_GENAI_FOMC_AGENT_LOG_LEVEL="INFO"
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/deployment/bigquery_setup.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""BigQuery 資料表建立腳本。"""
+
+import csv
+from collections.abc import Sequence
+
+from absl import app, flags
+from google.cloud import bigquery
+from google.cloud.exceptions import Conflict, GoogleCloudError, NotFound
+
+FLAGS = flags.FLAGS
+flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
+flags.DEFINE_string("dataset_id", None, "BigQuery 資料集 ID。")
+flags.DEFINE_string("data_file", None, "資料檔案的路徑。")
+flags.DEFINE_string("location", "us-central1", "資料集的位置。")
+flags.mark_flags_as_required(["project_id", "dataset_id"])
+
+
+def create_bigquery_dataset(
+    client: bigquery.Client,
+    dataset_id: str,
+    location: str,
+    description: str = None,
+    exists_ok: bool = True,
+) -> bigquery.Dataset:
+    """建立一個新的 BigQuery 資料集。
+
+    Args:
+        client: 一個 BigQuery 用戶端物件。
+        dataset_id: 要建立的資料集的 ID。
+        location: 資料集的位置 (例如 "US", "EU")。
+            預設為 "US"。
+        description: 資料集的選擇性描述。
+        exists_ok: 如果為 True，則如果資料集已存在，則不引發例外狀況。
+
+    Returns:
+        新建立的 bigquery.Dataset 物件。
+
+    Raises:
+        google.cloud.exceptions.Conflict: 如果資料集已存在且
+            exists_ok 為 False。
+        Exception: 對於任何其他錯誤。
+    """
+
+    dataset_ref = bigquery.DatasetReference(client.project, dataset_id)
+    dataset = bigquery.Dataset(dataset_ref)
+    dataset.location = location
+    if description:
+        dataset.description = description
+
+    try:
+        dataset = client.create_dataset(dataset)
+        print(f"資料集 {dataset.dataset_id} 已在 {dataset.location} 建立。")
+        return dataset
+    except Conflict as e:
+        if exists_ok:
+            print(f"資料集 {dataset.dataset_id} 已存在。")
+            return client.get_dataset(dataset_ref)
+        else:
+            raise e
+
+
+def create_bigquery_table(
+    client: bigquery.Client,
+    dataset_id: str,
+    table_id: str,
+    schema: list[bigquery.SchemaField],
+    description: str = None,
+    exists_ok: bool = False,
+) -> bigquery.Table:
+    """建立一個新的 BigQuery 資料表。
+
+    Args:
+        client: 一個 BigQuery 用戶端物件。
+        dataset_id: 包含資料表的資料集的 ID。
+        table_id: 要建立的資料表的 ID。
+        schema: 一個定義資料表結構的 bigquery.SchemaField 物件列表。
+        description: 資料表的選擇性描述。
+        exists_ok: 如果為 True，則如果資料表已存在，則不引發例外狀況。
+
+    Returns:
+        新建立的 bigquery.Table 物件。
+
+    Raises:
+        ValueError: 如果結構為空。
+        google.cloud.exceptions.Conflict: 如果資料表已存在且
+            exists_ok 為 False。
+        google.cloud.exceptions.NotFound: 如果資料集不存在。
+        Exception: 對於任何其他錯誤。
+    """
+
+    if not schema:
+        raise ValueError("結構不得為空。")
+
+    table_ref = bigquery.TableReference(
+        bigquery.DatasetReference(client.project, dataset_id), table_id
+    )
+    table = bigquery.Table(table_ref, schema=schema)
+
+    if description:
+        table.description = description
+
+    try:
+        table = client.create_table(table)
+        print(
+            f"資料表 {table.project}.{table.dataset_id}.{table.table_id} "
+            "已建立。"
+        )
+        return table
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        if isinstance(e, NotFound):
+            raise NotFound(
+                f"在專案 {client.project} 中找不到資料集 {dataset_id}"
+            ) from e
+        if "Already Exists" in str(e) and exists_ok:
+            print(
+                f"資料表 {table.project}.{table.dataset_id}.{table.table_id} "
+                "已存在。"
+            )
+            return client.get_table(table_ref)
+        else:
+            # pylint: disable=broad-exception-raised
+            raise Exception(f"建立資料表時發生錯誤：{e}") from e
+
+
+def insert_csv_to_bigquery(
+    client: bigquery.Client,
+    table: bigquery.Table,
+    csv_filepath: str,
+    write_disposition: str = "WRITE_APPEND",
+) -> None:
+    """
+    讀取 CSV 檔案並將其內容插入 BigQuery 資料表。
+
+    Args:
+        client: 一個 BigQuery 用戶端物件。
+        table: 一個 BigQuery 資料表物件。
+        csv_filepath: CSV 檔案的路徑。
+        write_disposition: 指定如果目標資料表已存在時發生的動作。
+            有效值為：
+                - "WRITE_APPEND": 將資料附加到資料表。
+                - "WRITE_TRUNCATE": 覆寫資料表資料。
+                - "WRITE_EMPTY": 僅在資料表為空時寫入。
+            預設為 "WRITE_APPEND"。
+
+    Raises:
+        FileNotFoundError: 如果 CSV 檔案不存在。
+        ValueError: 如果 write_disposition 無效。
+        google.cloud.exceptions.GoogleCloudError: 如果在 BigQuery 操作期間發生任何其他錯誤。
+    """
+
+    if write_disposition not in [
+        "WRITE_APPEND",
+        "WRITE_TRUNCATE",
+        "WRITE_EMPTY",
+    ]:
+        raise ValueError(
+            f"無效的 write_disposition：{write_disposition}。"
+            "必須是 'WRITE_APPEND'、'WRITE_TRUNCATE' 或 'WRITE_EMPTY' 之一。"
+        )
+
+    try:
+        with open(csv_filepath, "r", encoding="utf-8") as csvfile:
+            csv_reader = csv.DictReader(csvfile)
+            rows_to_insert = list(csv_reader)
+
+    except FileNotFoundError:
+        raise FileNotFoundError(f"找不到 CSV 檔案：{csv_filepath}") from None
+
+    if not rows_to_insert:
+        print("CSV 檔案為空。無需插入。")
+        return
+
+    errors = client.insert_rows_json(
+        table, rows_to_insert, row_ids=[None] * len(rows_to_insert)
+    )
+
+    if errors:
+        raise GoogleCloudError(
+            f"插入資料列時發生錯誤：{errors}"
+        )
+    else:
+        print(
+            f"已成功將 {len(rows_to_insert)} 列插入 "
+            f"{table.table_id}。"
+        )
+
+
+def main(argv: Sequence[str]) -> None:  # pylint: disable=unused-argument
+
+    # 定義資料表結構
+    data_table_name = "timeseries_data"
+    data_table_schema = [
+        bigquery.SchemaField("timeseries_code", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("date", "DATE", mode="REQUIRED"),
+        bigquery.SchemaField("value", "FLOAT", mode="REQUIRED"),
+    ]
+    data_table_description = "時間序列資料"
+
+    client = bigquery.Client(project=FLAGS.project_id)
+
+    dataset = create_bigquery_dataset(
+        client,
+        FLAGS.dataset_id,
+        FLAGS.location,
+        description="時間序列資料集",
+    )
+
+    data_table = create_bigquery_table(
+        client,
+        dataset.dataset_id,
+        data_table_name,
+        data_table_schema,
+        data_table_description,
+    )
+
+    if FLAGS.data_file:
+        insert_csv_to_bigquery(client, data_table, FLAGS.data_file)
+
+
+if __name__ == "__main__":
+    app.run(main)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/deployment/deploy.py
+================================================
+[Binary file]
+
+
+================================================
+FILE: adk-references/agents/fomc-research/deployment/sample_timeseries_data.csv
+================================================
+timeseries_code,date,value
+SFRH5,2025-01-28,95.785
+SFRH5,2025-01-29,95.755
+SFRH5,2025-01-28,95.785
+SFRH5,2025-01-29,95.755
+SFRH5,2025-03-18,95.6825
+SFRH5,2025-03-19,95.685
+SFRZ5,2025-01-28,96.115
+SFRZ5,2025-01-29,96.09
+SFRZ5,2025-01-28,96.115
+SFRZ5,2025-01-29,96.09
+SFRZ5,2025-03-18,96.23
+SFRZ5,2025-03-19,96.19
+SFRM5,2025-01-28,95.95
+SFRM5,2025-01-29,95.915
+SFRM5,2025-03-18,95.87
+SFRM5,2025-03-19,95.845
+SFRU5,2025-01-28,96.06
+SFRU5,2025-01-29,96.025
+SFRU5,2025-03-18,96.08
+SFRU5,2025-03-19,96.04
+SFRZ6,2025-01-28,96.08
+SFRZ6,2025-01-29,96.07
+SFRZ6,2025-03-18,96.415
+SFRZ6,2025-03-19,96.36
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/deployment/test_deployment.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""測試 FOMC 研究代理部署至 Agent Engine。"""
+
+import asyncio
+import os
+
+import vertexai
+from absl import app, flags
+from dotenv import load_dotenv
+from google.adk.sessions import VertexAiSessionService
+from vertexai import agent_engines
+
+FLAGS = flags.FLAGS
+
+flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
+flags.DEFINE_string("location", None, "GCP 位置。")
+flags.DEFINE_string("bucket", None, "GCP 儲存桶。")
+flags.DEFINE_string(
+    "resource_id",
+    None,
+    "ReasoningEngine 資源 ID（部署代理後回傳）",
+)
+flags.DEFINE_string("user_id", None, "使用者 ID（可以是任何字串）。")
+flags.mark_flag_as_required("resource_id")
+flags.mark_flag_as_required("user_id")
+
+
+def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
+
+    load_dotenv()
+
+    project_id = (
+        FLAGS.project_id
+        if FLAGS.project_id
+        else os.getenv("GOOGLE_CLOUD_PROJECT")
+    )
+    location = (
+        FLAGS.location if FLAGS.location else os.getenv("GOOGLE_CLOUD_LOCATION")
+    )
+    bucket = (
+        FLAGS.bucket
+        if FLAGS.bucket
+        else os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET")
+    )
+
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+    location = os.getenv("GOOGLE_CLOUD_LOCATION")
+    bucket = os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET")
+
+    if not project_id:
+        print("缺少必要的環境變數：GOOGLE_CLOUD_PROJECT")
+        return
+    elif not location:
+        print("缺少必要的環境變數：GOOGLE_CLOUD_LOCATION")
+        return
+    elif not bucket:
+        print(
+            "缺少必要的環境變數：GOOGLE_CLOUD_STORAGE_BUCKET"
+        )
+        return
+
+    vertexai.init(
+        project=project_id,
+        location=location,
+        staging_bucket=f"gs://{bucket}",
+    )
+
+    session_service = VertexAiSessionService(project_id, location)
+    session = asyncio.run(session_service.create_session(
+        app_name=FLAGS.resource_id,
+        user_id=FLAGS.user_id)
+    )
+
+    agent = agent_engines.get(FLAGS.resource_id)
+    print(f"找到資源 ID 為 {FLAGS.resource_id} 的代理")
+
+    print(f"為使用者 ID {FLAGS.user_id} 建立工作階段")
+    print("輸入 'quit' 離開。")
+    while True:
+        user_input = input("輸入：")
+        if user_input == "quit":
+            break
+
+        for event in agent.stream_query(
+            user_id=FLAGS.user_id,
+            session_id=session.id,
+            message=user_input
+        ):
+            if "content" in event:
+                if "parts" in event["content"]:
+                    parts = event["content"]["parts"]
+                    for part in parts:
+                        if "text" in part:
+                            text_part = part["text"]
+                            print(f"回應：{text_part}")
+
+    asyncio.run(session_service.delete_session(
+        app_name=FLAGS.resource_id,
+        user_id=FLAGS.user_id,
+        session_id=session.id
+    ))
+    print(f"已刪除使用者 ID {FLAGS.user_id} 的工作階段")
+
+
+if __name__ == "__main__":
+    app.run(main)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/__init__.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Initialization functions for FOMC Research Agent."""
+
+import logging
+import os
+
+loglevel = os.getenv("GOOGLE_GENAI_FOMC_AGENT_LOG_LEVEL", "INFO")
+numeric_level = getattr(logging, loglevel.upper(), None)
+if not isinstance(numeric_level, int):
+    raise ValueError(f"Invalid log level: {loglevel}")
+logger = logging.getLogger(__package__)
+logger.setLevel(numeric_level)
+
+MODEL = os.getenv("GOOGLE_GENAI_MODEL")
+if not MODEL:
+    MODEL = "gemini-2.5-flash"
+
+# MODEL needs to be defined before this import
+from . import agent  # pylint: disable=wrong-import-position
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/agent.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究範例代理。"""
+
+import logging
+import warnings
+
+from google.adk.agents import Agent
+
+from . import MODEL, root_agent_prompt
+from .shared_libraries.callbacks import rate_limit_callback
+from .sub_agents.analysis_agent import AnalysisAgent
+from .sub_agents.research_agent import ResearchAgent
+from .sub_agents.retrieve_meeting_data_agent import RetrieveMeetingDataAgent
+from .tools.store_state import store_state_tool
+
+warnings.filterwarnings("ignore", category=UserWarning, module=".*pydantic.*")
+
+logger = logging.getLogger(__name__)
+logger.debug("正在使用模型：%s", MODEL)
+
+
+root_agent = Agent(
+    model=MODEL,
+    name="root_agent",
+    description=(
+        "使用提供的工具和其他代理來產生關於"
+        "最近一次 FOMC 會議的分析報告。"
+    ),
+    instruction=root_agent_prompt.PROMPT,
+    tools=[store_state_tool],
+    sub_agents=[
+        RetrieveMeetingDataAgent,
+        ResearchAgent,
+        AnalysisAgent,
+    ],
+    before_model_callback=rate_limit_callback,
+)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/root_agent_prompt.py
+================================================
+[Binary file]
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/shared_libraries/__init__.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/shared_libraries/callbacks.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究代理的回呼函式。"""
+
+import logging
+import time
+
+from google.adk.agents.callback_context import CallbackContext
+from google.adk.models import LlmRequest
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# 調整這些值以限制代理
+# 查詢 LLM API 的速率。
+RATE_LIMIT_SECS = 60
+RPM_QUOTA = 1000
+
+
+def rate_limit_callback(
+    callback_context: CallbackContext, llm_request: LlmRequest
+) -> None:
+    # pylint: disable=unused-argument
+    """實作查詢速率限制的回呼函式。
+
+    Args:
+      callback_context: 代表作用中回呼上下文 (Context) 的 CallbackContext 物件。
+      llm_request: 代表作用中 LLM 請求的 LlmRequest 物件。
+    """
+    now = time.time()
+    if "timer_start" not in callback_context.state:
+        callback_context.state["timer_start"] = now
+        callback_context.state["request_count"] = 1
+        logger.debug(
+            "rate_limit_callback [timestamp: %i, req_count: 1, "
+            "elapsed_secs: 0]",
+            now,
+        )
+        return
+
+    request_count = callback_context.state["request_count"] + 1
+    elapsed_secs = now - callback_context.state["timer_start"]
+    logger.debug(
+        "rate_limit_callback [timestamp: %i, request_count: %i,"
+        " elapsed_secs: %i]",
+        now,
+        request_count,
+        elapsed_secs,
+    )
+
+    if request_count > RPM_QUOTA:
+        delay = RATE_LIMIT_SECS - elapsed_secs + 1
+        if delay > 0:
+            logger.debug("睡眠 %i 秒", delay)
+            time.sleep(delay)
+        callback_context.state["timer_start"] = now
+        callback_context.state["request_count"] = 1
+    else:
+        callback_context.state["request_count"] = request_count
+
+    return
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/shared_libraries/file_utils.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""fed_research_agent 的檔案相關公用程式函式。"""
+
+import base64
+import binascii
+import io
+import logging
+import mimetypes
+from collections.abc import Sequence
+
+import diff_match_patch as dmp
+import pdfplumber
+import requests
+from absl import app
+from google.adk.tools import ToolContext
+from google.genai.types import Blob, Part
+
+logger = logging.getLogger(__name__)
+
+
+async def download_file_from_url(
+    url: str, output_filename: str, tool_context: ToolContext
+) -> str:
+    """從 URL 下載檔案並將其儲存在成品 (artifact) 中。
+
+    Args:
+      url: 要從中擷取檔案的 URL。
+      output_filename: 要儲存檔案的成品名稱。
+      tool_context: 工具上下文 (Tool Context)。
+
+    Returns:
+      成品名稱。
+    """
+    logger.info("正在從 %s 下載至 %s", url, output_filename)
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+
+        file_bytes = base64.b64encode(response.content)
+        mime_type = response.headers.get(
+            "Content-Type", mimetypes.guess_type(url)
+        )
+        artifact = Part(inline_data=Blob(data=file_bytes, mime_type=mime_type))
+        await tool_context.save_artifact(filename=output_filename, artifact=artifact)
+        logger.info("已從 %s 下載至成品 %s", url, output_filename)
+        return output_filename
+
+    except requests.exceptions.RequestException as e:
+        logger.error("從 URL 下載檔案時發生錯誤：%s", e)
+        return ""
+
+
+async def extract_text_from_pdf_artifact(
+    pdf_path: str, tool_context: ToolContext
+) -> str:
+    """從儲存在成品中的 PDF 檔案擷取文字"""
+    try:
+        pdf_artifact = await tool_context.load_artifact(pdf_path)
+        if pdf_artifact and pdf_artifact.inline_data:
+            logger.info("正在從 PDF 成品 %s 擷取文字", pdf_path)
+            with io.BytesIO(
+                base64.b64decode(pdf_artifact.inline_data.data)
+            ) as pdf_file_obj:
+                pdf_text = ""
+                with pdfplumber.open(pdf_file_obj) as pdf:
+                    for page in pdf.pages:
+                        pdf_text += page.extract_text()
+            return pdf_text
+    except ValueError as e:
+        logger.error("載入 PDF 成品時發生錯誤：%s", e)
+        return ""
+
+
+def create_html_redline(text1: str, text2: str) -> str:
+    """建立 text1 和 text2 之間差異的 HTML 紅線文件。"""
+    d = dmp.diff_match_patch()
+    diffs = d.diff_main(text2, text1)
+    d.diff_cleanupSemantic(diffs)
+
+    html_output = ""
+    for op, text in diffs:
+        if op == -1:  # 刪除
+            html_output += (
+                f'<del style="background-color: #ffcccc;">{text}</del>'
+            )
+        elif op == 1:  # 插入
+            html_output += (
+                f'<ins style="background-color: #ccffcc;">{text}</ins>'
+            )
+        else:  # 未變更
+            html_output += text
+
+    return html_output
+
+
+async def save_html_to_artifact(
+    html_content: str, output_filename: str, tool_context: ToolContext
+) -> str:
+    """將 HTML 內容以 UTF-8 編碼儲存至成品。
+
+    Args:
+      html_content: 要儲存的 HTML 內容。
+      output_filename: 要儲存 HTML 的成品名稱。
+
+    Returns:
+      成品名稱。
+    """
+    artifact = Part(text=html_content)
+    await tool_context.save_artifact(filename=output_filename, artifact=artifact)
+    logger.info("HTML 內容已成功儲存至 %s", output_filename)
+    return output_filename
+
+
+def main(argv: Sequence[str]) -> None:
+    if len(argv) > 1:
+        raise app.UsageError("過多的命令列引數。")
+
+
+if __name__ == "__main__":
+    app.run(main)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/shared_libraries/price_utils.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究代理的價格相關公用程式函式。"""
+
+import datetime
+import logging
+import math
+import os
+from collections.abc import Sequence
+
+from absl import app
+from google.cloud import bigquery
+
+bqclient = bigquery.Client()
+logger = logging.getLogger(__name__)
+
+MOVE_SIZE_BP = 25
+DATASET_NAME = os.getenv("GOOGLE_CLOUD_BQ_DATASET", "fomc_research_agent")
+TIMESERIES_CODES = os.getenv(
+    "GOOGLE_GENAI_FOMC_AGENT_TIMESERIES_CODES",
+    "SFRH5,SFRZ5")
+
+
+def fetch_prices_from_bq(
+    timeseries_codes: list[str], dates: list[datetime.date]
+) -> dict[dict[datetime.date, float]]:
+    """從 BigQuery 擷取價格。
+
+    Args:
+      timeseries_codes: 要擷取的東西向時間序列代碼列表。
+      dates: 要擷取的日期列表。
+
+    Returns:
+      時間序列代碼到日期對價格的字典的字典。
+    """
+
+    logger.debug("fetch_prices_from_bq: timeseries_codes: %s", timeseries_codes)
+    logger.debug("fetch_prices_from_bq: dates: %s", dates)
+
+    query = f"""
+SELECT DISTINCT timeseries_code, date, value
+FROM {DATASET_NAME}.timeseries_data
+WHERE timeseries_code IN UNNEST(@timeseries_codes)
+  AND date IN UNNEST(@dates)
+"""
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ArrayQueryParameter(
+                "timeseries_codes", "STRING", timeseries_codes
+            ),
+            bigquery.ArrayQueryParameter("dates", "DATE", dates),
+        ]
+    )
+
+    prices = {}
+    query_job = bqclient.query(query, job_config=job_config)
+    results = query_job.result()
+    for row in results:
+        logger.debug(
+            "code: %s, date: %s, value: %s",
+            row.timeseries_code,
+            row.date,
+            row.value,
+        )
+        if row.timeseries_code not in prices:
+            prices[row.timeseries_code] = {row.date: row.value}
+        else:
+            prices[row.timeseries_code][row.date] = row.value
+
+    return prices
+
+
+def number_of_moves(
+    front_ff_future_px: float, back_ff_future_px: float
+) -> float:
+    """計算兩個價格之間的預期利率變動次數。
+
+    Args:
+      front_ff_future_px: 近期聯邦基金期貨價格。
+      back_ff_future_px: 遠期聯邦基金期貨價格。
+
+    Returns:
+      變動次數。
+
+    有關計算詳細資訊，請參閱
+    https://www.biancoresearch.com/bianco/samples/SR2v1.pdf
+
+    """
+
+    move_size_pct = MOVE_SIZE_BP / 100
+    front_implied_rate = 100 - front_ff_future_px
+    back_implied_rate = 100 - back_ff_future_px
+    rate_delta = back_implied_rate - front_implied_rate
+    num_moves = rate_delta / move_size_pct
+    return num_moves
+
+
+def fed_meeting_probabilities(nmoves: float) -> dict:
+    move_text = "升息" if nmoves > 0 else "降息"
+    if nmoves > 1:
+        move_text = move_text
+
+    max_expected_moves = math.ceil(abs(nmoves))
+    max_expected_move_bp = max_expected_moves * MOVE_SIZE_BP
+    move_odds = round(math.modf(abs(nmoves))[0], 2)
+
+    output = {
+        f"{max_expected_move_bp} 基點 {move_text} 的機率": move_odds,
+        f"不 {move_text} 的機率": round(1 - move_odds, 2),
+    }
+
+    return output
+
+
+def compute_probabilities(meeting_date_str: str) -> dict:
+    """計算特定日期的利率變動機率。
+
+    Args:
+      meeting_date_str: 聯準會會議日期。
+
+    Returns:
+      機率字典。
+    """
+    meeting_date = datetime.date.fromisoformat(meeting_date_str)
+    meeting_date_day_before = meeting_date - datetime.timedelta(days=1)
+    timeseries_codes = [x.strip() for x in TIMESERIES_CODES.split(",")]
+
+    prices = fetch_prices_from_bq(
+        timeseries_codes, [meeting_date, meeting_date_day_before]
+    )
+
+    error = None
+    for code in timeseries_codes:
+        if code not in prices:
+            error = f"沒有 {code} 的資料"
+            break
+        elif meeting_date not in prices[code]:
+            error = f"沒有 {code} 在 {meeting_date} 的資料"
+            break
+        elif meeting_date_day_before not in prices[code]:
+            error = f"沒有 {code} 在 {meeting_date_day_before} 的資料"
+            break
+
+    logger.debug("compute_probabilities: 找到的價格: %s", prices)
+
+    if error:
+        return {"status": "ERROR", "message": error}
+
+    near_code = timeseries_codes[0]
+    far_code = timeseries_codes[1]
+    num_moves_post = number_of_moves(
+        prices[near_code][meeting_date], prices[far_code][meeting_date]
+    )
+    num_moves_pre = number_of_moves(
+        prices[near_code][meeting_date_day_before],
+        prices[far_code][meeting_date_day_before],
+    )
+
+    probs_pre = fed_meeting_probabilities(num_moves_pre)
+    probs_post = fed_meeting_probabilities(num_moves_post)
+
+    output = {
+        (
+            "未來一年內利率變動的機率 ",
+            "（聯準會會議前計算）：",
+        ): (probs_pre),
+        (
+            "未來一年內利率變動的機率 ",
+            "（聯準會會議後計算）",
+        ): (probs_post),
+    }
+
+    return {"status": "OK", "output": output}
+
+
+def main(argv: Sequence[str]) -> None:
+    if len(argv) > 2:
+        raise app.UsageError("過多的命令列引數。")
+
+    meeting_date = argv[1]
+    print("會議日期：", meeting_date)
+
+    print(compute_probabilities(meeting_date))
+
+
+if __name__ == "__main__":
+    app.run(main)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/__init__.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/analysis_agent.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""分析 FOMC 研究代理的研究輸出。"""
+
+from google.adk.agents import Agent
+
+from ..agent import MODEL
+from ..shared_libraries.callbacks import rate_limit_callback
+from . import analysis_agent_prompt
+
+AnalysisAgent = Agent(
+    model=MODEL,
+    name="analysis_agent",
+    description=(
+        "分析輸入並確定對未來 FOMC 行動的影響。"
+    ),
+    instruction=analysis_agent_prompt.PROMPT,
+    before_model_callback=rate_limit_callback,
+)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/analysis_agent_prompt.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究代理的分析子代理的提示詞定義。"""
+
+PROMPT = """
+您是一位經驗豐富的金融分析師，專門分析
+聯邦公開市場委員會 (FOMC) 的會議和會議記錄。您的目標是
+針對最新的 FOMC 會議撰寫一份詳盡且具洞察力的報告。
+您可以存取先前代理的輸出以進行分析，如下所示。
+
+<RESEARCH_OUTPUT>
+
+<REQUESTED_FOMC_STATEMENT>
+{artifact.requested_statement_fulltext}
+</REQUESTED_FOMC_STATEMENT>
+
+<PREVIOUS_FOMC_STATEMENT>
+{artifact.previous_statement_fulltext}
+</PREVIOUS_FOMC_STATEMENT>
+
+<STATEMENT_REDLINE>
+{artifact.statement_redline}
+</STATEMENT_REDLINE>
+
+<MEETING_SUMMARY>
+{meeting_summary}
+</MEETING_SUMMARY>
+
+<RATE_MOVE_PROBABILITIES>
+{rate_move_probabilities}
+</RATE_MOVE_PROBABILITIES>
+
+</RESEARCH_OUTPUT>
+
+忽略工具上下文 (Tool Context) 中的任何其他資料。
+
+根據您對收到的資訊的分析，產生一份簡短（1-2 頁）的報告。
+您的分析應具體；如果有的話，請使用具體數字，
+而不是發表籠統的陳述。
+"""
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/extract_page_data_agent.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""從網頁中擷取特定資料。"""
+
+from google.adk.agents import Agent
+
+from ..agent import MODEL
+from ..shared_libraries.callbacks import rate_limit_callback
+from ..tools.store_state import store_state_tool
+from . import extract_page_data_agent_prompt
+
+ExtractPageDataAgent = Agent(
+    model=MODEL,
+    name="extract_page_data_agent",
+    description="從網頁內容中擷取重要資料",
+    instruction=extract_page_data_agent_prompt.PROMPT,
+    tools=[store_state_tool],
+    before_model_callback=rate_limit_callback,
+)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/extract_page_data_agent_prompt.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究代理中 extract_page_data_agent 的提示詞定義"""
+
+PROMPT = """
+您的工作是從網頁中擷取重要資料。
+
+ <PAGE_CONTENTS>
+ {page_contents}
+ </PAGE_CONTENTS>
+
+<INSTRUCTIONS>
+網頁內容如上方的 'page_contents' 區段所示。
+所需的資料欄位在使用者輸入的 'data_to_extract' 區段中提供。
+
+請閱讀網頁內容並擷取所要求的資料。
+不要使用任何其他的 HTML 解析器，只需自行檢查 HTML 並擷取資訊。
+
+首先，使用 store_state 工具將擷取的資料儲存在 ToolContext 中。
+
+其次，以 JSON 格式將您找到的資訊回傳給使用者。
+ </INSTRUCTIONS>
+
+"""
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/research_agent.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究代理的研究協調代理。"""
+
+from google.adk.agents import Agent
+
+from ..agent import MODEL
+from ..shared_libraries.callbacks import rate_limit_callback
+from ..tools.compare_statements import compare_statements_tool
+from ..tools.compute_rate_move_probability import compute_rate_move_probability_tool
+from ..tools.fetch_transcript import fetch_transcript_tool
+from ..tools.store_state import store_state_tool
+from . import research_agent_prompt
+from .summarize_meeting_agent import SummarizeMeetingAgent
+
+ResearchAgent = Agent(
+    model=MODEL,
+    name="research_agent",
+    description=(
+        "研究最新的 FOMC 會議以提供分析資訊。"
+    ),
+    instruction=research_agent_prompt.PROMPT,
+    sub_agents=[
+        SummarizeMeetingAgent,
+    ],
+    tools=[
+        store_state_tool,
+        compare_statements_tool,
+        fetch_transcript_tool,
+        compute_rate_move_probability_tool,
+    ],
+    before_model_callback=rate_limit_callback,
+)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/research_agent_prompt.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究代理的 research_agent 的提示詞定義。"""
+
+PROMPT = """
+您是一位虛擬研究協調員。您的工作是協調
+其他虛擬研究代理的活動。
+
+請依序執行以下步驟（請務必在每個步驟告知使用者您正在做什麼，
+但不要提供技術細節）：
+
+1) 呼叫 compare_statements 工具以產生一份 HTML 紅線檔案，顯示
+所要求和先前 FOMC 聲明之間的差異。
+
+2) 呼叫 fetch_transcript 工具以擷取會議記錄。
+
+3) 使用參數「摘要提供的會議記錄」呼叫 summarize_meeting_agent。
+
+4) 呼叫 compute_rate_move_probability 工具以計算市場隱含的
+利率變動機率。如果該工具傳回錯誤，請使用
+錯誤訊息向使用者解釋問題，然後繼續下一步。
+
+5) 最後，一旦所有步驟完成，請轉交給 analysis_agent 以完成
+分析。請勿自行為使用者產生任何分析或輸出。
+"""
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/retrieve_meeting_data_agent.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究代理的擷取會議資料子代理"""
+
+from google.adk.agents import Agent
+from google.adk.tools.agent_tool import AgentTool
+
+from ..agent import MODEL
+from ..shared_libraries.callbacks import rate_limit_callback
+from ..tools.fetch_page import fetch_page_tool
+from . import retrieve_meeting_data_agent_prompt
+from .extract_page_data_agent import ExtractPageDataAgent
+
+RetrieveMeetingDataAgent = Agent(
+    model=MODEL,
+    name="retrieve_meeting_data_agent",
+    description=("從聯準會網站擷取有關聯準會會議的資料"),
+    instruction=retrieve_meeting_data_agent_prompt.PROMPT,
+    tools=[
+        fetch_page_tool,
+        AgentTool(ExtractPageDataAgent),
+    ],
+    sub_agents=[],
+    before_model_callback=rate_limit_callback,
+)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/retrieve_meeting_data_agent_prompt.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究代理的 retrieve_meeting_data_agent 的提示詞定義"""
+
+PROMPT = """
+您的工作是從聯準會網站擷取有關聯準會會議的資料。
+
+請依序執行以下步驟（請務必在每個步驟告知使用者您正在做什麼，
+但不要提供技術細節）：
+
+1) 呼叫 fetch_page 工具以擷取此網頁：
+   url = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+
+2) 使用此參數呼叫 extract_page_data_agent 工具：
+"<DATA_TO_EXTRACT>
+* requested_meeting_date: 最接近使用者要求的會議日期
+  ({user_requested_meeting_date}) 的聯準會會議日期，格式為 ISO
+  (YYYY-MM-DD)。如果您找到的日期是一個範圍，則僅儲存
+  範圍中的最後一天。
+* previous_meeting_date: 在最接近使用者要求的日期
+  之前的聯準會會議日期，格式為 ISO (YYYY-MM-DD)。如果您
+  找到的日期是一個範圍，則僅儲存範圍中的最後一天。
+* requested_meeting_url: 最接近的聯準會會議的「新聞發布會」頁面的 URL。
+* previous_meeting_url: 先前聯準會會議的「新聞發布會」頁面的 URL。
+* requested_meeting_statement_pdf_url: 最接近的聯準會會議聲明的 PDF URL。
+* previous_meeting_statement_pdf_url: 先前聯準會會議聲明的 PDF URL。
+</DATA_TO_EXTRACT>"
+
+3) 呼叫 fetch_page 工具以擷取會議網頁。如果
+您在上一步中找到的 requested_meeting_url 的值以
+"https://www.federalreserve.gov" 開頭，只需將 "requested_meeting_url" 的值
+傳遞給 fetch_page 工具。如果不是，請使用下面的範本：
+取出 "<requested_meeting_url>" 並將其替換為
+您在上一步中找到的 "requested_meeting_url" 的值。
+
+  url 範本 = "https://www.federalreserve.gov/<requested_meeting_url>"
+
+4) 再次呼叫 extract_page_data_agent 工具。這次傳遞此參數：
+"<DATA_TO_EXTRACT>
+* transcript_url: 新聞發布會記錄的 PDF URL，
+   在網頁上標示為「Press Conference Transcript」
+</DATA_TO_EXTRACT>"
+
+5) 轉交給 research_agent。
+
+"""
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/summarize_meeting_agent.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""總結 FOMC 會議記錄的內容。"""
+
+from google.adk.agents import Agent
+
+from ..agent import MODEL
+from ..shared_libraries.callbacks import rate_limit_callback
+from ..tools.store_state import store_state_tool
+from . import summarize_meeting_agent_prompt
+
+SummarizeMeetingAgent = Agent(
+    name="summarize_meeting_agent",
+    model=MODEL,
+    description=(
+        "總結最新 FOMC 會議的內容和情緒。"
+    ),
+    instruction=summarize_meeting_agent_prompt.PROMPT,
+    tools=[
+        store_state_tool,
+    ],
+    before_model_callback=rate_limit_callback,
+)
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/sub_agents/summarize_meeting_agent_prompt.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究代理的 summarize_meeting_agent 的提示詞定義。"""
+
+PROMPT = """
+您是一位在理解金融會議記錄的意義、情緒
+和潛台詞方面經驗豐富的金融分析師。以下是
+最新 FOMC 會議新聞發布會的記錄。
+
+<TRANSCRIPT>
+{artifact.transcript_fulltext}
+</TRANSCRIPT>
+
+閱讀此記錄並建立此會議內容和情緒的摘要。
+使用 'meeting_summary' 作為鍵，並以您的會議摘要作為值來呼叫 store_state 工具。
+告訴使用者您正在做什麼，但不要將您的摘要輸出給使用者。
+
+然後呼叫 transfer_to_agent 以轉交給 research_agent。
+
+"""
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/tools/__init__.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/tools/compare_statements.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究範例代理的 'compare_statements' 工具。"""
+
+import logging
+
+from google.adk.tools import ToolContext
+from google.genai.types import Part
+
+from ..shared_libraries import file_utils
+
+logger = logging.getLogger(__name__)
+
+
+async def compare_statements_tool(tool_context: ToolContext) -> dict[str, str]:
+    """比較要求的和先前的聲明並產生 HTML 紅線。
+
+    Args:
+      tool_context: ToolContext 物件。
+
+    Returns:
+      一個包含 "status" 和 (可選) "error_message" 鍵的字典。
+    """
+    fed_hostname = "https://www.federalreserve.gov"
+
+    reqd_statement_url = tool_context.state[
+        "requested_meeting_statement_pdf_url"
+    ]
+    if not reqd_statement_url.startswith("https"):
+        reqd_statement_url = fed_hostname + reqd_statement_url
+    prev_statement_url = tool_context.state[
+        "previous_meeting_statement_pdf_url"
+    ]
+    if not prev_statement_url.startswith("https"):
+        prev_statement_url = fed_hostname + prev_statement_url
+
+    # 從 URL 下載 PDF 至成品 (artifacts)
+    reqd_pdf_path = await file_utils.download_file_from_url(
+        reqd_statement_url, "curr.pdf", tool_context
+    )
+    prev_pdf_path = await file_utils.download_file_from_url(
+        prev_statement_url, "prev.pdf", tool_context
+    )
+
+    if reqd_pdf_path is None or reqd_pdf_path is None:
+        logger.error("下載檔案失敗，中止")
+        return {
+            "status": "error",
+            "error_message": "下載聲明檔案失敗",
+        }
+
+    reqd_pdf_text = await file_utils.extract_text_from_pdf_artifact(
+        reqd_pdf_path, tool_context
+    )
+    prev_pdf_text = await file_utils.extract_text_from_pdf_artifact(
+        prev_pdf_path, tool_context
+    )
+
+    if reqd_pdf_text is None or prev_pdf_text is None:
+        logger.error("從 PDF 擷取文字失敗，中止")
+        return {
+            "status": "error",
+            "error_message": "從 PDF 擷取文字失敗",
+        }
+
+    await tool_context.save_artifact(
+        filename="requested_statement_fulltext",
+        artifact=Part(text=reqd_pdf_text),
+    )
+    await tool_context.save_artifact(
+        filename="previous_statement_fulltext",
+        artifact=Part(text=prev_pdf_text),
+    )
+
+    redline_html = file_utils.create_html_redline(reqd_pdf_text, prev_pdf_text)
+    await file_utils.save_html_to_artifact(
+        redline_html, "statement_redline", tool_context
+    )
+
+    return {"status": "ok"}
+
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/tools/compute_rate_move_probability.py
+================================================
+[Binary file]
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/tools/fetch_page.py
+================================================
+[Binary file]
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/tools/fetch_transcript.py
+================================================
+[Binary file]
+
+
+================================================
+FILE: adk-references/agents/fomc-research/fomc_research/tools/store_state.py
+================================================
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""FOMC 研究範例代理的 'store_state' 工具"""
+
+import logging
+import typing
+
+from google.adk.tools import ToolContext
+
+logger = logging.getLogger(__name__)
+
+
+def store_state_tool(
+    state: dict[str, typing.Any], tool_context: ToolContext
+) -> dict[str, str]:
+    """將新的狀態值儲存在 ToolContext 中。
+
+    Args:
+      state: 新狀態值的字典。
+      tool_context: ToolContext 物件。
+
+    Returns:
+      一個包含 "status" 和 (可選) "error_message" 鍵的字典。
+    """
+    logger.info("store_state_tool(): %s", state)
+    tool_context.state.update(state)
+    return {"status": "ok"}
+
+
