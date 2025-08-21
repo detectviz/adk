@@ -1,4 +1,6 @@
-
 httpx>=0.24.0
 kubernetes>=28.1.0
 pytest>=7.4.0
+pytest-asyncio
+tenacity
+cachetools

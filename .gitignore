@@ -32,19 +32,12 @@ deploy/.env
 deploy/data/
 
 # Binaries
-go-platform/bin/
+bin/
 
 # Editor/IDE
 # .idea/
 # .vscode/
 .DS_Store
-detectviz
-var/
-references/
-.claude/
-.kiro/
-*note.md
-config.yaml
 
 # Python
 __pycache__/
@@ -68,11 +61,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 .python-version
 
-# Python reports and artifacts
-python-adk-runtime/reports/
-python-adk-runtime/charts/
-python-adk-runtime/.pytest_cache/
-python-adk-runtime/htmlcov/
 
 # Node.js (if any frontend components)
 node_modules/
@@ -82,9 +70,6 @@ yarn-error.log*
 
 # Docker
 .dockerignore
-docker-compose.override.yml
-deploy/docker-compose.yml
-deploy/data/
 # Logs
 *.log
 logs/
