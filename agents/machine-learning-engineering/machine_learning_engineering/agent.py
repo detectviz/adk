@@ -1,4 +1,4 @@
-"""Demonstration of Machine Learning Engineering Agent using Agent Development Kit"""
+"""使用 Agent Development Kit (ADK) 示範機器學習工程代理"""
 
 import os
 import json
@@ -18,7 +18,7 @@ from machine_learning_engineering import prompt
 def save_state(
     callback_context: callback_context_module.CallbackContext
 ) -> Optional[types.Content]:
-    """Prints the current state of the callback context."""
+    """印出回呼上下文 (callback context) 的目前狀態。"""
     workspace_dir = callback_context.state.get("workspace_dir", "")
     task_name = callback_context.state.get("task_name", "")
     run_cwd = os.path.join(workspace_dir, task_name)
@@ -27,19 +27,21 @@ def save_state(
     return None
 
 
+# 定義一個循序代理，它將按順序執行一系列子代理來解決機器學習工程任務。
+# 這個管線代表了從初始化到最終提交的完整工作流程。
 mle_pipeline_agent = agents.SequentialAgent(
     name="mle_pipeline_agent",
     sub_agents=[
-        initialization_agent_module.initialization_agent,
-        refinement_agent_module.refinement_agent,
-        ensemble_agent_module.ensemble_agent,
-        submission_agent_module.submission_agent,
+        initialization_agent_module.initialization_agent, # 步驟 1: 初始化解決方案
+        refinement_agent_module.refinement_agent,       # 步驟 2: 優化解決方案
+        ensemble_agent_module.ensemble_agent,           # 步驟 3: 集成多個解決方案
+        submission_agent_module.submission_agent,       # 步驟 4: 產生最終的提交檔案
     ],
-    description="Executes a sequence of sub-agents for solving the MLE task.",
+    description="為了解決 MLE 任務，執行一系列的子代理。",
     after_agent_callback=save_state,
 )
 
-# For ADK tools compatibility, the root agent must be named `root_agent`
+# 為了與 ADK 工具相容，根代理必須命名為 `root_agent`
 root_agent = agents.Agent(
     model=os.getenv("ROOT_AGENT_MODEL"),
     name="mle_frontdoor_agent",
