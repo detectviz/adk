@@ -1,44 +1,45 @@
 
 # -*- coding: utf-8 -*-
-# Grafana 儀表板工具：支援 Token 驗證與模擬輸出。
+# Grafana 儀表板建立工具（真連接版）
+# - 依 service_type 產生最小化儀表板 JSON，並呼叫 /api/dashboards/db
+# - 真實專案可改為載入模板檔並套參數
 from __future__ import annotations
-import os, random, string
-from typing import Any, Dict
-from .common_http import HttpClient
-from ..adk_compat.executor import ExecutionError
+from typing import Dict, Any
+import time, uuid
+from ..integrations.grafana_http import GrafanaClient
 
-def _rand_uid(n=8):
-    return "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(n))
-
-def grafana_create_dashboard_tool(service_type: str, title: str | None = None) -> Dict[str, Any]:
-    """
-    建立 Grafana 儀表板的簡化流程。
-    環境變數：
-      - GRAFANA_URL
-      - GRAFANA_TOKEN（可選）
-      - GRAFANA_MOCK=1 時使用模擬輸出
-    回傳：{ success: bool, uid: str, url: str }
-    """
-    if not service_type:
-        raise ExecutionError("E_SCHEMA", "service_type 必填")
-
-    base = os.getenv("GRAFANA_URL")
-    token = os.getenv("GRAFANA_TOKEN")
-    mock = os.getenv("GRAFANA_MOCK", "1") == "1" or not base
-
-    if mock:
-        uid = _rand_uid()
-        return {"success": True, "uid": uid, "url": f"https://example.grafana.local/d/{uid}", "title": title or f"{service_type}-dashboard"}
-
-    headers = {"Authorization": f"Bearer {token}"} if token else {}
-    client = HttpClient(base_url=base, headers=headers)
-    # Grafana 建立儀表板 API：POST /api/dashboards/db
-    body = {
-        "dashboard": {"title": title or f"{service_type}-dashboard", "panels": []},
-        "folderId": 0,
-        "overwrite": False
+def _template_dashboard(service_type: str) -> Dict[str, Any]:
+    uid = f"sre-{service_type}-{uuid.uuid4().hex[:8]}"
+    return {
+        "uid": uid,
+        "title": f"SRE {service_type} Service Dashboard",
+        "timezone": "browser",
+        "schemaVersion": 38,
+        "refresh": "30s",
+        "panels": [
+            {
+                "type": "timeseries",
+                "title": "CPU Usage",
+                "gridPos": {"x":0,"y":0,"w":12,"h":8},
+                "targets": [{"expr": "rate(container_cpu_usage_seconds_total[5m])"}]
+            },
+            {
+                "type": "timeseries",
+                "title": "Memory Usage",
+                "gridPos": {"x":12,"y":0,"w":12,"h":8},
+                "targets": [{"expr": "container_memory_working_set_bytes"}]
+            }
+        ]
     }
-    data = client.post("/api/dashboards/db", json_body=body)
-    if not data.get("status") == "success":
-        raise ExecutionError("E_BACKEND", f"Grafana 建立失敗：{data}")
-    return {"success": True, "uid": data.get("uid"), "url": data.get("url"), "title": title or f"{service_type}-dashboard"}
+
+def grafana_create_dashboard_tool(service_type: str) -> Dict[str, Any]:
+    """建立 Grafana 儀表板並回傳 UID（真連接 Grafana）。"""
+    t0 = time.time()
+    cli = GrafanaClient()
+    dash = _template_dashboard(service_type)
+    try:
+        res = cli.upsert_dashboard(dashboard=dash, folder_id=None, overwrite=False)
+        uid = res.get("uid") or res.get("dashboard",{}).get("uid") or dash["uid"]
+        return {"success": True, "dashboard_uid": uid, "message": "created", "elapsed_ms": int((time.time()-t0)*1000)}
+    except Exception as e:
+        return {"success": False, "dashboard_uid": None, "message": f"create failed: {e}", "elapsed_ms": int((time.time()-t0)*1000)}
