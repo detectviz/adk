@@ -1,4 +1,4 @@
-"""Test cases for the Machine Learning Engineering agent and its sub-agents."""
+"""機器學習工程代理及其子代理的測試案例。"""
 
 
 import dotenv
@@ -29,11 +29,11 @@ def load_env():
 
 @pytest.mark.asyncio
 async def test_happy_path():
-    """Runs the agent on a simple input and expects a normal response."""
+    """在簡單輸入上執行代理並期望正常回應。"""
     user_input = textwrap.dedent(
         """
-        Question: who are you
-        Answer: Hello! I am a Machine Learning Engineering Agent.
+        問題：你是誰
+        答案：你好！我是一個機器學習工程代理。
     """
     ).strip()
 
@@ -54,7 +54,7 @@ async def test_happy_path():
         if event.content.parts and event.content.parts[0].text:
             response = event.content.parts[0].text
 
-    # The correct answer should mention 'machine learning'.
+    # 正確的答案應提及「機器學習」。
     assert "machine learning" in response.lower()
 
 if __name__ == "__main__":

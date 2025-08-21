@@ -1,4 +1,4 @@
-"""Common utility functions."""
+"""通用公用程式函式。"""
 
 import random
 import torch
@@ -12,7 +12,7 @@ from google.adk.models import llm_response
 def get_text_from_response(
     response: llm_response.LlmResponse,
 ) -> str:
-  """Extracts text from response."""
+  """從回應中提取文字。"""
   final_text = ""
   if response.content and response.content.parts:
     num_parts = len(response.content.parts)
@@ -23,7 +23,7 @@ def get_text_from_response(
 
 
 def set_random_seed(seed: int) -> None:
-    """Sets the random seed for reproducibility."""
+    """設定隨機種子以確保可重現性。"""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -34,7 +34,7 @@ def set_random_seed(seed: int) -> None:
 
 
 def copy_file(source_file_path: str, destination_dir: str) -> None:
-    """Copies a file to the specified directory."""
+    """將檔案複製到指定目錄。"""
     if not os.path.isdir(destination_dir):
         os.makedirs(destination_dir, exist_ok=True)
     shutil.copy2(source_file_path, destination_dir)

@@ -144,6 +144,9 @@ The agent operates in a cyclical manner:
    git clone https://github.com/google/adk-samples.git
    cd adk-samples/python/agents/camel
    # Install the package and dependencies.
+   # Note for Linux users: If you get an error related to `keyring` during the installation, you can disable it by running the following command:
+   # poetry config keyring.enabled false
+   # This is a one-time setup.
    poetry install
    ```
 

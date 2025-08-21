@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from google.auth import default
+from google.api_core.exceptions import ResourceExhausted
 import vertexai
 from vertexai.preview import rag
 import os
@@ -98,6 +99,12 @@ def upload_pdf_to_corpus(corpus_name, pdf_path, display_name, description):
     )
     print(f"Successfully uploaded {display_name} to corpus")
     return rag_file
+  except ResourceExhausted as e:
+    print(f"Error uploading file {display_name}: {e}")
+    print("\nThis error suggests that you have exceeded the API quota for the embedding model.")
+    print("This is common for new Google Cloud projects.")
+    print("Please see the 'Troubleshooting' section in the README.md for instructions on how to request a quota increase.")
+    return None
   except Exception as e:
     print(f"Error uploading file {display_name}: {e}")
     return None

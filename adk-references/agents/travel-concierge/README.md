@@ -108,6 +108,11 @@ Expand on the "Key Components" from above.
 
 2.  Install dependencies using Poetry or pip:
 
+    **Note for Linux users:** If you get an error related to `keyring` during the installation, you can disable it by running the following command:
+    ```bash
+    poetry config keyring.enabled false
+    ```
+    This is a one-time setup.
     ```bash
     poetry install
     ```

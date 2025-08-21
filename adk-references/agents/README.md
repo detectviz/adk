@@ -1,201 +1,232 @@
-# 範例代理 (Sample Agents)
+# Sample Agents
 
-此資料夾包含 [Python 代理開發套件 (Python Agent Development Kit)](https://github.com/google/adk-python) (Python ADK) 的範例代理。
+This folder contains sample agent samples for
+[Python Agent Development Kit](https://github.com/google/adk-python) (Python ADK).
 
-此目錄中的每個資料夾都包含一個不同的代理範例。
+Each folder in this directory contains a different agent sample.
 
-## 入門指南 (Getting Started)
+## Getting Started
 
-1.  **先決條件：**
+1.  **Prerequisites:**
 
-    *   Python 代理開發套件 (Python Agent Development Kit)。請參閱 [ADK 快速入門指南](https://google.github.io/adk-docs/get-started/quickstart/)。
-    *   Python 3.9+ 和 [Poetry](https://python-poetry.org/docs/#installation)。
-    *   存取 Google Cloud (Vertex AI) 及/或 Gemini API 金鑰 (依代理而定 - 請參閱各個代理的 README)。
+    *   Python Agent Development Kit. See the
+        [ADK Quickstart Guide](https://google.github.io/adk-docs/get-started/quickstart/).
+    *   Python 3.9+ and [Poetry](https://python-poetry.org/docs/#installation).
+    *   Access to Google Cloud (Vertex AI) and/or a Gemini API Key (depending on
+        the agent - see individual agent READMEs).
 
-2.  **執行範例代理：**
+2.  **Running a Sample Agent:**
 
-    *   導航至特定代理的目錄 (例如 `cd agents/llm-auditor`)。
-    *   將 `.env.example` 檔案複製為 `.env` 並填入必要的環境變數 (API 金鑰、專案 ID 等)。有關所需變數的詳細資訊，請參閱代理的特定 README。
-    *   使用 Poetry 安裝依賴項：`poetry install`
-    *   遵循代理 `README.md` 中的說明來執行它 (例如，使用 `adk run .` 或 `adk web`)。
-
-
-## 代理類別 (Agent Categories)
-
-請查看以下按類別組織的代理範例：
-
-| 代理名稱 (Agent Name)                                  | 使用案例 (Use Case)                                                                                                                              | 標籤 (Tag) | 互動類型 (Interaction Type) | 複雜度 (Complexity) | 代理類型 (Agent Type)   | 垂直領域 (Vertical)                      |
-| :------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------- | :--- | :--------------- | :--------- | :----------- | :---------------------------- |
-| [學術研究 (Academic Research)](academic-research) | 協助研究人員識別最新出版物並發現新興研究領域。 |   多代理 (Multi-agent), 自訂工具 (Custom tool), 評估 (Evaluation) | 工作流程 (Workflow) | 簡單 (Easy) | 多代理 (Multi Agent) | 學術界 (Academia)                        |
-| [品牌搜尋優化 (Brand Search Optimization)](brand-search-optimization) | 透過分析和比較熱門搜尋結果來豐富電子商務產品資料。有助於解決「空值和低回收率」/「零結果」搜尋等問題，並找出產品資料中的差距。                                 |   多代理 (Multi-agent), 自訂工具 (Custom tool), BigQuery 連線, 評估 (Evaluation), 電腦使用 (Computer use)   | 工作流程 (Workflow) | 簡單 (Easy) | 多代理 (Multi Agent) | 零售 (Retail)                        |
-| [Cymbal 居家與園藝客服代理 (Cymbal Home & Garden Customer Service Agent)](customer-service) | 提供居家裝修、園藝及相關用品的客戶服務、產品選擇、訂單管理。                                |  自訂工具 (Custom tool), 非同步工具 (Async tool), 外部系統呼叫 (External system calls), 即時串流 (Live streaming), 多模態 (Multimodal)   | 對話式 (Conversational)         | 進階 (Advanced)     | 單一代理 (Single Agent)       | 零售 (Retail)                        |
-| [資料科學代理 (Data Science Agent)](data-science) | 一個為複雜資料分析而設計的多代理系統。                                                                          |  函式工具 (Python), 代理工具 (Agent tool), NL2SQL, 結構化資料, 資料庫   | 對話式 (Conversational) | 進階 (Advanced) | 多代理 (Multi Agent) | 通用 (Horizontal)                    |
-| [財務顧問 (Financial Advisor)](financial-advisor) |  透過提供金融和投資相關主題的教育內容來協助人類財務顧問。  |   風險分析, 策略生成, 摘要, 報告生成  | 工作流程 (Workflow) | 簡單 (Easy) | 多代理 (Multi Agent) | 金融服務 (Financial Services)            |
-| [聯邦公開市場委員會研究代理 (FOMC Research Agent)](fomc-research) | 市場事件分析。                                                                                                                   |   摘要, 報告生成  | 工作流程 (Workflow) | 進階 (Advanced) | 多代理 (Multi Agent) | 金融服務 (Financial Services)            |
-| [Gemini 全端 (Gemini Fullstack)](gemini-fullstack) | 一個使用 Gemini 建構複雜全端研究代理的藍圖。展示了複雜的代理工作流程、模組化代理和人在環 (Human-in-the-Loop, HITL) 步驟。 | 多代理 (Multi-agent), 函式呼叫 (Function calling), 網頁搜尋, React 前端, FastAPI 後端, 人在環 (Human-in-the-Loop) | 工作流程 (Workflow) | 進階 (Advanced) | 多代理 (Multi Agent) | 通用 (Horizontal) |
-| [大型語言模型稽核員 (LLM Auditor)](llm-auditor)                   | 聊天機器人回應驗證、內容稽核。                                                                                         |   Gemini 搭配 Google 搜尋, 多代理 (Multi-agent)  | 工作流程 (Workflow)         | 簡單 (Easy)       | 多代理 (Multi Agent)  | 通用 (Horizontal)                    |
-| [機器學習工程代理 (Machine Learning Engineering Agent)](machine-learning-engineering)                   | 自動建立/訓練機器學習 (ML) 模型，以在各種機器學習任務上達到最先進的性能。 | 機器學習 (ML) 任務, 自動化機器學習模型改進, Kaggle 競賽 | 對話式 (Conversational)         | 進階 (Advanced)       | 多代理 (Multi Agent)  | 通用 (Horizontal)                    |
-| [行銷代理 (Marketing Agency)](marketing-agency)                   | 簡化新網站和產品的發布流程。識別最佳的 DNS 網域、生成整個網站、制定行銷策略並設計品牌資產。 | 內容生成, 網站創建, 程式碼生成, 策略發展  | 工作流程 (Workflow)         | 簡單 (Easy)       | 多代理 (Multi Agent)  | 通用 (Horizontal)                    |
-| [個人化購物 (Personalized Shopping)](personalized-shopping) | 產品推薦。                                                                                                               | 電子商務, 個人化代理, 購物助理, 單一代理, 產品推薦, 產品發現, 聊天機器人    | 對話式 (Conversational)         | 簡單 (Easy)        | 單一代理 (Single Agent)     | 電子商務 (E-commerce)                    |
-| [Vertex AI 檢索代理 (Vertex AI Retrieval Agent)](RAG) | 由 RAG 驅動的代理 / 回答與上傳至 Vertex AI RAG 引擎的文件相關的問題，提供附有來源資料引用的資訊性回應。                              |  RAG 引擎   | 工作流程 (Workflow)              | 中等 (Intermediate)        | 單一代理 (Single Agent)       | 通用 (Horizontal)                    |
-| [軟體錯誤助理 (Software Bug Assistant)](software-bug-assistant)         | 透過查詢內部票務系統和外部知識來源 (GitHub, StackOverflow, Google 搜尋) 來尋找相似問題和診斷方法，以協助解決軟體錯誤。 | RAG, MCP, 錯誤追蹤, Google 搜尋, IT 支援, 資料庫整合, API  | 工作流程 (Workflow)/對話式 (Conversational) | 中等 (Intermediate) | 單一代理 (Single Agent) | 通用 (Horizontal) / IT 支援 (IT Support)            |
-| [旅遊管家 (Travel Concierge)](travel-concierge) | 旅遊管家、數位任務助理。                                                                                               |   函式工具 (Python), 自訂工具, 代理工具, 輸入與輸出結構描述 (Schema), 可更新的上下文 (Context), 動態指令  | 對話式 (Conversational) | 進階 (Advanced) | 多代理 (Multi Agent) | 旅遊 (Travel)                        |
-| [汽車保險代理 (Auto Insurance Agent)](auto-insurance-agent) | 管理會員、理賠、獎勵和道路救援的汽車保險代理。                                                                                              |   [Apigee](https://cloud.google.com/apigee/docs/api-platform/get-started/what-apigee), [Apigee API 中心 (Apigee API hub)](https://cloud.google.com/apigee/docs/apihub/what-is-api-hub), 代理工具 (Agent Tool)  | 對話式 (Conversational) | 簡單 (Easy) | 多代理 (Multi Agent) | 金融服務 (Financial Services)       
-| [圖片評分 (Image Scoring)](image-scoring) | 根據政策生成圖片並對生成的圖片進行評分以衡量政策遵循度的圖片評分代理。  | 函式工具 (Python), 代理工具, Imagen, 循環代理 (Loop Agent) | 對話式 (Conversational) | 簡單 (Easy)       | 多代理 (Multi Agent)  | 通用 (Horizontal) 
+    *   Navigate to the specific agent's directory (e.g., `cd agents/llm-auditor`).
+    *    Copy the `.env.example` file to `.env` and fill in the required
+         environment variables (API keys, project IDs, etc.). See the agent's
+         specific README for details on required variables.
+    *   Install dependencies using Poetry: `poetry install`
+    *   Follow the instructions in the agent's `README.md` to run it (e.g.,
+        using `adk run .` or `adk web`).
 
 
+## Agent Categories
 
-## 如何使用本儲存庫中的代理 (Using the Agents in this Repository)
+Check out the agent samples below, organized by category:
 
-本節提供有關如何執行、測試、評估和潛在部署本儲存庫中代理範例的一般性指導。雖然核心步驟相似，但**每個代理在其專屬的 `README.md` 檔案中都有其特定的要求和詳細說明。**
+| Agent Name                                  | Use Case                                                                                                                              | Tag | Interaction Type | Complexity | Agent Type   | Vertical                      |
+| :------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------- | :-: | :--------------- | :--------- | :----------- | :---------------------------- |
+| [Academic Research](academic-research) | Assists researchers in identifying recent publications and discovering emerging research areas. |   Multi-agent, Custom tool, Evaluation | Workflow | Easy | Multi Agent | Academia                        |
+| [Brand Search Optimization](brand-search-optimization) | Enrich e-commerce product data by analyzing and comparing top search results. Useful for addressing issues like "Null & low recovery" / "Zero Results" searches and identifies gaps in product data.                                 |   Multi-agent, Custom tool, BigQuery connection, Evaluation, Computer use   | Workflow | Advanced | Multi Agent | Retail                        |
+| [Cymbal Home & Garden Customer Service Agent](customer-service) | Customer service, product selection, order management for home improvement, gardening, and related supplies                                |  Custom tool, Async tool, External system calls, Live streaming, Multimodal   | Conversational         | Intermediate     | Single Agent       | Retail                        |
+| [Data Science Agent](data-science) | A multi-agent system designed for sophisticated data analysis                                                                          |  Function tool (Python), Agent tool, NL2SQL, Structured data, Database   | Conversational | Advanced | Multi Agent | Horizontal                    |
+| [Financial Advisor](financial-advisor) |  Assists human financial advisors by providing educational content about topics related to finance and investments.  |   Risk Analysis, Strategy Generation, Summarization, Report generation  | Workflow | Easy | Multi Agent | Financial Services            |
+| [FOMC Research Agent](fomc-research) | Market event analysis                                                                                                                   |   Summarization, Report generation  | Workflow | Advanced | Multi Agent | Financial Services            |
+| [Gemini Fullstack](gemini-fullstack) | A blueprint for building a sophisticated, fullstack research agent with Gemini. Demonstrates complex agentic workflows, modular agents, and Human-in-the-Loop (HITL) steps. | Multi-agent, Function calling, Web search, React frontend, FastAPI backend, Human-in-the-Loop | Workflow | Advanced | Multi Agent | Horizontal |
+| [LLM Auditor](llm-auditor)                   | Chatbot Response Verification, Content Auditing                                                                                         |   Gemini with Google Search, Multi-agent  | Workflow         | Easy       | Multi Agent  | Horizontal                    |
+| [Machine Learning Engineering Agent](machine-learning-engineering)                   | Autonomously build/train machine learning (ML) models that can achieve state-of-the-art performances on diverse ML tasks. | Machine learning (ML) tasks, automated ML model improvement, Kaggle competition | Conversational         | Advanced       | Multi Agent  | Horizontal                    |
+| [Marketing Agency](marketing-agency)                   | Streamlines new website and product launches. Identifies optimal DNS domains, generates entire websites, develops marketing strategies, and designs brand assets. | Content generation, Website creation, Code generation, Strategy development  | Workflow         | Easy       | Multi Agent  | Horizontal                    |
+| [Personalized Shopping](personalized-shopping) | Product Recommendations                                                                                                               | E-commerce, Personalized agent, Shopping assistant, Single-agent, Product recommendation, Product discovery, Chatbot    | Conversational         | Easy        | Single Agent     | E-commerce                    |
+| [Vertex AI Retrieval Agent](RAG) | RAG Powered Agent / Answering questions related to documents uploaded to Vertex AI RAG Engine, providing informative responses with citations to source materials.                              |  RAG engine   | Workflow              | Intermediate        | Single Agent       | Horizontal                    |
+| [Software Bug Assistant](software-bug-assistant)         | Assists in software bug resolution by querying internal ticketing systems and external knowledge sources (GitHub, StackOverflow, Google Search) to find similar issues and diagnostics. | RAG, MCP, Bug Tracking, Google Search, IT Support, Database Integration, API  | Workflow/Conversational | Intermediate | Single Agent | Horizontal / IT Support            |
+| [Travel Concierge](travel-concierge) | Travel Concierge, Digital Tasks Assistant                                                                                               |   Function tool (Python), Custom tool, Agent tool, Input and output schema, Updatable context, Dynamic instructions  | Conversational | Advanced | Multi Agent | Travel                        |
+| [Auto Insurance Agent](auto-insurance-agent) | Auto Insurance Agent to manage members, claims, rewards and roadside assistance.                                                                                              |   [Apigee](https://cloud.google.com/apigee/docs/api-platform/get-started/what-apigee), [Apigee API hub](https://cloud.google.com/apigee/docs/apihub/what-is-api-hub), Agent Tool  | Conversational | Easy | Multi Agent | Financial Services       
+| [Image Scoring](image-scoring) | Image scoring agent to generate images based on policies and score the generated images to measure policy compliance.  | Function tool (Python), Agent tool, Imagen, Loop Agent | Conversational | Easy       | Multi Agent  | Horizontal 
 
-**請務必查閱特定代理目錄內的 `README.md` (例如 `agents/fomc-research/README.md`) 以獲得最準確、最詳細的步驟。**
 
-以下是您可以預期的一般工作流程：
 
-1.  **選擇一個代理：** 從上表中選擇一個符合您興趣或使用案例的代理。
-2.  **導航至代理目錄：** 開啟您的終端機，並從主儲存庫目錄變更到代理的主目錄：
+## Using the Agents in this Repository
+
+This section provides general guidance on how to run, test, evaluate, and potentially deploy the agent samples found in this repository. While the core steps are similar, **each agent has its own specific requirements and detailed instructions within its dedicated `README.md` file.**
+
+**Always consult the `README.md` inside the specific agent's directory (e.g., `agents/fomc-research/README.md`) for the most accurate and detailed steps.**
+
+Here's a general workflow you can expect:
+
+1.  **Choose an Agent:** Select an agent from the table above that aligns with your interests or use case.
+2.  **Navigate to the Agent Directory:** Open your terminal and change into the
+    agent's main directory from the main repo directory:
     ```bash
     cd python/agents/<agent-name>
-    # 範例: cd python/agents/fomc-research
+    # Example: cd python/agents/fomc-research
     ```
-3.  **檢閱代理的 README：** **這是最關鍵的步驟。** 開啟此目錄中的 `README.md` 檔案。它將包含：
-    *   代理用途和架構的詳細概述。
-    *   特定的先決條件 (例如，API 金鑰、雲端服務、資料庫設定)。
-    *   逐步的設定和安裝說明。
-    *   在本機執行代理的指令。
-    *   執行評估的說明 (如果適用)。
-    *   執行測試的說明 (如果適用)。
-    *   部署步驟 (如果適用)。
+3.  **Review the Agent's README:** **This is the most crucial step.** Open the
+    `README.md` file within this directory. It will contain:
+    *   A detailed overview of the agent's purpose and architecture.
+    *   Specific prerequisites (e.g., API keys, cloud services, database setup).
+    *   Step-by-step setup and installation instructions.
+    *   Commands for running the agent locally.
+    *   Instructions for running evaluations (if applicable).
+    *   Instructions for running tests (if applicable).
+    *   Steps for deployment (if applicable).
 
-4.  **設定與配置：**
-    *   **先決條件：** 確保您已滿足主要「入門指南」部分列出的一般先決條件，*以及*代理 README 中提到的任何特定先決條件。
-    *   **依賴項：** 使用 Poetry 安裝代理特定的 Python 依賴項 (此指令通常在代理的主目錄中執行)：
+4.  **Setup and Configuration:**
+    *   **Prerequisites:** Ensure you've met the general prerequisites listed in
+        the main "Getting Started" section *and* any specific prerequisites
+        mentioned in the agent's README.
+    *   **Dependencies:** Install the agent's specific Python dependencies using
+        Poetry (this command is usually run from the agent's main directory):
         ```bash
         poetry install
         ```
-    *   **環境變數：** 大多數代理需要透過環境變數進行配置。將代理目錄中的 `.env.example` 檔案複製為 `.env`，並填入您的特定值 (API 金鑰、專案 ID 等)。有關所需變數的詳細資訊，請參閱代理的 README。您可能需要將這些變數載入到您的 shell 環境中 (例如，在 bash 中使用 `source .env` 或 `set -o allexport; . .env; set +o allexport`)。
+    *   **Environment Variables:** Most agents require configuration via
+        environment variables. Copy the `.env.example` file to `.env` within the
+        agent's directory and populate it with your specific values (API keys,
+        project IDs, etc.). Consult the agent's README for details on required
+        variables. You may need to load these variables into your shell
+        environment (e.g., using `source .env` or `set -o allexport; . .env; set
+        +o allexport` in bash).
 
-5.  **在本機執行代理：**
-    *   代理通常可以使用 ADK CLI 或 ADK Dev UI 在本機執行以進行測試和互動。具體指令可能略有不同 (例如，執行的確切目錄)，因此請檢查代理的 README。
-    *   **CLI：** 通常涉及從代理的*核心程式碼*目錄 (例如 `agents/fomc-research/fomc_research/`) 中執行 `adk run .`。
+5.  **Running the Agent Locally:**
+    *   Agents can typically be run locally for testing and interaction using
+        the ADK CLI or ADK Dev UI. The specific command might vary slightly
+        (e.g., the exact directory to run from), so check the agent's README.
+        **CLI:** Often involves running `adk run .` from within the agent's
+        *core code* directory (e.g., `agents/fomc-research/fomc_research/`).
         ```bash
-        # 範例 (請檢查代理的 README 以獲得確切路徑)
+        # Example (check agent's README for exact path)
         cd agents/fomc-research/fomc_research/
         adk run .
         ```
-    *   **ADK Dev UI：** 通常涉及從代理的*主*目錄 (例如 `agents/fomc-research/`) 中執行 `adk web .`。
+    *   **ADK Dev UI:** Often involves running `adk web .` from the agent's
+        *main* directory (e.g., `agents/fomc-research/`).
         ```bash
-        # 範例 (請檢查代理的 README 以獲得確切路徑)
+        # Example (check agent's README for exact path)
         cd agents/fomc-research/
         adk web
         ```
-        然後，在您的瀏覽器中打開提供的 URL，並從下拉式選單中選擇代理。
+        Then, open the provided URL in your browser and select the agent from the dropdown menu.
 
-6.  **評估代理：**
-    *   許多代理包含一個 `eval/` 目錄，其中包含用於評估性能的腳本和資料。
-    *   代理的 README 將解釋如何執行這些評估 (例如，`python eval/test_eval.py`)。這有助於驗證代理在特定任務上的有效性。
+6.  **Evaluating the Agent:**
+    *   Many agents include an `eval/` directory containing scripts and data to assess performance.
+    *   The agent's README will explain how to run these evaluations (e.g.,
+        `python eval/test_eval.py`). This helps verify the agent's effectiveness
+        on specific tasks.
 
-7.  **測試代理組件：**
-    *   `tests/` 目錄通常包含單元或整合測試 (例如，針對自訂工具)。
-    *   這些測試確保各個程式碼組件功能正常。
-    *   代理的 README 可能會提供如何執行這些測試的說明，通常使用像 `pytest` 這樣的框架。
+7.  **Testing the Agent Components:**
+    *   A `tests/` directory often contains unit or integration tests (e.g., for custom tools).
+    *   These ensure the individual code components function correctly.
+    *   The agent's README may provide instructions on how to run these tests,
+        often using a framework like `pytest`.
 
-8.  **部署代理：**
-    *   某些代理設計用於部署，通常部署到 [Vertex AI Agent Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview)。
-    *   `deployment/` 目錄包含必要的腳本 (如 `deploy.py`) 和配置文件。
-    *   部署通常需要特定的 Google Cloud 設定 (專案 ID、已啟用的 API、權限)。代理的 README 和 `deployment/` 資料夾中的腳本提供了詳細說明，類似於 `fomc-research` 代理文件中顯示的範例。
+8.  **Deploying the Agent:**
+    *   Some agents are designed for deployment, typically to
+        [Vertex AI Agent Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview).
+    *   The `deployment/` directory contains the necessary scripts (like
+        `deploy.py`) and configuration files.
+    *   Deployment usually requires specific Google Cloud setup (Project ID,
+        enabled APIs, permissions). The agent's README and the scripts within
+        the `deployment/` folder provide detailed instructions, similar to the
+        example shown in the `fomc-research` agent's documentation.
 
-透過遵循每個代理 `README.md` 中的具體說明，您可以有效地設定、執行、評估、測試和潛在地部署這些多樣化的範例。
+By following the specific instructions in each agent's `README.md`, you can effectively set up, run, evaluate, test, and potentially deploy these diverse examples.
 
-## 代理的目錄結構 (Directory Structure of Agents)
-此處展示的每個代理都按以下方式組織：
+## Directory Structure of Agents
+Each agent displayed here is organized as follows:
 
 ```bash
 ├── agent-name
 │   ├── agent_name/
-│   │   ├── shared_libraries/               # 包含工具輔助函式的資料夾
-│   │   ├── sub_agents/                     # 每個子代理的資料夾
-│   │   │   │   ├── tools/                  # 子代理的工具資料夾
-│   │   │   │   ├── agent.py                # 子代理的核心邏輯
-│   │   │   │   └── prompt.py               # 子代理的提示詞
-│   │   │   └── ...                         # 更多子代理
-│   │   ├── __init__.py                     # 初始化代理
-│   │   ├── tools/                          # 包含路由器代理使用的工具程式碼
-│   │   ├── agent.py                        # 包含代理的核心邏輯
-│   │   ├── prompt.py                       # 包含代理的提示詞
-│   ├── deployment/                         # 部署到 Agent Engine
-│   ├── eval/                               # 包含評估方法的資料夾
-│   ├── tests/                              # 包含工具單元測試的資料夾
-│   ├── agent_pattern.png                   # 代理模式的圖表
-│   ├── .env.example                        # 儲存代理特定的環境變數
-│   ├── pyproject.toml                      # 專案配置
-│   └── README.md                           # 提供代理的概述
+│   │   ├── shared_libraries/               # Folder contains helper functions for tools
+│   │   ├── sub_agents/                     # Folder for each sub agent
+│   │   │   │   ├── tools/                  # tools folder for the subagent
+│   │   │   │   ├── agent.py                # core logic of the sub agent
+│   │   │   │   └── prompt.py               # prompt of the subagent
+│   │   │   └── ...                         # More sub-agents
+│   │   ├── __init__.py                     # Initializes the agent
+│   │   ├── tools/                          # Contains the code for tools used by the router agent
+│   │   ├── agent.py                        # Contains the core logic of the agent
+│   │   ├── prompt.py                       # Contains the prompts for the agent
+│   ├── deployment/                         # Deployment to Agent Engine
+│   ├── eval/                               # Folder containing the evaluation method
+│   ├── tests/                              # Folder containing unit tests for tools
+│   ├── agent_pattern.png                   # Diagram of the agent pattern
+│   ├── .env.example                        # Store agent specific env variables
+│   ├── pyproject.toml                      # Project configuration
+│   └── README.md                           # Provides an overview of the agent
 ```
-### 通用結構 (General Structure)
+### General Structure
 
-每個代理的根目錄都位於 `agents/` 下的自己的目錄中。例如，`llm-auditor` 代理位於 `agents/llm-auditor/`。
+The root of each agent resides in its own directory under `agents/`. For example, the `llm-auditor` agent is located in `agents/llm-auditor/`.
 
 
-#### 目錄詳解 (Directory Breakdown)
+#### Directory Breakdown
 
-1.  **`agent_name/` (核心代理程式碼)**:
-    *   此目錄包含代理的核心邏輯。
-    *   **`shared_libraries/`**: (可選) 包含多個子代理共享的程式碼。
-    *   **`sub_agents/`**: 包含子代理的定義和邏輯。
-        *   每個子代理都有自己的目錄 (例如，`llm-auditor` 中的 `critic/`、`reviser/`)。
-        *   **`tools/`**: 包含特定於該子代理的任何自訂工具。
-        *   **`agent.py`**: 定義子代理的行為，包括其模型、工具和指令。
-        *   **`prompt.py`**: 包含用於指導子代理行為的提示詞。
-    *   **`__init__.py`**: 一個初始化檔案，它從資料夾中匯入 `agent.py`，以將 `agent_name` 目錄標記為 Python 套件。
-    *   **`tools/`**: 包含主代理使用的任何自訂工具。
-    *   **`agent.py`**: 定義主代理的行為，包括其子代理、模型、工具和指令。
-    *   **`prompt.py`**: 包含用於指導主代理行為的提示詞。
+1.  **`agent_name/` (Core Agent Code)**:
+    *   This directory contains the core logic of the agent.
+    *   **`shared_libraries/`**: (Optional) Contains code that is shared among multiple sub-agents.
+    *   **`sub_agents/`**: Contains the definitions and logic for sub-agents.
+        *   Each sub-agent has its own directory (e.g., `critic/`, `reviser/` in `llm-auditor`).
+        *   **`tools/`**: Contains any custom tools specific to the sub-agent.
+        *   **`agent.py`**: Defines the sub-agent's behavior, including its model, tools, and instructions.
+        *   **`prompt.py`**: Contains the prompts used to guide the sub-agent's behavior.
+    *   **`__init__.py`**: An initialization file that imports the `agent.py` from the folder for marking the `agent_name` directory as a Python package.
+    *   **`tools/`**: Contains any custom tools used by the main agent.
+    *   **`agent.py`**: Defines the main agent's behavior, including its sub-agents, model, tools, and instructions.
+    *   **`prompt.py`**: Contains the prompts used to guide the main agent's behavior.
 
-    請注意，初始資料夾名稱中的單字之間使用「-」，而核心邏輯則儲存在單字之間使用「_」的同名資料夾中 (例如 `llm_auditor`)。這是由於 poetry 強制的專案結構所致。
+    Note that the initial folder name is with "-" between words whereas the core logic is stored in the folder with the same agent name but with "_" between words (e.g., `llm_auditor`). This is due to the project structure imposed by poetry.
 
 2.  **`deployment/`**
 
-    *   包含將代理部署到像 Vertex AI Agent Engine 這樣的平台所需的腳本和檔案。
-    *   `deploy.py` 腳本通常位於此處，處理部署過程。
+    *   Contains scripts and files necessary for deploying the agent to a
+        platform like Vertex AI Agent Engine.
+    *   The `deploy.py` script is often found here, handling the deployment process.
 
 3.  **`eval/`**
 
-    *   包含用於評估代理性能的資料和腳本。
-    *   測試資料 (例如 `.test.json` 檔案) 和評估腳本 (例如 `test_eval.py`) 通常位於此處。
+    *   Contains data and scripts for evaluating the agent's performance.
+    *   Test data (e.g., `.test.json` files) and evaluation scripts (e.g.,
+        `test_eval.py`) are typically located here.
 
 4.  **`tests/`**
 
-    *   包含代理的單元和整合測試。
-    *   測試檔案 (例如 `test_agents.py`) 用於驗證代理的功能。
+    *   Contains unit and integration tests for the agent.
+    *   Test files (e.g., `test_agents.py`) are used to verify the agent's functionality.
 
 5.  **`agent_pattern.png`**
 
-    *   一個視覺化圖表，說明代理的架構，包括其子代理及其互動。
+    *   A visual diagram illustrating the agent's architecture, including its sub-agents and their interactions.
 
 6.  **`.env.example`**
 
-    *   一個範例檔案，顯示執行代理所需的環境變數。
-    *   使用者應將此檔案複製為 `.env` 並填入其特定值。
+    *   An example file showing the environment variables required to run the agent.
+    *   Users should copy this file to `.env` and fill in their specific values.
 
 7.  **`pyproject.toml`**
 
-    *   包含專案元數據、依賴項和建置系統配置。
-    *   由 Poetry 管理以進行依賴項管理。
+    *   Contains project metadata, dependencies, and build system configuration.
+    *   Managed by Poetry for dependency management.
 
 8.  **`README.md`**
 
-    *   提供特定於代理的詳細文件，包括其用途、設定說明、使用範例和自訂選項。
+    *   Provides detailed documentation specific to the agent, including its purpose, setup instructions, usage examples, and customization options.
 
-## 範例：`llm-auditor`
+## Example: `llm-auditor`
 
-`llm-auditor` 代理有效地展示了這種結構。它具有：
+The `llm-auditor` agent demonstrates this structure effectively. It has:
 
-*   一個核心 `llm_auditor/` 目錄。
-*   位於 `llm_auditor/sub_agents/` 中的子代理，例如 `critic/` 和 `reviser/`。
-*   位於 `deployment/` 中的部署腳本。
-*   位於 `eval/` 中的評估資料和腳本。
-*   位於 `tests/` 中的測試。
-*   一個 `.env.example` 檔案。
-*   一個 `pyproject.toml` 檔案。
-*   一個 `README.md` 檔案。
+*   A core `llm_auditor/` directory.
+*   Sub-agents in `llm_auditor/sub_agents/`, such as `critic/` and `reviser/`.
+*   Deployment scripts in `deployment/`.
+*   Evaluation data and scripts in `eval/`.
+*   Tests in `tests/`.
+*   An `.env.example` file.
+*   A `pyproject.toml` file.
+*   A `README.md` file.

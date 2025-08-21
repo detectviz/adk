@@ -1,272 +1,288 @@
-# 使用多代理 (Multi-Agent) 進行資料科學
+# Data Science with Multiple Agents
 
-## 總覽
+## Overview
 
-本專案展示了一個專為複雜資料分析設計的多代理 (Multi-Agent) 系統。它整合了數個專門的代理，以處理資料流程的不同環節，從資料擷取到進階分析與機器學習。此系統設計用於與 BigQuery 互動，執行複雜的資料操作、產生資料視覺化圖表，並使用 BigQuery ML (BQML) 執行機器學習任務。此代理不僅能產生文字回應，還能生成用於資料分析與探索的視覺化圖表，包括各式圖形。
+This project demonstrates a multi-agent system designed for sophisticated data analysis. It integrates several specialized agents to handle different aspects of the data pipeline, from data retrieval to advanced analytics and machine learning. The system is built to interact with BigQuery, perform complex data manipulations, generate data visualizations and execute machine learning tasks using BigQuery ML (BQML). The agent can generate text response as well as visuals, including plots and graphs for data analysis and exploration.
 
-▶️ **觀看影片教學：** [如何使用 ADK 建立資料科學代理](https://www.youtube.com/watch?v=efcUXoMX818)
+▶️ **Watch the Video Walkthrough:** [How to build a Data Science agent with ADK](https://www.youtube.com/watch?v=efcUXoMX818)
 
-## 代理詳細資訊
-資料科學多代理 (Multi-Agent) 的主要功能包括：
+## Agent Details
+The key features of the Data Science Multi-Agent include:
 
-| 功能 | 描述 |
+| Feature | Description |
 | --- | --- |
-| **互動類型：** | 對話式 |
-| **複雜度：** | 進階 |
-| **代理類型：** | 多代理 (Multi Agent) |
-| **元件：** | 工具 (Tools)、代理工具 (AgentTools)、會話記憶體 (Session Memory)、RAG |
-| **垂直領域：** | 所有 (適用於需要進階資料分析的各行各業) |
+| **Interaction Type:** | Conversational |
+| **Complexity:**  | Advanced |
+| **Agent Type:**  | Multi Agent |
+| **Components:**  | Tools, AgentTools, Session Memory, RAG |
+| **Vertical:**  | All (Applicable across industries needing advanced data analysis) |
 
 
-### 架構
-![資料科學架構](data-science-architecture.png)
+### Architecture
+![Data Science Architecture](data-science-architecture.png)
 
-### 主要功能
+### Key Features
 
-*   **多代理架構 (Multi-Agent Architecture)：** 利用一個頂層代理來協調多個子代理，每個子代理專精於特定任務。
-*   **資料庫互動 (NL2SQL)：** 使用一個資料庫代理，透過自然語言查詢與 BigQuery 互動，並將其翻譯成 SQL。
-*   **資料科學分析 (NL2Py)：** 包含一個資料科學代理，能根據自然語言指令，使用 Python 進行資料分析與視覺化。
-*   **機器學習 (BQML)：** 配備一個 BQML 代理，利用 BigQuery ML 進行機器學習模型的訓練與評估。
-*   **程式碼直譯器整合 (Code Interpreter Integration)：** 支援在 Vertex AI 中使用程式碼直譯器擴充功能來執行 Python 程式碼，從而實現複雜的資料分析與操作。
-*   **ADK Web GUI：** 提供一個使用者友善的圖形化介面 (GUI)，方便與代理互動。
-*   **可測試性：** 包含一套完整的測試組，以確保代理的可靠性。
-
-
-
-## 設定與安裝
-
-### 先決條件
-
-*   **Google Cloud 帳號：** 您需要一個已啟用 BigQuery 的 Google Cloud 帳號。
-*   **Python 3.12+：** 請確保您已安裝 Python 3.12 或更新版本。
-*   **Poetry：** 請依照 [Poetry 官方網站](https://python-poetry.org/docs/) 的說明安裝 Poetry。
-*   **Git：** 請確保您已安裝 Git。如果尚未安裝，您可以從 [https://git-scm.com/](https://git-scm.com/) 下載並依照[安裝指南](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)進行安裝。
+*   **Multi-Agent Architecture:** Utilizes a top-level agent that orchestrates sub-agents, each specialized in a specific task.
+*   **Database Interaction (NL2SQL):** Employs a Database Agent to interact with BigQuery using natural language queries, translating them into SQL.
+*   **Data Science Analysis (NL2Py):** Includes a Data Science Agent that performs data analysis and visualization using Python, based on natural language instructions.
+*   **Machine Learning (BQML):** Features a BQML Agent that leverages BigQuery ML for training and evaluating machine learning models.
+*   **Code Interpreter Integration:** Supports the use of a Code Interpreter extension in Vertex AI for executing Python code, enabling complex data analysis and manipulation.
+*   **ADK Web GUI:** Offers a user-friendly GUI interface for interacting with the agents.
+*   **Testability:** Includes a comprehensive test suite for ensuring the reliability of the agents.
 
 
 
-### 使用 Poetry 進行專案設定
+## Setup and Installation
 
-1.  **複製儲存庫：**
+### Prerequisites
+
+*   **Google Cloud Account:** You need a Google Cloud account with BigQuery enabled.
+*   **Python 3.12+:** Ensure you have Python 3.12 or a later version installed.
+*   **uv:** Install uv by following the instructions on the official uv website: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
+*   **Git:** Ensure you have git installed. If not, you can download it from [https://git-scm.com/](https://git-scm.com/) and follow the [installation guide](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+
+
+
+### Project Setup with uv
+
+1.  **Clone the Repository:**
 
     ```bash
     git clone https://github.com/google/adk-samples.git
     cd adk-samples/python/agents/data-science
     ```
 
-2.  **使用 Poetry 安裝相依套件：**
+2.  **Install Dependencies with uv:**
 
     ```bash
-    poetry install
+    uv sync
     ```
 
-    此指令會讀取 `pyproject.toml` 檔案，並將所有必要的相依套件安裝到由 Poetry 管理的虛擬環境中。
+    This command reads the `pyproject.toml` file and installs all the necessary
+    dependencies into a virtual environment managed by uv. On the first run,
+    this command will also create a new virtual environment. By default, the
+    virtual environment will be created in a `.venv` directory inside
+    `adk-samples/python/agents/data-science`. If you already have a virtual
+    environment created, or you want to use a different location, you can use
+    the `--active` flag for `uv` commands, and/or change the
+    `UV_PROJECT_ENVIRONMENT` environment variable. See
+    [How to customize uv's virtual environment location](https://pydevtools.com/handbook/how-to/how-to-customize-uvs-virtual-environment-location/)
+    for more details.
 
-3.  **啟動 Poetry Shell：**
+2.  **Activate the uv Shell:**
+
+    If you are using the `uv` default virtual environment, you now need
+    to activate the environment.
 
     ```bash
-    poetry env activate
+    source .venv/bin/activate
     ```
 
-    這會啟動虛擬環境，讓您可以在專案的環境中執行指令。為確保環境已啟動，可使用例如：
+4.  **Set up Environment Variables:**
+    Rename the file ".env.example" to ".env"
+    Fill the below values:
 
     ```bash
-    $> poetry env list
-       data-science-FAlhSuLn-py3.13 (Activated)
-    ```
-
-    如果上述指令未為您啟動環境，您也可以透過以下方式啟動：
-
-     ```bash
-    source $(poetry env info --path)/bin/activate
-    ```
-
-4.  **設定環境變數：**
-    將檔案 `.env.example` 重新命名為 `.env`
-    填寫以下值：
-
-    ```bash
-    # 選擇模型後端：0 -> ML Dev, 1 -> Vertex
+    # Choose Model Backend: 0 -> ML Dev, 1 -> Vertex
     GOOGLE_GENAI_USE_VERTEXAI=1
 
-    # ML Dev 後端設定。若使用 ML Dev 後端請填寫。
-    GOOGLE_API_KEY='您的數值'
+    # ML Dev backend config. Fill if using Ml Dev backend.
+    GOOGLE_API_KEY='YOUR_VALUE_HERE'
 
-    # Vertex 後端設定
-    GOOGLE_CLOUD_PROJECT='您的數值'
-    GOOGLE_CLOUD_LOCATION='您的數值'
+    # Vertex backend config
+    GOOGLE_CLOUD_PROJECT='YOUR_VALUE_HERE'
+    GOOGLE_CLOUD_LOCATION='YOUR_VALUE_HERE'
     ```
 
-    請依照下列步驟設定其餘的環境變數。
+    Follow the following steps to set up the remaining environment variables.
 
-5.  **BigQuery 設定：**
-    這些步驟會將本儲存庫中提供的範例資料載入到 BigQuery。
-    在我們的範例使用案例中，我們處理的是來自 Kaggle 的預測貼紙銷售資料：
+5.  **BigQuery Setup:**
+    These steps will load the sample data provided in this repository to BigQuery.
+    For our sample use case, we are working on the Forecasting Sticker Sales data from Kaggle:
 
     _Walter Reade and Elizabeth Park. Forecasting Sticker Sales. https://kaggle.com/competitions/playground-series-s5e1, 2025. Kaggle._
 
-    *   首先，在 `.env` 檔案中設定 BigQuery 的專案 ID。這可以與您用於 `GOOGLE_CLOUD_PROJECT` 的 GCP 專案相同，但您也可以使用其他 BigQuery 專案，只要您有權限存取該專案即可。
-        *   在某些情況下，您可能會想將 BigQuery 的運算耗用與資料儲存分開。您可以將 `BQ_DATA_PROJECT_ID` 設定為您用於資料儲存的專案，並將 `BQ_COMPUTE_PROJECT_ID` 設定為您想用於運算的專案。
-        *   否則，您可以將 `BQ_DATA_PROJECT_ID` 和 `BQ_COMPUTE_PROJECT_ID` 設定為相同的專案 ID。
+    *   First, set the BigQuery project IDs in the `.env` file. This can be the
+        same GCP Project you use for `GOOGLE_CLOUD_PROJECT`, but you can use
+        other BigQuery projects as well, as long as you have access permissions
+        to that project.
+        *   In some cases you may want to separate the BigQuery compute consumption from
+            BigQuery data storage. You can set `BQ_DATA_PROJECT_ID` to the project you use
+            for data storage, and `BQ_COMPUTE_PROJECT_ID` to the project you want
+            to use for compute.
+        *   Otherwise, you can set both `BQ_DATA_PROJECT_ID` and
+            `BQ_COMPUTE_PROJECT_ID` to the same project id.
 
-        如果您有現有的 BigQuery 資料表想要連接，也請在 `.env` 檔案中指定 `BQ_DATASET_ID`。
-        如果您想使用範例資料，請確保保留 `BQ_DATASET_ID='forecasting_sticker_sales'`。
+        If you have an existing BigQuery table you wish to
+        connect, specify the `BQ_DATASET_ID` in the `.env` file as well.
+        Make sure you leave `BQ_DATASET_ID='forecasting_sticker_sales'` if you
+        wish to use the sample data.
 
-        或者，您也可以從終端機設定變數：
+        Alternatively, you can set the variables from your terminal:
 
         ```bash
-        export BQ_DATA_PROJECT_ID='您的-BQ-資料-專案-ID'
-        export BQ_COMPUTE_PROJECT_ID='您的-BQ-運算-專案-ID'
-        export BQ_DATASET_ID='您的-資料集-ID' # 如果使用範例資料，請保留 'forecasting_sticker_sales'
+        export BQ_DATA_PROJECT_ID='YOUR-BQ-DATA-PROJECT-ID'
+        export BQ_COMPUTE_PROJECT_ID='YOUR-BQ-COMPUTE-PROJECT-ID'
+        export BQ_DATASET_ID='YOUR-DATASET-ID' # leave as 'forecasting_sticker_sales' if using sample data
         ```
 
-        如果您使用自己的資料，可以跳過上傳步驟。我們建議不要將任何生產關鍵資料集加入此範例代理。
-        如果您想使用範例資料，請繼續下一步。
+        You can skip the upload steps if you are using your own data. We recommend not adding any production critical datasets to this sample agent.
+        If you wish to use the sample data, continue with the next step.
 
-    *   您會在 `data-science/data_science/utils/data/` 中找到資料集。
-        請確保您仍在工作目錄 (`agents/data-science`) 中。若要將測試和訓練資料表載入 BigQuery，請執行以下指令：
+    *   You will find the datasets inside 'data-science/data_science/utils/data/'.
+        Make sure you are still in the working directory (`agents/data-science`). To load the test and train tables into BigQuery, run the following commands:
         ```bash
         python3 data_science/utils/create_bq_table.py
         ```
 
 
-6.  **BQML 設定：**
-    BQML 代理使用 Vertex AI RAG 引擎來查詢完整的 BigQuery ML 參考指南。
+6.  **BQML Setup:**
+    The BQML Agent uses the Vertex AI RAG Engine to query the full BigQuery ML Reference Guide.
 
-    在執行設定之前，請確保您的專案 ID 已新增至 `.env` 檔案中：`"GOOGLE_CLOUD_PROJECT"`。
-    請將 `.env` 檔案中的語料庫名稱留空：`BQML_RAG_CORPUS_NAME = ''`。語料庫名稱將在建立後自動新增。
+    Before running the setup, ensure your project ID is added in .env file: `"GOOGLE_CLOUD_PROJECT"`.
+    Leave the corpus name empty in the .env file: `BQML_RAG_CORPUS_NAME = ''`. The corpus name will be added automatically once it's created.
 
-    若要為您的專案設定 RAG 語料庫，請在 `data-science/data_science/utils/reference_guide_RAG.py` 中執行 `create_RAG_corpus()` 和 `ingest_files()` 方法，方法是從工作目錄執行以下指令：
+    To set up the RAG Corpus for your project, run the methods `create_RAG_corpus()` and `ingest_files()` in
+    `data-science/data_science/utils/reference_guide_RAG.py` by running the below command from the working directory:
 
     ```bash
     python3 data_science/utils/reference_guide_RAG.py
     ```
 
 
-7.  **其他環境變數：**
+7.  **Other Environment Variables:**
 
-    *   `NL2SQL_METHOD`：（可選）`BASELINE` 或 `CHASE`。設定 SQL 生成的方法。Baseline 直接使用 Gemini，而 CHASE 使用 [CHASE-SQL](https://arxiv.org/abs/2410.01943)。
-    *   `CODE_INTERPRETER_EXTENSION_NAME`：（可選）Vertex AI 中預先存在的程式碼直譯器擴充功能的完整資源名稱。如果未提供，將會建立一個新的擴充功能。（例如：`projects/<您的_專案_ID>/locations/<您的_位置>/extensions/<您的_擴充功能_ID>`）。
-        請檢查日誌/終端機以取得新建立的程式碼直譯器擴充功能的 ID，並在您的環境變數中提供該值，以避免建立多個擴充功能。
+    *   `NL2SQL_METHOD`: (Optional) Either `BASELINE` or `CHASE`. Sets the method for SQL Generation. Baseline uses Gemini off-the-shelf, whereas CHASE uses [CHASE-SQL](https://arxiv.org/abs/2410.01943)
+    *   `CODE_INTERPRETER_EXTENSION_NAME`: (Optional) The full resource name of
+        a pre-existing Code Interpreter extension in Vertex AI. If not provided,
+        a new extension will be created. (e.g.,
+        `projects/<YOUR_PROJECT_ID>/locations/<YOUR_LOCATION>/extensions/<YOUR_EXTENSION_ID>`).
+        Check the logs/terminal for the ID of the newly created Code Interpreter
+        Extension and provide the value in your environment variables to avoid
+        creating multiple extensions.
 
-    從終端機：
-
-    ```bash
-    export CODE_INTERPRETER_EXTENSION_NAME='projects/<您的_專案_ID>/locations/us-central1/extensions/<您的_擴充功能_ID>'
-    ```
-
-## 執行代理
-
-您可以使用終端機中的 ADK 指令來執行代理。
-從工作目錄：
-
-1.  在 CLI 中執行代理：
+    From the terminal:
 
     ```bash
-    poetry run adk run data_science
+    export CODE_INTERPRETER_EXTENSION_NAME='projects/<YOUR_PROJECT_ID>/locations/us-central1/extensions/<YOUR_EXTENSION_ID>'
     ```
 
-2.  使用 ADK Web UI 執行代理：
+## Running the Agent
+
+You can run the agent using the ADK command in your terminal.
+from the working directory:
+
+1.  Run agent in CLI:
+
     ```bash
-    poetry run adk web
+    uv run adk run data_science
     ```
-    從下拉式選單中選取 data_science
+
+2.  Run agent with ADK Web UI:
+    ```bash
+    uv run adk web
+    ```
+    Select the data_science from the dropdown
 
 
 
-### 代理互動範例
+### Example Agent Interaction
 
-以下是一個使用者如何與資料科學多代理系統互動的快速範例：
+Here's a quick example of how a user might interact with the Data Science Multi-Agent System:
 
-> ´**使用者：** 你好，你有哪些資料的存取權限？
+> ´**User:** Hi, What data do you have access to?
 
-> **代理：** 我可以存取 `train` 和 `test` 這兩個資料表。兩個資料表都包含貼紙銷售資料，欄位如下：`id`、`date`、`country`、`store`、`product` 和 `num_sold`。
+> **Agent:**  I have access to two tables: `train` and `test`. Both tables contain sticker sales data with the following columns: `id`, `date`, `country`, `store`, `product`, and `num_sold`.
 
-> **使用者：** 我需要 train 資料表的更多詳細資訊。有哪些國家？有多少家商店？
+> **User:** I need more details on the train table. What countries exist? How many stores are there?
 
-> **代理：** 結果：train 資料表包含來自加拿大、芬蘭、義大利、肯亞、挪威和新加坡的資料。這些國家各有 3 家不同的商店。
+> **Agent:** Result: The train table contains data from Canada, Finland, Italy, Kenya, Norway, and Singapore. Each of these countries has 3 distinct stores.
 
->說明：資料庫代理對 train 資料表執行了一條 SQL 查詢，以找出不同的國家以及每個國家內不同商店的數量。該查詢按國家分組結果，並計算了不同商店值的數量。
+>Explanation: The database agent executed a SQL query against the train table to find the distinct countries and the number of distinct stores within each country. The query grouped the results by country and counted the distinct store values.
 
-> **使用者：** 請產生一個各國總銷售額的圖表。
+> **User:** Please generate a plot with total sales per country.
 
-> **代理：** 結果：已產生一個顯示各國總銷售額的長條圖。x 軸代表國家，y 軸代表總銷售額。
+> **Agent:**  Result: A bar plot has been generated showing the total sales per country. The x-axis represents the country, and the y-axis represents the total sales.
 
-> 說明：
-> 1. 首先呼叫資料庫代理，從 train 資料表中擷取各國的總銷售額。
-> 2. 然後呼叫資料科學代理，產生一個將結果視覺化的長條圖。該圖表在 x 軸上顯示每個國家，在 y 軸上顯示其對應的總銷售額。
+> Explanation:
+> 1. The database agent was first called to retrieve the total sales per country from the train table.
+> 2. The data science agent was then called to generate a bar plot visualizing the results. The plot displays each country on the x-axis and its corresponding total sales on the y-axis.
 
-> **使用者：** 我可以在 BQML 中訓練哪些類型的預測模型？
+> **User:** What kinds of forecasting models can I train in BQML?
 
-> **代理：** 您可以在 BQML 中訓練多種類型的預測模型，包括 ARIMA、指數平滑法 (Exponential Smoothing) 和時序融合轉換器 (Temporal Fusion Transformer, TFT) 模型。您想繼續訓練預測模型嗎？
+> **Agent:** You can train several types of forecasting models in BQML, including ARIMA, Exponential Smoothing, and Temporal Fusion Transformer (TFT) models. Would you like to proceed with training a forecasting model?
 
-> **使用者：** 是的
+> **User:** Yes
 
-> **代理：** 好的，在繼續之前，讓我們確認一下 BQML 的專案和資料集 ID。我們將使用 `PROJECT_ID` 專案和 `forecasting_sticker_sales` 資料集。這樣對嗎？
+> **Agent:** Okay, before proceeding, let's confirm the project and dataset ID for BQML. We'll be using the `PROJECT_ID` project and the `forecasting_sticker_sales` dataset. Does that sound right?
 
-> **使用者：** 是的
+> **User:** Yes
 
-> **代理：** BQML 支援 `ARIMA_PLUS`、`ARIMA_PLUS_XREG`。
+> **Agent:** The BQML supports `ARIMA_PLUS`, `ARIMA_PLUS_XREG`.
 
->若要繼續，我需要知道您想使用哪種模型。我還需要知道以下資訊：
+>To proceed, I need to know which model you'd like to use. I also need to know the following:
 
->*   提供時間點的欄位名稱（例如：'date'）。
->*   包含要預測資料的欄位名稱（例如：'num_sold'）。
->*   您是否想使用單一查詢來擬合和預測多個時間序列？如果是，ID 欄位是什麼？（例如：`country`、`store`、`product`）
+>*   The name of the column that provides the time points (e.g., 'date').
+>*   The name of the column that contains the data to forecast (e.g., 'num_sold').
+>*   Do you want to fit and forecast multiple time series using a single query? If so, what are the ID columns? (e.g., `country`, `store`, `product`)
 
 
-## 測試與評估
+## Testing and Evaluation
 
-若要執行測試與評估程式碼，您需要一些額外的相依套件。請從 `agents/data-science` 目錄執行以下 Poetry 指令來安裝它們：
+To run the test and evaluation code, you need a few additional dependencies. Run
+the following uv command from the `agents/data-science` directory to install them:
 ```bash
-poetry install --with=dev
+uv sync
 ```
 
-### 執行評估
+### Running Evaluations
 
 
-評估測試以整體的方式評量代理的整體效能與能力。
+Evaluation tests assess the overall performance and capabilities of the agent in a holistic manner.
 
-**執行評估測試：**
+**Run Evaluation Tests:**
 
-    ```bash
-    poetry run pytest eval
-    ```
-
-
-- 此指令會執行 `eval/` 目錄中的所有測試檔案。
-- `poetry run` 確保 pytest 在專案的虛擬環境中執行。
+```bash
+uv run pytest eval
+```
 
 
-
-### 執行測試
-
-測試評量代理的整體可執行性。
-
-**測試類別：**
-
-*   **整合測試 (Integration Tests)：** 這些測試驗證代理之間以及與 BigQuery 等外部服務之間是否能正確互動。它們確保根代理可以將任務委派給適當的子代理，且子代理可以執行其預期任務。
-*   **子代理功能測試 (Sub-Agent Functionality Tests)：** 這些測試專注於每個子代理（例如資料庫代理、BQML 代理）的特定能力。它們確保每個子代理都能執行其預期任務，例如執行 SQL 查詢或訓練 BQML 模型。
-*   **環境查詢測試 (Environment Query Tests)：** 這些測試驗證代理是否能處理基於環境的查詢。
-
-**執行測試：**
-
-    ```bash
-    poetry run pytest tests
-    ```
-
-- 此指令會執行 `tests/` 目錄中的所有測試檔案。
-- `poetry run` 確保 pytest 在專案的虛擬環境中執行。
+- This command executes all test files within the `eval/` directory.
+- `uv run` ensures that pytest runs within the project's virtual environment.
 
 
 
-## 在 Vertex AI Agent Engine 上部署
+### Running Tests
 
-若要將代理部署到 Google Agent Engine，請先依照
-[這些步驟](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/set-up)
-設定您的 Google Cloud 專案以使用 Agent Engine。
+Tests assess the overall executability of the agents.
 
-您還需要授予 BigQuery 使用者、BigQuery 資料檢視者和 Vertex AI 使用者
-權限給 Reasoning Engine 服務代理。請執行以下指令以授予所需權限：
+**Test Categories:**
+
+*   **Integration Tests:** These tests verify that the agents can interact correctly with each other and with external services like BigQuery. They ensure that the root agent can delegate tasks to the appropriate sub-agents and that the sub-agents can perform their intended tasks.
+*   **Sub-Agent Functionality Tests:** These tests focus on the specific capabilities of each sub-agent (e.g., Database Agent, BQML Agent). They ensure that each sub-agent can perform its intended tasks, such as executing SQL queries or training BQML models.
+*   **Environment Query Tests:** These tests verify that the agent can handle queries that are based on the environment.
+
+**Run Tests:**
+
+```bash
+uv run pytest tests
+```
+
+- This command executes all test files within the `tests/` directory.
+- `uv run` ensures that pytest runs within the project's virtual environment.
+
+
+
+## Deployment on Vertex AI Agent Engine
+
+To deploy the agent to Google Agent Engine, first follow
+[these steps](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/set-up)
+to set up your Google Cloud project for Agent Engine.
+
+You also need to give BigQuery User, BigQuery Data Viewer, and Vertex AI User
+permissions to the Reasoning Engine Service Agent. Run the following commands to
+grant the required permissions:
 
 ```bash
 export RE_SA="service-${GOOGLE_CLOUD_PROJECT_NUMBER}@gcp-sa-aiplatform-re.iam.gserviceaccount.com"
@@ -284,59 +300,61 @@ gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
     --role="roles/aiplatform.user"
 ```
 
-接下來，您需要為您的代理建立一個 `.whl` 檔案。從 `data-science`
-目錄執行此指令：
+Next, you need to create a `.whl` file for your agent. From the `data-science`
+directory, run this command:
 
 ```bash
-poetry build --format=wheel --output=deployment
+uv build --wheel --out-dir deployment
 ```
 
-這會在 `deployment` 目錄中建立一個名為 `data_science-0.1-py3-none-any.whl` 的檔案。
+This will create a file named `data_science-0.1-py3-none-any.whl` in the
+`deployment` directory.
 
-然後執行以下指令。這會在您的 GCP 專案中建立一個暫存儲存桶，並將代理部署到 Vertex AI Agent Engine：
+Then run the below command. This will create a staging bucket in your GCP project and deploy the agent to Vertex AI Agent Engine:
 
 ```bash
 cd deployment/
 python3 deploy.py --create
 ```
 
-當此指令傳回時，如果成功，它將印出一個 AgentEngine 資源
-名稱，如下所示：
+When this command returns, if it succeeds it will print an AgentEngine resource
+name that looks something like this:
 ```
 projects/************/locations/us-central1/reasoningEngines/7737333693403889664
 ```
-最後一串數字是 AgentEngine 資源 ID。
+The last sequence of digits is the AgentEngine resource ID.
 
-成功部署您的代理後，您可以使用 `deployment` 目錄中的
-`test_deployment.py` 指令碼與其互動。將代理的資源 ID 儲存在環境變數中，然後執行以下指令：
+Once you have successfully deployed your agent, you can interact with it
+using the `test_deployment.py` script in the `deployment` directory. Store the
+agent's resource ID in an environment variable and run the following command:
 
 ```bash
 export RESOURCE_ID=...
-export USER_ID=<任何字串>
+export USER_ID=<any string>
 python test_deployment.py --resource_id=$RESOURCE_ID --user_id=$USER_ID
 ```
 
-會話將如下所示：
+The session will look something like this:
 ```
-找到資源 ID 為 ... 的代理
-為使用者 ID ... 建立會話
-輸入 'quit' 離開。
-輸入：你好。你有什麼資料？
-回應：我可以存取 forecasting_sticker_sales 資料集中的 train 和 test 資料表。
+Found agent with resource ID: ...
+Created session for user ID: ...
+Type 'quit' to exit.
+Input: Hello. What data do you have?
+Response: I have access to the train and test tables inside the forecasting_sticker_sales dataset.
 ...
 ```
 
-請注意，這*不是*一個功能齊全、可用於生產的 CLI；它僅用於
-展示如何使用 Agent Engine API 與已部署的代理互動。
+Note that this is *not* a full-featured, production-ready CLI; it is just intended to
+show how to use the Agent Engine API to interact with a deployed agent.
 
-`test_deployment.py` 指令碼的主要部分大致如下：
+The main part of the `test_deployment.py` script is approximately this code:
 
 ```python
 from vertexai import agent_engines
 remote_agent = vertexai.agent_engines.get(RESOURCE_ID)
 session = remote_agent.create_session(user_id=USER_ID)
 while True:
-    user_input = input("輸入：")
+    user_input = input("Input: ")
     if user_input == "quit":
       break
 
@@ -349,47 +367,48 @@ while True:
         for part in parts:
             if "text" in part:
                 text_part = part["text"]
-                print(f"回應：{text_part}")
+                print(f"Response: {text_part}")
 ```
 
-若要刪除代理，請執行以下指令（使用先前傳回的資源 ID）：
+To delete the agent, run the following command (using the resource ID returned previously):
 ```bash
 python3 deployment/deploy.py --delete --resource_id=RESOURCE_ID
 ```
 
 
 
-## 最佳化與調整提示
+## Optimizing and Adjustment Tips
 
-*   **提示詞工程 (Prompt Engineering)：** 為 `root_agent`、`bqml_agent`、`db_agent`
-    和 `ds_agent` 優化提示詞，以提高準確性並更有效地引導代理。
-    嘗試使用不同的措辭和詳細程度。
-*   **擴充 (Extension)：** 使用您自己的 AgentTools 或 sub_agents 來擴充多代理系統。
-    您可以透過在 `agents/data-science/data_science/agent.py` 中將額外的工具和子代理新增至根代理來實現。
-*   **部分匯入 (Partial imports)：** 如果您只需要多代理系統中的某些功能，
-    例如只需要資料代理，您可以將 data_agent 作為 AgentTool 匯入到您自己的根代理中。
-*   **模型選擇 (Model Selection)：** 為頂層
-    代理和子代理嘗試不同的語言模型，以找到最適合您的資料和
-    查詢的效能。
-
-
-## 疑難排解
-
-*   如果您在執行代理時遇到 `500 內部伺服器錯誤 (Internal Server Errors)`，只需重新執行您最後的指令即可。
-    這應該可以解決問題。
-*   如果您遇到程式碼直譯器的問題，請檢視日誌以
-    了解錯誤。如果您直接與程式碼直譯器擴充功能互動
-    而不是透過代理的輔助函式，請確保您對
-    檔案/圖片使用 base-64 編碼。
-*   如果您在產生的 SQL 中看到錯誤，請嘗試以下方法：
-    - 在您的資料表和欄位中包含清楚的描述有助於提高效能
-    - 如果您的資料庫很大，請嘗試為結構化連結設定 RAG 管道，方法是將您的資料表結構詳細資訊儲存在向量儲存中
+*   **Prompt Engineering:** Refine the prompts for `root_agent`, `bqml_agent`, `db_agent`
+    and `ds_agent` to improve accuracy and guide the agents more effectively.
+    Experiment with different phrasing and levels of detail.
+*   **Extension:** Extend the multi-agent system with your own AgentTools or sub_agents.
+    You can do so by adding additional tools and sub_agents to the root agent inside
+    `agents/data-science/data_science/agent.py`.
+*   **Partial imports:** If you only need certain capabilities inside the multi-agent system,
+    e.g. just the data agent, you can import the data_agent as an AgentTool into your own root agent.
+*   **Model Selection:** Try different language models for both the top-level
+    agent and the sub-agents to find the best performance for your data and
+    queries.
 
 
-## 免責聲明
+## Troubleshooting
 
-此代理範例僅供說明之用，不適用於生產環境。它作為代理的基本範例和個人或團隊開發自己代理的基礎起點。
+*   If you face `500 Internal Server Errors` when running the agent, simply re-run your last command.
+    That should fix the issue.
+*   If you encounter issues with the code interpreter, review the logs to
+    understand the errors. Make sure you're using base-64 encoding for
+    files/images if interacting directly with a code interpreter extension
+    instead of through the agent's helper functions.
+*   If you see errors in the SQL generated, try the following:
+    - including clear descriptions in your tables and columns help boost performance
+    - if your database is large, try setting up a RAG pipeline for schema linking by storing your table schema details in a vector store
 
-此範例未經嚴格測試，可能包含錯誤或限制，且不包含生產環境通常所需的功能或最佳化（例如，穩健的錯誤處理、安全措施、可擴展性、效能考量、全面的日誌記錄或進階組態選項）。
 
-使用者對基於此範例的代理的任何進一步開發、測試、安全強化和部署負全部責任。我們建議在使用任何衍生代理於即時或關鍵系統之前，進行徹底的審查、測試並實施適當的保護措施。
+## Disclaimer
+
+This agent sample is provided for illustrative purposes only and is not intended for production use. It serves as a basic example of an agent and a foundational starting point for individuals or teams to develop their own agents.
+
+This sample has not been rigorously tested, may contain bugs or limitations, and does not include features or optimizations typically required for a production environment (e.g., robust error handling, security measures, scalability, performance considerations, comprehensive logging, or advanced configuration options).
+
+Users are solely responsible for any further development, testing, security hardening, and deployment of agents based on this sample. We recommend thorough review, testing, and the implementation of appropriate safeguards before using any derived agent in a live or critical system.

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FOMC 研究代理的價格相關公用程式函式。"""
+"""Price-related utility functions for FOMC Research Agent."""
 
 import datetime
 import logging
@@ -36,14 +36,14 @@ TIMESERIES_CODES = os.getenv(
 def fetch_prices_from_bq(
     timeseries_codes: list[str], dates: list[datetime.date]
 ) -> dict[dict[datetime.date, float]]:
-    """從 BigQuery 擷取價格。
+    """Fetches prices from Bigquery.
 
     Args:
-      timeseries_codes: 要擷取的東西向時間序列代碼列表。
-      dates: 要擷取的日期列表。
+      timeseries_codes: List of timeseries codes to fetch.
+      dates: List of dates to fetch.
 
     Returns:
-      時間序列代碼到日期對價格的字典的字典。
+      Dictionary of timeseries codes to dictionaries of dates to prices.
     """
 
     logger.debug("fetch_prices_from_bq: timeseries_codes: %s", timeseries_codes)
@@ -86,16 +86,16 @@ WHERE timeseries_code IN UNNEST(@timeseries_codes)
 def number_of_moves(
     front_ff_future_px: float, back_ff_future_px: float
 ) -> float:
-    """計算兩個價格之間的預期利率變動次數。
+    """Computes the expected number of rate moves between two prices.
 
     Args:
-      front_ff_future_px: 近期聯邦基金期貨價格。
-      back_ff_future_px: 遠期聯邦基金期貨價格。
+      front_ff_future_px: Front fed funds future price.
+      back_ff_future_px: Back fed funds future price.
 
     Returns:
-      變動次數。
+      Number of moves.
 
-    有關計算詳細資訊，請參閱
+    For calculation details see
     https://www.biancoresearch.com/bianco/samples/SR2v1.pdf
 
     """
@@ -109,30 +109,30 @@ def number_of_moves(
 
 
 def fed_meeting_probabilities(nmoves: float) -> dict:
-    move_text = "升息" if nmoves > 0 else "降息"
+    move_text = "hike" if nmoves > 0 else "cut"
     if nmoves > 1:
-        move_text = move_text
+        move_text = move_text + "s"
 
     max_expected_moves = math.ceil(abs(nmoves))
     max_expected_move_bp = max_expected_moves * MOVE_SIZE_BP
     move_odds = round(math.modf(abs(nmoves))[0], 2)
 
     output = {
-        f"{max_expected_move_bp} 基點 {move_text} 的機率": move_odds,
-        f"不 {move_text} 的機率": round(1 - move_odds, 2),
+        f"odds of {max_expected_move_bp}bp {move_text}": move_odds,
+        f"odds of no {move_text}": round(1 - move_odds, 2),
     }
 
     return output
 
 
 def compute_probabilities(meeting_date_str: str) -> dict:
-    """計算特定日期的利率變動機率。
+    """Computes the probabilities of a rate move for a specific date.
 
     Args:
-      meeting_date_str: 聯準會會議日期。
+      meeting_date_str: Date of the Fed meeting.
 
     Returns:
-      機率字典。
+      Dictionary of probabilities.
     """
     meeting_date = datetime.date.fromisoformat(meeting_date_str)
     meeting_date_day_before = meeting_date - datetime.timedelta(days=1)
@@ -145,16 +145,16 @@ def compute_probabilities(meeting_date_str: str) -> dict:
     error = None
     for code in timeseries_codes:
         if code not in prices:
-            error = f"沒有 {code} 的資料"
+            error = f"No data for {code}"
             break
         elif meeting_date not in prices[code]:
-            error = f"沒有 {code} 在 {meeting_date} 的資料"
+            error = f"No data for {code} on {meeting_date}"
             break
         elif meeting_date_day_before not in prices[code]:
-            error = f"沒有 {code} 在 {meeting_date_day_before} 的資料"
+            error = f"No data for {code} on {meeting_date_day_before}"
             break
 
-    logger.debug("compute_probabilities: 找到的價格: %s", prices)
+    logger.debug("compute_probabilities: found prices: %s", prices)
 
     if error:
         return {"status": "ERROR", "message": error}
@@ -174,12 +174,12 @@ def compute_probabilities(meeting_date_str: str) -> dict:
 
     output = {
         (
-            "未來一年內利率變動的機率 ",
-            "（聯準會會議前計算）：",
+            "Odds of a rate move within the next year ",
+            "(computed before Fed meeting):",
         ): (probs_pre),
         (
-            "未來一年內利率變動的機率 ",
-            "（聯準會會議後計算）",
+            "Odds of a rate move within the next year ",
+            "(computed after Fed meeting)",
         ): (probs_post),
     }
 
@@ -188,10 +188,10 @@ def compute_probabilities(meeting_date_str: str) -> dict:
 
 def main(argv: Sequence[str]) -> None:
     if len(argv) > 2:
-        raise app.UsageError("過多的命令列引數。")
+        raise app.UsageError("Too many command-line arguments.")
 
     meeting_date = argv[1]
-    print("會議日期：", meeting_date)
+    print("meeting_date: ", meeting_date)
 
     print(compute_probabilities(meeting_date))
 

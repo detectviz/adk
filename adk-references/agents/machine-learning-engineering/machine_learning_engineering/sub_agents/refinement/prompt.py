@@ -1,170 +1,170 @@
-"""Defines the prompts for the refinement agent."""
+"""定義優化代理的提示。"""
 
-ABLATION_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- In order to win this competition, you need to perform an ablation study on the current Python solution to know which parts of the code contribute the most to the overall performance.
-- We will now provide a current Python solution.
+ABLATION_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 為了贏得這場競賽，您需要對目前的 Python 解決方案進行消融研究 (ablation study)，以了解程式碼的哪些部分對整體性能貢獻最大。
+- 我們現在將提供一個目前的 Python 解決方案。
 
-# Python solution
+# Python 解決方案
 ```python
 {code}
 ```
-# Instructions
-- You need to generate a simple Python code that performs an ablation study on the above Python solution script.
-- The generated code should create variations by modifying or disabling parts (1-2 simple parts) of the training process.
-- For each ablation, print out how the modification affects the model's performance.
+# 指示
+- 您需要產生一個簡單的 Python 程式碼，對上述 Python 解決方案腳本進行消融研究。
+- 產生的程式碼應透過修改或停用訓練過程的部分（1-2 個簡單部分）來建立變體。
+- 對於每次消融，印出修改對模型性能的影響。
 
-# Response format
-- There should be no additional headings or text in your response.
-- The Python code for the ablation study should not load test data. It should only focus on training and evaluating the model on the validation set.
-- The code should include a printing statement that shows the performance of each ablation.
-- The code should consequently print out which part of the code contributes the most to the overall performance.
+# 回應格式
+- 您的回應中不應有額外的標題或文字。
+- 用於消融研究的 Python 程式碼不應載入測試資料。它應僅專注於在驗證集上訓練和評估模型。
+- 程式碼應包含一個顯示每次消融性能的列印語句。
+- 程式碼應因此印出程式碼的哪個部分對整體性能貢獻最大。
 """
 
-ABLATION_SEQ_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- In order to win this competition, you need to perform an ablation study on the current Python solution to know which parts of the code contribute the most to the overall performance.
-- We will now provide a current Python solution.
-- We will also provide the summaries of previous ablation studies.
+ABLATION_SEQ_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 為了贏得這場競賽，您需要對目前的 Python 解決方案進行消融研究，以了解程式碼的哪些部分對整體性能貢獻最大。
+- 我們現在將提供一個目前的 Python 解決方案。
+- 我們還將提供先前消融研究的摘要。
 
-# Python solution
+# Python 解決方案
 ```python
 {code}
 ```
 
 {prev_ablations}
 
-# Instructions
-- You need you to generate a simple Python code that performs an ablation study on the train.py script.
-- The generated code should create variations by modifying or disabling parts (2-3 parts) of the training process.
-- Your ablation study should concentrate on the other parts that have not been previously considered.
-- For each ablation, print out how the modification affects the model's performance.
+# 指示
+- 您需要產生一個簡單的 Python 程式碼，對 train.py 腳本進行消融研究。
+- 產生的程式碼應透過修改或停用訓練過程的部分（2-3 個部分）來建立變體。
+- 您的消融研究應專注於先前未考慮的其他部分。
+- 對於每次消融，印出修改對模型性能的影響。
 
-# Response format
-- There should be no additional headings or text in your response.
-- The Python code for the ablation study should not load test data. It should only focus on training and evaluating the model on the validation set.
-- The code should include a printing statement that shows the performance of each ablation.
-- The code should consequently print out what part of the code contributes the most to the overall performance.
+# 回應格式
+- 您的回應中不應有額外的標題或文字。
+- 用於消融研究的 Python 程式碼不應載入測試資料。它應僅專注於在驗證集上訓練和評估模型。
+- 程式碼應包含一個顯示每次消融性能的列印語句。
+- 程式碼應因此印出程式碼的哪個部分對整體性能貢獻最大。
 """
 
-SUMMARIZE_ABLATION_INSTR = """# Your code for ablation study was:
+SUMMARIZE_ABLATION_INSTR = """# 您用於消融研究的程式碼是：
 ```python
 {code}
 ```
 
-# Ablation study results after running the above code:
+# 執行上述程式碼後的消融研究結果：
 {result}
 
-# Your task
-- Summarize the result of ablation study based on the code and printed output.
+# 您的任務
+- 根據程式碼和列印的輸出總結消融研究的結果。
 """
 
-EXTRACT_BLOCK_AND_PLAN_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- In order to win this competition, you need to extract a code block from the current Python solution and improve the extracted block for better performance.
-- Your suggestion should be based on the ablation study results of the current Python solution.
-- We will now provide the current Python solution and the ablation study results.
+EXTRACT_BLOCK_AND_PLAN_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 為了贏得這場競賽，您需要從目前的 Python 解決方案中提取一個程式碼區塊，並改進提取的區塊以獲得更好的性能。
+- 您的建議應基於目前 Python 解決方案的消融研究結果。
+- 我們現在將提供目前的 Python 解決方案和消融研究結果。
 
-# Python solution
+# Python 解決方案
 ```python
 {code}
 ```
 
-# Ablation study results
+# 消融研究結果
 {ablation_results}
 
-# Your task
-- Given the ablation study results, suggest an effective next plan to improve the above Python script.
-- The plan should be a brief outline/sketch of your proposed solution in natural language (3-5 sentences).
-- Please avoid plan which can make the solution's running time too long (e.g., searching hyperparameters in a very large search space).
-- Also extract the code block from the above Python script that need to be improved according to the proposed plan.
+# 您的任務
+- 根據消融研究結果，提出一個有效的下一步計畫來改進上述 Python 腳本。
+- 該計畫應為您提議的解決方案的簡要大綱/草圖，以自然語言撰寫（3-5 句話）。
+- 請避免可能導致解決方案執行時間過長的計畫（例如，在非常大的搜尋空間中搜尋超參數）。
+- 同時從上述 Python 腳本中提取需要根據提議的計畫進行改進的程式碼區塊。
 
-# Response format
-- Your response should be a brief outline/sketch of your proposed solution in natural language (3-5 sentences) and a single markdown code block which is the code block that need to be improved.
-- The code block can be long but should be exactly extracted from the Python script provided above.
+# 回應格式
+- 您的回應應為您提議的解決方案的簡要自然語言大綱/草圖（3-5 句話）和一個單一的 markdown 程式碼區塊，即需要改進的程式碼區塊。
+- 程式碼區塊可以很長，但必須完全從上面提供的 Python 腳本中提取。
 
-Use this JSON schema:
+使用此 JSON 結構描述：
 
 Refine_Plan = {{'code_block': str, 'plan': str}}
-Return: list[Refine_Plan]"""
+返回: list[Refine_Plan]"""
 
-EXTRACT_BLOCK_AND_PLAN_SEQ_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- In order to win this competition, you need to extract a code block from the current Python solution and improve the extracted block for better performance.
-- Your suggestion should be based on the ablation study results of the current Python solution.
-- We will now provide the current Python solution and the ablation study results.
-- We also provide code blocks which you have tried to improve previously.
+EXTRACT_BLOCK_AND_PLAN_SEQ_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 為了贏得這場競賽，您需要從目前的 Python 解決方案中提取一個程式碼區塊，並改進提取的區塊以獲得更好的性能。
+- 您的建議應基於目前 Python 解決方案的消融研究結果。
+- 我們現在將提供目前的 Python 解決方案和消融研究結果。
+- 我們還提供您之前嘗試改進的程式碼區塊。
 
-# Python solution
+# Python 解決方案
 ```python
 {code}
 ```
 
-# Ablation study results
+# 消融研究結果
 {ablation_results}
 
 {prev_code_blocks}
 
-# Your task
-- Given the ablation study results, suggest an effective next plan to improve the above Python script.
-- The plan should be a brief outline/sketch of your proposed solution in natural language (3-5 sentences).
-- Please avoid plan which can make the solution's running time too long (e.g., searching hyperparameters in a very large search space).
-- Try to improve the other part which was not considered before.
-- Also extract the code block from the above Python script that need to be improved according to the proposed plan. You should try to extract the code block which was not improved before.
+# 您的任務
+- 根據消融研究結果，提出一個有效的下一步計畫來改進上述 Python 腳本。
+- 該計畫應為您提議的解決方案的簡要大綱/草圖，以自然語言撰寫（3-5 句話）。
+- 請避免可能導致解決方案執行時間過長的計畫（例如，在非常大的搜尋空間中搜尋超參數）。
+- 嘗試改進之前未考慮的其他部分。
+- 同時從上述 Python 腳本中提取需要根據提議的計畫進行改進的程式碼區塊。您應該嘗試提取之前未改進過的程式碼區塊。
 
-# Response format
-- Your response should be a brief outline/sketch of your proposed solution in natural language (3-5 sentences) and a single markdown code block which is the code block that need to be improved.
-- The code block can be long but should be exactly extracted from the Python script provided above.
+# 回應格式
+- 您的回應應為您提議的解決方案的簡要自然語言大綱/草圖（3-5 句話）和一個單一的 markdown 程式碼區塊，即需要改進的程式碼區塊。
+- 程式碼區塊可以很長，但必須完全從上面提供的 Python 腳本中提取。
 
-Use this JSON schema:
+使用此 JSON 結構描述：
 
 Refine_Plan = {{'code_block': str, 'plan': str}}
-Return: list[Refine_Plan]"""
+返回: list[Refine_Plan]"""
 
-PLAN_REFINEMENT_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- In order to win this competition, you have to improve the code block for better performance.
-- We will provide the code block you are improving and the improvement plans you have tried.
+PLAN_REFINEMENT_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 為了贏得這場競賽，您必須改進程式碼區塊以獲得更好的性能。
+- 我們將提供您正在改進的程式碼區塊以及您已嘗試過的改進計畫。
 
-# Code block
+# 程式碼區塊
 ```python
 {code_block}
 ```
 
-# Improvement plans you have tried
+# 您已嘗試過的改進計畫
 
 {prev_plan_summary}
 
-# Your task
-- Suggest a better plan to improve the above code block.
-- The suggested plan must be novel and effective.
-- Please avoid plans which can make the solution's running time too long (e.g., searching hyperparameters in a very large search space).
-- The suggested plan should be differ from the previous plans you have tried and should receive a higher score.
+# 您的任務
+- 建議一個更好的計畫來改進上述程式碼區塊。
+- 建議的計畫必須新穎且有效。
+- 請避免可能導致解決方案執行時間過長的計畫（例如，在非常大的搜尋空間中搜尋超參數）。
+- 建議的計畫應與您之前嘗試過的計畫不同，並應獲得更高的分數。
 
-# Response format
-- Your response should be a brief outline/sketch of your proposed solution in natural language (3-5 sentences).
-- There should be no additional headings or text in your response.
+# 回應格式
+- 您的回應應為您提議的解決方案的簡要自然語言大綱/草圖（3-5 句話）。
+- 您的回應中不應有額外的標題或文字。
 """
 
-IMPLEMENT_PLAN_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- In order to win this competition, you need refine the code block for better performance based on the improvement plan.
-- We will now provide the code block and the improvement plan.
+IMPLEMENT_PLAN_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 為了贏得這場競賽，您需要根據改進計畫優化程式碼區塊以獲得更好的性能。
+- 我們現在將提供程式碼區塊和改進計畫。
 
-# Code block
+# 程式碼區塊
 ```python
 {code_block}
 ```
 
-# Improvement plan
+# 改進計畫
 {plan}
 
-# Your task
-- Implement the improvement plan on the above code block. But do not remove subsampling if exists.
-- The code block should be improved according to the proposed plan.
-- Note that all the variable including actual data is defined earlier (since you are just seeing a code block), therefore do not introduce dummy variables.
+# 您的任務
+- 在上述程式碼區塊上實作改進計畫。但如果存在二次取樣 (subsampling)，請不要移除。
+- 應根據提議的計畫改進程式碼區塊。
+- 請注意，所有變數（包括實際資料）都已在前面定義（因為您只看到一個程式碼區塊），因此不要引入虛擬變數。
 
-# Response format
-- Your response should be a single markdown code block (wrapped in ```) which is the improved code block.
-- There should be no additional headings or text in your response.
+# 回應格式
+- 您的回應應該是一個單一的 markdown 程式碼區塊（用 ``` 包裹），即改進後的程式碼區塊。
+- 您的回應中不應有額外的標題或文字。
 """

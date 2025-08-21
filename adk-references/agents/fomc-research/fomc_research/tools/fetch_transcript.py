@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FOMC 研究範例代理的 'fetch_transcript' 工具"""
+"""'fetch_transcript' tool for FOMC Research sample agent"""
 
 import logging
 
@@ -25,13 +25,13 @@ logger = logging.getLogger(__name__)
 
 
 async def fetch_transcript_tool(tool_context: ToolContext) -> dict:
-    """從聯準會網站擷取聯準會新聞發布會的記錄。
+    """Retrieves the Fed press conference transcript from the Fed website.
 
     Args:
-      tool_context: ToolContext 物件。
+      tool_context: ToolContext object.
 
     Returns:
-      一個包含 "status" 和 (可選) "error_message" 鍵的字典。
+      A dict with "status" and (optional) "error_message" keys.
     """
     fed_hostname = "https://www.federalreserve.gov"
     transcript_url = tool_context.state["transcript_url"]
@@ -41,10 +41,10 @@ async def fetch_transcript_tool(tool_context: ToolContext) -> dict:
         transcript_url, "transcript.pdf", tool_context
     )
     if pdf_path is None:
-        logger.error("從 URL 下載 PDF 失敗，中止")
+        logger.error("Failed to download PDF from URLs, aborting")
         return {
             "status": "error",
-            "error_message": "從 GCS 下載 PDF 失敗",
+            "error_message": "Failed to download PDFs from GCS",
         }
 
     text = await file_utils.extract_text_from_pdf_artifact(pdf_path, tool_context)
@@ -52,5 +52,5 @@ async def fetch_transcript_tool(tool_context: ToolContext) -> dict:
     version = await tool_context.save_artifact(
         filename=filename, artifact=Part(text=text)
     )
-    logger.info("已儲存成品 %s，版本 %i", filename, version)
+    logger.info("Saved artifact %s, ver %i", filename, version)
     return {"status": "ok"}

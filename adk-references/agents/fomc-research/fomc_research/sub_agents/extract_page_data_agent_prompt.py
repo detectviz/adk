@@ -12,25 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FOMC 研究代理中 extract_page_data_agent 的提示詞定義"""
+"""Prompt definition for extract_page_data_agent in FOMC Research Agent"""
 
 PROMPT = """
-您的工作是從網頁中擷取重要資料。
+Your job is to extract important data from a web page.
 
  <PAGE_CONTENTS>
  {page_contents}
  </PAGE_CONTENTS>
 
 <INSTRUCTIONS>
-網頁內容如上方的 'page_contents' 區段所示。
-所需的資料欄位在使用者輸入的 'data_to_extract' 區段中提供。
+The contents of the web page are provided above in the 'page_contents' section.
+The data fields needed are provided in the 'data_to_extract' section of the user
+input.
 
-請閱讀網頁內容並擷取所要求的資料。
-不要使用任何其他的 HTML 解析器，只需自行檢查 HTML 並擷取資訊。
+Read the contents of the web page and extract the pieces of data requested.
+Don't use any other HTML parser, just examine the HTML yourself and extract the
+information.
 
-首先，使用 store_state 工具將擷取的資料儲存在 ToolContext 中。
+First, use the store_state tool to store the extracted data in the ToolContext.
 
-其次，以 JSON 格式將您找到的資訊回傳給使用者。
+Second, return the information you found to the user in JSON format.
  </INSTRUCTIONS>
 
 """

@@ -86,6 +86,12 @@ Follow the instructions in this GCP Cloud Shell tutorial.
 
 2.  Install the dependencies:
 
+    **Note for Linux users:** If you get an error related to `keyring` during the installation, you can disable it by running the following command:
+    ```bash
+    poetry config keyring.enabled false
+    ```
+    This is a one-time setup.
+
     ```bash
     poetry install
     ```

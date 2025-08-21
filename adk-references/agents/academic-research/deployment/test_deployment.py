@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""測試學術研究代理在代理引擎上的部署。"""
+"""Test deployment of Academic Research Agent to Agent Engine."""
 
 import os
 
@@ -21,29 +21,25 @@ from absl import app, flags
 from dotenv import load_dotenv
 from vertexai import agent_engines
 
-# 定義命令列旗標
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
-flags.DEFINE_string("location", None, "GCP 位置。")
-flags.DEFINE_string("bucket", None, "GCP 儲存桶。")
+flags.DEFINE_string("project_id", None, "GCP project ID.")
+flags.DEFINE_string("location", None, "GCP location.")
+flags.DEFINE_string("bucket", None, "GCP bucket.")
 flags.DEFINE_string(
     "resource_id",
     None,
-    "ReasoningEngine 資源 ID（部署代理後返回）",
+    "ReasoningEngine resource ID (returned after deploying the agent)",
 )
-flags.DEFINE_string("user_id", None, "使用者 ID（可以是任何字串）。")
-# 將 resource_id 和 user_id 標記為必要旗標
+flags.DEFINE_string("user_id", None, "User ID (can be any string).")
 flags.mark_flag_as_required("resource_id")
 flags.mark_flag_as_required("user_id")
 
 
 def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
-    """腳本主函式。"""
-    # 從 .env 檔案載入環境變數
+
     load_dotenv()
 
-    # 從旗標或環境變數中獲取 GCP 設定
     project_id = (
         FLAGS.project_id
         if FLAGS.project_id
@@ -58,40 +54,38 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
         else os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET")
     )
 
-    # 檢查是否已設定必要的環境變數
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+    location = os.getenv("GOOGLE_CLOUD_LOCATION")
+    bucket = os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET")
+
     if not project_id:
-        print("缺少必要的環境變數：GOOGLE_CLOUD_PROJECT")
+        print("Missing required environment variable: GOOGLE_CLOUD_PROJECT")
         return
     elif not location:
-        print("缺少必要的環境變數：GOOGLE_CLOUD_LOCATION")
+        print("Missing required environment variable: GOOGLE_CLOUD_LOCATION")
         return
     elif not bucket:
         print(
-            "缺少必要的環境變數：GOOGLE_CLOUD_STORAGE_BUCKET"
+            "Missing required environment variable: GOOGLE_CLOUD_STORAGE_BUCKET"
         )
         return
 
-    # 初始化 Vertex AI
     vertexai.init(
         project=project_id,
         location=location,
         staging_bucket=f"gs://{bucket}",
     )
 
-    # 獲取已部署的代理
     agent = agent_engines.get(FLAGS.resource_id)
-    print(f"找到具有資源 ID 的代理：{FLAGS.resource_id}")
-    # 為指定的使用者 ID 建立一個新的對話工作階段
+    print(f"Found agent with resource ID: {FLAGS.resource_id}")
     session = agent.create_session(user_id=FLAGS.user_id)
-    print(f"為使用者 ID 建立的工作階段：{FLAGS.user_id}")
-    print("輸入 'quit' 以退出。")
-    # 進入與代理互動的迴圈
+    print(f"Created session for user ID: {FLAGS.user_id}")
+    print("Type 'quit' to exit.")
     while True:
-        user_input = input("輸入：")
+        user_input = input("Input: ")
         if user_input == "quit":
             break
 
-        # 將使用者輸入串流查詢到代理並處理回應
         for event in agent.stream_query(
             user_id=FLAGS.user_id, session_id=session["id"], message=user_input
         ):
@@ -101,11 +95,10 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
                     for part in parts:
                         if "text" in part:
                             text_part = part["text"]
-                            print(f"回應：{text_part}")
+                            print(f"Response: {text_part}")
 
-    # 刪除對話工作階段
     agent.delete_session(user_id=FLAGS.user_id, session_id=session["id"])
-    print(f"已為使用者 ID 刪除工作階段：{FLAGS.user_id}")
+    print(f"Deleted session for user ID: {FLAGS.user_id}")
 
 
 if __name__ == "__main__":

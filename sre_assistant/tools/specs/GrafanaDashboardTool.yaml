@@ -1,0 +1,16 @@
+
+name: GrafanaDashboardTool
+description: 依服務型態建立 Grafana 儀表板（模擬）
+args_schema:
+  type: object
+  required: [service_type]
+  properties:
+    service_type: { type: string }
+returns_schema:
+  type: object
+  properties:
+    dashboard_id: { type: string }
+    url: { type: string }
+timeout_seconds: 30
+idempotent: true
+retry: { max_retries: 2, backoff: exponential }

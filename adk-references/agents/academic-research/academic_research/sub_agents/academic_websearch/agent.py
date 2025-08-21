@@ -12,29 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""使用搜尋工具尋找研究論文的 Academic_websearch_agent。"""
+"""Academic_websearch_agent for finding research papers using search tools."""
 
-# 匯入必要的模組
 from google.adk import Agent
 from google.adk.tools import google_search
 
 from . import prompt
 
-# 定義要使用的語言模型
 MODEL = "gemini-2.5-pro"
 
 
-# 定義學術網路搜尋代理
-# 這個代理的職責是使用 Google 搜尋工具來尋找引用開創性論文的近期學術論文
 academic_websearch_agent = Agent(
-    # 使用的語言模型
     model=MODEL,
-    # 代理的名稱
     name="academic_websearch_agent",
-    # 代理的詳細指令
     instruction=prompt.ACADEMIC_WEBSEARCH_PROMPT,
-    # 定義輸出的鍵
     output_key="recent_citing_papers",
-    # 定義此代理可以使用的工具，這裡使用了 Google 搜尋工具
     tools=[google_search],
 )

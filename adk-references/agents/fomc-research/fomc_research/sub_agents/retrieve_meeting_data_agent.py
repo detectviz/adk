@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FOMC 研究代理的擷取會議資料子代理"""
+"""Retrieve meeting data sub-agent for FOMC Research Agent"""
 
 from google.adk.agents import Agent
 from google.adk.tools.agent_tool import AgentTool
@@ -26,7 +26,7 @@ from .extract_page_data_agent import ExtractPageDataAgent
 RetrieveMeetingDataAgent = Agent(
     model=MODEL,
     name="retrieve_meeting_data_agent",
-    description=("從聯準會網站擷取有關聯準會會議的資料"),
+    description=("Retrieve data about a Fed meeting from the Fed website"),
     instruction=retrieve_meeting_data_agent_prompt.PROMPT,
     tools=[
         fetch_page_tool,

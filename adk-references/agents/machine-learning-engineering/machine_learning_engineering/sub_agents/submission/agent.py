@@ -1,4 +1,4 @@
-"""Submission agent for Machine Learning Engineering."""
+"""機器學習工程的提交代理。"""
 
 from typing import Optional
 
@@ -14,7 +14,7 @@ def check_submission_finish(
     callback_context: callback_context_module.CallbackContext,
     llm_request: llm_request_module.LlmRequest,
 ) -> Optional[llm_response_module.LlmResponse]:
-    """Checks if adding codes for submission is finished."""
+    """檢查新增提交程式碼是否完成。"""
     result_dict = callback_context.state.get(
         "submission_code_exec_result", {}
     )
@@ -32,7 +32,14 @@ def check_submission_finish(
 def get_submission_and_debug_agent_instruction(
     context: callback_context_module.ReadonlyContext,
 ) -> str:
-    """Gets the submission agent instruction."""
+    """
+    建構提交代理的指令，其中包含最終的最佳解決方案。
+
+    此函式會遍歷所有先前產生和優化的解決方案（包括優化和集成階段的結果），
+    根據它們的評估分數找出整體最佳的解決方案。
+    然後，它將這個最終的最佳解決方案傳遞給提示，以引導 LLM
+    為其新增產生 `submission.csv` 的程式碼。
+    """
     num_solutions = context.state.get("num_solutions", 2)
     outer_loop_round = context.state.get("outer_loop_round", 2)
     ensemble_loop_round = context.state.get("ensemble_loop_round", 2)
@@ -40,6 +47,7 @@ def get_submission_and_debug_agent_instruction(
     lower = context.state.get("lower", True)
     final_solution = ""
     best_score = None
+    # 遍歷所有優化後的解決方案，找出最佳解
     for task_id in range(1, num_solutions + 1):
         curr_code = context.state.get(
             f"train_code_{outer_loop_round}_{task_id}", ""
@@ -51,6 +59,7 @@ def get_submission_and_debug_agent_instruction(
         if (best_score is None) or (lower and curr_score < best_score) or (not lower and curr_score > best_score):
             final_solution = curr_code
             best_score = curr_score
+    # 遍歷所有集成後的解決方案，看是否有更好的解
     for ensemble_iter in range(ensemble_loop_round + 1):
         curr_code = context.state.get(
             f"ensemble_code_{ensemble_iter}", {}
@@ -62,6 +71,7 @@ def get_submission_and_debug_agent_instruction(
         if (best_score is None) or (lower and curr_score < best_score) or (not lower and curr_score > best_score):
             final_solution = curr_code
             best_score = curr_score
+    # 使用最佳解決方案格式化提示
     return prompt.ADD_TEST_FINAL_INSTR.format(
         task_description=task_description,
         code=final_solution,
@@ -71,7 +81,7 @@ def get_submission_and_debug_agent_instruction(
 submission_agent = debug_util.get_run_and_debug_agent(
     prefix="submission",
     suffix="",
-    agent_description="Add codes for creating a submission file.",
+    agent_description="新增用於建立提交檔案的程式碼。",
     instruction_func=get_submission_and_debug_agent_instruction,
     before_model_callback=check_submission_finish,
 )

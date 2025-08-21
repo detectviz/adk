@@ -1,0 +1,16 @@
+
+name: RAGRetrieveTool
+description: 從知識庫檢索相關片段（示範內存結構）
+args_schema:
+  type: object
+  required: [query]
+  properties:
+    query: { type: string }
+    top_k: { type: integer }
+returns_schema:
+  type: object
+  properties:
+    snippets: { type: array, items: { type: object } }
+timeout_seconds: 10
+idempotent: true
+retry: { max_retries: 1, backoff: exponential }

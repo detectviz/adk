@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""分析代理及其子代理的測試案例。"""
+"""Test cases for the analytics agent and its sub-agents."""
 
 import os
 import sys
@@ -31,15 +31,16 @@ from data_science.sub_agents.bqml.agent import root_agent as bqml_agent
 from data_science.sub_agents.bigquery.agent import database_agent
 
 session_service = InMemorySessionService()
-artifact_service = InMemoryArtifactService()
+artifact_service = InMemoryArtifactService() 
 
 
-class TestAgents(unittest.TestCase):
-    """分析代理及其子代理的測試案例。"""
+class TestAgents(unittest.IsolatedAsyncioTestCase): 
+    """Test cases for the analytics agent and its sub-agents."""
 
-    def setUp(self):
-        """為測試方法進行設定。"""
-        self.session = session_service.create_session(
+    async def asyncSetUp(self): 
+        """Set up for test methods."""
+        super().setUp() 
+        self.session = await session_service.create_session(
             app_name="DataAgent",
             user_id="test_user",
         )
@@ -54,7 +55,7 @@ class TestAgents(unittest.TestCase):
         )
 
     def _run_agent(self, agent, query):
-        """執行代理並取得最終回應的輔助方法。"""
+        """Helper method to run an agent and get the final response."""
         self.runner.agent = agent
         content = types.Content(role="user", parts=[types.Part(text=query)])
         events = list(
@@ -71,8 +72,8 @@ class TestAgents(unittest.TestCase):
 
 
     @pytest.mark.db_agent
-    def test_db_agent_can_handle_env_query(self):
-        """使用來自環境變數的查詢測試 db_agent。"""
+    async def test_db_agent_can_handle_env_query(self):
+        """Test the db_agent with a query from environment variable."""
         query = "what countries exist in the train table?"
         response = self._run_agent(database_agent, query)
         print(response)
@@ -80,27 +81,27 @@ class TestAgents(unittest.TestCase):
         self.assertIsNotNone(response)
 
     @pytest.mark.ds_agent
-    def test_ds_agent_can_be_called_from_root(self):
-        """從根代理測試 ds_agent。"""
+    async def test_ds_agent_can_be_called_from_root(self):
+        """Test the ds_agent from the root agent."""
         query = "plot the most selling category"
         response = self._run_agent(root_agent, query)
         print(response)
         self.assertIsNotNone(response)
 
     @pytest.mark.bqml
-    def test_bqml_agent_can_check_for_models(self):
-        """測試 bqml_agent 是否可以檢查現有模型。"""
+    async def test_bqml_agent_can_check_for_models(self):
+        """Test that the bqml_agent can check for existing models."""
         query = "Are there any existing models in the dataset?"
         response = self._run_agent(bqml_agent, query)
         print(response)
         self.assertIsNotNone(response)
 
     @pytest.mark.bqml
-    def test_bqml_agent_can_execute_code(self):
-        """測試 bqml_agent 是否可以執行 BQML 程式碼。"""
+    async def test_bqml_agent_can_execute_code(self):
+        """Test that the bqml_agent can execute BQML code."""
         query = """
     I want to train a BigQuery ML model on the sales_train_validation data for sales prediction.
-    Please show me an execution plan. 
+    Please show me an execution plan.
     """
         response = self._run_agent(bqml_agent, query)
         print(response)
@@ -109,7 +110,6 @@ class TestAgents(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
     # testagent = TestAgents
     # testagent.setUp(testagent)
     # testagent.test_root_agent_can_list_tools(testagent)

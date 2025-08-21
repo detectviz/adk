@@ -21,60 +21,64 @@ from vertexai.preview.extensions import Extension
 def list_all_extensions():
   extensions = Extension.list(location='us-central1')
   for extension in extensions:
-    print('名稱:', extension.gca_resource.name)
-    print('顯示名稱:', extension.gca_resource.display_name)
-    print('描述:', extension.gca_resource.description)
+    print('Name:', extension.gca_resource.name)
+    print('Display Name:', extension.gca_resource.display_name)
+    print('Description:', extension.gca_resource.description)
 
 
 def get_env_var(var_name):
-  """擷取環境變數的值。
+  """Retrieves the value of an environment variable.
 
   Args:
-    var_name: 環境變數的名稱。
+    var_name: The name of the environment variable.
 
   Returns:
-    環境變數的值，如果未設定則為 None。
+    The value of the environment variable, or None if it is not set.
 
   Raises:
-    ValueError: 如果未設定環境變數。
+    ValueError: If the environment variable is not set.
   """
   try:
     value = os.environ[var_name]
     return value
   except KeyError:
-    raise ValueError(f'缺少環境變數：{var_name}')
+    raise ValueError(f'Missing environment variable: {var_name}')
 
 
 def get_image_bytes(filepath):
-  """讀取圖片檔案並回傳其位元組。
+  """Reads an image file and returns its bytes.
 
   Args:
-    filepath: 圖片檔案的路徑。
+    filepath: The path to the image file.
 
   Returns:
-    圖片檔案的位元組，如果檔案不存在或無法讀取，則為 None。
+    The bytes of the image file, or None if the file does not exist or cannot be
+    read.
   """
   try:
-    with open(filepath, 'rb') as f:  # "rb" 模式用於二進位讀取
+    with open(filepath, 'rb') as f:  # "rb" mode for reading in binary
       image_bytes = f.read()
     return image_bytes
   except FileNotFoundError:
-    print(f'錯誤：在 {filepath} 找不到檔案')
+    print(f'Error: File not found at {filepath}')
     return None
   except Exception as e:
-    print(f'讀取檔案時發生錯誤：{e}')
+    print(f'Error reading file: {e}')
     return None
 
 
 def extract_json_from_model_output(model_output):
-  """從可能包含 markdown 程式碼區塊的字串中擷取 JSON 物件。
+  """Extracts JSON object from a string that potentially contains markdown
+
+  code fences.
 
   Args:
-    model_output: 一個可能包含包在 markdown 程式碼區塊 (```json ... ```) 中的 JSON 物件的字串。
+    model_output: A string potentially containing a JSON object wrapped in
+      markdown code fences (```json ... ```).
 
   Returns:
-    一個代表擷取的 JSON 物件的 Python 字典，
-    如果 JSON 擷取失敗，則為 None。
+    A Python dictionary representing the extracted JSON object,
+    or None if JSON extraction fails.
   """
   try:
     cleaned_output = (
@@ -83,7 +87,7 @@ def extract_json_from_model_output(model_output):
     json_object = json.loads(cleaned_output)
     return json_object
   except json.JSONDecodeError as e:
-    msg = f'解碼 JSON 時發生錯誤：{e}'
+    msg = f'Error decoding JSON: {e}'
     print(msg)
     return {'error': msg}
 

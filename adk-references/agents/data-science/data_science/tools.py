@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""資料代理多代理系統的頂層代理。
+"""Top level agent for data agent multi-agents.
 
--- 它使用 NL2SQL 從資料庫（例如 BigQuery）取得資料
--- 然後，它視需要使用 NL2Py 進行進一步的資料分析
+-- it get data from database (e.g., BQ) using NL2SQL
+-- then, it use NL2Py to do further data analysis as needed
 """
 
 from google.adk.tools import ToolContext
@@ -28,7 +28,7 @@ async def call_db_agent(
     question: str,
     tool_context: ToolContext,
 ):
-    """呼叫資料庫 (nl2sql) 代理的工具。"""
+    """Tool to call database (nl2sql) agent."""
     print(
         "\n call_db_agent.use_database:"
         f' {tool_context.state["all_db_settings"]["use_database"]}'
@@ -47,7 +47,7 @@ async def call_ds_agent(
     question: str,
     tool_context: ToolContext,
 ):
-    """呼叫資料科學 (nl2py) 代理的工具。"""
+    """Tool to call data science (nl2py) agent."""
 
     if question == "N/A":
         return tool_context.state["db_agent_output"]
@@ -55,9 +55,9 @@ async def call_ds_agent(
     input_data = tool_context.state["query_result"]
 
     question_with_data = f"""
-  要回答的問題：{question}
+  Question to answer: {question}
 
-  用以分析前述問題的實際資料已包含在以下內容中：
+  Actual data to analyze prevoius quesiton is already in the following:
   {input_data}
 
   """

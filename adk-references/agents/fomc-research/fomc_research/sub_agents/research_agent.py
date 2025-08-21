@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FOMC 研究代理的研究協調代理。"""
+"""Research coordinator agent for FOMC Research Agent."""
 
 from google.adk.agents import Agent
 
@@ -29,7 +29,7 @@ ResearchAgent = Agent(
     model=MODEL,
     name="research_agent",
     description=(
-        "研究最新的 FOMC 會議以提供分析資訊。"
+        "Research the latest FOMC meeting to provide information for analysis."
     ),
     instruction=research_agent_prompt.PROMPT,
     sub_agents=[

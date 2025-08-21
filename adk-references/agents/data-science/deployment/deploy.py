@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""資料科學代理的部署腳本。"""
+"""Deployment script for Data Science agent."""
 
 import logging
 import os
@@ -27,20 +27,20 @@ from vertexai import agent_engines
 from vertexai.preview.reasoning_engines import AdkApp
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
-flags.DEFINE_string("location", None, "GCP 位置。")
+flags.DEFINE_string("project_id", None, "GCP project ID.")
+flags.DEFINE_string("location", None, "GCP location.")
 flags.DEFINE_string(
-    "bucket", None, "GCP 儲存桶名稱（不含 gs:// 前綴）。"
-)  # 更改了旗標描述
-flags.DEFINE_string("resource_id", None, "ReasoningEngine 資源 ID。")
+    "bucket", None, "GCP bucket name (without gs:// prefix)."
+)  # Changed flag description
+flags.DEFINE_string("resource_id", None, "ReasoningEngine resource ID.")
 
-flags.DEFINE_bool("create", False, "建立新代理。")
-flags.DEFINE_bool("delete", False, "刪除現有代理。")
+flags.DEFINE_bool("create", False, "Create a new agent.")
+flags.DEFINE_bool("delete", False, "Delete an existing agent.")
 flags.mark_bool_flags_as_mutual_exclusive(["create", "delete"])
 
 AGENT_WHL_FILE = "data_science-0.1-py3-none-any.whl"
 
-# 設定日誌記錄
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -49,53 +49,53 @@ def setup_staging_bucket(
     project_id: str, location: str, bucket_name: str
 ) -> str:
     """
-    檢查暫存儲存桶是否存在，如果不存在則建立。
+    Checks if the staging bucket exists, creates it if not.
 
     Args:
-        project_id: GCP 專案 ID。
-        location: 儲存桶的 GCP 位置。
-        bucket_name: 儲存桶的預期名稱（不含 gs:// 前綴）。
+        project_id: The GCP project ID.
+        location: The GCP location for the bucket.
+        bucket_name: The desired name for the bucket (without gs:// prefix).
 
     Returns:
-        完整的儲存桶路徑 (gs://<bucket_name>)。
+        The full bucket path (gs://<bucket_name>).
 
     Raises:
-        google_exceptions.GoogleCloudError: 如果儲存桶建立失敗。
+        google_exceptions.GoogleCloudError: If bucket creation fails.
     """
     storage_client = storage.Client(project=project_id)
     try:
-        # 檢查儲存桶是否存在
+        # Check if the bucket exists
         bucket = storage_client.lookup_bucket(bucket_name)
         if bucket:
-            logger.info("暫存儲存桶 gs://%s 已存在。", bucket_name)
+            logger.info("Staging bucket gs://%s already exists.", bucket_name)
         else:
             logger.info(
-                "找不到暫存儲存桶 gs://%s。正在建立...", bucket_name
+                "Staging bucket gs://%s not found. Creating...", bucket_name
             )
-            # 如果儲存桶不存在則建立
+            # Create the bucket if it doesn't exist
             new_bucket = storage_client.create_bucket(
                 bucket_name, project=project_id, location=location
             )
             logger.info(
-                "已在 %s 成功建立暫存儲存桶 gs://%s。",
+                "Successfully created staging bucket gs://%s in %s.",
                 new_bucket.name,
                 location,
             )
-            # 為求簡單，啟用統一的儲存桶層級存取權
+            # Enable uniform bucket-level access for simplicity
             new_bucket.iam_configuration.uniform_bucket_level_access_enabled = (
                 True
             )
             new_bucket.patch()
             logger.info(
-                "已為 gs://%s 啟用統一的儲存桶層級存取權。",
+                "Enabled uniform bucket-level access for gs://%s.",
                 new_bucket.name,
             )
 
     except google_exceptions.Forbidden as e:
         logger.error(
             (
-                "儲存桶 gs://%s 的權限遭拒錯誤。"
-                "請確保服務帳號具有「儲存空間管理員」角色。錯誤：%s"
+                "Permission denied error for bucket gs://%s. "
+                "Ensure the service account has 'Storage Admin' role. Error: %s"
             ),
             bucket_name,
             e,
@@ -104,15 +104,16 @@ def setup_staging_bucket(
     except google_exceptions.Conflict as e:
         logger.warning(
             (
-                "儲存桶 gs://%s 可能已存在但由其他專案擁有或最近已刪除。錯誤：%s"
+                "Bucket gs://%s likely already exists but owned by another "
+                "project or recently deleted. Error: %s"
             ),
             bucket_name,
             e,
         )
-        # 假設如果它存在，即使有衝突警告也可以繼續
+        # Assuming we can proceed if it exists, even with a conflict warning
     except google_exceptions.ClientError as e:
         logger.error(
-            "建立或存取儲存桶 gs://%s 失敗。錯誤：%s",
+            "Failed to create or access bucket gs://%s. Error: %s",
             bucket_name,
             e,
         )
@@ -122,18 +123,18 @@ def setup_staging_bucket(
 
 
 def create(env_vars: dict[str, str]) -> None:
-    """建立並部署代理。"""
+    """Creates and deploys the agent."""
     adk_app = AdkApp(
         agent=root_agent,
         enable_tracing=False,
     )
 
     if not os.path.exists(AGENT_WHL_FILE):
-        logger.error("在以下位置找不到代理 wheel 檔案：%s", AGENT_WHL_FILE)
-        # 考慮在此處新增有關如何建置 wheel 檔案的說明
-        raise FileNotFoundError(f"找不到代理 wheel 檔案：{AGENT_WHL_FILE}")
+        logger.error("Agent wheel file not found at: %s", AGENT_WHL_FILE)
+        # Consider adding instructions here on how to build the wheel file
+        raise FileNotFoundError(f"Agent wheel file not found: {AGENT_WHL_FILE}")
 
-    logger.info("正在使用代理 wheel 檔案：%s", AGENT_WHL_FILE)
+    logger.info("Using agent wheel file: %s", AGENT_WHL_FILE)
 
     remote_agent = agent_engines.create(
         adk_app,
@@ -141,31 +142,31 @@ def create(env_vars: dict[str, str]) -> None:
         extra_packages=[AGENT_WHL_FILE],
         env_vars=env_vars
     )
-    logger.info("已建立遠端代理：%s", remote_agent.resource_name)
-    print(f"\n已成功建立代理：{remote_agent.resource_name}")
+    logger.info("Created remote agent: %s", remote_agent.resource_name)
+    print(f"\nSuccessfully created agent: {remote_agent.resource_name}")
 
 
 def delete(resource_id: str) -> None:
-    """刪除指定的代理。"""
-    logger.info("正在嘗試刪除代理：%s", resource_id)
+    """Deletes the specified agent."""
+    logger.info("Attempting to delete agent: %s", resource_id)
     try:
         remote_agent = agent_engines.get(resource_id)
         remote_agent.delete(force=True)
-        logger.info("已成功刪除遠端代理：%s", resource_id)
-        print(f"\n已成功刪除代理：{resource_id}")
+        logger.info("Successfully deleted remote agent: %s", resource_id)
+        print(f"\nSuccessfully deleted agent: {resource_id}")
     except google_exceptions.NotFound:
-        logger.error("找不到資源 ID 為 %s 的代理。", resource_id)
-        print(f"\n找不到代理 {resource_id}。")
-        print(f"\n找不到代理：{resource_id}")
+        logger.error("Agent with resource ID %s not found.", resource_id)
+        print(f"\nAgent{resource_id} not found.")
+        print(f"\nAgent not found: {resource_id}")
     except Exception as e:
         logger.error(
-            "刪除代理 %s 時發生錯誤：%s", resource_id, e
+            "An error occurred while deleting agent %s: %s", resource_id, e
         )
-        print(f"\n刪除代理 {resource_id} 時發生錯誤：{e}")
+        print(f"\nError deleting agent {resource_id}: {e}")
 
 
 def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
-    """主要執行函式。"""
+    """Main execution function."""
     load_dotenv()
     env_vars = {}
 
@@ -177,15 +178,15 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
     location = (
         FLAGS.location if FLAGS.location else os.getenv("GOOGLE_CLOUD_LOCATION")
     )
-    # 如果未提供，則預設儲存桶名稱慣例
+    # Default bucket name convention if not provided
     default_bucket_name = f"{project_id}-adk-staging" if project_id else None
     bucket_name = (
         FLAGS.bucket
         if FLAGS.bucket
         else os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET", default_bucket_name)
     )
-    # 部署到 Agent Engine 時，請勿設定 "GOOGLE_CLOUD_PROJECT" 或 "GOOGLE_CLOUD_LOCATION"。
-    # 這些是由後端設定的。
+    # Don't set "GOOGLE_CLOUD_PROJECT" or "GOOGLE_CLOUD_LOCATION"
+    # when deploying to Agent Engine. Those are set by the backend.
     env_vars["ROOT_AGENT_MODEL"] = os.getenv("ROOT_AGENT_MODEL")
     env_vars["ANALYTICS_AGENT_MODEL"] = os.getenv("ANALYTICS_AGENT_MODEL")
     env_vars["BASELINE_NL2SQL_MODEL"] = os.getenv("BASELINE_NL2SQL_MODEL")
@@ -200,52 +201,52 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
         "CODE_INTERPRETER_EXTENSION_NAME")
     env_vars["NL2SQL_METHOD"] = os.getenv("NL2SQL_METHOD")
 
-    logger.info("正在使用專案：%s", project_id)
-    logger.info("正在使用位置：%s", location)
-    logger.info("正在使用儲存桶名稱：%s", bucket_name)
+    logger.info("Using PROJECT: %s", project_id)
+    logger.info("Using LOCATION: %s", location)
+    logger.info("Using BUCKET NAME: %s", bucket_name)
 
-    # --- 輸入驗證 ---
+    # --- Input Validation ---
     if not project_id:
-        print("\n錯誤：缺少必要的 GCP 專案 ID。")
+        print("\nError: Missing required GCP Project ID.")
         print(
-            "請設定 GOOGLE_CLOUD_PROJECT 環境變數或使用 --project_id 旗標。"
+            "Set the GOOGLE_CLOUD_PROJECT environment variable or use --project_id flag."
         )
         return
     if not location:
-        print("\n錯誤：缺少必要的 GCP 位置。")
+        print("\nError: Missing required GCP Location.")
         print(
-            "請設定 GOOGLE_CLOUD_LOCATION 環境變數或使用 --location 旗標。"
+            "Set the GOOGLE_CLOUD_LOCATION environment variable or use --location flag."
         )
         return
     if not bucket_name:
-        print("\n錯誤：缺少必要的 GCS 儲存桶名稱。")
+        print("\nError: Missing required GCS Bucket Name.")
         print(
-            "請設定 GOOGLE_CLOUD_STORAGE_BUCKET 環境變數或使用 --bucket 旗標。"
+            "Set the GOOGLE_CLOUD_STORAGE_BUCKET environment variable or use --bucket flag."
         )
         return
     if not FLAGS.create and not FLAGS.delete:
-        print("\n錯誤：您必須指定 --create 或 --delete 旗標。")
+        print("\nError: You must specify either --create or --delete flag.")
         return
     if FLAGS.delete and not FLAGS.resource_id:
         print(
-            "\n錯誤：使用 --delete 旗標時需要 --resource_id。"
+            "\nError: --resource_id is required when using the --delete flag."
         )
         return
-    # --- 結束輸入驗證 ---
+    # --- End Input Validation ---
 
     try:
-        # 設定暫存儲存桶
+        # Setup staging bucket
         staging_bucket_uri=None
         if FLAGS.create:
             staging_bucket_uri = setup_staging_bucket(
                 project_id, location, bucket_name
             )
 
-        # 在儲存桶設定和驗證後初始化 Vertex AI
+        # Initialize Vertex AI *after* bucket setup and validation
         vertexai.init(
             project=project_id,
             location=location,
-            staging_bucket=staging_bucket_uri,  # 暫存儲存桶現在直接傳遞給 create/update 方法
+            staging_bucket=staging_bucket_uri,  # Staging bucket is passed directly to create/update methods now
         )
 
         if FLAGS.create:
@@ -255,20 +256,22 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
 
     except google_exceptions.Forbidden as e:
         print(
-            "權限錯誤：請確保服務帳號/使用者具有必要的權限（例如，儲存空間管理員、Vertex AI 使用者）。"
-            f"\n詳細資訊：{e}"
+            "Permission Error: Ensure the service account/user has necessary "
+            "permissions (e.g., Storage Admin, Vertex AI User)."
+            f"\nDetails: {e}"
         )
     except FileNotFoundError as e:
-        print(f"\n檔案錯誤：{e}")
+        print(f"\nFile Error: {e}")
         print(
-            "請確保代理 wheel 檔案存在於 'deployment' 目錄中，且您已執行建置腳本"
-            "（例如，poetry build --format=wheel --output=deployment'）。"
+            "Please ensure the agent wheel file exists in the 'deployment' "
+            "directory and you have run the build script "
+            "(e.g., poetry build --format=wheel --output=deployment')."
         )
     except Exception as e:
-        print(f"\n發生未預期的錯誤：{e}")
+        print(f"\nAn unexpected error occurred: {e}")
         logger.exception(
-            "main 中未處理的例外狀況："
-        )  # 記錄完整的追蹤
+            "Unhandled exception in main:"
+        )  # Log the full traceback
 
 
 if __name__ == "__main__":

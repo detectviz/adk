@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""從網頁中擷取特定資料。"""
+"""Extracts specific data from a web page."""
 
 from google.adk.agents import Agent
 
@@ -24,7 +24,7 @@ from . import extract_page_data_agent_prompt
 ExtractPageDataAgent = Agent(
     model=MODEL,
     name="extract_page_data_agent",
-    description="從網頁內容中擷取重要資料",
+    description="Extract important data from the web page content",
     instruction=extract_page_data_agent_prompt.PROMPT,
     tools=[store_state_tool],
     before_model_callback=rate_limit_callback,

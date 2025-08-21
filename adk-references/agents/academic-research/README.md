@@ -1,142 +1,157 @@
-# 學術研究
+# Academic Research
 
-## 總覽
 
-這是一個由人工智慧驅動的代理，旨在促進對開創性研究著作周圍學術領域的探索。研究人員在瀏覽受基礎研究影響而日益擴大的文獻時面臨著挑戰，本代理體認到此一挑戰，並提供了一種簡化的方法。本代理接受以檔案形式提供的開創性論文，首先會分析指定著作的核心貢獻。
+## Overview
 
-1.  接著，它會利用專門的代理工具，透過 Google 搜尋來識別和擷取引用該開創性論文的近期學術出版物，以描繪其當代影響力。
-2.  最後，本代理會綜合對原始論文的分析與近期引用文獻的發現，並再次利用專門的分析工具，提出未來可能的研究方向。
+AI-driven agent designed to facilitate the exploration of the academic landscape surrounding seminal research works. Recognizing the challenge researchers face in navigating the expanding body of literature influenced by foundational studies, this agent offers a streamlined approach. By accepting a seminal paper identified provided as file input, the agent first analyzes the core contributions of the specified work.
 
-此功能旨在為研究人員提供有關開創性研究持續影響的寶貴見解，並突顯有前景的新穎研究途徑，從而加速研究發現的過程。
+1. It then leverages specialized Agent tools to identify and retrieve via Google Search recent academic publications that cite this seminal paper, mapping its contemporary influence.
+2. Finally, synthesizing the analysis of the original paper with the findings from recent citing literature, and again utilizing specialized analytical tools, the agent proposes potential future research directions.
 
-## 代理詳情
+This capability aims to provide researchers with valuable insights into the ongoing impact of seminal research and to highlight promising avenues for novel investigation, thereby accelerating the research discovery process.
 
-學術研究代理的主要功能包括：
+## Agent Details
 
-| 功能 | 描述 |
+The key features of the Academic Research include:
+
+| Feature | Description |
 | --- | --- |
-| **互動類型** | 對話式 (Conversational) |
-| **複雜度** | 簡單 (Easy) |
-| **代理類型** | 多代理 (Multi Agent) |
-| **元件** | 工具：內建 Google 搜尋 |
-| **垂直領域** | 教育 (Education) |
+| **Interaction Type** | Conversational |
+| **Complexity**  | Easy |
+| **Agent Type**  | Multi Agent |
+| **Components**  | Tools: built-in Google Search |
+| **Vertical**  | Education |
 
-### 代理架構：
 
-此圖顯示了用於實作此工作流程的代理和工具的詳細架構。
+
+### Agent architecture:
+
+This diagram shows the detailed architecture of the agents and tools used
+to implement this workflow.
 <img src="academic-research.svg" alt="academic researcher" width="800"/>
 
-## 設定與安裝
+## Setup and Installation
 
-1.  **先決條件**
+1.  **Prerequisites**
 
     *   Python 3.11+
     *   Poetry
-        *   用於依賴管理和封裝。請按照官方 [Poetry 網站](https://python-poetry.org/docs/) 上的說明進行安裝。
+        *   For dependency management and packaging. Please follow the
+            instructions on the official
+            [Poetry website](https://python-poetry.org/docs/) for installation.
 
         ```bash
         pip install poetry
         ```
 
-    *   Google Cloud Platform 上的專案
-    *   Google Cloud CLI
-        *   有關安裝，請按照官方 [Google Cloud 網站](https://cloud.google.com/sdk/docs/install) 上的說明進行。
+    * A project on Google Cloud Platform
+    * Google Cloud CLI
+        *   For installation, please follow the instruction on the official
+            [Google Cloud website](https://cloud.google.com/sdk/docs/install).
 
-2.  **安裝**
+2.  **Installation**
 
     ```bash
-    # 複製此儲存庫。
+    # Clone this repository.
     git clone https://github.com/google/adk-samples.git
     cd adk-samples/python/agents/academic-research
-    # 安裝套件和依賴項。
+    # Install the package and dependencies.
+    # Note for Linux users: If you get an error related to `keyring` during the installation, you can disable it by running the following command:
+    # poetry config keyring.enabled false
+    # This is a one-time setup.
     poetry install
     ```
 
-3.  **設定**
+3.  **Configuration**
 
-    *   設定 Google Cloud 憑證。
+    *   Set up Google Cloud credentials.
 
-        *   您可以在 shell 中或在 `.env` 檔案中設定以下環境變數。
+        *   You may set the following environment variables in your shell, or in
+            a `.env` file instead.
 
         ```bash
         export GOOGLE_GENAI_USE_VERTEXAI=true
-        export GOOGLE_CLOUD_PROJECT=<您的專案 ID>
-        export GOOGLE_CLOUD_LOCATION=<您的專案位置>
-        export GOOGLE_CLOUD_STORAGE_BUCKET=<您的儲存空間值區>  # 僅在 Agent Engine 上部署時需要
+        export GOOGLE_CLOUD_PROJECT=<your-project-id>
+        export GOOGLE_CLOUD_LOCATION=<your-project-location>
+        export GOOGLE_CLOUD_STORAGE_BUCKET=<your-storage-bucket>  # Only required for deployment on Agent Engine
         ```
 
-    *   驗證您的 GCloud 帳戶。
+    *   Authenticate your GCloud account.
 
         ```bash
         gcloud auth application-default login
         gcloud auth application-default set-quota-project $GOOGLE_CLOUD_PROJECT
         ```
 
-## 執行代理
+## Running the Agent
 
-**使用 `adk`**
+**Using `adk`**
 
-ADK 提供了在本機啟動代理並與其互動的便利方式。
-您可以使用 CLI 與代理交談：
+ADK provides convenient ways to bring up agents locally and interact with them.
+You may talk to the agent using the CLI:
 
 ```bash
 adk run academic_research
 ```
 
-或在網頁介面上：
+Or on a web interface:
 
 ```bash
  adk web
 ```
 
-`adk web` 指令將在您的機器上啟動一個網頁伺服器並列印 URL。
-您可以打開該 URL，在左上角的下拉式功能表中選擇「academic_research」，右側將出現一個聊天機器人介面。對話最初是空白的。以下是您可以要求學術研究代理驗證的一些範例請求：
+The command `adk web` will start a web server on your machine and print the URL.
+You may open the URL, select "academic_research" in the top-left drop-down menu, and
+a chatbot interface will appear on the right. The conversation is initially
+blank. Here are some example requests you may ask the Academic Research to verify:
 
 ```
-你是誰
+who are you
 ```
 
-這些請求的範例回覆如下所示，請參閱 [範例互動](#範例互動) 部分。
+Sampled responses of these requrests are shown below in the [Example
+Interaction](#example-interaction) section.
 
 ```
-您好！我是一位 AI 研究助理。
+Hello! I am an AI Research Assistant.
 
-我的目的是幫助您探索與您感興趣的開創性論文相關的學術領域。我可以：
+My purpose is to help you explore the academic landscape related to a seminal paper you're interested in. I can:
 
-分析您提供的開創性論文（標題/作者、DOI 或 URL）。
-使用專門的工具尋找引用該開創性著作的近期學術論文。
-根據分析和近期發現，再次使用專門的工具，建議未來可能的研究方向。
-今天我能如何幫助您？您想提供一篇開創性論文進行分析嗎？
+Analyze a seminal paper you provide (Title/Authors, DOI, or URL).
+Find recent academic papers that cite the seminal work using specialized tools.
+Suggest potential future research directions based on the analysis and recent findings, again using specialized tools.
+How can I help you today? Would you like to provide a seminal paper for analysis?
 ```
 
-### 範例互動
+### Example Interaction
 
-以下是與學術研究代理的範例互動。請注意，代理的確切輸出每次可能會有所不同。請注意，使用者提供了包含要分析的開創性論文的 pdf 檔案。
+Below is an example interaction with the Academic Research. Note that the exact output
+of the agent may be different every time. Not that the user provides a pdf with the seminal paper to analyze
 
 ```
- * 使用者：你是誰
+ * user: who are you
 
-您好！我是一位 AI 研究助理。
+Hello! I am an AI Research Assistant.
 
-我的目的是幫助您探索與您感興趣的開創性論文相關的學術領域。我可以：
+My purpose is to help you explore the academic landscape related to a seminal paper you're interested in. I can:
 
-分析您提供的開創性論文（標題/作者、DOI 或 URL）。
-使用專門的工具尋找引用該開創性著作的近期學術論文。
-根據分析和近期發現，再次使用專門的工具，建議未來可能的研究方向。
-今天我能如何幫助您？您想提供一篇開創性論文進行分析嗎？
+Analyze a seminal paper you provide (Title/Authors, DOI, or URL).
+Find recent academic papers that cite the seminal work using specialized tools.
+Suggest potential future research directions based on the analysis and recent findings, again using specialized tools.
+How can I help you today? Would you like to provide a seminal paper for analysis?
 
- * 使用者：1706.03762v7.pdf
- * 使用者：已附上
+ * user: 1706.03762v7.pdf
+ * user: enclosed
 
-好的，我已收到論文「Attention Is All You Need」。感謝您的提供。
+Okay, I have received the paper "Attention Is All You Need". Thank you for providing it.
 
-首先，我將分析這篇開創性論文以建立背景。
+First, I will analyze the seminal paper to establish the context.
 
-開創性論文分析
+Seminal Paper Analysis
 
-開創性論文：Attention Is All You Need, Vaswani et al., 2017 (發表於 NIPS 2017)
+Seminal Paper: Attention Is All You Need, Vaswani et al., 2017 (Published at NIPS 2017)
 
-作者：
+Authors:
 
 Ashish Vaswani (Google Brain)
 Noam Shazeer (Google Brain)
@@ -146,30 +161,30 @@ Llion Jones (Google Research)
 Aidan N. Gomez (University of Toronto / Google Brain)
 Łukasz Kaiser (Google Brain)
 Illia Polosukhin (Google Research)
-摘要：主流的序列轉導模型基於複雜的遞歸或卷積神經網路，包括一個編碼器和一個解碼器。表現最好的模型還透過注意力機制連接編碼器和解碼器。我們提出了一種新的簡單網路架構，即 Transformer，它完全基於注意力機制，完全摒棄了遞歸和卷積。在兩項機器翻譯任務上的實驗表明，這些模型在品質上更優越，同時更易於平行化，並且需要顯著更少的訓練時間。我們的模型在 WMT 2014 英德翻譯任務上達到了 28.4 BLEU，比現有的最佳結果（包括集成模型）提高了 2 BLEU 以上。在 WMT 2014 英法翻譯任務上，我們的模型在八個 GPU 上訓練 3.5 天後，創下了 41.8 的新的單一模型最先進 BLEU 分數，這只是文獻中最佳模型訓練成本的一小部分。我們證明了 Transformer 可以很好地推廣到其他任務，並成功地將其應用於具有大量和有限訓練資料的英語成分句法分析。
+Abstract: The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature. We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing both with large and limited training data.
 
-總結：本文介紹了 Transformer，一種專為序列轉導任務（特別是機器翻譯）設計的新型神經網路架構。它標誌著與先前最先進模型的重大背離，這些模型嚴重依賴其編碼器-解碼器結構中的遞歸神經網路 (RNN) 或卷積神經網路 (CNN)。Transformer 的核心創新在於其完全依賴注意力機制，特別是自註意力（或內部注意力），從而消除了 RNN 中固有的順序處理需求。這使得訓練期間的平行化程度大大提高。該架構具有一個編碼器和一個解碼器，每個都由包含多頭自註意力機制和逐點前饋網路的層堆疊而成。該論文證明，Transformer 在英德和英法翻譯基準測試中取得了優異的結果，同時所需的訓練時間比以前的模型要少得多。它還顯示了該模型對其他任務（如英語成分句法分析）的適用性。
+Summary: This paper introduces the Transformer, a novel neural network architecture designed for sequence transduction tasks, particularly machine translation. It marks a significant departure from previous state-of-the-art models which relied heavily on recurrent neural networks (RNNs) or convolutional neural networks (CNNs) within their encoder-decoder structures. The Transformer's core innovation is its complete reliance on attention mechanisms, specifically self-attention (or intra-attention), eliminating the need for sequential processing inherent in RNNs. This allows for significantly greater parallelization during training. The architecture features an encoder and decoder, each composed of stacks of layers containing multi-head self-attention mechanisms and position-wise feed-forward networks. The paper demonstrates that the Transformer achieves superior results on English-to-German and English-to-French translation benchmarks while requiring substantially less training time than previous models. It also shows the model's applicability to other tasks like English constituency parsing.
 
-關鍵主題/關鍵字：
+Key Topics/Keywords:
 
-Transformer 模型
-注意力機制
-自註意力 / 內部注意力
-多頭注意力
-序列轉導
-機器翻譯
-編碼器-解碼器架構
-平行化
-位置編碼
-自然語言處理 (NLP)
-關鍵創新：
+Transformer model
+Attention Mechanism
+Self-Attention / Intra-Attention
+Multi-Head Attention
+Sequence Transduction
+Machine Translation
+Encoder-Decoder Architecture
+Parallelization
+Positional Encoding
+Natural Language Processing (NLP)
+Key Innovations:
 
-提出了完全基於注意力機制的 Transformer 架構，移除了序列到序列任務的遞歸和卷積。
-引入了多頭注意力，使模型能夠在不同位置共同關注來自不同表示子空間的資訊。
-利用縮放點積注意力作為一種高效的注意力機制。
-結合了位置編碼，以在不依賴遞歸的情況下提供序列順序資訊。
-在機器翻譯方面取得了最先進的性能，並顯著提高了訓練效率和可平行性。
-開創性論文中引用的參考文獻：
+Proposed the Transformer architecture based entirely on attention mechanisms, removing recurrence and convolutions for sequence-to-sequence tasks.
+Introduced Multi-Head Attention to allow the model to jointly attend to information from different representation subspaces at different positions.
+Utilized Scaled Dot-Product Attention as an efficient attention mechanism.
+Incorporated positional encodings to provide sequence order information without relying on recurrence.
+Achieved state-of-the-art performance on machine translation with significantly improved training efficiency and parallelizability.
+References Cited Within Seminal Paper:
 
 Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton. Layer normalization. arXiv preprint arXiv:1607.06450, 2016.
 Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua Bengio. Neural machine translation by jointly learning to align and translate. CoRR, abs/1409.0473, 2014.
@@ -211,194 +226,199 @@ Vinyals & Kaiser, Koo, Petrov, Sutskever, and Hinton. Grammar as a foreign langu
 Yonghui Wu, Mike Schuster, Zhifeng Chen, Quoc V Le, Mohammad Norouzi, Wolfgang Macherey, Maxim Krikun, Yuan Cao, Qin Gao, Klaus Macherey, et al. Google's neural machine translation system: Bridging the gap between human and machine translation. arXiv preprint arXiv:1609.08144, 2016.
 Jie Zhou, Ying Cao, Xuguang Wang, Peng Li, and Wei Xu. Deep recurrent models with fast-forward connections for neural machine translation. CoRR, abs/1606.04199, 2016.
 Muhua Zhu, Yue Zhang, Wenliang Chen, Min Zhang, and Jingbo Zhu. Fast and accurate shift-reduce constituent parsing. In Proceedings of the 51st Annual Meeting of the ACL (Volume 1: Long Papers), pages 434–443. ACL, August 2013.
-現在我已經分析了這篇開創性論文，我將搜尋引用這項工作的近期論文。我將尋找自 2023 年 1 月以來發表的論文（大約涵蓋過去一年多一點的時間）。
+Now that I have analyzed the seminal paper, I will search for recent papers citing this work. I will look for papers published since January 2023 (covering roughly the last year and a bit).
 
-* 使用者：好的
+* user: ok
 
-好的，這是根據該工具的搜尋，自 2023 年 1 月以來發表的引用「Attention Is All You Need」(Vaswani et al., 2017) 的近期論文：
+Okay, here are the recent papers found citing "Attention Is All You Need" (Vaswani et al., 2017), published since January 2023, based on the tool's search:
 
-引用「Attention Is All You Need」的近期論文
+Recent Papers Citing "Attention Is All You Need"
 
-（註：此列表包括預印本和一些由搜尋工具識別的未經同儕審查的文章/部落格文章。）
+(Note: The list includes preprints and some non-peer-reviewed articles/blog posts identified by the search tool.)
 
-2025 年出版物/預印本
+2025 Publications/Preprints
 
-標題：Tensor Product Attention Is All You Need
-作者：Yifan Zhang, Mengxuan Fu, Ximing Xiang, Zhiyuan Zhang, Yuexiang Xie, Dongsheng Li, Dawei Yin
-出版年份：2025 年（v3 於 2025 年 4 月 9 日提交）
-來源：arXiv
-連結：https://arxiv.org/abs/2501.06425
-標題：TransMLA: Multi-head Latent Attention Is All You Need
-作者：Mengxuan Fu, Yifan Zhang, Zhiyuan Zhang, Xiaogang Chen, Dongsheng Li, Dawei Yin
-出版年份：2025 年（v1 於 2025 年 2 月 11 日提交）
-來源：arXiv
-連結：https://arxiv.org/abs/2502.06816（推斷連結）
-標題：Attention is All You Need Until You Need Retention
-作者：M. Murat Yaslioglu
-出版年份：2025 年（v1 於 2025 年 1 月 15 日提交）
-來源：arXiv
-連結：https://arxiv.org/abs/2501.09166
-標題：Transferable-guided Attention Is All You Need for Video Domain Adaptation
-作者：André Sacilotti, Samuel Felipe dos Santos, Nicu Sebe, Jurandy Almeida
-出版年份：2025 年（已接受 WACV'25）
-來源：IEEE/CVF WACV'25 / arXiv
-連結：https://arxiv.org/abs/2407.01375
-標題：Moral Attention Is All You Need
-作者：Mark Graves
-出版年份：2025 年（於 2025 年 3 月 17 日線上發表）
-來源：Theology and Science
-連結：https://doi.org/10.1080/14746700.2025.2472118
-標題：「Attention」、「Transformers」，在神經網路「大型語言模型」中（參考近期工作的文章）
-作者：Cosma Shalizi（參考 Farrell et al., 2025）
-出版年份：2025 年（文章於 2025 年 3 月/4 月更新）
-來源：作者網站/部落格
-連結：https://www.stat.cmu.edu/~cshalizi/notebooks/attention-is-all-you-need.html
-2024 年出版物/預印本/文章
+Title: Tensor Product Attention Is All You Need
+Author(s): Yifan Zhang, Mengxuan Fu, Ximing Xiang, Zhiyuan Zhang, Yuexiang Xie, Dongsheng Li, Dawei Yin
+Publication Year: 2025 (v3 submitted April 9, 2025)
+Source: arXiv
+Link: https://arxiv.org/abs/2501.06425
+Title: TransMLA: Multi-head Latent Attention Is All You Need
+Author(s): Mengxuan Fu, Yifan Zhang, Zhiyuan Zhang, Xiaogang Chen, Dongsheng Li, Dawei Yin
+Publication Year: 2025 (v1 submitted Feb 11, 2025)
+Source: arXiv
+Link: https://arxiv.org/abs/2502.06816 (Link inferred)
+Title: Attention is All You Need Until You Need Retention
+Author(s): M. Murat Yaslioglu
+Publication Year: 2025 (v1 submitted Jan 15, 2025)
+Source: arXiv
+Link: https://arxiv.org/abs/2501.09166
+Title: Transferable-guided Attention Is All You Need for Video Domain Adaptation
+Author(s): André Sacilotti, Samuel Felipe dos Santos, Nicu Sebe, Jurandy Almeida
+Publication Year: 2025 (Accepted to WACV'25)
+Source: IEEE/CVF WACV'25 / arXiv
+Link: https://arxiv.org/abs/2407.01375
+Title: Moral Attention Is All You Need
+Author(s): Mark Graves
+Publication Year: 2025 (Published online Mar 17, 2025)
+Source: Theology and Science
+Link: https://doi.org/10.1080/14746700.2025.2472118
+Title: "Attention", "Transformers", in Neural Network "Large Language Models" (Essay referencing recent work)
+Author(s): Cosma Shalizi (referencing Farrell et al., 2025)
+Publication Year: 2025 (Essay updated March/April 2025)
+Source: Author's Website/Blog
+Link: https://www.stat.cmu.edu/~cshalizi/notebooks/attention-is-all-you-need.html
+2024 Publications/Preprints/Articles
 
-標題：ATFF: Advanced Transformer with Multiscale Contextual Fusion for Medical Image Segmentation
-作者：Xinping Guo, Lei Wang, Zizhen Huang, Yukun Zhang, Yaolong Han
-出版年份：2024 年（於 2024 年 3 月 29 日發表）
-來源：Journal of Computer and Communications, Vol.12 No.3
-連結：https://www.scirp.org/reference/referencespapers?referenceid=3338278（引用頁面）
-標題：Multimodal Attention is all you need
-作者：Marco Saioni, Cristina Giannone
-出版年份：2024 年（CEUR Workshop Proceedings，論文日期為 2024 年 12 月 4 日）
-來源：CEUR Workshop Proceedings (Evalita 2023)
-連結：https://ceur-ws.org/Vol-3616/paper34.pdf（推斷連結）
-標題：Attention is all you need: utilizing attention in AI-enabled drug discovery
-作者：Yang Zhang, Caiqi Liu, Mujiexin Liu, Tianyuan Liu, Hao Lin, Cheng-Bing Huang, Lin Ning
-出版年份：2024 年（於 2024 年 1 月 6 日發表）
-來源：Briefings in Bioinformatics, Volume 25, Issue 1
-連結：https://doi.org/10.1093/bib/bbad467
-標題：HIERARCHICAL ENCODING AND CONDITIONAL ATTENTION IN NEURAL MACHINE TRANSLATION
-出版年份：2024 年（於 2024 年 9 月發表）
-來源：The American Journal of Engineering and Technology, 6(09)
-連結：https://doi.org/10.37547/tajet/Volume06Issue09-07
-標題：Measurements With A Quantum Vision Transformer: A Naive Approach
-出版年份：2024 年（論文集於 2024 年發表）
-來源：EPJ Web of Conferences, Volume 295 (ICHEP 2022)
-連結：https://www.epj-conferences.org/articles/epjconf/ref/2024/01/epjconf_ichep2022_12003/epjconf_ichep2022_12003.html
-標題：Attention is all you need: discovering the Transformer paper（文章/部落格文章）
-作者：Luis Serrano
-出版年份：2024 年
-來源：Towards Data Science
-連結：https://towardsdatascience.com/attention-is-all-you-need-discovering-the-transformer-paper-731ad0737c6d
-標題：Paper Walkthrough: Attention Is All You Need（文章/部落格文章）
-作者：Muhammad Ardi
-出版年份：2024 年（於 2024 年 11 月 3 日發表）
-來源：Towards Data Science
-連結：https://towardsdatascience.com/paper-walkthrough-attention-is-all-you-need-69388903b711
-標題：Attention is all you need – Transformers（文章/部落格文章）
-作者：Strahinja Zivkovic
-出版年份：2024 年（於 2024 年 11 月 28 日發表）
-來源：Master Data Science (Blog)
-連結：https://masterdatascience.com/attention-is-all-you-need-transformers/
-標題：The Groundbreaking Transformer Paper: “Attention is All You Need”（文章/部落格文章）
-作者：Brian Carter
-出版年份：2024 年（於 2024 年 10 月 5 日發表）
-來源：The Brian Carter Group (Blog)
-連結：https://briancartergroup.com/the-groundbreaking-transformer-paper-attention-is-all-you-need/
-現在，根據開創性論文「Attention Is All You Need」和這些近期的引用著作，我將使用專門的工具來建議未來可能的研究方向。
+Title: ATFF: Advanced Transformer with Multiscale Contextual Fusion for Medical Image Segmentation
+Author(s): Xinping Guo, Lei Wang, Zizhen Huang, Yukun Zhang, Yaolong Han
+Publication Year: 2024 (Published March 29, 2024)
+Source: Journal of Computer and Communications, Vol.12 No.3
+Link: https://www.scirp.org/reference/referencespapers?referenceid=3338278 (Citation page)
+Title: Multimodal Attention is all you need
+Author(s): Marco Saioni, Cristina Giannone
+Publication Year: 2024 (CEUR Workshop Proceedings, paper dated Dec 4, 2024)
+Source: CEUR Workshop Proceedings (Evalita 2023)
+Link: https://ceur-ws.org/Vol-3616/paper34.pdf (Link inferred)
+Title: Attention is all you need: utilizing attention in AI-enabled drug discovery
+Author(s): Yang Zhang, Caiqi Liu, Mujiexin Liu, Tianyuan Liu, Hao Lin, Cheng-Bing Huang, Lin Ning
+Publication Year: 2024 (Published Jan 6, 2024)
+Source: Briefings in Bioinformatics, Volume 25, Issue 1
+Link: https://doi.org/10.1093/bib/bbad467
+Title: HIERARCHICAL ENCODING AND CONDITIONAL ATTENTION IN NEURAL MACHINE TRANSLATION
+Publication Year: 2024 (Published September 2024)
+Source: The American Journal of Engineering and Technology, 6(09)
+Link: https://doi.org/10.37547/tajet/Volume06Issue09-07
+Title: Measurements With A Quantum Vision Transformer: A Naive Approach
+Publication Year: 2024 (Proceedings published 2024)
+Source: EPJ Web of Conferences, Volume 295 (ICHEP 2022)
+Link: https://www.epj-conferences.org/articles/epjconf/ref/2024/01/epjconf_ichep2022_12003/epjconf_ichep2022_12003.html
+Title: Attention is all you need: discovering the Transformer paper (Article/Blog Post)
+Author(s): Luis Serrano
+Publication Year: 2024
+Source: Towards Data Science
+Link: https://towardsdatascience.com/attention-is-all-you-need-discovering-the-transformer-paper-731ad0737c6d
+Title: Paper Walkthrough: Attention Is All You Need (Article/Blog Post)
+Author(s): Muhammad Ardi
+Publication Year: 2024 (Published Nov 3, 2024)
+Source: Towards Data Science
+Link: https://towardsdatascience.com/paper-walkthrough-attention-is-all-you-need-69388903b711
+Title: Attention is all you need – Transformers (Article/Blog Post)
+Author(s): Strahinja Zivkovic
+Publication Year: 2024 (Published Nov 28, 2024)
+Source: Master Data Science (Blog)
+Link: https://masterdatascience.com/attention-is-all-you-need-transformers/
+Title: The Groundbreaking Transformer Paper: “Attention is All You Need” (Article/Blog Post)
+Author(s): Brian Carter
+Publication Year: 2024 (Published Oct 5, 2024)
+Source: The Brian Carter Group (Blog)
+Link: https://briancartergroup.com/the-groundbreaking-transformer-paper-attention-is-all-you-need/
+Now, based on the seminal paper "Attention Is All You Need" and these recent citing works, I will use a specialized tool to suggest potential future research directions.
 
-* 使用者：好的
+* user: ok
 
-好的，這是該工具根據開創性論文「Attention Is All You Need」和近期引用著作所建議的未來可能研究方向：
+Okay, here are the potential future research directions suggested by the tool, based on the seminal "Attention Is All You Need" paper and the recent citing works:
 
-未來可能的研究方向
+Potential Future Research Directions
 
-超越點積注意力：探索非線性和可學習的相似性度量：不僅僅是縮放點積，研究不同、可能是非線性或完全學習到的方法來衡量注意力機制內的相似性。這可以捕捉更複雜的關係，並導致更穩健或高效的模型。
-內在圖感知的注意力機制：開發能夠自然理解和操作圖結構（如分子或社交網路）的注意力機制，而無需先將其強制轉換為序列。
-物理資訊和約束驅動的注意力：設計將已知的物理定律、規則或約束直接納入其結構的注意力機制。這可能會為科學發現和模擬帶來更準確、更高效的模型。
-混合神經符號注意力架構：創建可以與符號知識庫或推理引擎互動的注意力機制，結合深度學習和傳統人工智慧的優勢，以實現更好的推理和事實查核。
-注意力中的動態稀疏性和適應性計算：探索根據上下文動態調整哪些元素相互關注（稀疏注意力）或調整每個元素或層使用的計算量的注意力機制，使 Transformer 對於非常長的序列或有限的資源更有效率。
-生物學上可信的注意力和記憶整合：研究受生物大腦處理注意力和記憶方式啟發的注意力架構，可能導致具有不同功能的新型模型。
-用於可解釋性和可控制性的元注意力：開發可以觀察自身注意力模式（「元注意力」）的注意力機制。這可以增進我們對模型為何做出某些決策的理解，並可能允許對其焦點進行更多控制。
-用於根本非序列資料結構的注意力機制：專門為沒有自然順序的資料（例如項目集或點雲）設計注意力機制，而無需強加人工序列。
-用於串流資料的時間連續注意力：創建適用於連續、即時資料流的注意力機制，其中固定序列長度的概念不適用，這對於即時監控或控制至關重要。
-跨模態關聯注意力核心：開發新的注意力「核心」，可以直接計算來自不同模態（例如，圖像區域和文本概念）的元素之間的相似性，而無需先將它們投影到一個共同的空間中，從而實現更緊密的跨模態整合。
-此分析為探索 Transformer 架構和注意力機制的演變提供了一個起點。
+Beyond Dot-Product Attention: Exploring Non-Linear and Learnable Similarity Metrics: Instead of just scaled dot-product, research different, perhaps non-linear or fully learned, ways to measure similarity within the attention mechanism. This could capture more complex relationships and lead to more robust or efficient models.
+Intrinsically Graph-Aware Attention Mechanisms: Develop attention mechanisms that naturally understand and operate on graph structures (like molecules or social networks) without needing to force them into sequences first.
+Physics-Informed and Constraint-Driven Attention: Design attention mechanisms that incorporate known physical laws, rules, or constraints directly into their structure. This could lead to more accurate and efficient models for scientific discovery and simulation.
+Hybrid Neuro-Symbolic Attention Architectures: Create attention mechanisms that can interact with symbolic knowledge bases or reasoning engines, combining the strengths of deep learning and traditional AI for better reasoning and fact-checking.
+Dynamic Sparsity and Adaptive Computation in Attention: Explore attention mechanisms that dynamically adjust which elements attend to each other based on context (sparse attention) or adapt the amount of computation used per element or layer, making Transformers more efficient for very long sequences or limited resources.
+Biologically Plausible Attention and Memory Integration: Investigate attention architectures inspired by how biological brains handle attention and memory, potentially leading to novel models with different capabilities.
+Meta-Attention for Interpretability and Controllability: Develop attention mechanisms that can observe their own attention patterns ("meta-attention"). This could improve our understanding of why the model makes certain decisions and potentially allow for more control over its focus.
+Attention Mechanisms for Fundamentally Non-Sequential Data Structures: Design attention mechanisms specifically for data that doesn't have a natural order, such as sets of items or point clouds, without imposing artificial sequences.
+Temporally Continuous Attention for Streaming Data: Create attention mechanisms suited for continuous, real-time data streams where the idea of a fixed sequence length doesn't apply, crucial for real-time monitoring or control.
+Cross-Modal Associative Attention Kernels: Develop new attention "kernels" that can directly compute similarity between elements from different modalities (e.g., image regions and text concepts) without needing to project them into a common space first, enabling tighter multimodal integration.
+This analysis provides a starting point for exploring the evolution of Transformer architectures and attention mechanisms.
 
-您想深入研究這些特定的研究方向中的任何一個，還是探索另一篇開創性論文？
+Would you like to dive deeper into any of these specific research directions, or perhaps explore another seminal paper?
 
 ```
 
-## 執行測試
+## Running Tests
 
-若要執行測試和評估，請安裝額外的依賴項：
+For running tests and evaluation, install the extra dependencies:
 
 ```bash
 poetry install --with dev
 ```
 
-然後可以從 `academic-research` 目錄中使用 `pytest` 模組執行測試和評估：
+Then the tests and evaluation can be run from the `academic-research` directory using
+the `pytest` module:
 
 ```bash
 python3 -m pytest tests
 python3 -m pytest eval
 ```
 
-`tests` 會在範例請求上執行代理，並確保每個元件都能正常運作。`eval` 是如何評估代理的示範，它使用 ADK 中的 `AgentEvaluator`。它會向代理發送幾個請求，並期望代理的回應與預先定義的回應相當吻合。
+`tests` runs the agent on a sample request, and makes sure that every component
+is functional. `eval` is a demonstration of how to evaluate the agent, using the
+`AgentEvaluator` in ADK. It sends a couple requests to the agent and expects
+that the agent's responses match a pre-defined response reasonablly well.
 
 
-## 部署
+## Deployment
 
-可以使用以下指令將學術協同研究代理部署到 Vertex AI Agent Engine：
+The Academic Co-Research can be deployed to Vertex AI Agent Engine using the following
+commands:
 
 ```bash
 poetry install --with deployment
 python3 deployment/deploy.py --create
 ```
 
-部署完成後，它將列印如下所示的一行：
+When the deployment finishes, it will print a line like this:
 
 ```
-已建立遠端代理：projects/<PROJECT_NUMBER>/locations/<PROJECT_LOCATION>/reasoningEngines/<AGENT_ENGINE_ID>
+Created remote agent: projects/<PROJECT_NUMBER>/locations/<PROJECT_LOCATION>/reasoningEngines/<AGENT_ENGINE_ID>
 ```
 
-如果您忘記了 AGENT_ENGINE_ID，可以使用以下指令列出現有代理：
+If you forgot the AGENT_ENGINE_ID, you can list existing agents using:
 
 ```bash
 python3 deployment/deploy.py --list
 ```
 
-輸出將如下所示：
+The output will be like:
 
 ```
-所有遠端代理：
+All remote agents:
 
 123456789 ("academic_research")
-- 建立時間：2025-05-10 09:33:46.188760+00:00
-- 更新時間：2025-05-10 09:34:32.763434+00:00
+- Create time: 2025-05-10 09:33:46.188760+00:00
+- Update time: 2025-05-10 09:34:32.763434+00:00
 
 ```
 
-您可以使用 `test_deployment.py` 腳本與已部署的代理互動
+You may interact with the deployed agent using the `test_deployment.py` script
 ```bash
-$ export USER_ID=<任何字串>
+$ export USER_ID=<any string>
 $ python3 deployment/test_deployment.py --resource_id=${AGENT_ENGINE_ID} --user_id=${USER_ID}
-找到具有資源 ID 的代理：...
-為使用者 ID 建立的工作階段：...
-輸入 'quit' 以退出。
-輸入：您好。您能為我做什麼？
-回應：您好！我是一位 AI 研究助理。我可以幫助您分析一篇開創性的學術論文。
+Found agent with resource ID: ...
+Created session for user ID: ...
+Type 'quit' to exit.
+Input: Hello. What can you do for me?
+Response: Hello! I'm an AI Research Assistant. I can help you analyze a seminal academic paper.
 
-若要開始，請提供您希望分析的開創性論文的 PDF 檔案。
+To get started, please provide the seminal paper you wish to analyze as a PDF.
 ```
 
-若要刪除已部署的代理，您可以執行以下指令：
+To delete the deployed agent, you may run the following command:
 
 ```bash
 python3 deployment/deploy.py --delete --resource_id=${AGENT_ENGINE_ID}
 ```
 
-## 客製化
+## Customization
 
-可以客製化學術研究代理以更好地滿足您的要求。例如：
+The Academic Research can be customized to better suit your requirements. For example:
 
- 1. 整合專門的搜尋工具：透過納入額外的學術搜尋功能（例如 ArXiv 專用的搜尋工具）來增強代理的發現能力，以補充或取代預設的搜尋機制，從而可以從專門的資料庫和預印本存檔中進行更有針對性的擷取。
- 2. 實作輸出視覺化：透過新增模組來視覺化被引用論文的網路或以圖形方式表示建議的未來研究主題，以增強研究結果的呈現，從而提供對學術領域更直觀、更互聯的理解。
-3. 客製化代理說明：修改指導 `academic_websearch` 和 `academic_newresearch` 子代理的提示。這使您可以指導其分析重點（例如，透過指定引文分析的深度、強調未來研究的跨學科聯繫，或確保遵守特定的學術寫作慣例）或完善其輸出的結構和細節。
-4. 透過 DOI 或 URL 下載開創性論文：透過啟用直接下載開創性論文來增強代理的能力。此功能將允許代理：
-* 將 DOI 解析為 PDF：給定數位物件識別碼 (DOI)，代理可以利用 API 或網路抓取技術來定位和下載相應的論文 PDF。這簡化了存取主要來源的過程，尤其是在 DOI 已知的情況下。
-* 從 URL 下載：如果提供了論文 PDF 或學術儲存庫頁面的直接 URL，則可以將代理設定為導覽至該 URL 並啟動下載。這對於機構儲存庫、個人學術網站或可能沒有易於解析的 DOI 的預印本伺服器上可用的論文特別有用。
-* 與參考文獻管理員整合：下載的論文可以自動匯入指定的參考文獻管理員（例如 Zotero、Mendeley、EndNote）以及其元數據，從而為使用者的研究圖書館提供無縫的組織和引文管理。這種整合將顯著提高文獻綜述和研究彙編的效率。
+ 1. Integrate Specialized Search Tools: Augment the agent's discovery capabilities by incorporating additional academic search functionalities, such as an ArXiv-specific search tool, to complement or replace the default search mechanism, allowing for more targeted retrieval from specialized databases and preprint archives.
+ 2. Implement Output Visualization: Enhance the presentation of research findings by adding modules to visualize the network of cited papers or to graphically represent suggested future research topics, thereby offering a more intuitive and interconnected understanding of the academic landscape.
+3. Customize Agent Instructions: Modify the prompts guiding the academic_websearch and academic_newresearch sub-agents. This allows you to direct their analytical focus (e.g., by specifying the depth of citation analysis, emphasizing interdisciplinary connections for future research, or ensuring adherence to particular academic writing conventions) or to refine the structure and detail of their outputs.
+4. Download the seminal paper via DOI or URL:  Augment the agent's capabilities by enabling direct download of seminal papers. This feature would allow the agent to:
+* Resolve DOI to PDF: Given a Digital Object Identifier (DOI), the agent could leverage APIs or web scraping techniques to locate and download the corresponding PDF of the paper. This streamlines the process of accessing primary sources, especially when the DOI is already known.
+* Download from URL: If a direct URL to the paper's PDF or an academic repository page is provided, the agent could be configured to navigate to that URL and initiate the download. This would be particularly useful for papers available on institutional repositories, personal academic websites, or preprint servers that might not have a readily resolvable DOI.
+* Integration with Reference Managers: The downloaded papers could then be automatically imported into a specified reference manager (e.g., Zotero, Mendeley, EndNote), along with their metadata, facilitating seamless organization and citation management for the user's research library. This integration would significantly enhance the efficiency of literature review and research compilation.

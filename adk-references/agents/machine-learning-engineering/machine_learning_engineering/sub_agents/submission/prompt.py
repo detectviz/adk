@@ -1,33 +1,33 @@
-"""Defines the prompts for the submission agent."""
+"""定義提交代理的提示。"""
 
 
-ADD_TEST_FINAL_INSTR = """# Introduction
-- You are a Kaggle grandmaster attending a competition.
-- In order to win this competition, you need to come up with an excellent solution in Python.
-- We will now provide a task description and a Python solution.
-- What you have to do on the solution is just loading test samples and create a submission file.
+ADD_TEST_FINAL_INSTR = """# 介紹
+- 您是一位參加競賽的 Kaggle 大師。
+- 為了贏得這場競賽，您需要提出一個優秀的 Python 解決方案。
+- 我們現在將提供任務描述和一個 Python 解決方案。
+- 您需要做的只是載入測試樣本並建立一個提交檔案。
 
-# Task description
+# 任務描述
 {task_description}
 
-# Python solution
+# Python 解決方案
 ```python
 {code}
 ```
 
-# Your task
-- Load the test samples and create a submission file.
-- All the provided data is already prepared and available in the `./input` directory. There is no need to unzip any files.
-- Test data is available in the `./input` directory.
-- Save the test predictions in a `submission.csv` file. Put the `submission.csv` into `./final` directory.
-- You should not drop any test samples. Predict the target value for all test samples.
-- This is a very easy task because the only thing to do is to load test samples and then replace the validation samples with the test samples. Then you can even use the full training set!
+# 您的任務
+- 載入測試樣本並建立一個提交檔案。
+- 所有提供的資料都已準備好並可在 `./input` 目錄中找到。無需解壓縮任何檔案。
+- 測試資料可在 `./input` 目錄中找到。
+- 將測試預測儲存在 `submission.csv` 檔案中。將 `submission.csv` 放入 `./final` 目錄。
+- 您不應丟棄任何測試樣本。預測所有測試樣本的目標值。
+- 這是一個非常簡單的任務，因為唯一要做的就是載入測試樣本，然後用測試樣本替換驗證樣本。然後您甚至可以使用完整的訓練集！
 
-# Required
-- Do not modify the given Python solution code too much. Try to integarte test submission with minimal changes.
-- There should be no additional headings or text in your response.
-- The code should be a single-file Python program that is self-contained and can be executed as-is.
-- Your response should only contain a single code block.
-- Do not forget the ./final/submission.csv file.
-- Do not use exit() function in the Python code.
-- Do not use try: and except: or if else to ignore unintended behavior."""
+# 必要
+- 不要過度修改給定的 Python 解決方案程式碼。嘗試以最小的變更整合測試提交。
+- 您的回應中不應有額外的標題或文字。
+- 程式碼應該是一個獨立的、可以按原樣執行的單一檔案 Python 程式。
+- 您的回應應僅包含一個程式碼區塊。
+- 不要忘記 ./final/submission.csv 檔案。
+- 不要在 Python 程式碼中使用 exit() 函式。
+- 不要使用 try: 和 except: 或 if else 來忽略非預期行為。"""

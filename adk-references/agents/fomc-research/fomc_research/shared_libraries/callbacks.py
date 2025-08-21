@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FOMC 研究代理的回呼函式。"""
+"""Callback functions for FOMC Research Agent."""
 
 import logging
 import time
@@ -23,8 +23,8 @@ from google.adk.models import LlmRequest
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# 調整這些值以限制代理
-# 查詢 LLM API 的速率。
+# Adjust these values to limit the rate at which the agent
+# queries the LLM API.
 RATE_LIMIT_SECS = 60
 RPM_QUOTA = 1000
 
@@ -33,11 +33,12 @@ def rate_limit_callback(
     callback_context: CallbackContext, llm_request: LlmRequest
 ) -> None:
     # pylint: disable=unused-argument
-    """實作查詢速率限制的回呼函式。
+    """Callback function that implements a query rate limit.
 
     Args:
-      callback_context: 代表作用中回呼上下文 (Context) 的 CallbackContext 物件。
-      llm_request: 代表作用中 LLM 請求的 LlmRequest 物件。
+      callback_context: A CallbackContext object representing the active
+              callback context.
+      llm_request: A LlmRequest object representing the active LLM request.
     """
     now = time.time()
     if "timer_start" not in callback_context.state:
@@ -63,7 +64,7 @@ def rate_limit_callback(
     if request_count > RPM_QUOTA:
         delay = RATE_LIMIT_SECS - elapsed_secs + 1
         if delay > 0:
-            logger.debug("睡眠 %i 秒", delay)
+            logger.debug("Sleeping for %i seconds", delay)
             time.sleep(delay)
         callback_context.state["timer_start"] = now
         callback_context.state["request_count"] = 1

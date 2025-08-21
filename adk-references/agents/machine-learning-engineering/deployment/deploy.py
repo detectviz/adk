@@ -1,4 +1,4 @@
-"""Deployment script for Machine Learning Engineering Agent"""
+"""機器學習工程代理的部署腳本"""
 
 
 import os
@@ -11,19 +11,19 @@ from vertexai import agent_engines
 from vertexai.preview.reasoning_engines import AdkApp
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("project_id", None, "GCP project ID.")
-flags.DEFINE_string("location", None, "GCP location.")
-flags.DEFINE_string("bucket", None, "GCP bucket.")
-flags.DEFINE_string("resource_id", None, "ReasoningEngine resource ID.")
+flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
+flags.DEFINE_string("location", None, "GCP 地理位置。")
+flags.DEFINE_string("bucket", None, "GCP 儲存貯體。")
+flags.DEFINE_string("resource_id", None, "ReasoningEngine 資源 ID。")
 
-flags.DEFINE_bool("list", False, "List all agents.")
-flags.DEFINE_bool("create", False, "Creates a new agent.")
-flags.DEFINE_bool("delete", False, "Deletes an existing agent.")
+flags.DEFINE_bool("list", False, "列出所有代理。")
+flags.DEFINE_bool("create", False, "建立一個新代理。")
+flags.DEFINE_bool("delete", False, "刪除一個現有代理。")
 flags.mark_bool_flags_as_mutual_exclusive(["create", "delete"])
 
 
 def create() -> None:
-    """Creates an agent engine for MLE-STAR."""
+    """為 MLE-STAR 建立一個代理引擎。"""
     adk_app = AdkApp(agent=root_agent, enable_tracing=True)
 
     remote_agent = agent_engines.create(
@@ -46,30 +46,30 @@ def create() -> None:
             "./machine_learning_engineering",
         ],
     )
-    print(f"Created remote agent: {remote_agent.resource_name}")
+    print(f"已建立遠端代理：{remote_agent.resource_name}")
 
 
 def delete(resource_id: str) -> None:
     remote_agent = agent_engines.get(resource_id)
     remote_agent.delete(force=True)
-    print(f"Deleted remote agent: {resource_id}")
+    print(f"已刪除遠端代理：{resource_id}")
 
 
 def list_agents() -> None:
     remote_agents = agent_engines.list()
     template = """
 {agent.name} ("{agent.display_name}")
-- Create time: {agent.create_time}
-- Update time: {agent.update_time}
+- 建立時間：{agent.create_time}
+- 更新時間：{agent.update_time}
 """
     remote_agents_string = "\n".join(
         template.format(agent=agent) for agent in remote_agents
     )
-    print(f"All remote agents:\n{remote_agents_string}")
+    print(f"所有遠端代理：\n{remote_agents_string}")
 
 
 def main(argv: list[str]) -> None:
-    del argv  # unused
+    del argv  # 未使用
     load_dotenv()
 
     project_id = (
@@ -86,20 +86,18 @@ def main(argv: list[str]) -> None:
         else os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET")
     )
 
-    print(f"PROJECT: {project_id}")
-    print(f"LOCATION: {location}")
-    print(f"BUCKET: {bucket}")
+    print(f"專案：{project_id}")
+    print(f"位置：{location}")
+    print(f"儲存貯體：{bucket}")
 
     if not project_id:
-        print("Missing required environment variable: GOOGLE_CLOUD_PROJECT")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_PROJECT")
         return
     elif not location:
-        print("Missing required environment variable: GOOGLE_CLOUD_LOCATION")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_LOCATION")
         return
     elif not bucket:
-        print(
-            "Missing required environment variable: GOOGLE_CLOUD_STORAGE_BUCKET"
-        )
+        print("缺少必要的環境變數：GOOGLE_CLOUD_STORAGE_BUCKET")
         return
 
     vertexai.init(
@@ -114,11 +112,11 @@ def main(argv: list[str]) -> None:
         create()
     elif FLAGS.delete:
         if not FLAGS.resource_id:
-            print("resource_id is required for delete")
+            print("刪除操作需要 resource_id")
             return
         delete(FLAGS.resource_id)
     else:
-        print("Unknown command")
+        print("未知的指令")
 
 
 if __name__ == "__main__":

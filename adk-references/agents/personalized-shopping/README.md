@@ -72,6 +72,9 @@ IMPORTANT HIGHLIGHTS:
 
     ```bash
     cd adk-samples/python/agents/personalized-shopping
+    # Note for Linux users: If you get an error related to `keyring` during the installation, you can disable it by running the following command:
+    # poetry config keyring.enabled false
+    # This is a one-time setup.
     poetry install
     ```
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FOMC 研究範例代理的 'store_state' 工具"""
+"""'store_state' tool for FOMC Research sample agent"""
 
 import logging
 import typing
@@ -25,14 +25,14 @@ logger = logging.getLogger(__name__)
 def store_state_tool(
     state: dict[str, typing.Any], tool_context: ToolContext
 ) -> dict[str, str]:
-    """將新的狀態值儲存在 ToolContext 中。
+    """Stores new state values in the ToolContext.
 
     Args:
-      state: 新狀態值的字典。
-      tool_context: ToolContext 物件。
+      state: A dict of new state values.
+      tool_context: ToolContext object.
 
     Returns:
-      一個包含 "status" 和 (可選) "error_message" 鍵的字典。
+      A dict with "status" and (optional) "error_message" keys.
     """
     logger.info("store_state_tool(): %s", state)
     tool_context.state.update(state)

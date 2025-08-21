@@ -17,11 +17,11 @@ from dataclasses import dataclass
 
 import google.auth
 
-# 若要使用 AI Studio 憑證：
-# 1. 在 /app 目錄中建立一個 .env 檔案，內容如下：
+# To use AI Studio credentials:
+# 1. Create a .env file in the /app directory with:
 #    GOOGLE_GENAI_USE_VERTEXAI=FALSE
-#    GOOGLE_API_KEY=在此貼上您實際的API金鑰
-# 2. 這將會覆寫預設的 Vertex AI 設定
+#    GOOGLE_API_KEY=PASTE_YOUR_ACTUAL_API_KEY_HERE
+# 2. This will override the default Vertex AI configuration
 _, project_id = google.auth.default()
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", project_id)
 os.environ.setdefault("GOOGLE_CLOUD_LOCATION", "global")
@@ -30,16 +30,16 @@ os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "True")
 
 @dataclass
 class ResearchConfiguration:
-    """研究相關模型和參數的設定。
+    """Configuration for research-related models and parameters.
 
-    屬性：
-        critic_model (str): 用於評估任務的模型。
-        worker_model (str): 用於工作/生成任務的模型。
-        max_search_iterations (int): 允許的最大搜尋迭代次數。
+    Attributes:
+        critic_model (str): Model for evaluation tasks.
+        worker_model (str): Model for working/generation tasks.
+        max_search_iterations (int): Maximum search iterations allowed.
     """
 
-    critic_model: str = "gemini-1.5-pro-latest"
-    worker_model: str = "gemini-1.5-flash-latest"
+    critic_model: str = "gemini-2.5-pro"
+    worker_model: str = "gemini-2.5-flash"
     max_search_iterations: int = 5
 
 

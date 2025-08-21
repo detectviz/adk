@@ -51,6 +51,12 @@ This diagram outlines the agent's workflow, designed to provide informed and con
 
 2.  **Install Dependencies with Poetry:**
 
+    **Note for Linux users:** If you get an error related to `keyring` during the installation, you can disable it by running the following command:
+    ```bash
+    poetry config keyring.enabled false
+    ```
+    This is a one-time setup.
+
     ```bash
     poetry install
     ```
@@ -291,6 +297,26 @@ capabilities. For instance, you can seamlessly replace or augment the existing
 `VertexAiRagRetrieval` tool with a tool that utilizes Vertex AI Search or any
 other retrieval mechanism. This flexibility allows you to tailor the agent to
 your specific data sources and retrieval requirements.
+
+
+## Troubleshooting
+
+### Quota Exceeded Errors
+
+When running the `prepare_corpus_and_data.py` script, you may encounter an error related to API quotas, such as:
+
+```
+Error uploading file ...: 429 Quota exceeded for aiplatform.googleapis.com/online_prediction_requests_per_base_model with base model: textembedding-gecko.
+```
+
+This is especially common for new Google Cloud projects that have lower default quotas.
+
+**Solution:**
+
+You will need to request a quota increase for the model you are using.
+
+1.  Navigate to the **Quotas** page in the Google Cloud Console: [https://console.cloud.google.com/iam-admin/quotas](https://console.cloud.google.com/iam-admin/quotas)
+2.  Follow the instructions in the official documentation to request a quota increase: [https://cloud.google.com/vertex-ai/docs/quotas#request_a_quota_increase](https://cloud.google.com/vertex-ai/docs/quotas#request_a_quota_increase)
 
 
 ## Disclaimer

@@ -1,5 +1,5 @@
 sources:
-  postgresql: # GCP - CLOUD SQL
+  postgresql: # GCP -  CLOUD SQL
     kind: cloud-sql-postgres
     project: ${PROJECT_ID}
     region: us-central1
@@ -18,11 +18,11 @@ tools:
   search-tickets:
     kind: postgres-sql
     source: postgresql
-    description: 根據描述搜尋相似的工單。
+    description: Search for similar tickets based on their descriptions.
     parameters:
       - name: query
         type: string
-        description: 用於執行向量搜尋的查詢。
+        description: The query to perform vector search with.
     statement: |
       SELECT ticket_id, title, description, assignee, priority, status, (embedding <=> embedding('text-embedding-005', $1)::vector) as distance
       FROM tickets
@@ -31,98 +31,98 @@ tools:
   get-ticket-by-id:
     kind: postgres-sql
     source: postgresql
-    description: 使用其唯一的 ID 檢索工單的詳細資訊。
+    description: Retrieve a ticket's details using its unique ID.
     parameters:
       - name: ticket_id
         type: string
-        description: 工單的唯一 ID。
+        description: The unique ID of the ticket.
     statement: SELECT * FROM tickets WHERE ticket_id = $1;
   get-tickets-by-assignee:
     kind: postgres-sql
     source: postgresql
-    description: 根據指派對象 (電子郵件) 搜尋工單。
+    description: Search for tickets based on assignee (email).
     parameters:
       - name: assignee
         type: string
-        description: 指派對象的電子郵件。
+        description: The email of the assignee.
     statement: SELECT * FROM tickets WHERE assignee ILIKE '%' || $1 || '%';
   update-ticket-priority:
     kind: postgres-sql
     source: postgresql
-    description: 根據工單 ID 更新其優先級。
+    description: Update the priority of a ticket based on its ID.
     parameters:
       - name: priority
         type: string
-        description: 工單的優先級。可以是 'P0 - Critical'、'P1 - High'、'P2 - Medium' 或 'P3 - Low' 中的一個。
+        description: The priority of the ticket. Can be one of 'P0 - Critical', 'P1 - High', 'P2 - Medium', or 'P3 - Low'.
       - name: ticket_id
         type: string
-        description: 工單的 ID。
+        description: The ID of the ticket.
     statement: UPDATE tickets SET priority = $1 WHERE ticket_id = $2;
   update-ticket-status:
     kind: postgres-sql
     source: postgresql
-    description: 根據工單 ID 更新其狀態。
+    description: Update the status of a ticket based on its ID.
     parameters:
       - name: status
         type: string
-        description: 工單的新狀態 (例如 'Open'、'In Progress'、'Closed'、'Resolved')。
+        description: The new status of the ticket (e.g., 'Open', 'In Progress', 'Closed', 'Resolved').
       - name: ticket_id
         type: string
-        description: 工單的 ID。
+        description: The ID of the ticket.
     statement: UPDATE tickets SET status = $1 WHERE ticket_id = $2;
   get-tickets-by-status:
     kind: postgres-sql
     source: postgresql
-    description: 根據目前狀態搜尋工單。
+    description: Search for tickets based on their current status.
     parameters:
       - name: status
         type: string
-        description: 要檢索的工單狀態 (例如 'Open'、'In Progress'、'Closed'、'Resolved')。
+        description: The status of the tickets to retrieve (e.g., 'Open', 'In Progress', 'Closed', 'Resolved').
     statement: SELECT * FROM tickets WHERE status ILIKE '%' || $1 || '%';
   get-tickets-by-priority:
     kind: postgres-sql
     source: postgresql
-    description: 根據優先級搜尋工單。
+    description: Search for tickets based on their priority.
     parameters:
       - name: priority
         type: string
-        description: 要檢索的工單優先級 (例如 'P0 - Critical'、'P1 - High'、'P2 - Medium' 或 'P3 - Low')。
+        description: The priority of the tickets to retrieve (e.g., 'P0 - Critical', 'P1 - High', 'P2 - Medium', 'P3 - Low').
     statement: SELECT * FROM tickets WHERE priority ILIKE '%' || $1 || '%';
   create-new-ticket:
     kind: postgres-sql
     source: postgresql
-    description: 建立一個新的軟體工單。
+    description: Create a new software ticket.
     parameters:
       - name: title
         type: string
-        description: 新工單的標題。
+        description: The title of the new ticket.
       - name: description
         type: string
-        description: 錯誤或問題的詳細描述。
+        description: A detailed description of the bug or issue.
       - name: assignee
         type: string
-        description: (選填) 應指派工單的人員的電子郵件。
+        description: (Optional) The email of the person to whom the ticket should be assigned.
       - name: priority
         type: string
-        description: (選填) 工單的優先級。可以是 'P0 - Critical'、'P1 - High'、'P2 - Medium' 或 'P3 - Low'。預設為 'P3 - Low'。
+        description: (Optional) The priority of the ticket. Can be 'P0 - Critical', 'P1 - High', 'P2 - Medium', or 'P3 - Low'. Default is 'P3 - Low'.
       - name: status
         type: string
-        description: (選填) 工單的初始狀態。預設為 'Open'。
+        description: (Optional) The initial status of the ticket. Default is 'Open'.
     statement: INSERT INTO tickets (title, description, assignee, priority, status) VALUES ($1, $2, $3, COALESCE($4, 'P3 - Low'), COALESCE($5, 'Open')) RETURNING ticket_id;
   get-tickets-by-date-range:
     kind: postgres-sql
     source: postgresql
-    description: 檢索在特定日期範圍內建立或更新的工單。
+    description: Retrieve tickets created or updated within a specific date range.
     parameters:
       - name: start_date
         type: string
-        description: 範圍的開始日期 (包含) (例如 'YYYY-MM-DD')。
+        description: The start date (inclusive) for the range (e.g., 'YYYY-MM-DD').
       - name: end_date
         type: string
-        description: 範圍的結束日期 (包含) (例如 'YYYY-MM-DD')。
+        description: The end date (inclusive) for the range (e.g., 'YYYY-MM-DD').
       - name: date_field
         type: string
-        description: 用於篩選的日期欄位 ('creation_time' 或 'updated_time')。
+        description: The date field to filter by ('creation_time' or 'updated_time').
     statement: SELECT * FROM tickets WHERE CASE WHEN $3 = 'creation_time' THEN creation_time ELSE updated_time END BETWEEN $1::timestamp AND $2::timestamp;
 
 toolsets:

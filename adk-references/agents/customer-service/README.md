@@ -120,6 +120,12 @@ The agent has access to the following tools:
 
 - if you have not installed poetry before then run `pip install poetry` first. then you can create your virtual environment and install all dependencies using:
 
+  **Note for Linux users:** If you get an error related to `keyring` during the installation, you can disable it by running the following command:
+  ```bash
+  poetry config keyring.enabled false
+  ```
+  This is a one-time setup.
+
   ```bash
   poetry install
   ```

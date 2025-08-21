@@ -1,0 +1,18 @@
+
+name: KnowledgeIngestionTool
+description: 將知識條目載入向量庫（示範內存結構）
+args_schema:
+  type: object
+  required: [title, content]
+  properties:
+    title: { type: string }
+    content: { type: string }
+    tags: { type: array, items: { type: string } }
+returns_schema:
+  type: object
+  properties:
+    ok: { type: boolean }
+    count: { type: integer }
+timeout_seconds: 10
+idempotent: true
+retry: { max_retries: 1, backoff: exponential }

@@ -12,47 +12,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FOMC 研究代理的 retrieve_meeting_data_agent 的提示詞定義"""
+"""Prompt definition for retrieve_meeting_data_agent for FOMC Research Agent"""
 
 PROMPT = """
-您的工作是從聯準會網站擷取有關聯準會會議的資料。
+Your job is to retrieve data about a Fed meeting from the Fed website.
 
-請依序執行以下步驟（請務必在每個步驟告知使用者您正在做什麼，
-但不要提供技術細節）：
+Follow these steps in order (be sure to tell the user what you're doing at each
+step, but without giving technical details):
 
-1) 呼叫 fetch_page 工具以擷取此網頁：
+1) Call the fetch_page tool to retrieve this web page:
    url = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
 
-2) 使用此參數呼叫 extract_page_data_agent 工具：
+2) Call the extract_page_data_agent Tool with this argument:
 "<DATA_TO_EXTRACT>
-* requested_meeting_date: 最接近使用者要求的會議日期
-  ({user_requested_meeting_date}) 的聯準會會議日期，格式為 ISO
-  (YYYY-MM-DD)。如果您找到的日期是一個範圍，則僅儲存
-  範圍中的最後一天。
-* previous_meeting_date: 在最接近使用者要求的日期
-  之前的聯準會會議日期，格式為 ISO (YYYY-MM-DD)。如果您
-  找到的日期是一個範圍，則僅儲存範圍中的最後一天。
-* requested_meeting_url: 最接近的聯準會會議的「新聞發布會」頁面的 URL。
-* previous_meeting_url: 先前聯準會會議的「新聞發布會」頁面的 URL。
-* requested_meeting_statement_pdf_url: 最接近的聯準會會議聲明的 PDF URL。
-* previous_meeting_statement_pdf_url: 先前聯準會會議聲明的 PDF URL。
+* requested_meeting_date: the date of the Fed meeting closest to the meeting
+  date the user requested ({user_requested_meeting_date}), in ISO format
+  (YYYY-MM-DD). If the date you find is a range, store only the last day in the
+  range.
+* previous_meeting_date: the date of the Fed meeting before the meeting
+  nearest to the date the user requested, in ISO format (YYYY-MM-DD). If the
+  date you find is a range, store only the last day in the range.
+* requested_meeting_url: the URL for the "Press Conference" page about the
+  nearest Fed meeting.
+* previous_meeting_url: the URL for the "Press Conference" page about the
+  previous Fed meeting.
+* requested_meeting_statement_pdf_url: the URL for the PDF of the statement
+  from the nearest Fed meeting.
+* previous_meeting_statement_pdf_url: the URL for the PDF of the statement
+  from the previous fed meeting.
 </DATA_TO_EXTRACT>"
 
-3) 呼叫 fetch_page 工具以擷取會議網頁。如果
-您在上一步中找到的 requested_meeting_url 的值以
-"https://www.federalreserve.gov" 開頭，只需將 "requested_meeting_url" 的值
-傳遞給 fetch_page 工具。如果不是，請使用下面的範本：
-取出 "<requested_meeting_url>" 並將其替換為
-您在上一步中找到的 "requested_meeting_url" 的值。
+3) Call the fetch_page tool to retrieve the meeting web page. If the value
+of requested_meeting_url you find in the last step starts with
+"https://www.federalreserve.gov", just pass the value of "requested_meeting_url"
+to the fetch_page tool. If not, use the template below: take out
+"<requested_meeting_url>" and replace it with the value of
+"requested_meeting_url" you found in the last step.
 
-  url 範本 = "https://www.federalreserve.gov/<requested_meeting_url>"
+  url template = "https://www.federalreserve.gov/<requested_meeting_url>"
 
-4) 再次呼叫 extract_page_data_agent 工具。這次傳遞此參數：
+4) Call the extract_page_data_agent Tool again. This time pass it this argument:
 "<DATA_TO_EXTRACT>
-* transcript_url: 新聞發布會記錄的 PDF URL，
-   在網頁上標示為「Press Conference Transcript」
+* transcript_url: the URL for the PDF of the transcript of the press
+   conference, labeled 'Press Conference Transcript' on the web page
 </DATA_TO_EXTRACT>"
 
-5) 轉交給 research_agent。
+5) Transfer to research_agent.
 
 """
