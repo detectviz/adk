@@ -6,8 +6,28 @@ export LC_ALL=C
 
 threshold="${1:-80}"
 
-# 過濾 tmpfs/devtmpfs/devfs/map/overlay 等虛擬檔系統
-disk_info="$(df -P | awk 'NR>1 && $1 !~ /^(tmpfs|devtmpfs|devfs|map|overlay)$/ {print $6" "$5}' | sed 's/%//')"
+get_disk_info_linux() {
+    df -P | awk 'NR>1 && $1 !~ /^(tmpfs|devtmpfs|overlay)$/ {print $6" "$5}' | sed 's/%//'
+}
+
+get_disk_info_macos() {
+    # macOS `df -P` has usage at col 5 and mount at col 9
+    df -P | awk 'NR>1 && $1 !~ /^(devfs|map)/ {print $9" "$5}' | sed 's/%//'
+}
+
+disk_info=""
+case "$(uname -s)" in
+    Linux*)
+        disk_info=$(get_disk_info_linux)
+        ;;
+    Darwin*)
+        disk_info=$(get_disk_info_macos)
+        ;;
+    *)
+        printf '{"status":"error","message":"Unsupported OS: %s"}' "$(uname -s)"
+        exit 1
+        ;;
+esac
 
 status="ok"
 items=()
@@ -19,7 +39,6 @@ while read -r mount usage; do
   if [ "$usage" -ge "$threshold" ]; then
     item_status="warning"
     status="warning"
-  end_if_marker=1
   fi
   items+=( "{"mount":"$mount","usage_percent":$usage,"status":"$item_status"}" )
 done <<< "${disk_info}"

@@ -248,3 +248,17 @@ graph TB
 
 > 等待階段一驗證完成後，再進行規劃階段二。
 
+---
+
+## 測試指令 (Testing Command)
+
+要運行完整的測試套件，請在專案根目錄執行以下指令：
+
+To run the full test suite, execute the following command in the project root:
+
+```bash
+make test
+```
+
+此命令會自動執行所有後端（Go）、Agent（Python）的單元測試，以及端到端的整合測試，確保所有修改都符合預期。
+This command will automatically run all unit tests for the backend (Go), the agent (Python), and the end-to-end integration tests to ensure all modifications work as expected.
