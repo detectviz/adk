@@ -1,30 +1,17 @@
 
-.PHONY: dev test api cli docker build run k8s openapi apikey
+.PHONY: dev opt adk test api
 
 dev:
-	python -m pip install -q fastapi uvicorn pydantic pyyaml pytest jsonschema prometheus-client httpx
+	python -m pip install -q fastapi uvicorn pydantic pyyaml pytest jsonschema prometheus-client httpx sentence-transformers
+
+opt:
+	python -m pip install -q 'psycopg[binary]' kubernetes opentelemetry-sdk opentelemetry-exporter-otlp
+
+adk:
+	python -m pip install -q google-adk google-genai
 
 test:
-	python -m pytest -q
+	python -m pytest -q -k "not integration"
 
 api:
 	uvicorn sre_assistant.server.app:app --host 0.0.0.0 --port 8000
-
-cli:
-	python -m sre_assistant.cli chat "diagnose orders latency"
-
-apikey:
-	python -m sre_assistant.cli apikey add --role admin
-
-openapi:
-	python scripts/export_openapi.py
-
-docker:
-	docker build -t sre-assistant:latest .
-
-run:
-	docker run --rm -p 8000:8000 -e X_API_KEY=devkey -v $$PWD/data:/mnt/data sre-assistant:latest
-
-k8s:
-	kubectl apply -f k8s/secret.yaml
-	kubectl apply -f k8s/deployment.yaml

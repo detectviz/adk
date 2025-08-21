@@ -1,22 +1,24 @@
 
 # -*- coding: utf-8 -*-
-# Kubernetes 操作工具：以 K8s API 或模擬模式執行 rollout restart。
+# Kubernetes 操作工具（真實客戶端優先）：
+# - 若安裝 `kubernetes` 套件且 K8S_MOCK!=1，則使用 AppsV1Api.patch_namespaced_deployment
+# - 否則使用模擬輸出
 from __future__ import annotations
 import os, time
 from typing import Any, Dict
-from .common_http import HttpClient
 from ..adk_compat.executor import ExecutionError
 
+try:
+    from kubernetes import client, config
+except Exception:
+    client = None
+    config = None
+
+def _ensure_k8s():
+    if client is None or config is None:
+        raise ExecutionError("E_BACKEND", "環境未安裝 kubernetes 客戶端")
+
 def k8s_rollout_restart_tool(namespace: str, deployment_name: str, reason: str | None = None) -> Dict[str, Any]:
-    """
-    觸發 Deployment 的 rollout restart。
-    環境變數：
-      - K8S_API_URL
-      - K8S_BEARER_TOKEN（可選）
-      - K8S_MOCK=1 時使用模擬輸出
-    輸出：{ success: bool, message: str }
-    例外：受保護命名空間或 API 失敗時回傳對應錯誤碼。
-    """
     if not namespace or not deployment_name:
         raise ExecutionError("E_SCHEMA", "namespace 與 deployment_name 必填")
 
@@ -24,16 +26,21 @@ def k8s_rollout_restart_tool(namespace: str, deployment_name: str, reason: str |
     if namespace in protected:
         raise ExecutionError("E_POLICY", "受保護命名空間禁止直接重啟")
 
-    base = os.getenv("K8S_API_URL")
-    token = os.getenv("K8S_BEARER_TOKEN")
-    mock = os.getenv("K8S_MOCK", "1") == "1" or not base
-
+    mock = os.getenv("K8S_MOCK", "1") == "1"
     if mock:
         return {"success": True, "message": f"模擬已排程 rollout restart {namespace}/{deployment_name}"}
 
-    headers = {"Authorization": f"Bearer {token}"} if token else {}
-    client = HttpClient(base_url=base, headers=headers)
-    # 依據 Kubernetes 版本，重啟可透過 patch annotation 或 scale 操作；此處示意以 patch annotation：
+    _ensure_k8s()
+    # 優先嘗試 in-cluster，失敗落回 kubeconfig
+    try:
+        config.load_incluster_config()
+    except Exception:
+        try:
+            config.load_kube_config()
+        except Exception as e:
+            raise ExecutionError("E_BACKEND", f"載入 K8s 設定失敗：{e}")
+
+    api = client.AppsV1Api()
     patch = {
         "spec": {
             "template": {
@@ -41,10 +48,13 @@ def k8s_rollout_restart_tool(namespace: str, deployment_name: str, reason: str |
             }
         }
     }
-    # 注意：實務上為 PATCH /apis/apps/v1/namespaces/{ns}/deployments/{name}
-    # 並需設定 Content-Type: application/strategic-merge-patch+json，這裡簡化示意
-    data = client.post(f"/apis/apps/v1/namespaces/{namespace}/deployments/{deployment_name}", json_body=patch)
-    # 假設 API 回應含 status 或 code 欄位，這裡只確認非空
-    if not data:
-        raise ExecutionError("E_BACKEND", "K8s API 無回應")
-    return {"success": True, "message": f"已觸發 rollout restart {namespace}/{deployment_name}"}
+    try:
+        # strategic merge patch
+        api.patch_namespaced_deployment(name=deployment_name, namespace=namespace, body=patch)
+        return {"success": True, "message": f"已觸發 rollout restart {namespace}/{deployment_name}"}
+    except client.ApiException as e:
+        if e.status == 404:
+            raise ExecutionError("E_BACKEND", "Deployment 不存在")
+        raise ExecutionError("E_BACKEND", f"K8s API 失敗：{e.status} {e.reason}")
+    except Exception as e:
+        raise ExecutionError("E_BACKEND", f"未知錯誤：{e}")
