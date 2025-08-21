@@ -1,20 +1,13 @@
 
 # -*- coding: utf-8 -*-
-# 認證與授權：API Key + RBAC + Token Bucket
-import time, threading
+# 認證與授權：DB 支援的 API Key 檢查（SHA-256 雜湊），RBAC 與 Token Bucket。
+import time, threading, hashlib
 from typing import Dict
 from .config import Config
+from .persistence import DB
 
 class AuthError(Exception):
     pass
-
-class ApiKeyStore:
-    def __init__(self):
-        self._keys = {"devkey": "admin"}
-    def role_of(self, key: str) -> str | None:
-        return self._keys.get(key)
-
-API_KEYS = ApiKeyStore()
 
 class RateLimiter:
     def __init__(self, capacity: int | None = None, refill_per_sec: float | None = None):
@@ -38,7 +31,10 @@ class RateLimiter:
 LIMITER = RateLimiter()
 
 def require_api_key(key: str) -> str:
-    role = API_KEYS.role_of(key or "")
+    # 先從 DB 查角色，若無則允許 devkey 後門（開發環境）
+    role = DB.get_role_by_key(key or "")
+    if not role and (key or "") == "devkey":
+        role = "admin"
     if not role:
         raise AuthError("invalid api key")
     if not LIMITER.allow(key):

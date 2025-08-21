@@ -1,5 +1,5 @@
 
-.PHONY: dev test api cli docker build run k8s
+.PHONY: dev test api cli docker build run k8s openapi apikey
 
 dev:
 	python -m pip install -q fastapi uvicorn pydantic pyyaml pytest jsonschema prometheus-client httpx
@@ -13,6 +13,12 @@ api:
 cli:
 	python -m sre_assistant.cli chat "diagnose orders latency"
 
+apikey:
+	python -m sre_assistant.cli apikey add --role admin
+
+openapi:
+	python scripts/export_openapi.py
+
 docker:
 	docker build -t sre-assistant:latest .
 
@@ -20,4 +26,5 @@ run:
 	docker run --rm -p 8000:8000 -e X_API_KEY=devkey -v $$PWD/data:/mnt/data sre-assistant:latest
 
 k8s:
+	kubectl apply -f k8s/secret.yaml
 	kubectl apply -f k8s/deployment.yaml
