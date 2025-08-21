@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""BigQuery table creation script."""
+"""BigQuery 資料表建立腳本。"""
 
 import csv
 from collections.abc import Sequence
@@ -22,10 +22,10 @@ from google.cloud import bigquery
 from google.cloud.exceptions import Conflict, GoogleCloudError, NotFound
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("project_id", None, "GCP project ID.")
-flags.DEFINE_string("dataset_id", None, "BigQuery dataset ID.")
-flags.DEFINE_string("data_file", None, "Path to the data file.")
-flags.DEFINE_string("location", "us-central1", "Location for the dataset.")
+flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
+flags.DEFINE_string("dataset_id", None, "BigQuery 資料集 ID。")
+flags.DEFINE_string("data_file", None, "資料檔案的路徑。")
+flags.DEFINE_string("location", "us-central1", "資料集的位置。")
 flags.mark_flags_as_required(["project_id", "dataset_id"])
 
 
@@ -36,24 +36,23 @@ def create_bigquery_dataset(
     description: str = None,
     exists_ok: bool = True,
 ) -> bigquery.Dataset:
-    """Creates a new BigQuery dataset.
+    """建立一個新的 BigQuery 資料集。
 
     Args:
-        client: A BigQuery client object.
-        dataset_id: The ID of the dataset to create.
-        location: The location for the dataset (e.g., "US", "EU").
-            Defaults to "US".
-        description: An optional description for the dataset.
-        exists_ok: If True, do not raise an exception if the dataset already
-            exists.
+        client: 一個 BigQuery 用戶端物件。
+        dataset_id: 要建立的資料集的 ID。
+        location: 資料集的位置 (例如 "US", "EU")。
+            預設為 "US"。
+        description: 資料集的選擇性描述。
+        exists_ok: 如果為 True，則如果資料集已存在，則不引發例外狀況。
 
     Returns:
-        The newly created bigquery.Dataset object.
+        新建立的 bigquery.Dataset 物件。
 
     Raises:
-        google.cloud.exceptions.Conflict: If the dataset already exists and
-            exists_ok is False.
-        Exception: for any other error.
+        google.cloud.exceptions.Conflict: 如果資料集已存在且
+            exists_ok 為 False。
+        Exception: 對於任何其他錯誤。
     """
 
     dataset_ref = bigquery.DatasetReference(client.project, dataset_id)
@@ -64,11 +63,11 @@ def create_bigquery_dataset(
 
     try:
         dataset = client.create_dataset(dataset)
-        print(f"Dataset {dataset.dataset_id} created in {dataset.location}.")
+        print(f"資料集 {dataset.dataset_id} 已在 {dataset.location} 建立。")
         return dataset
     except Conflict as e:
         if exists_ok:
-            print(f"Dataset {dataset.dataset_id} already exists.")
+            print(f"資料集 {dataset.dataset_id} 已存在。")
             return client.get_dataset(dataset_ref)
         else:
             raise e
@@ -82,31 +81,29 @@ def create_bigquery_table(
     description: str = None,
     exists_ok: bool = False,
 ) -> bigquery.Table:
-    """Creates a new BigQuery table.
+    """建立一個新的 BigQuery 資料表。
 
     Args:
-        client: A BigQuery client object.
-        dataset_id: The ID of the dataset containing the table.
-        table_id: The ID of the table to create.
-        schema: A list of bigquery.SchemaField objects defining the table
-            schema.
-        description: An optional description for the table.
-        exists_ok: If True, do not raise an exception if the table already
-            exists.
+        client: 一個 BigQuery 用戶端物件。
+        dataset_id: 包含資料表的資料集的 ID。
+        table_id: 要建立的資料表的 ID。
+        schema: 一個定義資料表結構的 bigquery.SchemaField 物件列表。
+        description: 資料表的選擇性描述。
+        exists_ok: 如果為 True，則如果資料表已存在，則不引發例外狀況。
 
     Returns:
-        The newly created bigquery.Table object.
+        新建立的 bigquery.Table 物件。
 
     Raises:
-        ValueError: If the schema is empty.
-        google.cloud.exceptions.Conflict: If the table already exists and
-            exists_ok is False.
-        google.cloud.exceptions.NotFound: If the dataset does not exist.
-        Exception: for any other error.
+        ValueError: 如果結構為空。
+        google.cloud.exceptions.Conflict: 如果資料表已存在且
+            exists_ok 為 False。
+        google.cloud.exceptions.NotFound: 如果資料集不存在。
+        Exception: 對於任何其他錯誤。
     """
 
     if not schema:
-        raise ValueError("Schema cannot be empty.")
+        raise ValueError("結構不得為空。")
 
     table_ref = bigquery.TableReference(
         bigquery.DatasetReference(client.project, dataset_id), table_id
@@ -119,24 +116,24 @@ def create_bigquery_table(
     try:
         table = client.create_table(table)
         print(
-            f"Table {table.project}.{table.dataset_id}.{table.table_id} "
-            "created."
+            f"資料表 {table.project}.{table.dataset_id}.{table.table_id} "
+            "已建立。"
         )
         return table
     except Exception as e:  # pylint: disable=broad-exception-caught
         if isinstance(e, NotFound):
             raise NotFound(
-                f"Dataset {dataset_id} not found in project {client.project}"
+                f"在專案 {client.project} 中找不到資料集 {dataset_id}"
             ) from e
         if "Already Exists" in str(e) and exists_ok:
             print(
-                f"Table {table.project}.{table.dataset_id}.{table.table_id} "
-                "already exists."
+                f"資料表 {table.project}.{table.dataset_id}.{table.table_id} "
+                "已存在。"
             )
             return client.get_table(table_ref)
         else:
             # pylint: disable=broad-exception-raised
-            raise Exception(f"Error creating table: {e}") from e
+            raise Exception(f"建立資料表時發生錯誤：{e}") from e
 
 
 def insert_csv_to_bigquery(
@@ -146,25 +143,23 @@ def insert_csv_to_bigquery(
     write_disposition: str = "WRITE_APPEND",
 ) -> None:
     """
-    Reads a CSV file and inserts its contents into a BigQuery table.
+    讀取 CSV 檔案並將其內容插入 BigQuery 資料表。
 
     Args:
-        client: A BigQuery client object.
-        table: A BigQuery table object.
-        csv_filepath: The path to the CSV file.
-        write_disposition: Specifies the action that occurs if the destination
-            table already exists.
-            Valid values are:
-                - "WRITE_APPEND": Appends the data to the table.
-                - "WRITE_TRUNCATE": Overwrites the table data.
-                - "WRITE_EMPTY": Only writes if the table is empty.
-            Defaults to "WRITE_APPEND".
+        client: 一個 BigQuery 用戶端物件。
+        table: 一個 BigQuery 資料表物件。
+        csv_filepath: CSV 檔案的路徑。
+        write_disposition: 指定如果目標資料表已存在時發生的動作。
+            有效值為：
+                - "WRITE_APPEND": 將資料附加到資料表。
+                - "WRITE_TRUNCATE": 覆寫資料表資料。
+                - "WRITE_EMPTY": 僅在資料表為空時寫入。
+            預設為 "WRITE_APPEND"。
 
     Raises:
-        FileNotFoundError: If the CSV file does not exist.
-        ValueError: If the write_disposition is invalid.
-        google.cloud.exceptions.GoogleCloudError: If any other error occurs
-            during the BigQuery operation.
+        FileNotFoundError: 如果 CSV 檔案不存在。
+        ValueError: 如果 write_disposition 無效。
+        google.cloud.exceptions.GoogleCloudError: 如果在 BigQuery 操作期間發生任何其他錯誤。
     """
 
     if write_disposition not in [
@@ -173,8 +168,8 @@ def insert_csv_to_bigquery(
         "WRITE_EMPTY",
     ]:
         raise ValueError(
-            f"Invalid write_disposition: {write_disposition}. "
-            "Must be one of 'WRITE_APPEND', 'WRITE_TRUNCATE', or 'WRITE_EMPTY'."
+            f"無效的 write_disposition：{write_disposition}。"
+            "必須是 'WRITE_APPEND'、'WRITE_TRUNCATE' 或 'WRITE_EMPTY' 之一。"
         )
 
     try:
@@ -183,10 +178,10 @@ def insert_csv_to_bigquery(
             rows_to_insert = list(csv_reader)
 
     except FileNotFoundError:
-        raise FileNotFoundError(f"CSV file not found: {csv_filepath}") from None
+        raise FileNotFoundError(f"找不到 CSV 檔案：{csv_filepath}") from None
 
     if not rows_to_insert:
-        print("CSV file is empty. Nothing to insert.")
+        print("CSV 檔案為空。無需插入。")
         return
 
     errors = client.insert_rows_json(
@@ -195,25 +190,25 @@ def insert_csv_to_bigquery(
 
     if errors:
         raise GoogleCloudError(
-            f"Errors occurred while inserting rows: {errors}"
+            f"插入資料列時發生錯誤：{errors}"
         )
     else:
         print(
-            f"Successfully inserted {len(rows_to_insert)} rows into "
-            f"{table.table_id}."
+            f"已成功將 {len(rows_to_insert)} 列插入 "
+            f"{table.table_id}。"
         )
 
 
 def main(argv: Sequence[str]) -> None:  # pylint: disable=unused-argument
 
-    # Define the table schema
+    # 定義資料表結構
     data_table_name = "timeseries_data"
     data_table_schema = [
         bigquery.SchemaField("timeseries_code", "STRING", mode="REQUIRED"),
         bigquery.SchemaField("date", "DATE", mode="REQUIRED"),
         bigquery.SchemaField("value", "FLOAT", mode="REQUIRED"),
     ]
-    data_table_description = "Timeseries data"
+    data_table_description = "時間序列資料"
 
     client = bigquery.Client(project=FLAGS.project_id)
 
@@ -221,7 +216,7 @@ def main(argv: Sequence[str]) -> None:  # pylint: disable=unused-argument
         client,
         FLAGS.dataset_id,
         FLAGS.location,
-        description="Timeseries dataset",
+        description="時間序列資料集",
     )
 
     data_table = create_bigquery_table(

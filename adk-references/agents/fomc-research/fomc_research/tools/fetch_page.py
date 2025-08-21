@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""'fetch_page' tool for FOMC Research sample agent"""
+"""FOMC 研究範例代理的 'fetch_page' 工具"""
 
 import logging
 import urllib.request
@@ -23,24 +23,24 @@ logger = logging.getLogger(__name__)
 
 
 def fetch_page_tool(url: str, tool_context: ToolContext) -> dict[str, str]:
-    """Retrieves the content of 'url' and stores it in the ToolContext.
+    """擷取 'url' 的內容並將其儲存在 ToolContext 中。
 
     Args:
-      url: URL to fetch.
-      tool_context: ToolContext object.
+      url: 要擷取的 URL。
+      tool_context: ToolContext 物件。
 
     Returns:
-      A dict with "status" and (optional) "error_message" keys.
+      一個包含 "status" 和 (可選) "error_message" 鍵的字典。
     """
     opener = urllib.request.build_opener()
     opener.addheaders = [("User-Agent", "Mozilla/5.0")]
     urllib.request.install_opener(opener)
-    logger.debug("Fetching page: %s", url)
+    logger.debug("正在擷取頁面：%s", url)
     try:
         page = urllib.request.urlopen(url)
         page_text = page.read().decode("utf-8")
     except urllib.error.HTTPError as err:
-        errmsg = "Failed to fetch page %s: %s", url, err
+        errmsg = "擷取頁面 %s 失敗：%s", url, err
         logger.error(errmsg)
         return {"status": "ERROR", "message": errmsg}
     tool_context.state.update({"page_contents": page_text})

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Analyze the research output for the FOMC Research Agent."""
+"""分析 FOMC 研究代理的研究輸出。"""
 
 from google.adk.agents import Agent
 
@@ -24,7 +24,7 @@ AnalysisAgent = Agent(
     model=MODEL,
     name="analysis_agent",
     description=(
-        "Analyze inputs and determine implications for future FOMC actions."
+        "分析輸入並確定對未來 FOMC 行動的影響。"
     ),
     instruction=analysis_agent_prompt.PROMPT,
     before_model_callback=rate_limit_callback,

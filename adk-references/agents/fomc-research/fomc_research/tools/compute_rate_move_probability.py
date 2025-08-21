@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""'compute_rate_move_probability' tool for FOMC Research sample agent."""
+"""FOMC 研究範例代理的 'compute_rate_move_probability' 工具。"""
 
 import logging
 
@@ -26,20 +26,20 @@ logger = logging.getLogger(__name__)
 def compute_rate_move_probability_tool(
     tool_context: ToolContext,
 ) -> dict[str, str]:
-    """Computes the probabilities of rate moves for the requested meeting date.
+    """計算所要求會議日期的利率變動機率。
 
     Args:
-      tool_context: ToolContext object.
+      tool_context: ToolContext 物件。
 
     Returns:
-      A dict with "status" and (optional) "error_message" keys.
+      一個包含 "status" 和 (可選) "error_message" 鍵的字典。
     """
     meeting_date = tool_context.state["requested_meeting_date"]
-    logger.debug("Computing rate move probabilities for %s", meeting_date)
+    logger.debug("正在計算 %s 的利率變動機率", meeting_date)
     prob_result = price_utils.compute_probabilities(meeting_date)
     if prob_result["status"] != "OK":
         return {"status": "ERROR", "message": prob_result["message"]}
     probs = prob_result["output"]
-    logger.debug("Rate move probabilities: %s", probs)
+    logger.debug("利率變動機率：%s", probs)
     tool_context.state.update({"rate_move_probabilities": probs})
     return {"status": "OK"}

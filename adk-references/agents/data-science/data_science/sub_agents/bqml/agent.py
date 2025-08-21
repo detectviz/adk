@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Data Science Agent V2: generate nl2py and use code interpreter to run the code."""
+"""資料科學代理 V2：產生 nl2py 並使用程式碼直譯器 (Code Interpreter) 執行程式碼。"""
 import os
 from google.adk.agents import Agent
 from google.adk.tools import ToolContext
@@ -35,15 +35,15 @@ from data_science.sub_agents.bigquery.tools import (
 
 
 def setup_before_agent_call(callback_context: CallbackContext):
-    """Setup the agent."""
+    """設定代理。"""
 
-    # setting up database settings in session.state
+    # 在 session.state 中設定資料庫設定
     if "database_settings" not in callback_context.state:
         db_settings = dict()
         db_settings["use_database"] = "BigQuery"
         callback_context.state["all_db_settings"] = db_settings
 
-    # setting up schema in instruction
+    # 在指令中設定結構 (schema)
     if callback_context.state["all_db_settings"]["use_database"] == "BigQuery":
         callback_context.state["database_settings"] = get_bq_database_settings()
         schema = callback_context.state["database_settings"]["bq_ddl_schema"]
@@ -52,11 +52,11 @@ def setup_before_agent_call(callback_context: CallbackContext):
             return_instructions_bqml()
             + f"""
 
-   </BQML Reference for this query>
+   </此查詢的 BQML 參考>
     
-    <The BigQuery schema of the relevant data with a few sample rows>
+    <相關資料的 BigQuery 結構 (schema) 及幾筆範例資料列>
     {schema}
-    </The BigQuery schema of the relevant data with a few sample rows>
+    </相關資料的 BigQuery 結構 (schema) 及幾筆範例資料列>
     """
         )
 
@@ -65,7 +65,7 @@ async def call_db_agent(
     question: str,
     tool_context: ToolContext,
 ):
-    """Tool to call database (nl2sql) agent."""
+    """呼叫資料庫 (nl2sql) 代理的工具。"""
     print(
         "\n call_db_agent.use_database:"
         f' {tool_context.state["all_db_settings"]["use_database"]}'

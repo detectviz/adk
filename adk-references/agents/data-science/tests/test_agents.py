@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test cases for the analytics agent and its sub-agents."""
+"""分析代理及其子代理的測試案例。"""
 
 import os
 import sys
@@ -35,10 +35,10 @@ artifact_service = InMemoryArtifactService()
 
 
 class TestAgents(unittest.TestCase):
-    """Test cases for the analytics agent and its sub-agents."""
+    """分析代理及其子代理的測試案例。"""
 
     def setUp(self):
-        """Set up for test methods."""
+        """為測試方法進行設定。"""
         self.session = session_service.create_session(
             app_name="DataAgent",
             user_id="test_user",
@@ -54,7 +54,7 @@ class TestAgents(unittest.TestCase):
         )
 
     def _run_agent(self, agent, query):
-        """Helper method to run an agent and get the final response."""
+        """執行代理並取得最終回應的輔助方法。"""
         self.runner.agent = agent
         content = types.Content(role="user", parts=[types.Part(text=query)])
         events = list(
@@ -72,7 +72,7 @@ class TestAgents(unittest.TestCase):
 
     @pytest.mark.db_agent
     def test_db_agent_can_handle_env_query(self):
-        """Test the db_agent with a query from environment variable."""
+        """使用來自環境變數的查詢測試 db_agent。"""
         query = "what countries exist in the train table?"
         response = self._run_agent(database_agent, query)
         print(response)
@@ -81,7 +81,7 @@ class TestAgents(unittest.TestCase):
 
     @pytest.mark.ds_agent
     def test_ds_agent_can_be_called_from_root(self):
-        """Test the ds_agent from the root agent."""
+        """從根代理測試 ds_agent。"""
         query = "plot the most selling category"
         response = self._run_agent(root_agent, query)
         print(response)
@@ -89,7 +89,7 @@ class TestAgents(unittest.TestCase):
 
     @pytest.mark.bqml
     def test_bqml_agent_can_check_for_models(self):
-        """Test that the bqml_agent can check for existing models."""
+        """測試 bqml_agent 是否可以檢查現有模型。"""
         query = "Are there any existing models in the dataset?"
         response = self._run_agent(bqml_agent, query)
         print(response)
@@ -97,7 +97,7 @@ class TestAgents(unittest.TestCase):
 
     @pytest.mark.bqml
     def test_bqml_agent_can_execute_code(self):
-        """Test that the bqml_agent can execute BQML code."""
+        """測試 bqml_agent 是否可以執行 BQML 程式碼。"""
         query = """
     I want to train a BigQuery ML model on the sales_train_validation data for sales prediction.
     Please show me an execution plan. 

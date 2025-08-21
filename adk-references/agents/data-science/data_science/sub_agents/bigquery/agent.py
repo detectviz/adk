@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Database Agent: get data from database (BigQuery) using NL2SQL."""
+"""資料庫代理：使用 NL2SQL 從資料庫 (BigQuery) 取得資料。"""
 
 import os
 
@@ -28,7 +28,7 @@ NL2SQL_METHOD = os.getenv("NL2SQL_METHOD", "BASELINE")
 
 
 def setup_before_agent_call(callback_context: CallbackContext) -> None:
-    """Setup the agent."""
+    """設定代理。"""
 
     if "database_settings" not in callback_context.state:
         callback_context.state["database_settings"] = \

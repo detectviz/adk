@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Deployment script for FOMC Research agent."""
+"""FOMC 研究代理的部署腳本。"""
 
 import os
 
@@ -24,13 +24,13 @@ from vertexai import agent_engines
 from vertexai.preview.reasoning_engines import AdkApp
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("project_id", None, "GCP project ID.")
-flags.DEFINE_string("location", None, "GCP location.")
-flags.DEFINE_string("bucket", None, "GCP bucket.")
-flags.DEFINE_string("resource_id", None, "ReasoningEngine resource ID.")
+flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
+flags.DEFINE_string("location", None, "GCP 位置。")
+flags.DEFINE_string("bucket", None, "GCP 儲存桶。")
+flags.DEFINE_string("resource_id", None, "ReasoningEngine 資源 ID。")
 
-flags.DEFINE_bool("create", False, "Create a new agent.")
-flags.DEFINE_bool("delete", False, "Delete an existing agent.")
+flags.DEFINE_bool("create", False, "建立新代理。")
+flags.DEFINE_bool("delete", False, "刪除現有代理。")
 flags.mark_bool_flags_as_mutual_exclusive(["create", "delete"])
 
 AGENT_WHL_FILE = "fomc_research-0.1-py3-none-any.whl"
@@ -47,13 +47,13 @@ def create() -> None:
         requirements=[f"./{AGENT_WHL_FILE}"],
         extra_packages=[f"./{AGENT_WHL_FILE}"],
     )
-    print(f"Created remote agent: {remote_agent.resource_name}")
+    print(f"已建立遠端代理：{remote_agent.resource_name}")
 
 
 def delete(resource_id: str) -> None:
     remote_agent = agent_engines.get(resource_id)
     remote_agent.delete(force=True)
-    print(f"Deleted remote agent: {resource_id}")
+    print(f"已刪除遠端代理：{resource_id}")
 
 
 def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
@@ -74,19 +74,19 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
         else os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET")
     )
 
-    print(f"PROJECT: {project_id}")
-    print(f"LOCATION: {location}")
-    print(f"BUCKET: {bucket}")
+    print(f"專案：{project_id}")
+    print(f"位置：{location}")
+    print(f"儲存桶：{bucket}")
 
     if not project_id:
-        print("Missing required environment variable: GOOGLE_CLOUD_PROJECT")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_PROJECT")
         return
     elif not location:
-        print("Missing required environment variable: GOOGLE_CLOUD_LOCATION")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_LOCATION")
         return
     elif not bucket:
         print(
-            "Missing required environment variable: GOOGLE_CLOUD_STORAGE_BUCKET"
+            "缺少必要的環境變數：GOOGLE_CLOUD_STORAGE_BUCKET"
         )
         return
 
@@ -100,11 +100,11 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
         create()
     elif FLAGS.delete:
         if not FLAGS.resource_id:
-            print("resource_id is required for delete")
+            print("刪除需要 resource_id")
             return
         delete(FLAGS.resource_id)
     else:
-        print("Unknown command")
+        print("未知的指令")
 
 
 if __name__ == "__main__":
