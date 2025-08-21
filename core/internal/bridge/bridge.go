@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -42,16 +43,39 @@ func (tb *ToolBridge) scriptPath(category, name string) string {
 	return filepath.Join(tb.toolsDir, category, fmt.Sprintf("%s.sh", name))
 }
 
+var validNamePattern = regexp.MustCompile(`^[a-z0-9_]+$`)
+
+func validate(name string) error {
+	if !validNamePattern.MatchString(name) {
+		return fmt.Errorf("invalid name format: %s", name)
+	}
+	return nil
+}
+
 // Execute 執行指定工具。
 // args 將直接傳入目標腳本；請確保安全來源。
 func (tb *ToolBridge) Execute(category, name string, args ...string) (*ToolResult, error) {
 	started := time.Now()
+
+	// 1. 輸入驗證
+	if err := validate(category); err != nil {
+		return nil, fmt.Errorf("invalid category: %w", err)
+	}
+	if err := validate(name); err != nil {
+		return nil, fmt.Errorf("invalid tool name: %w", err)
+	}
+
 	path := tb.scriptPath(category, name)
 	if _, err := os.Stat(path); err != nil {
 		return nil, fmt.Errorf("找不到腳本：%s: %w", path, err)
 	}
+
+	// 2. 超時控制
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	// 以 /bin/bash 執行，捕捉 stdout/stderr
-	cmd := exec.CommandContext(context.Background(), "/bin/bash", append([]string{path}, args...)...)
+	cmd := exec.CommandContext(ctx, "/bin/bash", append([]string{path}, args...)...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -62,15 +86,8 @@ func (tb *ToolBridge) Execute(category, name string, args ...string) (*ToolResul
 		if msg == "" {
 			msg = err.Error()
 		}
-		res := &ToolResult{
-			Status:     "error",
-			Message:    msg,
-			Data:       json.RawMessage(`{}`),
-			StartedAt:  started,
-			EndedAt:    time.Now(),
-			DurationMs: time.Since(started).Milliseconds(),
-		}
-		return res, nil
+		// 直接返回錯誤，讓 gRPC 層處理
+		return nil, fmt.Errorf("tool execution failed: %s", msg)
 	}
 
 	out := strings.TrimSpace(stdout.String())

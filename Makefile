@@ -74,7 +74,7 @@ test-core:
 # 測試 Python Agents (Test Python Agents)
 test-agents:
 	@echo "🔬 Testing Python agents..."
-	@PYTHONPATH=. python -m pytest tests/
+	@PYTHONPATH=. python -m pytest -p no:anyio tests/
 
 # 端到端測試 (End-to-end tests)
 test-e2e:

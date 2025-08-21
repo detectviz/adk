@@ -1,6 +1,7 @@
 
 # -*- coding: utf-8 -*-
 # SRE 主助理：透過 bridge.exec 呼叫外部工具（繁體中文註解）。
+import asyncio
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
 from .runtime.tool_runner import ToolRunner
@@ -15,7 +16,12 @@ class IncidentInput:
 class SREAssistant:
     def __init__(self) -> None:
         self.runner = ToolRunner(allowed={"bridge.exec"})
-    def check_health(self, threshold: int = 80) -> Dict[str, Any]:
-        disk = self.runner.invoke("bridge.exec", ToolRequest(name="bridge.exec", params={"category":"diagnostic","name":"check_disk","args":[threshold]}))
-        mem  = self.runner.invoke("bridge.exec", ToolRequest(name="bridge.exec", params={"category":"diagnostic","name":"check_memory","args":[threshold]}))
-        return {"disk": disk.__dict__, "memory": mem.__dict__}
+
+    async def check_health(self, threshold: int = 80) -> Dict[str, Any]:
+        disk_task = self.runner.invoke("bridge.exec", ToolRequest(name="bridge.exec", params={"category":"diagnostic","name":"check_disk","args":[threshold]}))
+        mem_task  = self.runner.invoke("bridge.exec", ToolRequest(name="bridge.exec", params={"category":"diagnostic","name":"check_memory","args":[threshold]}))
+
+        results = await asyncio.gather(disk_task, mem_task)
+        disk_result, mem_result = results
+
+        return {"disk": disk_result.__dict__, "memory": mem_result.__dict__}

@@ -18,14 +18,14 @@ class ToolRunner:
     def _check_allowed(self, tool_name: str) -> None:
         if tool_name not in self.allowed:
             raise ValueError(f"工具未允許：{tool_name}")
-    def invoke(self, tool_name: str, req: ToolRequest) -> ToolResponse:
+    async def invoke(self, tool_name: str, req: ToolRequest) -> ToolResponse:
         self._check_allowed(tool_name)
         started = time.monotonic()
         try:
             if tool_name == "bridge.exec":
                 cat = req.params.get("category"); name = req.params.get("name"); args = req.params.get("args", [])
                 if not isinstance(args, list): args = [str(args)]
-                result = self.bridge.exec(str(cat), str(name), *[str(a) for a in args])
+                result = await self.bridge.exec(str(cat), str(name), *[str(a) for a in args])
                 return ToolResponse(True, result.get("status","ok"), result.get("message",""), result.get("data"))
             raise ValueError(f"未知工具：{tool_name}")
         finally:

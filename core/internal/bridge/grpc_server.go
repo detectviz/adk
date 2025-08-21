@@ -24,13 +24,8 @@ func (s *Server) ExecuteTool(ctx context.Context, req *pb.ToolRequest) (*pb.Tool
 	}
 	result, err := s.bridge.Execute(req.GetCategory(), req.GetName(), req.GetArgs()...)
 	if err != nil {
-		// 轉為成功回傳但標示錯誤狀態，避免 gRPC 層吞訊息
-		return &pb.ToolResponse{
-			Success: false,
-			Status:  "error",
-			Message: err.Error(),
-			Data:    "{}",
-		}, nil
+		// 直接回傳 gRPC 錯誤
+		return nil, err
 	}
 	return &pb.ToolResponse{
 		Success: true,
