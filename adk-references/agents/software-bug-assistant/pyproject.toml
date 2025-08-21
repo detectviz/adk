@@ -1,7 +1,7 @@
 [project]
 name = "software-bug-assistant"
 version = "0.1.0"
-description = "Software bug assistant using ADK"
+description = "使用 ADK 的軟體錯誤助理"
 authors = [{ name = "Jack Wotherspoon", email = "jackwoth@google.com" }]
 license = "Apache-2.0"
 readme = "README.md"

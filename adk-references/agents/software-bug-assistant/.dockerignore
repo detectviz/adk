@@ -1,13 +1,13 @@
 ### Python ###
-# Byte-compiled / optimized / DLL files
+# 位元組編譯 / 優化 / DLL 檔案
 __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
+# C 語言擴充
 *.so
 
-# Distribution / packaging
+# 發行 / 打包
 .Python
 env/
 build/
@@ -26,16 +26,16 @@ var/
 *.egg
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+#  通常這些檔案是由 python 腳本從範本寫入的
+#  在 PyInstaller 建置 exe 之前，以便將日期/其他資訊注入其中。
 *.manifest
 *.spec
 
-# Installer logs
+# 安裝程式日誌
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# 單元測試 / 覆蓋率報告
 htmlcov/
 .tox/
 .coverage
@@ -46,22 +46,22 @@ coverage.xml
 *,cover
 .hypothesis/
 
-# Translations
+# 翻譯
 *.mo
 *.pot
 
-# Django stuff:
+# Django 相關:
 *.log
 local_settings.py
 
-# Flask stuff:
+# Flask 相關:
 instance/
 .webassets-cache
 
-# Scrapy stuff:
+# Scrapy 相關:
 .scrapy
 
-# Sphinx documentation
+# Sphinx 文件
 docs/_build/
 
 # PyBuilder
@@ -73,7 +73,7 @@ target/
 # pyenv
 .python-version
 
-# celery beat schedule file
+# celery beat 排程檔案
 celerybeat-schedule
 
 # dotenv
@@ -84,26 +84,26 @@ celerybeat-schedule
 venv/
 ENV/
 
-# Spyder project settings
+# Spyder 專案設定
 .spyderproject
 
-# Rope project settings
+# Rope 專案設定
 .ropeproject
 
 
 ### Linux ###
 *~
 
-# temporary files which can be created if a process still has a handle open of a deleted file
+# 如果一個進程仍然持有已刪除檔案的控制代碼，則可能會建立臨時檔案
 .fuse_hidden*
 
-# KDE directory preferences
+# KDE 目錄偏好設定
 .directory
 
-# Linux trash folder which might appear on any partition or disk
+# 可能出現在任何分割區或磁碟上的 Linux 垃圾桶資料夾
 .Trash-*
 
-# .nfs files are created when an open file is removed but is still being accessed
+# 當一個開啟的檔案被移除但仍在被存取時，會建立 .nfs 檔案
 .nfs*
 
 
@@ -112,11 +112,13 @@ ENV/
 .AppleDouble
 .LSOverride
 
-# Icon must end with two \r
+# 圖示
+# 圖示檔案必須以兩個 \r 結尾
 Icon
-# Thumbnails
+
+# 縮圖
 ._*
-# Files that might appear in the root of a volume
+# 可能出現在磁碟區根目錄的檔案
 .DocumentRevisions-V100
 .fseventsd
 .Spotlight-V100
@@ -124,7 +126,7 @@ Icon
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
-# Directories potentially created on remote AFP share
+# 可能在遠端 AFP 共享上建立的目錄
 .AppleDB
 .AppleDesktop
 Network Trash Folder
@@ -133,29 +135,29 @@ Temporary Items
 
 
 ### Windows ###
-# Windows image file caches
+# Windows 圖片檔案快取
 Thumbs.db
 ehthumbs.db
 
-# Folder config file
+# 資料夾設定檔
 Desktop.ini
 
-# Recycle Bin used on file shares
+# 用於檔案共享的資源回收桶
 $RECYCLE.BIN/
 
-# Windows Installer files
+# Windows 安裝程式檔案
 *.cab
 *.msi
 *.msm
 *.msp
 
-# Windows shortcuts
+# Windows 捷徑
 *.lnk
 
 
 ### Vagrant ###
 .vagrant/
-### Local rules, see .gitignore.tail to override! ###
+### 本地規則，請參閱 .gitignore.tail 來覆蓋！ ###
 shippable
 .git
 
