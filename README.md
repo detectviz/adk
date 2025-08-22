@@ -168,3 +168,7 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 - 移除 `core/otel_grpc.py` 與 `core/policy.py`，採用官方推薦：追蹤由 OTel 自動化，策略檢查在工具內執行。
 - `k8s_long_running`：長任務狀態僅存於 `session.state`；HITL 觸發嚴格依 `adk.yaml` 與高風險命名空間。
 - `runtime.py` 引入 `BuiltInPlanner` 的占位導入，保持對齊官方設計。
+
+
+## v15.7.7 打包版
+- 封裝自 `v15.7.6-clean` 並套用 v15.7.7 修正：移除 `sub_agents/**`，改讀 `experts/*.yaml`；HITL 判斷內聚於 `k8s_long_running.py`。

@@ -1,6 +1,15 @@
 
 # Kubernetes 長任務工具（v14.4）：HITL（request_credential）+ 真正 rollout 輪詢
 from __future__ import annotations
+import yaml
+
+try:
+    _ADK_CFG = yaml.safe_load(open('adk.yaml','r',encoding='utf-8')) or {}
+except Exception:
+    _ADK_CFG = {}
+_HITL_REQUIRE = set((_ADK_CFG.get('agent') or {}).get('tools_require_approval') or [])
+_HIGH_RISK_NS = {'prod','production','prd'}
+
 import os, yaml
 import os, time, uuid
 from typing import Dict, Any
@@ -34,7 +43,7 @@ def _start_restart(ctx: ToolContext, namespace: str, deployment_name: str, reaso
     ops = ctx.session.state.setdefault('lr_ops', {})
     ops[op_id] = {"namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": False, "progress": 0, "result": None, "function_call_id": getattr(ctx, 'function_call_id', None)}
     need_hitl = namespace.lower() in {"prod","production"}
-    _LR_OPS[op_id] = {"namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": not need_hitl, "progress": 0}
+    namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": not need_hitl, "progress": 0}
     if need_hitl:
         prov = get_provider('hitl-approval')
         # 可依 provider 定義調整 prompt/欄位

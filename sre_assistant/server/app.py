@@ -41,7 +41,6 @@ if os.getenv('GCP_OBS_ENABLED','').lower() in {'1','true','yes'}:
     except Exception as _e:
         print('[GCP_OBS] 初始化失敗:', _e)
 
-
 # 事件寫入（存在 PG_DSN 時啟用）
 from importlib import import_module
 try:
@@ -167,7 +166,6 @@ def approve_page():
     """
     return HTMLResponse(html)
 
-
 @app.get("/api/v1/sessions/{session_id}/events")
 async def get_session_events(session_id: str, limit: int = 100, _: str = Depends(require_api_key)):
     """回放指定 session 的事件流（DB 來源，支援 SQLite/PG）。"""
@@ -178,7 +176,6 @@ async def get_session_decisions(session_id: str, limit: int = 100, offset: int =
     """查詢近期 decisions（DB 來源，支援 SQLite/PG）。"""
     rows = DB.list_decisions(limit=limit, offset=offset)
     return {"session_id": session_id, "decisions": rows}
-
 
 from pydantic import BaseModel
 
@@ -201,7 +198,6 @@ async def api_hitl_approve(body: HitlApproveBody, user_id: str = Depends(require
 async def api_hitl_reject(body: HitlRejectBody, user_id: str = Depends(require_api_key)):
     return hitl_reject(body.session_id, user_id, body.op_id, body.reason)
 
-
 @app.get("/api/v1/sessions/{session_id}/events_range")
 async def get_session_events_range(session_id: str, since: str|None=None, until: str|None=None, limit: int=100, offset: int=0, _: str = Depends(require_api_key)):
     return {"session_id": session_id, "events": list_events_range(session_id, since, until, limit, offset)}
@@ -209,7 +205,6 @@ async def get_session_events_range(session_id: str, since: str|None=None, until:
 @app.get("/api/v1/decisions_range")
 async def get_decisions_range(since: str|None=None, until: str|None=None, limit: int=50, offset: int=0, _: str = Depends(require_api_key)):
     return {"decisions": list_decisions_range(since, until, limit, offset)}
-
 
 @app.get("/api/v1/tools/effective")
 async def list_effective_tools(_: str = Depends(require_api_key)):
@@ -228,7 +223,6 @@ async def list_effective_tools(_: str = Depends(require_api_key)):
         if n in REGISTRY.list():
             tools.append({"name": n, "require_approval": n in require})
     return {"tools": tools}
-
 
 @app.post("/api/v1/ops/{op_id}/cancel")
 async def cancel_op(op_id: str, _: str = Depends(require_api_key)):

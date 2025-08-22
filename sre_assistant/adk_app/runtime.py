@@ -1,3 +1,7 @@
+from __future__ import annotations
+import os, glob, yaml
+from typing import Dict
+
 from sre_assistant.adk_app.assembly import gather_subagent_tool_allowlist
 
 # ADK 執行階段建構器：讀取 adk.yaml，建立工具（FunctionTool/LongRunningFunctionTool）、專家代理（AgentTool），主代理（LlmAgent），最後組裝 LoopAgent
@@ -133,3 +137,15 @@ def _filter_tools_by_subagents(registry: dict) -> dict:
 函式用途：依 sub_agents 工具白名單過濾註冊表。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     allow = gather_subagent_tool_allowlist()
     return {k:v for k,v in registry.items() if k in allow}
+
+def _load_experts_tool_allowlist() -> set[str]:
+    """由 experts/*.yaml 驗讀 tools_allowlist，回傳合併集合。"""
+    allow=set()
+    for yp in glob.glob(os.path.join('experts','*.yaml')):
+        try:
+            data = yaml.safe_load(open(yp,'r',encoding='utf-8')) or {}
+            for t in (data.get('tools_allowlist') or []):
+                if isinstance(t,str): allow.add(t)
+        except Exception:
+            continue
+    return allow
