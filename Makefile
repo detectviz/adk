@@ -5,14 +5,6 @@ adk-web:
 dev-full: adk-web
 
 
-.PHONY: export-slo
-export-slo:
-	python3 scripts/export_slo_rules.py
-
-
-
-
-
 .PHONY: validate-config
 validate-config:
 	python3 scripts/validate_config.py
@@ -21,11 +13,6 @@ validate-config:
 .PHONY: validate-metrics
 validate-metrics:
 	python3 scripts/validate_metrics_spec.py
-
-
-.PHONY: db-migrate
-db-migrate:
-	python3 scripts/db_migrate.py
 
 
 .PHONY: test

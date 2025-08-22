@@ -1,368 +1,59 @@
-import logging
-
-# FastAPI 伺服器（v14）：
-# - /api/v1/chat：一次性呼叫（阻塞），供簡單用例
-# - /api/v1/chat_sse：SSE 串流事件（建議與前端配套），可接收 adk_request_credential
-# - /api/v1/resume_sse：提交 FunctionResponse（如 OAuth 回調/核可資訊）後繼續串流
+# ADK 標準 FastAPI 伺服器介面層
 from __future__ import annotations
-from typing import AsyncGenerator
-from fastapi import FastAPI, HTTPException, Header, Depends, Request
-from fastapi.responses import StreamingResponse, HTMLResponse
+import uuid
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import json
-import uuid
-from ..core.telemetry import init_tracing
-from sre_assistant.adk_app.runtime import RUNNER
-from ..core.adk_events import extract_decision, is_request_credential, coerce_sse_payload
-from ..core.session import pick_session_service
-from ..core.profiling_pyroscope import init_pyroscope
-from ..core.otel_logging import init_otel_logging
-init_tracing()
-init_pyroscope()
-init_otel_logging()
 
-from ..adk_app.runtime import RUNNER  # 標準 ADK Runner
-from ..core.auth import require_api_key, AuthError
-from ..core.debounce import DEBOUNCER
-from ..core.persistence import DB, list_events_range, list_decisions_range
-from ..core.slo_guard import SLOGuardian
+# 匯入已配置好的 ADK Runner 和標準認證模組
+from ..adk_app.runtime import RUNNER
+from ..core.adk_auth import get_auth_context, SRERole, require_roles
 
-from google.genai.types import Content, Part, FunctionResponse
-
-from sre_assistant.observability.otel import init_telemetry
-init_telemetry(service_name='sre-assistant-api')
-init_otel()
-logger=logging.getLogger(__name__)
-init_otel()
-logger.info("server_started", extra={"component":"api"})
-app = FastAPI(title="SRE Assistant API (ADK Runner + SSE)")
-app.add_middleware(OTelMiddleware)
-SESSION_SERVICE = pick_session_service()
-# 啟動 GCP Observability（可選）
-if os.getenv('GCP_OBS_ENABLED','').lower() in {'1','true','yes'}:
-    try:
-        from sre_assistant.core.audit import write_hitl_audit
-        from sre_assistant.core.telemetry_gcp import init_gcp_observability
-        init_gcp_observability()
-    except Exception as _e:
-        print('[GCP_OBS] 初始化失敗:', _e)
-
-# 事件寫入（存在 PG_DSN 時啟用）
-from importlib import import_module
-try:
-        from sre_assistant.core.audit import write_hitl_audit
-    _adb = import_module('sre_assistant.core.audit_db')
-    def record_event(session_id, event_type, payload, user_id=None):
-        try:
-        from sre_assistant.core.audit import write_hitl_audit _adb.record_event(session_id, event_type, payload, user_id)
-        except Exception: pass
-except Exception:
-    def record_event(session_id, event_type, payload, user_id=None):
-        pass
-
-allowed_function_calls = {}  # session_id -> set(call_id)
-slo_guard = SLOGuardian(p95_ms=30000)
-
-def auth_dep(x_api_key: str = Header(default="", alias="X-API-Key")) -> str:
-    try:
-        from sre_assistant.core.audit import write_hitl_audit
-        return require_api_key(x_api_key)
-    except AuthError as e:
-        raise HTTPException(status_code=401 if str(e)=="invalid api key" else 429, detail=str(e))
+# 初始化 FastAPI 應用
+app = FastAPI(
+    title="SRE Assistant - ADK Standard Server",
+    description="一個遵循 ADK 官方規範的標準化伺服器介面。"
+)
 
 class ChatRequest(BaseModel):
+    """聊天請求的標準資料結構。"""
     message: str
-    session_id: str
-    user_id: str = "user"
+    session_id: Optional[str] = None
 
-@app.get("/health/ready")
-def health_ready():
-    try:
-        from sre_assistant.core.audit import write_hitl_audit
-        DB.list_decisions(limit=1)
-        return {"ok": True, "db": "ready"}
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"db not ready: {e}")
+async def stream_run_events(message: str, session_id: str):
+    """將 ADK Runner 的事件非同步地轉換為 SSE 格式的 byte 字串。"""
+    # 使用 runner.stream() 來處理請求並取得非同步事件產生器
+    async for event in RUNNER.stream(message, session_id=session_id):
+        # 將每個事件物件序列化為 JSON 字串
+        event_data = json.dumps(event.to_dict(), ensure_ascii=False)
+        # 遵循 SSE 格式: "data: {...}\n\n"
+        yield f"data: {event_data}\n\n".encode("utf-8")
 
-@app.post("/api/v1/chat")
-async def chat(req: ChatRequest, _: str = Depends(require_api_key)):
-    if not DEBOUNCER.allow_msg(req.message, req.session_id):
-        raise HTTPException(status_code=409, detail="debounced")
+@app.post("/api/v1/chat/stream")
+@require_roles([SRERole.VIEWER, SRERole.OPERATOR, SRERole.ADMIN])
+async def chat_stream(
+    req: ChatRequest,
+    auth_context: dict = Depends(get_auth_context) # 注入認證上下文
+):
+    """標準的聊天串流端點。
     
-    import time
-    start_time = time.time()
-    
+    接收使用者訊息，呼叫 ADK Runner，並以 Server-Sent Events (SSE) 格式串流回傳所有事件。
+    客戶端（如官方 Dev UI）可以監聽這些事件來即時更新介面。
+    """
     try:
-        # 使用標準 ADK Runner
+        # 如果客戶端未提供 session_id，則建立一個新的
         session_id = req.session_id or str(uuid.uuid4())
-        
-        # 執行 Agent
-        events = []
-        async for event in RUNNER.run_async(req.message, session_id=session_id):
-            events.append(event)
-            if event.is_final_response():
-                break
-        
-        # 構建回應
-        final_event = events[-1] if events else None
-        response_text = final_event.content.text if final_event and final_event.content else ""
-        
-        duration_ms = (time.time() - start_time) * 1000
-        
-        res = {
-            "response": response_text,
-            "session_id": session_id,
-            "events": len(events),
-            "metrics": {"duration_ms": duration_ms}
-        }
-        
-        adv = slo_guard.evaluate(duration_ms)
-        res["slo_advice"] = adv.__dict__
-        return res
-        
+        # 回傳一個 StreamingResponse，其內容來自我們的非同步事件產生器
+        return StreamingResponse(
+            stream_run_events(req.message, session_id),
+            media_type="text/event-stream"
+        )
     except Exception as e:
-        logger.error(f"Chat API 錯誤: {e}")
+        # 在發生錯誤時回傳標準的 HTTP 錯誤
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- SSE 串流工具函式 ---
-async def _stream_events(user_id: str, session_id: str, content: Content) -> AsyncGenerator[bytes, None]:
-    """將 ADK Runner 的事件以 SSE 形式回拋前端。"""
-    state = SESSION_SERVICE.get(session_id)
-        async for event in RUNNER.run_async(user_id=user_id, session_id=session_id, new_message=content, state=state):
-            try:
-        from sre_assistant.core.audit import write_hitl_audit
-                d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__
-                if 'state' in d:
-                    SESSION_SERVICE.set(session_id, d['state'])
-            except Exception:
-                pass
-        # 將事件落盤以便回放
-        try:
-        from sre_assistant.core.audit import write_hitl_audit
-            DB.write_event(session_id, user_id, event.__class__.__name__, (event.to_dict() if hasattr(event,'to_dict') else event.__dict__))\n        # 嘗試從事件萃取 decision 訊息（啟發式）\n        try:
-        from sre_assistant.core.audit import write_hitl_audit\n            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__\n            agent_name = (d.get('agent') or {}).get('name') or d.get('agent_name') or 'main'\n            decision_type = event.__class__.__name__\n            input_json = {k:v for k,v in d.items() if k not in ('output','result')}\n            output_json = d.get('output') or d.get('result') or d\n            latency_ms = d.get('latency_ms') or None\n            DB.write_decision(session_id, agent_name, decision_type, input_json, output_json, None, latency_ms)\n        except Exception:\n            pass
-        except Exception:
-            pass
-        try:
-        from sre_assistant.core.audit import write_hitl_audit
-            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__
-            record_event(session_id, d.get('type','event'), d, user_id)
-        except Exception:
-            pass\n        try:
-        from sre_assistant.core.audit import write_hitl_audit\n            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__\n            parts = (d.get('content') or {}).get('parts') or []\n            for p in parts:\n                fc = p.get('function_call')\n                if fc and fc.get('id'):\n                    allowed_function_calls.setdefault(session_id,set()).add(fc['id'])\n        except Exception:\n            pass
-        # 以最簡 JSON 形式傳遞（前端自行判斷是否為 adk_request_credential）
-        yield f"data: {json.dumps(event.to_dict() if hasattr(event, 'to_dict') else event.__dict__, ensure_ascii=False)}\n\n".encode("utf-8")
-
-@app.get("/api/v1/chat_sse")
-async def chat_sse(message: str, session_id: str, user_id: str = "user", _: str = Depends(require_api_key)):
-    """以 SSE 串流事件：初始對話。"""
-    content = Content(parts=[Part(text=message)], role="user")
-    return StreamingResponse(_stream_events(user_id=user_id, session_id=session_id, content=content), media_type="text/event-stream")
-
-@app.get("/api/v1/resume_sse")
-async def resume_sse(function_call_id: str, session_id: str, user_id: str = "user", auth_response_uri: str = "", redirect_uri: str = "", _: str = Depends(require_api_key)):
-    """以 SSE 串流事件：提交 FunctionResponse 後繼續執行。
-    - 針對 'adk_request_credential' 事件：依官方規範，需要回傳相同 name 與原 function_call_id
-    - 這裡以 OAuth 類型欄位命名（與官方教學一致）；核可/審批場景可沿用此欄位承載
-    """
-    auth_config = {
-        "exchanged_auth_credential": {
-            "oauth2": {
-                "auth_response_uri": auth_response_uri,
-                "redirect_uri": redirect_uri
-            }
-        }
-    }
-    content = Content(parts=[
-        Part(function_response=FunctionResponse(
-            id=function_call_id,
-            name="adk_request_credential",
-            response=auth_config
-        ))
-    ], role="user")
-    return StreamingResponse(_stream_events(user_id=user_id, session_id=session_id, content=content), media_type="text/event-stream")
-
-# 提供簡單核可頁（教學用，實務應用自家前端處理 OAuth/HITL UI）
-@app.get("/ui/approve.html")
-def approve_page():
-    html = """
-    <!doctype html>
-    <html><head><meta charset="utf-8"><title>核可測試頁</title></head>
-    <body>
-      <h3>高風險操作核可</h3>
-      <p>此頁僅示意。實務請以自家 OAuth/審批頁替代。</p>
-      <button onclick="approved()">核可</button>
-      <script>
-        function approved(){
-          const uri = location.href + "?approved=true";
-          // 模擬 OAuth 回跳：將完整 URL 當作 auth_response_uri 回傳
-          alert("請回到原前端並提交此 URL 作為 auth_response_uri:\n\n" + uri);
-        }
-      </script>
-    </body></html>
-    """
-    return HTMLResponse(html)
-
-@app.get("/api/v1/sessions/{session_id}/events")
-async def get_session_events(session_id: str, limit: int = 100, _: str = Depends(require_api_key)):
-    """回放指定 session 的事件流（DB 來源，支援 SQLite/PG）。"""
-    return {"session_id": session_id, "events": DB.list_events(session_id=session_id, limit=limit)}
-
-@app.get("/api/v1/sessions/{session_id}/decisions")
-async def get_session_decisions(session_id: str, limit: int = 100, offset: int = 0, _: str = Depends(require_api_key)):
-    """查詢近期 decisions（DB 來源，支援 SQLite/PG）。"""
-    rows = DB.list_decisions(limit=limit, offset=offset)
-    return {"session_id": session_id, "decisions": rows}
-
-from pydantic import BaseModel
-
-class HitlApproveBody(BaseModel):
-    session_id: str
-    op_id: str
-    approver: str
-    ticket_id: str | None = None
-
-class HitlRejectBody(BaseModel):
-    session_id: str
-    op_id: str
-    reason: str
-
-@app.post("/api/v1/hitl/approve")
-async def api_hitl_approve(body: HitlApproveBody, user_id: str = Depends(require_api_key)):
-    return hitl_approve(body.session_id, user_id, body.op_id, body.approver, body.ticket_id)
-
-@app.post("/api/v1/hitl/reject")
-async def api_hitl_reject(body: HitlRejectBody, user_id: str = Depends(require_api_key)):
-    return hitl_reject(body.session_id, user_id, body.op_id, body.reason)
-
-@app.get("/api/v1/sessions/{session_id}/events_range")
-async def get_session_events_range(session_id: str, since: str|None=None, until: str|None=None, limit: int=100, offset: int=0, _: str = Depends(require_api_key)):
-    return {"session_id": session_id, "events": list_events_range(session_id, since, until, limit, offset)}
-
-@app.get("/api/v1/decisions_range")
-async def get_decisions_range(since: str|None=None, until: str|None=None, limit: int=50, offset: int=0, _: str = Depends(require_api_key)):
-    return {"decisions": list_decisions_range(since, until, limit, offset)}
-
-@app.get("/api/v1/tools/effective")
-async def list_effective_tools(_: str = Depends(require_api_key)):
-    # 讀取 adk.yaml 的 allowlist 與 require_approval
-    cfg = {}
-    try:
-        from sre_assistant.core.audit import write_hitl_audit
-        if Path("adk.yaml").exists():
-            cfg = yaml.safe_load(Path("adk.yaml").read_text(encoding="utf-8")) or {}
-    except Exception:
-        cfg = {}
-    allow = cfg.get("agent",{}).get("tools_allowlist") or REGISTRY.list()
-    require = set(cfg.get("agent",{}).get("tools_require_approval") or [])
-    tools = []
-    for n in allow:
-        if n in REGISTRY.list():
-            tools.append({"name": n, "require_approval": n in require})
-    return {"tools": tools}
-
-@app.post("/api/v1/ops/{op_id}/cancel")
-async def cancel_op(op_id: str, _: str = Depends(require_api_key)):
-    """標記長任務取消旗標。"""
-    try:
-        from sre_assistant.core.audit import write_hitl_audit
-        sess = RUNNER.get_session_service().get_current_session()
-    except Exception:
-        class S: state={}
-        sess=S()
-    st = getattr(sess, 'state', {})
-    lr = st.setdefault('lr_ops', {})
-    lr.setdefault(op_id, {})['cancelled']=True
-    return {"ok": True, "op_id": op_id, "cancelled": True}
-
-@app.post("/api/v1/ops/{op_id}/resume")
-async def resume_op(op_id: str, _: str = Depends(require_api_key)):
-    """標記長任務恢復旗標。"""
-    try:
-        from sre_assistant.core.audit import write_hitl_audit
-        sess = RUNNER.get_session_service().get_current_session()
-    except Exception:
-        class S: state={}
-        sess=S()
-    st = getattr(sess, 'state', {})
-    lr = st.setdefault('lr_ops', {})
-    lr.setdefault(op_id, {})['resume']=True
-    return {"ok": True, "op_id": op_id, "resume": True}
-
-@app.post("/api/v1/hitl/approve")
-async def hitl_approve(function_call_id: str, approved: bool = True, reason: str = "", approver: str = "user", _: str = Depends(require_api_key)):
-    """接收 HITL 審批並記錄於 session.state。"""
-    try:
-        from sre_assistant.core.audit import write_hitl_audit
-        sess = RUNNER.get_session_service().get_current_session()
-    except Exception:
-        class S: state={}
-        sess=S()
-    st = getattr(sess, 'state', {})
-    auth = st.setdefault('auth_responses', {})
-    auth[function_call_id] = {"approved": approved, "reason": reason, "approver": approver}
-            # DB 審計寫入
-        db = RUNNER.get_persistence() if hasattr(RUNNER, 'get_persistence') else None
-        write_hitl_audit(db, function_call_id, approved, approver, reason)
-        return {"ok": True}
-
-@app.get("/api/v1/devui/tools")
-async def devui_tools(_: str = Depends(require_api_key)):
-    """提供 Dev UI 同步工具清單。"""
-    try:
-        from sre_assistant.core.audit import write_hitl_audit
-        from sre_assistant.core.config import load_combined_config
-        cfg = load_combined_config("adk.yaml")
-        agent_cfg = (cfg.get("agent") or {})
-        return {"tools_allowlist": agent_cfg.get("tools_allowlist") or [], "tools_require_approval": agent_cfg.get("tools_require_approval") or []}
-    except Exception:
-        return {"tools_allowlist": [], "tools_require_approval": []}
-
-
-# --- ADDED: minimal SSE queue for test-only usage ---
-try:
-    import asyncio
-    from fastapi import APIRouter, Request
-    from fastapi.responses import StreamingResponse, JSONResponse
-except Exception:  # pragma: no cover
-    asyncio = None
-
-# Test-only in-memory queue. Not part of production HITL flow.
-_SSE_QUEUE = None
-_SSE_ROUTER = None
-
-def _init_sse_queue():
-    global _SSE_QUEUE, _SSE_ROUTER
-    if asyncio is None:
-        return
-    if _SSE_QUEUE is None:
-        _SSE_QUEUE = asyncio.Queue()
-    if _SSE_ROUTER is None:
-        _SSE_ROUTER = APIRouter()
-
-        @_SSE_ROUTER.post("/api/v1/hitl/mock")
-        async def mock_hitl_event():
-            # Push a credential request event into SSE stream
-            evt = {"type": "adk_request_credential"}
-            await _SSE_QUEUE.put(evt)
-            return JSONResponse({"status": "ok"})
-
-        @_SSE_ROUTER.get("/api/v1/events/hitl")
-        async def sse_stream(request: Request):
-            async def event_generator():
-                while True:
-                    if await request.is_disconnected():
-                        break
-                    evt = await _SSE_QUEUE.get()
-                    yield f"data: {json.dumps(evt)}\n\n"
-            return StreamingResponse(event_generator(), media_type="text/event-stream")
-
-try:
-    # Attempt to attach router if FastAPI app is available in this module
-    if 'app' in globals():
-        _init_sse_queue()
-        app.include_router(_SSE_ROUTER)  # type: ignore
-except Exception:
-    # Non-fatal: keep production behavior untouched
-    pass
-# --- END ADDED ---
+@app.get("/health")
+def health_check():
+    """提供一個簡單的健康檢查端點。"""
+    return {"status": "ok"}
