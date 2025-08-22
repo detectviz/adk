@@ -43,6 +43,19 @@ def _execute_restart(op_id: str) -> Dict[str, Any]:
     return {"op_id": op_id, "status": "RUNNING" if res.get("success") else "FAILED", "result": res}
 
 def _poll_restart(ctx: ToolContext, op_id: str) -> Dict[str, Any]:
+    # 讀取前端核可回應，若已核可/拒絕則更新 session 狀態
+    try:
+        auth = ctx.get_auth_response(function_call_id=op_id)
+        if auth and isinstance(auth, dict):
+            st = ctx.session.state.setdefault('lr_ops', {})
+            info = st.setdefault(op_id, {"approved": False, "progress": 0, "result": None})
+            if auth.get('approved') is True:
+                info['approved'] = True
+            if auth.get('rejected') is True:
+                info['approved'] = False
+                info['result'] = {"success": False, "message": auth.get('reason','HITL 拒絕')}
+    except Exception:
+        pass
     ops = ctx.session.state.setdefault('lr_ops', {})
     st = ops.get(op_id) or {"approved": False, "progress": 0, "result": None}
     """前端輪詢：若已核可且尚未執行，執行一次；否則回報進度。"""

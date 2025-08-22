@@ -60,3 +60,10 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 - `adk.yaml`：**代理行為**設定（模型、工具白名單、需審批清單、安全策略）。
 - `adk_config.yaml`：**開發工具/Dev UI** 設定（Web Dev UI、Runner 旗標）。
 > 可保留分離設計；若要合併，請將 `web/features` 與 `runner` 區塊搬至 `adk.yaml` 的 `dev_ui` 與 `runner` 節點，並更新讀取邏輯。
+
+### ADK SessionService 導向
+- 於生產環境請安裝並使用 **google.adk.sessions.DatabaseSessionService**；程式已自動導向官方實作。
+- 未安裝時退回本地最小實作，僅供開發測試。
+
+### HITL 閉環
+- `k8s_long_running._poll_restart()` 現已呼叫 `ctx.get_auth_response(...)` 以取得核可/拒絕結果，並更新 `Session.state['lr_ops']`。

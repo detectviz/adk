@@ -37,3 +37,7 @@ PostmortemExpert  # 文件/RAG → 覆盤報告
 
 ## Sessions
 - 以 ADK Runner `run_async(...)` 串流事件；`SESSION_BACKEND` 控制 `InMemorySessionService|DatabaseSessionService`。
+
+## HITL 與長任務（對齊 ADK）
+- `start_func`：判斷高風險操作時呼叫 `tool_context.request_credential(...)`，並在 `Session.state['lr_ops']` 建立 op 狀態。
+- `poll_func`：呼叫 `tool_context.get_auth_response(function_call_id=op_id)`；若已核可則繼續操作，若拒絕則回傳失敗並結束。
