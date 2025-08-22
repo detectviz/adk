@@ -7,6 +7,9 @@ from typing import Dict, Any, Optional
 
 from google.adk.tools.long_running_tool import LongRunningFunctionTool
 from google.adk.tools.tool_context import ToolContext
+from ..core.hitl_provider import get_provider
+from ..core.persistence import DB
+from ..core.errors import HitlRejectedError
 
 from .k8s import rollout_restart_deployment
 
@@ -19,6 +22,8 @@ def _start_restart(ctx: ToolContext, namespace: str, deployment_name: str, reaso
     need_hitl = namespace.lower() in {"prod","production"}
     _LR_OPS[op_id] = {"namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": not need_hitl, "progress": 0}
     if need_hitl:
+        prov = get_provider('hitl-approval')
+        # 可依 provider 定義調整 prompt/欄位
         ctx.request_credential(
             provider_id="hitl-approval",
             prompt=f"批准在 {namespace} 對 {deployment_name} 進行 rollout restart",

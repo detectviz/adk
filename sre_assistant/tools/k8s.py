@@ -91,3 +91,37 @@ def rollout_restart_deployment(namespace: str, deployment_name: str, reason: Opt
         return {"success": True, "message": f"rollout restart triggered at {now}", "elapsed_ms": int((time.time()-t0)*1000)}
     except Exception as e:
         return {"success": False, "message": f"restart failed: {e}", "elapsed_ms": int((time.time()-t0)*1000)}
+
+# 進一步比對 kubectl 行為：觀察 generation 與 conditions
+def _is_rollout_complete(dep) -> bool:
+    """比對 observedGeneration、updated/ready/available 與 conditions（Available/Progressing）。"""
+    status = dep.status or None
+    spec = dep.spec or None
+    meta = dep.metadata or None
+    try:
+        desired = (spec.replicas or 0)
+        # observedGeneration 與 metadata.generation 必須一致
+        if getattr(status, "observed_generation", None) and getattr(meta, "generation", None):
+            if status.observed_generation < meta.generation:
+                return False
+        # 基本數值門檻
+        updated = getattr(status, "updated_replicas", 0) or 0
+        ready = getattr(status, "ready_replicas", 0) or 0
+        available = getattr(status, "available_replicas", 0) or 0
+        if not (updated >= desired and ready >= desired and available >= desired):
+            return False
+        # 條件判斷：Available=True 且 Progressing=True/NewReplicaSetAvailable
+        conds = { (c.type, c.status, c.reason): c for c in (status.conditions or []) }
+        ok_available = any(c.type=="Available" and c.status=="True" for c in (status.conditions or []))
+        ok_progress = any(c.type=="Progressing" and c.status=="True" for c in (status.conditions or []))
+        return ok_available and ok_progress
+    except Exception:
+        return False
+
+def _has_progress_deadline_exceeded(dep) -> bool:
+    """若 Progressing=False 且 reason=ProgressDeadlineExceeded 則視為失敗。"""
+    status = dep.status or None
+    for c in (status.conditions or []):
+        if c.type=="Progressing" and getattr(c, "reason", "")=="ProgressDeadlineExceeded":
+            return True
+    return False

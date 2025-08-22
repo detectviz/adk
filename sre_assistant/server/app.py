@@ -83,7 +83,7 @@ async def _stream_events(user_id: str, session_id: str, content: Content) -> Asy
     async for event in RUNNER.run_async(user_id=user_id, session_id=session_id, new_message=content):
         # 將事件落盤以便回放
         try:
-            DB.write_event(session_id, user_id, event.__class__.__name__, (event.to_dict() if hasattr(event,'to_dict') else event.__dict__))
+            DB.write_event(session_id, user_id, event.__class__.__name__, (event.to_dict() if hasattr(event,'to_dict') else event.__dict__))\n        # 嘗試從事件萃取 decision 訊息（啟發式）\n        try:\n            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__\n            agent_name = (d.get('agent') or {}).get('name') or d.get('agent_name') or 'main'\n            decision_type = event.__class__.__name__\n            input_json = {k:v for k,v in d.items() if k not in ('output','result')}\n            output_json = d.get('output') or d.get('result') or d\n            latency_ms = d.get('latency_ms') or None\n            DB.write_decision(session_id, agent_name, decision_type, input_json, output_json, None, latency_ms)\n        except Exception:\n            pass
         except Exception:
             pass
         try:
@@ -143,3 +143,15 @@ def approve_page():
     </body></html>
     """
     return HTMLResponse(html)
+
+
+@app.get("/api/v1/sessions/{session_id}/events")
+async def get_session_events(session_id: str, limit: int = 100, _: str = Depends(auth_dep)):
+    """回放指定 session 的事件流（DB 來源，支援 SQLite/PG）。"""
+    return {"session_id": session_id, "events": DB.list_events(session_id=session_id, limit=limit)}
+
+@app.get("/api/v1/sessions/{session_id}/decisions")
+async def get_session_decisions(session_id: str, limit: int = 100, offset: int = 0, _: str = Depends(auth_dep)):
+    """查詢近期 decisions（DB 來源，支援 SQLite/PG）。"""
+    rows = DB.list_decisions(limit=limit, offset=offset)
+    return {"session_id": session_id, "decisions": rows}

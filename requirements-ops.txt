@@ -1,0 +1,13 @@
+
+# 運維與可選元件
+kubernetes>=28.1.0
+psycopg[binary]>=3.2.1
+grpcio>=1.64.0
+grpcio-tools>=1.64.0
+opentelemetry-sdk>=1.25.0
+opentelemetry-exporter-otlp-proto-grpc>=1.25.0
+google-cloud-logging>=3.10.0
+google-cloud-monitoring>=2.19.0
+sentence-transformers>=3.0.1
+PyYAML>=6.0.2
+requests>=2.32.3
