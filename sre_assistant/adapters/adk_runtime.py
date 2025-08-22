@@ -1,46 +1,32 @@
 
 # -*- coding: utf-8 -*-
-# ADK 介面：將 YAML+函式的工具轉換為 ADK 的 FunctionTool，並建立 LoopAgent 協調器。
+# 工具適配層：將專案中的明確 Python 函式工具轉為 ADK 的 Tool 物件（FunctionTool / LongRunningFunctionTool）
 from __future__ import annotations
-from typing import Any, Dict, Callable, List
-from ..adk_compat.registry import ToolRegistry
+from typing import List, Dict, Callable, Any
 
 try:
-    from google.adk.agents import LoopAgent, LlmAgent
-    from google.adk.planners import BuiltInPlanner
-    from google.adk.tools.function_tool import FunctionTool as AdkFunctionTool
-    ADK_AVAILABLE = True
+    from google.adk.tools.function_tool import FunctionTool
+    from google.adk.tools.long_running_tool import LongRunningFunctionTool
 except Exception:
-    ADK_AVAILABLE = False
+    FunctionTool = None
+    LongRunningFunctionTool = None
 
-from ...adk_runtime.main import build_registry
+def _is_long_running(name: str) -> bool:
+    # 約定：名稱或 __name__ 含 long_running 即視為長任務工具（可依 YAML/標記改進）
+    return "long_running" in name.lower()
 
-def _build_adk_tools(reg: ToolRegistry) -> List[Any]:
-    tools = []
-    if not ADK_AVAILABLE:
-        return tools
-    for name, ent in reg.list_tools().items():
-        spec = ent["spec"]
-        func = ent["func"]
-        # 將 YAML 契約映射為 ADK 的 FunctionTool 參數（示意，實務依 ADK 介面補齊）
-        t = AdkFunctionTool(
-            name=spec.get("name", name),
-            description=spec.get("description",""),
-            func=func,
-            args_schema=spec.get("args_schema", {"type":"object"}),
-            returns_schema=spec.get("returns_schema", {"type":"object"}),
-            timeout_seconds=spec.get("timeout_seconds", 30),
-        )
-        tools.append(t)
-    return tools
-
-def build_coordinator(model: str = "gemini-2.5-flash"):
-    reg = build_registry()
-    if not ADK_AVAILABLE:
-        # 回退：回傳本地協調器以維持功能
-        from ..core.assistant import SREAssistant
-        return SREAssistant(reg)
-    adk_tools = _build_adk_tools(reg)
-    main = LlmAgent(name="SREMainAgent", model=model, instruction="You are SRE assistant", tools=adk_tools)
-    coordinator = LoopAgent(agents=[main], planner=BuiltInPlanner(), max_iterations=10)
-    return coordinator
+def build_adk_tools(tool_map: Dict[str, Callable[..., Any]]) -> List[Any]:
+    """將 registry 中的函式轉為 ADK 工具物件；若無 ADK 套件，回傳原函式清單。"""
+    out = []
+    for name, fn in tool_map.items():
+        if FunctionTool is None:
+            out.append(fn)
+            continue
+        if _is_long_running(getattr(fn, "__name__", name)):
+            if LongRunningFunctionTool:
+                out.append(LongRunningFunctionTool(name=name, func=fn))
+            else:
+                out.append(FunctionTool(name=name, func=fn))
+        else:
+            out.append(FunctionTool(name=name, func=fn))
+    return out

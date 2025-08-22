@@ -1,12 +1,15 @@
 
 # -*- coding: utf-8 -*-
+# 修復專家代理（最小 ADK 化實作）：用於 AgentTool 掛載
 from __future__ import annotations
-from typing import Dict, Any
-from ..adk_compat.agents import LlmAgent
+import os
+try:
+    from google.adk.agents import LlmAgent
+except Exception:
+    LlmAgent = None
 
-class RemediationExpert(LlmAgent):
-    def __init__(self, model: str = "gemini-2.5-flash"):
-        super().__init__(name="RemediationExpert", instruction="安全執行修復並預設 HITL。", tools=["K8sRolloutRestartTool"])
-
-    async def remediate(self, namespace: str, deployment_name: str, require_approval: bool = True) -> Dict[str, Any]:
-        return {"require_approval": require_approval, "target": f"{namespace}/{deployment_name}"}
+def build_remediation_agent(model: str) -> "LlmAgent":
+    if LlmAgent is None:
+        raise RuntimeError("缺少 google-adk 套件，無法建立 RemediationExpert")
+    instruction = "你是 SRE 修復專家，在風險可控前提下提出修復方案，必要時要求 HITL 核可後再執行。"
+    return LlmAgent(name="RemediationExpert", model=model, instruction=instruction, tools=[])

@@ -11,3 +11,14 @@ async def auth_dep(x_api_key: str = Header(default="")) -> str:
     # 這裡簡化：直接查角色（實務應建立快取）
     # 若查無則 401；此處示例略過 DB 查，返回來自 Header 的 key
     return x_api_key
+
+
+# 開發後門：僅在 DEV_API_KEY_ENABLED=true 時允許接受 devkey（請勿在生產環境啟用）
+import os
+DEV_KEY_ENABLED = os.getenv("DEV_API_KEY_ENABLED","false").lower() in ("1","true","yes")
+DEV_KEY = os.getenv("DEV_API_KEY","devkey")
+
+async def auth_dep_dev(x_api_key: str = Header(default="")) -> str:
+    if DEV_KEY_ENABLED and x_api_key == DEV_KEY:
+        return "dev"
+    return await auth_dep(x_api_key)  # 回退到正式驗證

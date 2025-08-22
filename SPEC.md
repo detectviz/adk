@@ -62,3 +62,7 @@ Diagnostic  Remediation  Postmortem  (LlmAgent)
 - v14：Session 可切換；HITL 改為 request_credential；SSE 事件與前端示例。
 - v14.1：真連接 Prometheus/K8s/Grafana + E2E 驗收。
 - v14.2：整合 ADK Web Dev UI。
+
+### 入口與角色
+- ADK 模式主入口：`sre_assistant/adk_app/runtime.py`。
+- 備援協調器：`sre_assistant/core/assistant.py`（非 ADK 模式）。

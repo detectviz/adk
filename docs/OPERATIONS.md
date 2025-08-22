@@ -19,3 +19,6 @@
 ## 回放與審計
 - 事件回放：`GET /api/v1/sessions/{session_id}/events` 或 `/events_range`  
 - 決策回放：`GET /api/v1/sessions/{session_id}/decisions` 或 `/decisions_range`
+
+## Dev UI 工具選單同步
+- 透過 `GET /api/v1/tools/effective` 取得 allowlist 與核可需求，避免與 `adk.yaml` 產生不一致。

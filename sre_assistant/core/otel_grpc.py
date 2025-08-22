@@ -1,4 +1,6 @@
-
+# 注意：此模組僅用於 OpenTelemetry 追蹤傳遞（Trace Propagation），
+# 與 ADK 的 Agent-to-Agent 通訊（A2A）無關，請勿混淆。
+# 注意：此檔僅用於 OpenTelemetry 的 Trace 傳遞（gRPC 攔截器）\n
 # -*- coding: utf-8 -*-
 # gRPC OTel 攔截器：自動注入/抽取 traceparent（簡化版）
 from __future__ import annotations

@@ -67,3 +67,30 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 
 ### HITL 閉環
 - `k8s_long_running._poll_restart()` 現已呼叫 `ctx.get_auth_response(...)` 以取得核可/拒絕結果，並更新 `Session.state['lr_ops']`。
+
+### 協調器自動載入設定（adk.yaml）
+- 模型：`agent.model`。
+- 迭代上限：`runner.max_iterations`。未設定則使用環境變數 `ADK_MAX_ITER` 或預設 10。
+- 工具清單：`agent.tools_allowlist`。若留空則載入所有已註冊工具。
+- 在執行前會套用「政策閘包裝器」進行靜態拒絕，對齊 before_tool_callback 的職責。
+
+### 政策閘 + HITL 自動注入
+- 風險等級達門檻（預設 `POLICY_HITL_THRESHOLD=High`）或屬於 `tools_require_approval` 清單時，政策閘會：
+  1) 嘗試呼叫工具的 `ToolContext.request_credential(...)` 觸發前端表單；
+  2) 拋出 `HitlPendingError` 阻斷執行，待前端核可後再由使用者重試或長任務續跑。
+
+### Dev UI 工具清單
+- 端點：`GET /api/v1/tools/effective` 會回傳實際可用工具與是否需要核可欄位，供前端選單渲染。
+
+## 專案主入口（ADK 模式）
+- **sre_assistant/adk_app/runtime.py**：讀取 `adk.yaml`、載入工具、建立協調器 RUNNER，並提供 `get_web_app()` 供 ADK Web Dev UI 掛載。
+- **備援**：`sre_assistant/core/assistant.py` 為「非 ADK 模式」協調器，僅供除錯與教學，生產不建議使用。
+
+## 入口點
+- **ADK 模式主入口**：`sre_assistant/adk_app/runtime.py`（建構 RUNNER）。
+- API 啟動：`sre_assistant/server/app.py`（FastAPI + SSE），內部引用 `runtime.RNNER`。
+- 備援協調器：`sre_assistant/core/assistant.py` 僅供非 ADK 情境下本地開發測試。
+
+## 專家與 AgentTool
+- `experts/experts.py` 定義 Diagnostic/Remediation/Postmortem/Config 四個專家，以 `AgentTool` 掛載到主代理。
+- 工具適配層：`adapters/adk_runtime.py` 將函式工具轉為 ADK `FunctionTool/LongRunningFunctionTool`。

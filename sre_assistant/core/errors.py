@@ -18,3 +18,10 @@ class HitlRejectedError(Exception):
     """HITL 拒絕或逾時。"""
     def __init__(self, code: str = "E_HITL_REJECTED", message: str = "HITL rejected or expired"):
         super().__init__(message); self.code = code
+
+
+class HitlPendingError(Exception):
+    """人工核可待審中。呼叫端應等待或引導前端呈現憑證表單。"""
+    def __init__(self, message: str = "HITL 待審中", code: str = "E_HITL_PENDING"):
+        super().__init__(message)
+        self.code = code

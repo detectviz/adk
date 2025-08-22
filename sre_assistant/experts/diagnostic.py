@@ -1,12 +1,16 @@
 
 # -*- coding: utf-8 -*-
+# 診斷專家代理（最小 ADK 化實作）：用於 AgentTool 掛載
 from __future__ import annotations
-from typing import Dict, Any
-from ..adk_compat.agents import LlmAgent
+import os
+try:
+    from google.adk.agents import LlmAgent
+except Exception:
+    LlmAgent = None
 
-class DiagnosticExpert(LlmAgent):
-    def __init__(self, model: str = "gemini-2.5-flash"):
-        super().__init__(name="DiagnosticExpert", instruction="使用指標與 Runbook 進行故障初診。", tools=["PromQLQueryTool", "RunbookLookupTool"])
-
-    async def diagnose(self, message: str) -> Dict[str, Any]:
-        return {"note": f"Diagnosis plan for: {message}"}
+def build_diagnostic_agent(model: str) -> "LlmAgent":
+    """建立 LlmAgent 供 AgentTool 包裝。"""
+    if LlmAgent is None:
+        raise RuntimeError("缺少 google-adk 套件，無法建立 DiagnosticExpert")
+    instruction = "你是 SRE 診斷專家，根據指標與日誌推斷可能的根因，輸出可行的驗證步驟與資料依據。"
+    return LlmAgent(name="DiagnosticExpert", model=model, instruction=instruction, tools=[])

@@ -199,3 +199,21 @@ async def get_session_events_range(session_id: str, since: str|None=None, until:
 @app.get("/api/v1/decisions_range")
 async def get_decisions_range(since: str|None=None, until: str|None=None, limit: int=50, offset: int=0, _: str = Depends(auth_dep)):
     return {"decisions": list_decisions_range(since, until, limit, offset)}
+
+
+@app.get("/api/v1/tools/effective")
+async def list_effective_tools(_: str = Depends(auth_dep)):
+    # 讀取 adk.yaml 的 allowlist 與 require_approval
+    cfg = {}
+    try:
+        if Path("adk.yaml").exists():
+            cfg = yaml.safe_load(Path("adk.yaml").read_text(encoding="utf-8")) or {}
+    except Exception:
+        cfg = {}
+    allow = cfg.get("agent",{}).get("tools_allowlist") or REGISTRY.list()
+    require = set(cfg.get("agent",{}).get("tools_require_approval") or [])
+    tools = []
+    for n in allow:
+        if n in REGISTRY.list():
+            tools.append({"name": n, "require_approval": n in require})
+    return {"tools": tools}
