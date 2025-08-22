@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # PromQL 查詢工具（真連接版）
 # - 以 integrations.prometheus_http 呼叫 Prometheus /api/v1/query_range 或 /api/v1/query
 # - 參數 range 格式："<RFC3339 start>,<RFC3339 end>,<step>"；若為 "instant@<RFC3339>" 則跑即時查詢
@@ -11,7 +10,7 @@ from ..integrations.prometheus_http import PrometheusClient
 
 def _parse_range(r: str):
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`_parse_range` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `r`：參數用途請描述。

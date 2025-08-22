@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 from typing import Optional
 import os
@@ -17,7 +16,7 @@ import google.auth.credentials
 
 def init_telemetry(service_name: str = "sre-assistant") -> None:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：初始化 OpenTelemetry Tracing/Metrics，支援 OTLP/gRPC；若對 Google Telemetry API 則自動附加 Bearer。
     參數說明：
     - `service_name`：資源屬性的 `service.name`。
@@ -46,7 +45,7 @@ def init_telemetry(service_name: str = "sre-assistant") -> None:
 
 def get_tracer(name: str = "sre_assistant"):
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：取得 Tracer。
     參數說明：
     - `name`：Tracer 名稱。

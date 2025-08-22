@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # FastAPI 伺服器（v14）：
 # - /api/v1/chat：一次性呼叫（阻塞），供簡單用例
 # - /api/v1/chat_sse：SSE 串流事件（建議與前端配套），可接收 adk_request_credential
@@ -233,7 +232,7 @@ async def list_effective_tools(_: str = Depends(require_api_key)):
 
 @app.post("/api/v1/ops/{op_id}/cancel")
 async def cancel_op(op_id: str, _: str = Depends(require_api_key)):
-    """自動產生註解時間：{ts}
+    """{ts}
 函式用途：標記長任務取消旗標。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     try:
         from sre_assistant.core.audit import write_hitl_audit
@@ -248,7 +247,7 @@ async def cancel_op(op_id: str, _: str = Depends(require_api_key)):
 
 @app.post("/api/v1/ops/{op_id}/resume")
 async def resume_op(op_id: str, _: str = Depends(require_api_key)):
-    """自動產生註解時間：{ts}
+    """{ts}
 函式用途：標記長任務恢復旗標。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     try:
         from sre_assistant.core.audit import write_hitl_audit
@@ -263,7 +262,7 @@ async def resume_op(op_id: str, _: str = Depends(require_api_key)):
 
 @app.post("/api/v1/hitl/approve")
 async def hitl_approve(function_call_id: str, approved: bool = True, reason: str = "", approver: str = "user", _: str = Depends(require_api_key)):
-    """自動產生註解時間：{ts}
+    """{ts}
 函式用途：接收 HITL 審批並記錄於 session.state。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     try:
         from sre_assistant.core.audit import write_hitl_audit
@@ -281,7 +280,7 @@ async def hitl_approve(function_call_id: str, approved: bool = True, reason: str
 
 @app.get("/api/v1/devui/tools")
 async def devui_tools(_: str = Depends(require_api_key)):
-    """自動產生註解時間：{ts}
+    """{ts}
 函式用途：提供 Dev UI 同步工具清單。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     try:
         from sre_assistant.core.audit import write_hitl_audit

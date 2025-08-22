@@ -3,7 +3,6 @@
 # 專案：SRE Assistant（對齊 Google ADK），本檔案已補齊繁體中文註解以提升可讀性與可維護性。
 # 說明：一般模組或測試檔，已加入中文檔頭說明。
 
-# -*- coding: utf-8 -*-
 import os
 from sre_assistant.tools.promql import promql_query_tool
 from sre_assistant.core.policy import SRESecurityPolicy

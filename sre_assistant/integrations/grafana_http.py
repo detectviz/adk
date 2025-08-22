@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # Grafana HTTP 整合客戶端
 # - 依環境變數 GRAFANA_URL 與 GRAFANA_TOKEN 呼叫 Grafana API
 # - 實作最小集合：建立/更新儀表板
@@ -14,7 +13,7 @@ GRAFANA_TOKEN = os.getenv("GRAFANA_TOKEN", "")  # 需有適當權限
 class GrafanaClient:
     def __init__(self, base_url: str | None = None, token: str | None = None):
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -31,7 +30,7 @@ class GrafanaClient:
 
     def upsert_dashboard(self, dashboard: Dict[str, Any], folder_id: Optional[int] = None, overwrite: bool = True) -> Dict[str, Any]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`upsert_dashboard` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。

@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 檔案：sre_assistant/adk_app/assembly.py
 # 角色：裝配協調器所需的工具白名單，從 sub_agents/*/tools.py 自動彙總。
 from __future__ import annotations
@@ -7,7 +6,7 @@ import importlib, pkgutil
 
 def gather_subagent_tool_allowlist() -> set[str]:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：掃描 `sub_agents.*.tools` 模組並彙總工具白名單。
     參數說明：無。
     回傳：工具名稱集合（去重後）。

@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 共用 HTTP 客戶端：以 httpx 實作，並將常見錯誤映射為標準化錯誤碼。
 from __future__ import annotations
 import os
@@ -14,7 +13,7 @@ from ..adk_compat.executor import ExecutionError
 class HttpClient:
     def __init__(self, base_url: str, headers: Optional[Dict[str, str]] = None, timeout: int = 15):
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -29,7 +28,7 @@ class HttpClient:
 
     def _ensure(self):
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`_ensure` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -40,7 +39,7 @@ class HttpClient:
 
     def _full(self, path: str) -> str:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`_full` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -52,7 +51,7 @@ class HttpClient:
 
     def get(self, path: str, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`get` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -80,7 +79,7 @@ class HttpClient:
 
     def post(self, path: str, json_body: Dict[str, Any]) -> Dict[str, Any]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`post` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。

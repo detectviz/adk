@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 測試：嵌入維度檢查與 pgvector upsert 呼叫行為（以假連線模擬）
 import types
 from sre_assistant.rag.embeddings import get_embedding, ensure_dimension

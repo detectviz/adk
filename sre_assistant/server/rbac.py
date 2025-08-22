@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 角色：RBAC 讀自 adk.yaml 的 roles 映射；若缺省則回退內建預設。
 from __future__ import annotations
 import yaml, os

@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 import os
 def init_optional_gcp_exporters(service_name: str="sre-assistant")->None:
     if os.getenv("ENABLE_GCM_EXPORTER","false").lower() in ("1","true","yes"):

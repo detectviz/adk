@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 專家代理模組（單檔）：導出 build_agent(tool_objs) 以建立 LlmAgent 實例
 from __future__ import annotations
 from typing import Dict, Any, List

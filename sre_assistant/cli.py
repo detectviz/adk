@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 命令列工具：對話、審批、回放查詢、API Key 管理。
 import argparse, asyncio, json, secrets
 from .core.assistant import SREAssistant
@@ -9,7 +8,7 @@ from .core.persistence import DB
 
 def main():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`main` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。

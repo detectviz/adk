@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # E2E 測試：針對真連接的 Prometheus/K8s/Grafana 進行最小驗證
 # - 透過環境變數控制是否執行：未設置對應變數時自動跳過
 import os, pytest, time, uuid
@@ -12,7 +11,7 @@ pytestmark = pytest.mark.e2e
 
 def test_prometheus_query_range():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_prometheus_query_range` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -26,7 +25,7 @@ def test_prometheus_query_range():
 
 def test_k8s_rollout_restart():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_k8s_rollout_restart` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -39,7 +38,7 @@ def test_k8s_rollout_restart():
 
 def test_grafana_create_dashboard():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_grafana_create_dashboard` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。

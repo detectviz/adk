@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # ADK 事件嚴格型別解析器：將 Runner 串流事件統一為標準種類，避免啟發式歧義
 from __future__ import annotations
 from dataclasses import dataclass

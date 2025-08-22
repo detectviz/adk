@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 檔案：sre_assistant/server/events.py
 # 角色：簡易事件匯流排（SSE 用）。每個事件結構遵循 ADK: request_credential 協議。
 from __future__ import annotations
@@ -8,7 +7,7 @@ from typing import AsyncIterator, Dict, Any
 
 class EventBus:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：非持久化的簡易事件匯流排。支援多個 listener 並發送 dict 事件。
     參數說明：無。
     回傳：無。

@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 工具適配層：將專案中的明確 Python 函式工具轉為 ADK 的 Tool 物件（FunctionTool / LongRunningFunctionTool）
 from __future__ import annotations
 from typing import List, Dict, Callable, Any
@@ -14,7 +13,7 @@ except Exception:
 def _is_long_running(name: str) -> bool:
     # 約定：名稱或 __name__ 含 long_running 即視為長任務工具（可依 YAML/標記改進）
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`_is_long_running` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `name`：參數用途請描述。

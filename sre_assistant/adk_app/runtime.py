@@ -1,6 +1,5 @@
 from sre_assistant.adk_app.assembly import gather_subagent_tool_allowlist
 
-# -*- coding: utf-8 -*-
 # ADK 執行階段建構器：讀取 adk.yaml，建立工具（FunctionTool/LongRunningFunctionTool）、專家代理（AgentTool），主代理（LlmAgent），最後組裝 LoopAgent
 from __future__ import annotations
 from typing import Any, Dict, List
@@ -43,7 +42,7 @@ def _wrap_tool(name: str, fn) -> Any:
 
 def _select_tools_by_names(tool_objs: Dict[str, Any], names: List[str] | None) -> List[Any]:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`_select_tools_by_names` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `tool_objs`：參數用途請描述。
@@ -60,7 +59,7 @@ def _select_tools_by_names(tool_objs: Dict[str, Any], names: List[str] | None) -
 
 def build_runner_from_config(cfg: dict) -> "LoopAgent":
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`build_runner_from_config` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `cfg`：參數用途請描述。
@@ -119,7 +118,7 @@ def build_runner_from_config(cfg: dict) -> "LoopAgent":
 def get_runner():
     # 讀取 adk.yaml 並合併 experts/*.yaml 覆蓋
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`get_runner` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -130,7 +129,7 @@ def get_runner():
 RUNNER = get_runner()
 
 def _filter_tools_by_subagents(registry: dict) -> dict:
-    """自動產生註解時間：{ts}
+    """{ts}
 函式用途：依 sub_agents 工具白名單過濾註冊表。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     allow = gather_subagent_tool_allowlist()
     return {k:v for k,v in registry.items() if k in allow}

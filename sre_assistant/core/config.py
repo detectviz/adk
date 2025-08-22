@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # adk.yaml 設定讀取輔助
 from __future__ import annotations
 from pathlib import Path
@@ -7,7 +6,7 @@ import yaml
 
 def load_adk_config(path: str = "adk.yaml") -> dict:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`load_adk_config` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `path`：參數用途請描述。

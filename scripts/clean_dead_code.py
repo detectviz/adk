@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 檔案：scripts/clean_dead_code.py
 # 用途：以啟發式掃描可能未被引用的 .py 檔，僅列印清單不自動刪除。
 import os, re, sys, pathlib

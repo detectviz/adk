@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 專家子代理：Diagnostic / Remediation / Postmortem / Config，以 LlmAgent 實作並以 AgentTool 掛載
 from __future__ import annotations
 from typing import List, Any
@@ -15,7 +14,7 @@ except Exception:
 
 def _ensure():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`_ensure` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -25,7 +24,7 @@ def _ensure():
 
 def make_diagnostic_expert(registry) -> Any:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`make_diagnostic_expert` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `registry`：參數用途請描述。
@@ -42,7 +41,7 @@ def make_diagnostic_expert(registry) -> Any:
 
 def make_remediation_expert(registry) -> Any:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`make_remediation_expert` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `registry`：參數用途請描述。
@@ -59,7 +58,7 @@ def make_remediation_expert(registry) -> Any:
 
 def make_postmortem_expert(registry) -> Any:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`make_postmortem_expert` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `registry`：參數用途請描述。
@@ -76,7 +75,7 @@ def make_postmortem_expert(registry) -> Any:
 
 def make_config_expert(registry) -> Any:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`make_config_expert` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `registry`：參數用途請描述。
@@ -94,7 +93,7 @@ def make_config_expert(registry) -> Any:
 
 def _select_tools(registry, section: str, default: list[str]) -> list[Any]:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`_select_tools` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `registry`：參數用途請描述。

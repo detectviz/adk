@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 def test_filter_uses_subagent_tool_lists():
     from sre_assistant.adk_app.assembly import gather_subagent_tool_allowlist
     allow = gather_subagent_tool_allowlist()

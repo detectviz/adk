@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 用途：以官方 RemoteA2aAgent 消費遠端 Agent（占位）。
 from __future__ import annotations
 

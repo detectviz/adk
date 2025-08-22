@@ -7,7 +7,7 @@ import sre_assistant.server.app as appmod
 from sre_assistant.core.persistence import DB, init_schema
 def test_events_api_sqlite(monkeypatch):
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_events_api_sqlite` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `monkeypatch`：參數用途請描述。

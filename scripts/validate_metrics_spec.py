@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 import yaml, re
 from pathlib import Path
 ALLOWED = {"agent_request_duration_seconds_bucket","agent_requests_total"}

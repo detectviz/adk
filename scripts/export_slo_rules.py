@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 檔案：scripts/export_slo_rules.py
 # 用途：將 adk.yaml 與 experts/*.yaml 中的 SLO 門檻導出為 Prometheus 規則（observability/slo_rules.yaml）
 # 說明：生成 Recording Rules 與 Alerting Rules，針對每個專家代理（Diagnostic/Remediation/Postmortem/Config）
@@ -10,7 +9,7 @@ from pathlib import Path
 
 # 為腳本本身加入簡短中文 Docstring
 """
-自動產生註解時間：{ts}
+{ts}
 函式用途：此模組提供命令列工具，將 SLO 配置轉為 Prometheus 規則檔。
 參數說明：透過命令列執行，不接受參數；讀寫路徑為專案固定位置。
 回傳：無（在檔案系統寫出 observability/slo_rules.yaml）。
@@ -18,7 +17,7 @@ from pathlib import Path
 
 def _load_yaml(path: Path) -> dict:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：載入 YAML 檔並回傳字典。
     參數說明：
     - `path`：YAML 檔路徑。
@@ -31,7 +30,7 @@ def _load_yaml(path: Path) -> dict:
 
 def _load_config() -> dict:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：聚合 adk.yaml 與 experts/*.yaml 的設定。
     參數說明：無。
     回傳：合併後的設定 dict，重點在 `experts.*.slo` 與 `agent.model`。
@@ -52,7 +51,7 @@ def _load_config() -> dict:
 
 def _mk_group(name: str, rules: list[dict]) -> dict:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：建立 Prometheus 規則群組。
     參數說明：
     - `name`：群組名稱。
@@ -63,7 +62,7 @@ def _mk_group(name: str, rules: list[dict]) -> dict:
 
 def _recording_and_alerts_for_expert(expert: str, slo: dict) -> list[dict]:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：為單一專家生成 Recording 與 Alerting 規則集合。
     參數說明：
     - `expert`：專家名稱（如 diagnostic）。
@@ -113,7 +112,7 @@ def _recording_and_alerts_for_expert(expert: str, slo: dict) -> list[dict]:
 
 def main() -> int:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：主執行流程。讀取設定、生成各專家的 recording/alert 規則，並寫出 YAML。
     參數說明：無。
     回傳：程序代碼，0 代表成功。

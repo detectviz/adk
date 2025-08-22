@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 import os, pytest, tempfile, pathlib
 from sre_assistant.tools.knowledge_ingestion import ingest_files
 from sre_assistant.tools.rag_retrieve import rag_search
@@ -7,7 +6,7 @@ from sre_assistant.tools.rag_retrieve import rag_search
 @pytest.mark.integration
 def test_rag_flow_smoke(tmp_path):
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_rag_flow_smoke` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `tmp_path`：參數用途請描述。

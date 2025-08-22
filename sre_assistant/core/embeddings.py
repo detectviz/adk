@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 嵌入器（Embeddings）
 # - EMBEDDER=st  → 使用 sentence-transformers（需安裝）
 # - EMBEDDER=hash → 使用內建 Hash-based（離線可運作）
@@ -11,7 +10,7 @@ import os, math, hashlib, random
 class BaseEmbedder:
     def embed_texts(self, texts: List[str]) -> List[List[float]]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`embed_texts` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -23,7 +22,7 @@ class BaseEmbedder:
 class HashEmbedder(BaseEmbedder):
     def __init__(self, dim: int = 384):
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -33,7 +32,7 @@ class HashEmbedder(BaseEmbedder):
         self.dim = dim
     def embed_texts(self, texts: List[str]) -> List[List[float]]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`embed_texts` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -53,7 +52,7 @@ class STEmbedder(BaseEmbedder):
     def __init__(self, model_name: str = None):
         # 延遲匯入，避免未安裝套件報錯
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -64,7 +63,7 @@ class STEmbedder(BaseEmbedder):
         self.model = SentenceTransformer(model_name or os.getenv("ST_MODEL", "sentence-transformers/all-MiniLM-L6-v2"))
     def embed_texts(self, texts: List[str]) -> List[List[float]]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`embed_texts` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -76,7 +75,7 @@ class STEmbedder(BaseEmbedder):
 
 def get_embedder() -> BaseEmbedder:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`get_embedder` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。

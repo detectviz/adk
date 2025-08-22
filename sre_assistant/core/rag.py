@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # RAG：以 SQLite FTS5 優先檢索，無 FTS 時落回 LIKE 檢索。
 from __future__ import annotations
 from typing import Any, Dict, List
@@ -7,7 +6,7 @@ from .persistence import DB
 
 def rag_create_entry(title: str, content: str, author: str, tags: List[str], status: str = "draft") -> Dict[str, Any]:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`rag_create_entry` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `title`：參數用途請描述。
@@ -21,7 +20,7 @@ def rag_create_entry(title: str, content: str, author: str, tags: List[str], sta
 
 def rag_update_status(entry_id: int, status: str) -> Dict[str, Any] | None:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`rag_update_status` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `entry_id`：參數用途請描述。
@@ -32,7 +31,7 @@ def rag_update_status(entry_id: int, status: str) -> Dict[str, Any] | None:
 
 def rag_retrieve_tool(query: str, top_k: int = 5, status_filter: List[str] | None = None) -> Dict[str, Any]:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`rag_retrieve_tool` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `query`：參數用途請描述。

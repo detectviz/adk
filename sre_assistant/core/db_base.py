@@ -1,12 +1,11 @@
 
-# -*- coding: utf-8 -*-
 # DB 介面抽象：便於在 SQLite 與 PostgreSQL 間切換。
 from __future__ import annotations
 from typing import Any, Dict, List, Optional, Protocol
 
 class DatabaseInterface(Protocol):
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`insert_decision` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -23,7 +22,7 @@ class DatabaseInterface(Protocol):
         """
     def insert_decision(self, session_id: str, agent_name: str, decision_type: str, input: str, output: str, confidence: float | None, execution_time_ms: int, trace_id: str | None = None, span_id: str | None = None) -> int: ...
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`update_decision_output` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -34,7 +33,7 @@ class DatabaseInterface(Protocol):
         """
     def update_decision_output(self, decision_id: int, output: str, execution_time_ms: int | None = None): ...
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`insert_tool_execution` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -51,7 +50,7 @@ class DatabaseInterface(Protocol):
         """
     def insert_tool_execution(self, decision_id: int | None, tool_name: str, parameters: str, result: str, status: str, error_message: str | None, duration_ms: int, trace_id: str | None = None, span_id: str | None = None) -> int: ...
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`list_decisions` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -61,7 +60,7 @@ class DatabaseInterface(Protocol):
         """
     def list_decisions(self, limit: int = 20, offset: int = 0) -> List[Dict[str, Any]]: ...
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`list_tool_execs` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。

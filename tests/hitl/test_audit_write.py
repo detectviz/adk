@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 測試：HITL 審計寫入點在無 db 時不丟例外，且在有 db.execute 時會被呼叫
 from sre_assistant.core.audit import write_hitl_audit
 

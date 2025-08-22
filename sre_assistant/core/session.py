@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # Session 服務：優先採用官方 google.adk.sessions，若不可用再回退到本地最小實作
 from __future__ import annotations
 from typing import Dict, Any
@@ -17,7 +16,7 @@ except Exception:
 class _LocalInMemorySessionService:
     """以記憶體保存 Session 狀態的最小實作（開發用途）。"""
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -26,7 +25,7 @@ class _LocalInMemorySessionService:
     def __init__(self): self._store: Dict[str, Dict[str, Any]] = {}
     def get(self, session_id: str) -> Dict[str, Any]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`get` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -36,7 +35,7 @@ class _LocalInMemorySessionService:
         return self._store.setdefault(session_id, {"created_at": time.time(), "state": {}})
     def set(self, session_id: str, state: Dict[str, Any]) -> None:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`set` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -51,7 +50,7 @@ class _LocalDatabaseSessionService:
     KEY = "__session_state__"
     def get(self, session_id: str) -> Dict[str, Any]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`get` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -69,7 +68,7 @@ class _LocalDatabaseSessionService:
         return {"state": {}}
     def set(self, session_id: str, state: Dict[str, Any]) -> None:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`set` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。

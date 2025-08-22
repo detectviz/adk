@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 提供 /api/v1/hitl/approve|reject 端點使用之輔助邏輯
 from __future__ import annotations
 from typing import Dict, Any

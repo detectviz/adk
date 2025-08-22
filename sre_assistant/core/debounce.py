@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 去抖動：在短時間內抑制相同訊息重複觸發；新增 session 維度避免跨會話誤殺。
 import time, hashlib
 from typing import Dict, Optional
@@ -8,7 +7,7 @@ from .config import Config
 class Debouncer:
     def __init__(self, ttl_seconds: int | None = None):
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -21,7 +20,7 @@ class Debouncer:
 
     def _hash(self, text: str, session_id: Optional[str]) -> str:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`_hash` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -35,7 +34,7 @@ class Debouncer:
 
     def allow_msg(self, text: str, session_id: Optional[str] = None) -> bool:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`allow_msg` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。

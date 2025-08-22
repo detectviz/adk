@@ -1,12 +1,11 @@
 
-# -*- coding: utf-8 -*-
 # SQLite 模式：審計/事件/決策 快速測試
 import os, json, tempfile, pathlib
 from sre_assistant.core import persistence as P
 
 def test_sqlite_audit_event_decision(tmp_path, monkeypatch):
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_sqlite_audit_event_decision` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `tmp_path`：參數用途請描述。

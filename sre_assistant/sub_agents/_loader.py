@@ -1,12 +1,11 @@
 
-# -*- coding: utf-8 -*-
 # 通用載入器：讀取 experts/<name>.yaml 輸出 PROMPT 與 TOOLS_ALLOWLIST
 from __future__ import annotations
 import os, yaml
 
 def _load_expert_yaml(name: str) -> dict:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：載入專家設定檔（experts/<name>.yaml）。
     參數說明：
     - `name`：專家名稱（例如 diagnostic）。

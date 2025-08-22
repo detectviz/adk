@@ -161,3 +161,10 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 ## RBAC 與 devkey
 - `rbac` 映射與 `tools_allowlist` 可在 `adk.yaml` 中配置。
 - `ALLOW_DEV_KEY=true` 才允許 `devkey`。預設關閉。
+
+
+## v15.7.6 重要變更
+- 移除非 ADK 協調器與自訂 ToolRegistry/agents 目錄，統一由 `adk_app/runtime.py` 組裝。
+- 移除 `core/otel_grpc.py` 與 `core/policy.py`，採用官方推薦：追蹤由 OTel 自動化，策略檢查在工具內執行。
+- `k8s_long_running`：長任務狀態僅存於 `session.state`；HITL 觸發嚴格依 `adk.yaml` 與高風險命名空間。
+- `runtime.py` 引入 `BuiltInPlanner` 的占位導入，保持對齊官方設計。

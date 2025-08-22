@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 用途：將工具 Schema 轉為 Markdown（若工具定義提供 schema）。示範性腳本。
 from pathlib import Path
 def main():

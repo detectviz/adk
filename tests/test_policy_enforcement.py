@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 import asyncio
 from sre_assistant.core.assistant import SREAssistant
 from adk_runtime.main import build_registry
@@ -7,7 +6,7 @@ from sre_assistant.core.policy import SRESecurityPolicy
 
 def test_protected_namespace_denied():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_protected_namespace_denied` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -20,7 +19,7 @@ def test_protected_namespace_denied():
 
 def test_regex_violation():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_regex_violation` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -32,7 +31,7 @@ def test_regex_violation():
 
 def test_approval_from_yaml_or_window():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_approval_from_yaml_or_window` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。

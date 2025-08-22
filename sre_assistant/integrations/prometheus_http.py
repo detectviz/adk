@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # Prometheus HTTP 整合客戶端
 # - 依環境變數 PROM_URL 指向 Prometheus，例如 http://prometheus:9090
 # - 以 requests 呼叫 /api/v1/query_range 與 /api/v1/query
@@ -16,7 +15,7 @@ class PrometheusClient:
     """Prometheus 簡易 HTTP 客戶端。"""
     def __init__(self, base_url: str | None = None, timeout: float = DEFAULT_TIMEOUT):
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -29,7 +28,7 @@ class PrometheusClient:
 
     def _get(self, path: str, params: Dict[str, Any]) -> Tuple[Dict[str, Any] | None, str | None]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`_get` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -53,7 +52,7 @@ class PrometheusClient:
 
     def query_range(self, query: str, start: str, end: str, step: str) -> Tuple[Dict[str, Any] | None, str | None]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`query_range` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -68,7 +67,7 @@ class PrometheusClient:
 
     def query_instant(self, query: str, ts: str | None = None) -> Tuple[Dict[str, Any] | None, str | None]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`query_instant` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。

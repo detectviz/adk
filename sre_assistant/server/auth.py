@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 簡易 API Key 認證與授權（以 DB 表 api_keys 為準）
 from __future__ import annotations
 from fastapi import Header, HTTPException
@@ -7,7 +6,7 @@ from ..core.persistence import DB
 
 async def auth_dep(x_api_key: str = Header(default="")) -> str:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`auth_dep` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `x_api_key`：參數用途請描述。
@@ -27,7 +26,7 @@ DEV_KEY = os.getenv("DEV_API_KEY","devkey")
 
 async def auth_dep_dev(x_api_key: str = Header(default="")) -> str:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`auth_dep_dev` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `x_api_key`：參數用途請描述。

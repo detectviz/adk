@@ -1,7 +1,7 @@
 
-# -*- coding: utf-8 -*-
 # Kubernetes 長任務工具（v14.4）：HITL（request_credential）+ 真正 rollout 輪詢
 from __future__ import annotations
+import os, yaml
 import os, time, uuid
 from typing import Dict, Any
 from ..core.config import load_adk_config, Optional
@@ -23,7 +23,7 @@ def _start_restart(ctx: ToolContext, namespace: str, deployment_name: str, reaso
     risk_th = (cfg.get('policy',{}) or {}).get('risk_threshold', 'High')
     # K8sRolloutRestartLongRunningTool 屬高風險，若在 require 清單或高於門檻，則觸發核可
     tool_name = 'K8sRolloutRestartLongRunningTool'
-    if (tool_name in require) or True:
+    if (tool_name in require) :
         try:
             ctx.request_credential(prompt=f"請核可 Deployment 重啟：{namespace}/{deployment_name}", fields={"namespace": namespace, "deployment": deployment_name, "reason": reason})
         except Exception:
@@ -103,3 +103,29 @@ k8s_rollout_restart_long_running_tool = LongRunningFunctionTool(
     poll_func=_poll_restart,
     timeout_seconds=600
 )
+
+
+def _load_adk_yaml()->dict:
+    """
+    功能：讀取 adk.yaml 設定，供工具內檢查使用。
+    回傳：字典（若檔案不存在則回傳空字典）。
+    """
+    p = "adk.yaml"
+    if os.path.exists(p):
+        try:
+            with open(p,"r",encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        except Exception:
+            return {}
+    return {}
+
+def _need_hitl(tool_name: str, namespace: str) -> bool:
+    """
+    功能：依設定檔之 tools_require_approval 與高風險命名空間判斷是否需 HITL。
+    參數：tool_name 工具名稱；namespace K8s 命名空間。
+    回傳：布林值，True 表示需請求認證。
+    """
+    cfg = _load_adk_yaml()
+    require = ((cfg.get("agent") or {}).get("tools_require_approval") or [])
+    high_risk = namespace.lower() in {"prod","production","prd"}
+    return (tool_name in require) or high_risk

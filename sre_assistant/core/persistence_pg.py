@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # PostgreSQL DB 實作（pg + pgvector 已於其他檔案使用）：此處提供 decisions/tool_executions/approvals/api_keys 對等欄位。
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
@@ -12,7 +11,7 @@ except Exception:
 class PgDatabase:
     def __init__(self, dsn: str):
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。
@@ -26,7 +25,7 @@ class PgDatabase:
 
     def _init_schema(self):
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`_init_schema` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。

@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 規劃器（Planner）：
 # - 依 Intent 產生步驟（Step）序列
 # - 支援簡單條件：診斷→若結果為空則補查 RAG；佈署→先建儀表板再查 Runbook
@@ -13,7 +12,7 @@ class RuleBasedPlanner:
     """
     def plan(self, intent: Intent) -> List[Step]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`plan` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `self`：參數用途請描述。

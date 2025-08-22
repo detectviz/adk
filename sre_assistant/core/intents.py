@@ -3,7 +3,6 @@
 # 專案：SRE Assistant（對齊 Google ADK），本檔案已補齊繁體中文註解以提升可讀性與可維護性。
 # 說明：一般模組或測試檔，已加入中文檔頭說明。
 
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 from pydantic import BaseModel, Field
 from typing import Dict, Any

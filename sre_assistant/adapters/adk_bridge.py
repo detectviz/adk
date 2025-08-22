@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # ADK 工具橋接：將本專案的 YAML+函式工具映射為 ADK 的 FunctionTool/AgentTool。
 from __future__ import annotations
 from typing import Any, Dict, Callable, List
@@ -15,7 +14,7 @@ from ..adk_compat.executor import ToolExecutor
 
 def build_adk_tools_from_registry(registry: ToolRegistry) -> List[Any]:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`build_adk_tools_from_registry` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `registry`：參數用途請描述。
@@ -29,7 +28,7 @@ def build_adk_tools_from_registry(registry: ToolRegistry) -> List[Any]:
         spec = entry["spec"]
         def _factory(n=name, s=spec):
             """
-            自動產生註解時間：2025-08-22 03:37:34Z
+            2025-08-22 03:37:34Z
             函式用途：`_factory` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
             參數說明：
             - `n`：參數用途請描述。
@@ -38,7 +37,7 @@ def build_adk_tools_from_registry(registry: ToolRegistry) -> List[Any]:
             """
             def _call(**kwargs):
                 """
-                自動產生註解時間：2025-08-22 03:37:34Z
+                2025-08-22 03:37:34Z
                 函式用途：`_call` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
                 參數說明：
                 - `**kwargs`：參數用途請描述。

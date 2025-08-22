@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # Grafana 儀表板建立工具（真連接版）
 # - 依 service_type 產生最小化儀表板 JSON，並呼叫 /api/dashboards/db
 # - 真實專案可改為載入模板檔並套參數
@@ -10,7 +9,7 @@ from ..integrations.grafana_http import GrafanaClient
 
 def _template_dashboard(service_type: str) -> Dict[str, Any]:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`_template_dashboard` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `service_type`：參數用途請描述。

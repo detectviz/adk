@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 用途：輸出 FastAPI OpenAPI 規格為 YAML（示意）。
 import yaml
 from sre_assistant.server.app import app

@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 對接 Google Cloud Observability：Traces→Telemetry API(gRPC OTLP)、Logs→Cloud Logging、Metrics→Cloud Monitoring
 from __future__ import annotations
 import os, logging
@@ -15,7 +14,7 @@ from opentelemetry.exporter.cloud_monitoring import CloudMonitoringMetricsExport
 
 def init_gcp_observability() -> None:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`init_gcp_observability` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。

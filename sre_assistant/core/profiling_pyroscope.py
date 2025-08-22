@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # Pyroscope 整合（Profiles）
 # 目的：在 Python 進程中啟用 CPU/Wall/Alloc 等採樣，將結果送至 Pyroscope 伺服器
 from __future__ import annotations

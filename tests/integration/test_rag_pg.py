@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # pgvector RAG 煙霧測試（需要 PG_DSN 與 pgvector）
 import os, pytest
 from sre_assistant.tools.knowledge_ingestion import ingest_text
@@ -9,7 +8,7 @@ pytestmark = pytest.mark.skipif(not os.getenv("PG_DSN"), reason="未設定 PG_DS
 
 def test_rag_ingest_and_search():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`test_rag_ingest_and_search` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。

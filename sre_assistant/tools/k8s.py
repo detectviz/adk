@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # Kubernetes 工具（真連接）：RBAC 權限預檢 + rollout restart + 完成輪詢
 from __future__ import annotations
 from typing import Dict, Any, Optional

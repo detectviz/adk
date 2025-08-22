@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 資料層：提供審計/事件/決策儲存（sqlite 預設；PG_DSN 待擴充）
 from __future__ import annotations
 from typing import Dict, Any, List, Optional, Tuple
@@ -12,7 +11,7 @@ SQLITE_PATH = os.getenv("DB_PATH","/mnt/data/sre-assistant.db")
 @contextlib.contextmanager
 def _sqlite():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`_sqlite` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -26,7 +25,7 @@ def _sqlite():
 
 def init_schema():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`init_schema` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -59,7 +58,7 @@ class DB:
     @staticmethod
     def write_audit(session_id: str, user_id: str, action: str, payload: Dict[str,Any]) -> None:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`write_audit` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `session_id`：參數用途請描述。
@@ -82,7 +81,7 @@ class DB:
     @staticmethod
     def write_event(session_id: str, user_id: str, event_type: str, event_json: Dict[str,Any]) -> None:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`write_event` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `session_id`：參數用途請描述。
@@ -129,7 +128,7 @@ class DB:
     @staticmethod
     def list_events(session_id: str, limit: int = 100) -> List[Dict[str,Any]]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`list_events` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `session_id`：參數用途請描述。
@@ -151,7 +150,7 @@ class DB:
     @staticmethod
     def list_decisions(limit: int = 50, offset: int = 0) -> List[Dict[str,Any]]:
         """
-        自動產生註解時間：2025-08-22 03:37:34Z
+        2025-08-22 03:37:34Z
         函式用途：`list_decisions` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
         參數說明：
         - `limit`：參數用途請描述。
@@ -196,7 +195,7 @@ def list_events_range(session_id: str, since: str|None=None, until: str|None=Non
 
 def list_decisions_range(since: str|None=None, until: str|None=None, limit: int=50, offset: int=0):
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`list_decisions_range` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `since`：參數用途請描述。

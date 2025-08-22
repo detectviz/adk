@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 檔案：sre_assistant/rag/embeddings.py
 # 角色：統一嵌入向量生成介面，支援 Vertex AI 與 Hash 後備；並提供維度驗證工具。
 from __future__ import annotations
@@ -8,7 +7,7 @@ from typing import List
 
 def _hash_embedding(text: str, dim: int = 1536) -> List[float]:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：以穩定 hash 方式產生固定維度的偽嵌入向量（測試/離線）。
     參數說明：
     - `text`：輸入文字。
@@ -24,7 +23,7 @@ def _hash_embedding(text: str, dim: int = 1536) -> List[float]:
 
 def _vertexai_embedding(text: str, model: str = "textembedding-gecko@001") -> list[float]:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：呼叫 Vertex AI Embeddings 取得向量（若環境未安裝套件或認證不可用則丟出例外）。
     參數說明：
     - `text`：輸入文字。
@@ -44,7 +43,7 @@ def _vertexai_embedding(text: str, model: str = "textembedding-gecko@001") -> li
 
 def get_embedding(text: str, dim: int = 1536) -> list[float]:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：根據環境變數選擇嵌入實作，預設使用 Vertex AI，失敗則回退 hash。
     參數說明：
     - `text`：輸入文字。
@@ -63,7 +62,7 @@ def get_embedding(text: str, dim: int = 1536) -> list[float]:
 
 def ensure_dimension(vec: list[float], expected: int) -> list[float]:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：確保向量長度符合 pgvector 欄位維度；不足則補 0，過長則截斷。
     參數說明：
     - `vec`：原始向量。

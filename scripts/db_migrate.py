@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 檔案：scripts/db_migrate.py
 # 用途：初始化資料表（pgvector / hitl_audits）。以簡易連線字串區分 PG/SQLite。
 import os, sys, pathlib
@@ -20,7 +19,7 @@ def _sqlite_conn():
 
 def main()->int:
     """
-    自動產生註解時間：{ts}
+    {ts}
     函式用途：依環境變數選擇資料庫並執行初始化 SQL。
     參數說明：無。
     回傳：0 成功；非零失敗。

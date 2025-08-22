@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # DB 審計與事件回放（PostgreSQL + JSONB）
 # - 表：audits、events；若不存在將自動建立
 from __future__ import annotations
@@ -17,7 +16,7 @@ PG_DSN = os.getenv("PG_DSN","")
 @contextlib.contextmanager
 def _conn():
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`_conn` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -29,7 +28,7 @@ def _conn():
 
 def init_schema() -> None:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`init_schema` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。
@@ -61,7 +60,7 @@ def init_schema() -> None:
 
 def write_audit_db(event: Dict[str,Any]) -> None:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`write_audit_db` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `event`：參數用途請描述。
@@ -81,7 +80,7 @@ def write_audit_db(event: Dict[str,Any]) -> None:
 
 def record_event(session_id: str, event_type: str, payload: Dict[str,Any], user_id: str | None = None) -> None:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`record_event` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `session_id`：參數用途請描述。
@@ -99,7 +98,7 @@ def record_event(session_id: str, event_type: str, payload: Dict[str,Any], user_
 
 def load_events(session_id: str, limit: int = 200) -> list[Dict[str,Any]]:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`load_events` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：
     - `session_id`：參數用途請描述。

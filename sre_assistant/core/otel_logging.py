@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # OpenTelemetry Logs 初始化模組（Python 端）
 # 目的：將 Python logging 事件以 OTLP 輸出，便於 Alloy 收集後轉送到 Loki
 from __future__ import annotations
@@ -14,7 +13,7 @@ _LOGGER_CONFIGURED = False
 
 def init_otel_logging() -> None:
     """
-    自動產生註解時間：2025-08-22 03:37:34Z
+    2025-08-22 03:37:34Z
     函式用途：`init_otel_logging` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
     參數說明：此函式無參數或皆使用外部環境。
     回傳：請描述回傳資料結構與語義。

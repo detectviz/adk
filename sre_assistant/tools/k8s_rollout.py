@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # Kubernetes Rolling Restart 與 RBAC 預檢（顯式工具模組）
 # - 以官方 kubernetes-client 連線；支援 KUBECONFIG 或 InCluster
 # - 先以 SelfSubjectAccessReview 檢查 patch deployments 權限

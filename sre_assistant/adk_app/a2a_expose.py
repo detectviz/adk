@@ -1,5 +1,4 @@
 
-# -*- coding: utf-8 -*-
 # 用途：將 ADK Agent 以官方 A2A 方式暴露（占位）。
 # 真正實作需依官方套件 `google.adk.a2a`，此處僅保留明確對齊接口。
 from __future__ import annotations
