@@ -1,19 +1,32 @@
-# 檔案：adk.yaml
-# 產生時間：2025-08-22T03:34:52.621849Z
-# 專案：SRE Assistant（對齊 Google ADK），本檔案已補齊繁體中文註解以提升可讀性與可維護性。
-# 類型：ADK 主設定檔（代理行為）。定義主模型、迭代上限、工具白名單、政策門檻等。
-
 agent:
   name: sre-assistant
-  version: "14.4.3"
-  default_model: "gemini-2.0-pro"
+  version: 14.4.3
+  default_model: gemini-2.0-pro
   tools_allowlist:
-    - PromQLQueryTool
-    - GrafanaDashboardTool
-    - K8sRolloutRestartLongRunningTool
-    - K8sOperateTool
-    - RAGRetrieveTool
+  - PromQLQueryTool
+  - GrafanaDashboardTool
+  - K8sRolloutRestartLongRunningTool
+  - K8sOperateTool
+  - RAGRetrieveTool
   tools_require_approval:
-    - K8sRolloutRestartLongRunningTool
+  - K8sRolloutRestartLongRunningTool
 security:
   policy: camel-basic
+rbac:
+  roles:
+    viewer: []
+    operator:
+    - rag_search
+    sre:
+    - rag_search
+    - K8sRolloutRestartLongRunningTool
+    - ingest_text
+    admin:
+    - '*'
+  apikey_role:
+    dev-view: viewer
+    dev-op: operator
+    dev-sre: sre
+    dev-admin: admin
+policy:
+  risk_threshold: high

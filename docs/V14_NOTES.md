@@ -1,3 +1,7 @@
+<!-- DEPRECATION: superseded by v15.7.x -->
+# 注意：此文件紀錄 v14 時期說明，已被 v15.7.x 架構取代。
+請優先參考 README.md、docs/GCP_OTEL.md、docs/EXTENDING.md。
+
 
 # v14 調整說明（依 ADK 官方最佳實踐）
 

@@ -81,7 +81,7 @@ def health_ready():
         raise HTTPException(status_code=503, detail=f"db not ready: {e}")
 
 @app.post("/api/v1/chat")
-def chat(req: ChatRequest, _: str = Depends(auth_dep)):
+def chat(req: ChatRequest, _: str = Depends(require_api_key)):
     if not DEBOUNCER.allow_msg(req.message, req.session_id):
         raise HTTPException(status_code=409, detail="debounced")
     res = run_chat(user_id=req.user_id, session_id=req.session_id, message=req.message)
@@ -119,13 +119,13 @@ async def _stream_events(user_id: str, session_id: str, content: Content) -> Asy
         yield f"data: {json.dumps(event.to_dict() if hasattr(event, 'to_dict') else event.__dict__, ensure_ascii=False)}\n\n".encode("utf-8")
 
 @app.get("/api/v1/chat_sse")
-async def chat_sse(message: str, session_id: str, user_id: str = "user", _: str = Depends(auth_dep)):
+async def chat_sse(message: str, session_id: str, user_id: str = "user", _: str = Depends(require_api_key)):
     """以 SSE 串流事件：初始對話。"""
     content = Content(parts=[Part(text=message)], role="user")
     return StreamingResponse(_stream_events(user_id=user_id, session_id=session_id, content=content), media_type="text/event-stream")
 
 @app.get("/api/v1/resume_sse")
-async def resume_sse(function_call_id: str, session_id: str, user_id: str = "user", auth_response_uri: str = "", redirect_uri: str = "", _: str = Depends(auth_dep)):
+async def resume_sse(function_call_id: str, session_id: str, user_id: str = "user", auth_response_uri: str = "", redirect_uri: str = "", _: str = Depends(require_api_key)):
     """以 SSE 串流事件：提交 FunctionResponse 後繼續執行。
     - 針對 'adk_request_credential' 事件：依官方規範，需要回傳相同 name 與原 function_call_id
     - 這裡以 OAuth 類型欄位命名（與官方教學一致）；核可/審批場景可沿用此欄位承載
@@ -170,12 +170,12 @@ def approve_page():
 
 
 @app.get("/api/v1/sessions/{session_id}/events")
-async def get_session_events(session_id: str, limit: int = 100, _: str = Depends(auth_dep)):
+async def get_session_events(session_id: str, limit: int = 100, _: str = Depends(require_api_key)):
     """回放指定 session 的事件流（DB 來源，支援 SQLite/PG）。"""
     return {"session_id": session_id, "events": DB.list_events(session_id=session_id, limit=limit)}
 
 @app.get("/api/v1/sessions/{session_id}/decisions")
-async def get_session_decisions(session_id: str, limit: int = 100, offset: int = 0, _: str = Depends(auth_dep)):
+async def get_session_decisions(session_id: str, limit: int = 100, offset: int = 0, _: str = Depends(require_api_key)):
     """查詢近期 decisions（DB 來源，支援 SQLite/PG）。"""
     rows = DB.list_decisions(limit=limit, offset=offset)
     return {"session_id": session_id, "decisions": rows}
@@ -195,25 +195,25 @@ class HitlRejectBody(BaseModel):
     reason: str
 
 @app.post("/api/v1/hitl/approve")
-async def api_hitl_approve(body: HitlApproveBody, user_id: str = Depends(auth_dep)):
+async def api_hitl_approve(body: HitlApproveBody, user_id: str = Depends(require_api_key)):
     return hitl_approve(body.session_id, user_id, body.op_id, body.approver, body.ticket_id)
 
 @app.post("/api/v1/hitl/reject")
-async def api_hitl_reject(body: HitlRejectBody, user_id: str = Depends(auth_dep)):
+async def api_hitl_reject(body: HitlRejectBody, user_id: str = Depends(require_api_key)):
     return hitl_reject(body.session_id, user_id, body.op_id, body.reason)
 
 
 @app.get("/api/v1/sessions/{session_id}/events_range")
-async def get_session_events_range(session_id: str, since: str|None=None, until: str|None=None, limit: int=100, offset: int=0, _: str = Depends(auth_dep)):
+async def get_session_events_range(session_id: str, since: str|None=None, until: str|None=None, limit: int=100, offset: int=0, _: str = Depends(require_api_key)):
     return {"session_id": session_id, "events": list_events_range(session_id, since, until, limit, offset)}
 
 @app.get("/api/v1/decisions_range")
-async def get_decisions_range(since: str|None=None, until: str|None=None, limit: int=50, offset: int=0, _: str = Depends(auth_dep)):
+async def get_decisions_range(since: str|None=None, until: str|None=None, limit: int=50, offset: int=0, _: str = Depends(require_api_key)):
     return {"decisions": list_decisions_range(since, until, limit, offset)}
 
 
 @app.get("/api/v1/tools/effective")
-async def list_effective_tools(_: str = Depends(auth_dep)):
+async def list_effective_tools(_: str = Depends(require_api_key)):
     # 讀取 adk.yaml 的 allowlist 與 require_approval
     cfg = {}
     try:
@@ -232,7 +232,7 @@ async def list_effective_tools(_: str = Depends(auth_dep)):
 
 
 @app.post("/api/v1/ops/{op_id}/cancel")
-async def cancel_op(op_id: str, _: str = Depends(auth_dep)):
+async def cancel_op(op_id: str, _: str = Depends(require_api_key)):
     """自動產生註解時間：{ts}
 函式用途：標記長任務取消旗標。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     try:
@@ -247,7 +247,7 @@ async def cancel_op(op_id: str, _: str = Depends(auth_dep)):
     return {"ok": True, "op_id": op_id, "cancelled": True}
 
 @app.post("/api/v1/ops/{op_id}/resume")
-async def resume_op(op_id: str, _: str = Depends(auth_dep)):
+async def resume_op(op_id: str, _: str = Depends(require_api_key)):
     """自動產生註解時間：{ts}
 函式用途：標記長任務恢復旗標。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     try:
@@ -262,7 +262,7 @@ async def resume_op(op_id: str, _: str = Depends(auth_dep)):
     return {"ok": True, "op_id": op_id, "resume": True}
 
 @app.post("/api/v1/hitl/approve")
-async def hitl_approve(function_call_id: str, approved: bool = True, reason: str = "", approver: str = "user", _: str = Depends(auth_dep)):
+async def hitl_approve(function_call_id: str, approved: bool = True, reason: str = "", approver: str = "user", _: str = Depends(require_api_key)):
     """自動產生註解時間：{ts}
 函式用途：接收 HITL 審批並記錄於 session.state。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     try:
@@ -280,7 +280,7 @@ async def hitl_approve(function_call_id: str, approved: bool = True, reason: str
         return {"ok": True}
 
 @app.get("/api/v1/devui/tools")
-async def devui_tools(_: str = Depends(auth_dep)):
+async def devui_tools(_: str = Depends(require_api_key)):
     """自動產生註解時間：{ts}
 函式用途：提供 Dev UI 同步工具清單。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
     try:

@@ -11,9 +11,7 @@ export-slo:
 	python3 scripts/export_slo_rules.py
 
 
-.PHONY: a2a-gen
-a2a-gen:
-	python -m grpc_tools.protoc -I sre_assistant/a2a --python_out=sre_assistant/a2a --grpc_python_out=sre_assistant/a2a sre_assistant/a2a/agent.proto
+
 
 
 .PHONY: validate-config

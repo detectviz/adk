@@ -35,3 +35,16 @@
 - RAG pgvector SQL 與工具補丁
 - Dev UI 工具清單同步端點
 - HITL 審批端點（session 記錄版）
+
+
+## 自動稽核報告（v15.7.4）
+已依檔案存在與實作關鍵點進行比對：
+- [x] OTLP/gRPC 直投 Google Telemetry（ADC Bearer）（sre_assistant/observability/otel.py）
+- [x] Cloud Monitoring/Logging Exporter 選配（sre_assistant/observability/gcp_exporters.py）
+- [x] Collector 與 docker-compose 範本（deploy/collector/alloy-otel-config.yaml）
+- [x] A2A gRPC proto/server/client 與測試（sre_assistant/a2a/agent.proto）
+- [x] RAG pgvector SQL 初始化與 TX 寫入/查詢錯誤碼（sre_assistant/rag/sql/init_pgvector.sql）
+- [x] HITL SSE 事件流 × Dev UI 串接（sre_assistant/server/events.py）
+- [x] Dev UI 工具清單同步端點（sre_assistant/server/app.py）
+- [x] 協調器依 sub_agents 工具白名單自動過濾（sre_assistant/adk_app/assembly.py）
+- [x] Cloud Build 參數化與觸發器（deployment/cloudbuild.yaml）

@@ -9,3 +9,8 @@
 ## 建議
 - 使用固定長度隨機 API Key，並於 DB 維護 `roles/permissions`。
 - 搭配 Rate Limit、IP allowlist 與審計日誌。
+
+
+### API Key 控制
+- `ALLOW_DEV_KEY` 預設關閉。設為 `true/1/yes` 才會允許 `devkey` 測試用金鑰。
+- RBAC 權限由 `adk.yaml` 的 `rbac.roles` 與 `apikey_role` 管理。

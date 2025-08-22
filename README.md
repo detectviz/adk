@@ -148,3 +148,16 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 
 ## 程式碼清理
 - 執行 `python3 scripts/clean_dead_code.py` 檢視疑似未用模組。僅列印，請人工確認後再移除。
+
+
+## A2A 對齊官方
+- 已移除自訂 gRPC/proto。改為官方 `google.adk.a2a` 包裝：`adk_app/a2a_expose.py`、`adk_app/a2a_consume.py`。
+- 不需 `a2a-gen`。
+
+## HITL 機制
+- 僅允許工具內呼叫 `tool_context.request_credential(...)` 觸發。
+- API 層僅負責 SSE 事件與 FunctionResponse 回補，不再有外部政策閘。
+
+## RBAC 與 devkey
+- `rbac` 映射與 `tools_allowlist` 可在 `adk.yaml` 中配置。
+- `ALLOW_DEV_KEY=true` 才允許 `devkey`。預設關閉。

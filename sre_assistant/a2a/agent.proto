@@ -1,6 +1,0 @@
-
-syntax = "proto3";
-package sre.a2a.v1;
-message ExecuteRequest { string agent=1; string input=2; string session_id=3; }
-message ExecuteResponse { string output=1; string trace_id=2; }
-service AgentGateway { rpc Execute(ExecuteRequest) returns (ExecuteResponse); }
