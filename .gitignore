@@ -20,7 +20,7 @@ profile.cov
 # Dependency directories (remove the comment below to include it)
 # vendor/
 tmp/
-adk-references/
+
 # Go workspace file
 go.work
 go.work.sum

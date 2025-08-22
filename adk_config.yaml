@@ -1,9 +1,0 @@
-web:
-  dev_ui: true
-  show_tools_panel: true
-  show_state: true
-  enable_sse_resume: true
-features:
-  hitl: true
-  a2a: true
-  rag: true

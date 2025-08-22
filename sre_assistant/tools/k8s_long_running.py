@@ -1,173 +1,95 @@
-# Kubernetes 長任務工具：HITL（request_credential）+ 真正 rollout 輪詢
+# Kubernetes 長時任務工具：使用標準 ADK Approval Framework
 from __future__ import annotations
-import yaml
-# 由設定檔/環境變數取得審批清單與高風險命名空間
-_HITL_REQUIRE = set(get_list('agent.tools_require_approval', []))
-_HIGH_RISK_NS = set(get_list('policy.high_risk_namespaces', ['prod','production','prd']))
-
-from sre_assistant.core.config import get_list
-
-try:
-    _ADK_CFG = yaml.safe_load(open('adk.yaml','r',encoding='utf-8')) or {}
-except Exception:
-    _ADK_CFG = {}
-
-import os, yaml
-import os, time, uuid
+import time
+import uuid
 from typing import Dict, Any
-from ..core.config import load_adk_config, Optional
 
 from google.adk.tools.long_running_tool import LongRunningFunctionTool
 from google.adk.tools.tool_context import ToolContext
-from ..core.hitl_provider import get_provider
-from ..core.persistence import DB
+
+# 匯入標準審批框架和風險等級定義
+from ..core.adk_approval import request_approval, RiskLevel
 from ..core.errors import HitlRejectedError
 
-from .k8s import rollout_restart_deployment
+# 匯入實際的 k8s 操作函式
+from .k8s import rollout_restart_deployment, check_rollout_status
 
-def _start_restart(ctx: ToolContext, namespace: str, deployment_name: str, reason: str) -> dict:
-    cfg = load_adk_config()
-    require = set((cfg.get('agent',{}) or {}).get('tools_require_approval') or [])
-    risk_th = (cfg.get('policy',{}) or {}).get('risk_threshold', 'High')
-    # K8sRolloutRestartLongRunningTool 屬高風險，若在 require 清單或高於門檻，則觸發核可
-    tool_name = 'K8sRolloutRestartLongRunningTool'
-    if (tool_name in require) :
-        try:
-            ctx.request_credential(prompt=f"請核可 Deployment 重啟：{namespace}/{deployment_name}", fields={"namespace": namespace, "deployment": deployment_name, "reason": reason})
-        except Exception:
-            pass # ToolContext, namespace: str, deployment_name: str, reason: str = "") -> Dict[str, Any]:
-    """開始重啟流程：prod/production 需 HITL；否則直接觸發短任務並進入輪詢。"""
-    op_id = f"op-{int(time.time()*1000)}"
-    # 將操作狀態寫入 Session.state，並關聯 function_call_id 以利 HITL 回傳對應
-    ops = ctx.session.state.setdefault('lr_ops', {})
-    ops[op_id] = {"namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": False, "progress": 0, "result": None, "function_call_id": getattr(ctx, 'function_call_id', None)}
-    need_hitl = namespace in (load_adk_config().get('policy', {}).get('high_risk_namespaces', []))
-    # namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": not need_hitl, "progress": 0}
-    if need_hitl:
-        prov = get_provider('hitl-approval')
-        # 可依 provider 定義調整 prompt/欄位
-        ctx.request_credential(
-            provider_id="hitl-approval",
-            prompt=f"批准在 {namespace} 對 {deployment_name} 進行 rollout restart",
-            callback={"function_call_id": ctx.function_call_id}
+def _start_restart(namespace: str, deployment_name: str, reason: str = "") -> Dict[str, Any]:
+    """開始一項重啟 Kubernetes Deployment 的長時任務。
+
+    流程：
+    1. 觸發標準 HITL (Human-in-the-Loop) 審批流程。
+    2. 若獲批准，則執行 k8s rollout restart 並回傳操作 ID。
+    3. 若被拒絕或審批失敗，則拋出 HitlRejectedError。
+    """
+    # 步驟 1: 使用標準審批框架請求高風險操作的權限。
+    # 注意：ToolContext 是由 ADK 執行環境在呼叫時自動傳入的，簽章中不應宣告。
+    ctx = ToolContext.get_current()
+    approval_result = request_approval(
+        action="k8s.rollout.restart",
+        resource=f"{namespace}/{deployment_name}",
+        risk_level=RiskLevel.HIGH,
+        context={"reason": reason, "user": ctx.session.state.get("user_id")}
+    )
+
+    # 步驟 2: 檢查審批結果。
+    if not approval_result.get("approved"):
+        raise HitlRejectedError(
+            f"操作 {approval_result.get('request_id')} 被拒絕，原因: {approval_result.get('reason')}"
         )
-        return {"op_id": op_id, "status": "PENDING_APPROVAL", "message": "已要求人工核可"}
-    else:
-        # 非高風險環境直接執行
-        info = ops[op_id]
-        res = rollout_restart_deployment(info["namespace"], info["deployment_name"], info.get("reason",""), wait=True, timeout_seconds=300)
-        info["approved"] = True
-        info["result"] = res
-        info["progress"] = 100 if res.get("success") else 0
-        return {"op_id": op_id, "status": "RUNNING" if res.get("success") else "FAILED", "result": res}
 
+    # 步驟 3: 審批通過，執行非同步的 k8s 操作。
+    op_id = f"op-k8s-restart-{uuid.uuid4().hex[:8]}"
+    result = rollout_restart_deployment(
+        namespace=namespace, 
+        deployment_name=deployment_name, 
+        reason=reason,
+        wait=False  # 設定為非阻塞，由 poll 函式接手輪詢狀態。
+    )
 
-def _poll_restart(ctx: ToolContext, op_id: str) -> Dict[str, Any]:
-    ops = ctx.session.state.setdefault('lr_ops', {})
-    st = ops.get(op_id) or {"approved": False, "progress": 0, "result": None}
-    # 若有 function_call_id，嘗試讀取核可回應
-    fcid = st.get('function_call_id')
-    if fcid and not st.get('approved'):
-        try:
-            auth = ctx.get_auth_response(function_call_id=fcid)
-            if auth and isinstance(auth, dict):
-                if auth.get('approved') is True:
-                    st['approved'] = True
-                    # 核可後立即執行
-                    info = st
-                    res = rollout_restart_deployment(info["namespace"], info["deployment_name"], info.get("reason",""), wait=True, timeout_seconds=300)
-                    info["result"] = res
-                    info["progress"] = 100 if res.get("success") else 0
-
-                if auth.get('rejected') is True:
-                    st['approved'] = False
-                    st['result'] = {"success": False, "message": auth.get('reason','HITL 拒絕')}
-        except Exception:
-            pass
-    
-    info = st
-    if not info:
-        return {"op_id": op_id, "status": "UNKNOWN", "message": "查無此操作"}
-
-    done = info.get("result",{}).get("success", False) and info.get("progress",0) == 100
-    return {
-        "op_id": op_id,
-        "status": "DONE" if done else ("RUNNING" if info.get("approved") else "PENDING_APPROVAL"),
-        "progress": info.get("progress", 0),
-        "result": info.get("result", {})
+    # 在 session state 中儲存操作狀態，以便後續輪詢。
+    ops = ctx.session.state.setdefault("lr_ops", {})
+    ops[op_id] = {
+        "namespace": namespace,
+        "deployment_name": deployment_name,
+        "start_time": time.time(),
+        "status": "RUNNING",
+        "progress": 5, # 賦予一個初始進度值。
+        "result": result
     }
 
-k8s_rollout_restart_long_running_tool = LongRunningFunctionTool(
-    name="K8sRolloutRestartLongRunningTool",
-    description="對 Deployment 進行長任務式 rollout restart；prod/production 需 HITL 才執行。",
-    start_func=_start_restart,
-    poll_func=_poll_restart,
-    timeout_seconds=600
-)
+    return {"op_id": op_id, "status": "RUNNING", "message": "操作已啟動，正在等待審批。"}
 
+def _poll_restart(op_id: str) -> Dict[str, Any]:
+    """輪詢指定操作 ID 的 k8s rollout 狀態。"""
+    ctx = ToolContext.get_current()
+    ops = ctx.session.state.setdefault("lr_ops", {})
+    op_info = ops.get(op_id)
 
-def _load_adk_yaml()->dict:
-    """
-    功能：讀取 adk.yaml 設定，供工具內檢查使用。
-    回傳：字典（若檔案不存在則回傳空字典）。
-    """
-    p = "adk.yaml"
-    if os.path.exists(p):
-        try:
-            with open(p,"r",encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-        except Exception:
-            return {}
-    return {}
+    if not op_info:
+        return {"op_id": op_id, "status": "UNKNOWN", "message": "查無此操作 ID。"}
 
-def _need_hitl(tool_name: str, namespace: str) -> bool:
-    """
-    功能：依設定檔之 tools_require_approval 與高風險命名空間判斷是否需 HITL。
-    參數：tool_name 工具名稱；namespace K8s 命名空間。
-    回傳：布林值，True 表示需請求認證。
-    """
-    cfg = _load_adk_yaml()
-    require = ((cfg.get("agent") or {}).get("tools_require_approval") or [])
-    high_risk = namespace.lower() in {"prod","production","prd"}
-    return (tool_name in require) or high_risk
+    # 如果任務已回報終態（完成或失敗），直接回傳儲存的結果。
+    if op_info.get("status") in ("DONE", "FAILED"):
+        return op_info
 
+    # 呼叫 k8s 狀態檢查函式。
+    status_result = check_rollout_status(
+        namespace=op_info["namespace"],
+        deployment_name=op_info["deployment_name"]
+    )
 
+    # 更新操作資訊於 session state。
+    op_info["progress"] = status_result.get("progress", op_info["progress"])
+    op_info["status"] = status_result.get("status", op_info["status"])
+    op_info["result"] = status_result
 
-import time
+    return {
+        "op_id": op_id,
+        "status": op_info["status"],
+        "progress": op_info["progress"],
+        "result": op_info["result"]
+    }
 
-class RolloutStatus:
-    SUCCESS = "success"
-    BACKOFF = "backoff"
-    TIMEOUT = "timeout"
-    PENDING = "pending"
-
-def _eval_rollout(pod_statuses, deadline_seconds=300):
-    """
-    Evaluate rollout states given a list of pod status dicts.
-    Each pod status is expected to have fields:
-      - ready (bool)
-      - phase (e.g., "Running","Pending","CrashLoopBackOff")
-      - reason (string or None)
-    Returns: one of RolloutStatus.*
-    """
-    start = time.time()
-    # Quick path: BackOff detected
-    for p in pod_statuses or []:
-        phase = (p or {}).get("phase") or ""
-        reason = ((p or {}).get("reason") or "").lower()
-        if "backoff" in reason or "crashloopbackoff" in phase.lower():
-            return RolloutStatus.BACKOFF
-
-    # All ready?
-    if pod_statuses and all(bool((p or {}).get("ready")) for p in pod_statuses):
-        return RolloutStatus.SUCCESS
-
-    # Timeout evaluation
-    if deadline_seconds is not None and deadline_seconds <= 0:
-        return RolloutStatus.TIMEOUT
-
-    # If not ready yet, check time progression in caller; here return pending
-    elapsed = time.time() - start
-    if elapsed > (deadline_seconds or 0):
-        return RolloutStatus.TIMEOUT
-    return RolloutStatus.PENDING
+# 注意：長時任務工具的實例化與註冊已移至 adk_app/runtime.py 中統一管理，
+# 以確保所有工具都透過標準的 ToolRegistry 進行註冊。

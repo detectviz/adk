@@ -1,0 +1,14 @@
+[
+  {
+    "query": "描述一下你有的任務",
+    "expected_tool_use": [],
+    "expected_intermediate_agent_responses": [],
+    "reference": "我手上的任務是加州房價任務。此任務涉及根據加州各區的各種特徵來預測其中位數房價。這是一個回歸問題，目標是建立一個能夠根據人口、中位數收入和區內房屋年齡等因素準確估計房價的模型。"
+  },
+  {
+    "query": "執行加州房價任務",
+    "expected_tool_use": [],
+    "expected_intermediate_agent_responses": [],
+    "reference": "使用 `root_mean_squared_error` 指標進行表格回歸以預測 `median_house_value`。"
+  }
+]

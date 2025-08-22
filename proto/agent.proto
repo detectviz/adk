@@ -1,9 +1,13 @@
 syntax = "proto3";
 
-package sre_assistant.v1;
+package google.adk.sre_assistant.v1;
 
-option go_package = "github.com/sre-assistant/proto/gen/go/sre_assistant/v1";
-option java_package = "com.sreassistant.v1";
+// 匯入 ADK 標準 proto
+import "google/adk/common/request_metadata.proto";
+import "google/adk/common/tracing_context.proto";
+
+option go_package = "github.com/sre-assistant/proto/gen/go/google/adk/sre_assistant/v1";
+option java_package = "com.google.adk.sreassistant.v1";
 option java_outer_classname = "AgentProto";
 
 // SRE Assistant Agent Service - 標準 A2A 通訊介面
@@ -28,6 +32,10 @@ message ChatRequest {
   string message = 3;
   map<string, string> context = 4;
   repeated Tool available_tools = 5;
+
+  // ADK 標準欄位
+  google.adk.common.RequestMetadata metadata = 10;
+  google.adk.common.TracingContext tracing = 11;
 }
 
 // 聊天響應消息
