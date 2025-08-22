@@ -29,6 +29,7 @@ from google.genai.types import Content, Part, FunctionResponse
 
 from sre_assistant.observability.otel import init_telemetry
 init_telemetry(service_name='sre-assistant-api')
+init_otel()
 app = FastAPI(title="SRE Assistant API (ADK Runner + SSE)")
 app.add_middleware(OTelMiddleware)
 SESSION_SERVICE = pick_session_service()

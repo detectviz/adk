@@ -14,3 +14,12 @@
 ### API Key 控制
 - `ALLOW_DEV_KEY` 預設關閉。設為 `true/1/yes` 才會允許 `devkey` 測試用金鑰。
 - RBAC 權限由 `adk.yaml` 的 `rbac.roles` 與 `apikey_role` 管理。
+
+
+### 高風險命名空間
+- 在 `adk.yaml` 設定：
+```yaml
+policy:
+  high_risk_namespaces: ["prod","production","prd"]
+```
+- 若未設定，系統採用上述預設值。

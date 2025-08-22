@@ -1,54 +1,65 @@
 
+"""
+OpenTelemetry 初始化模組（繁中註解）
+功能：
+- 讀取環境變數與 adk.yaml，設定 Resource 屬性（service.name、cloud.provider=gcp 等）。
+- 建立 OTLP gRPC 匯出器，將 Traces/Metrics 送往 OTLP 端點。
+- 可透過環境 `OTEL_ENABLED=false` 關閉初始化。
+"""
 from __future__ import annotations
-from typing import Optional
-import os
-from opentelemetry import trace, metrics
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.semconv.resource import ResourceAttributes
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.metrics import MeterProvider, PeriodicExportingMetricReader
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from google.auth.transport.requests import Request as GAuthRequest
-import google.auth
-import google.auth.credentials
+import os, yaml
+from typing import Dict, Any
 
-def init_telemetry(service_name: str = "sre-assistant") -> None:
+def _load_adk()->Dict[str, Any]:
+    """讀取 adk.yaml，失敗時回傳空字典。"""
+    try:
+        with open("adk.yaml","r",encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    except Exception:
+        return {}
+
+def init_otel()->None:
     """
-    {ts}
-    函式用途：初始化 OpenTelemetry Tracing/Metrics，支援 OTLP/gRPC；若對 Google Telemetry API 則自動附加 Bearer。
-    參數說明：
-    - `service_name`：資源屬性的 `service.name`。
-    回傳：無。
-    """.format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
-    project_id = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_PROJECT_ID","")
-    res = Resource.create({ResourceAttributes.SERVICE_NAME: service_name, "gcp.project_id": project_id or "unknown", "cloud.provider":"gcp"})
-    tp = TracerProvider(resource=res)
-    endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
-    headers = None
-    if os.getenv('GOOGLE_OTLP_AUTH','true').lower() in ('1','true','yes') and ('otel.googleapis.com' in endpoint or endpoint.startswith('https://')):
-        try:
-            creds, _ = google.auth.default(scopes=['https://www.googleapis.com/auth/cloud-platform'])
-            creds.refresh(GAuthRequest())
-            headers = (('authorization', f'Bearer {creds.token}'),)
-        except Exception:
-            headers = None
-    span_exporter = OTLPSpanExporter(endpoint=endpoint, insecure=endpoint.startswith('http://'), headers=headers)
-    tp.add_span_processor(BatchSpanProcessor(span_exporter))
-    trace.set_tracer_provider(tp)
-
-    metric_exporter = OTLPMetricExporter(endpoint=endpoint, insecure=endpoint.startswith('http://'), headers=headers)
-    reader = PeriodicExportingMetricReader(metric_exporter)
-    mp = MeterProvider(resource=res, metric_readers=[reader])
-    metrics.set_meter_provider(mp)
-
-def get_tracer(name: str = "sre_assistant"):
+    初始化 OTel：僅在 `OTEL_ENABLED` 非 false/0 時執行。
+    - 服務名稱：`SERVICE_NAME`（若無則 adk.yaml.agent.name，否則 fallback 'sre-assistant'）
+    - OTLP 端點：`OTEL_EXPORTER_OTLP_ENDPOINT`（Cloud Build 已注入時可直接使用）
+    - Resource：`service.name`、`cloud.provider=gcp`、`gcp.project_id`、`gcp.region`
     """
-    {ts}
-    函式用途：取得 Tracer。
-    參數說明：
-    - `name`：Tracer 名稱。
-    回傳：Tracer 實例。
-    """.format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
-    return trace.get_tracer(name)
+    if os.getenv("OTEL_ENABLED","true").lower() in ("0","false","no"):  # 可由環境關閉
+        return
+    try:
+        from opentelemetry.sdk.resources import Resource
+        from opentelemetry.sdk.trace import TracerProvider
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor
+        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+        from opentelemetry import trace
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    except Exception:
+        return  # 未安裝 OTel 套件時安靜略過
+
+    cfg = _load_adk()
+    agent_name = ((cfg.get("agent") or {}).get("name")) or "sre-assistant"
+    service_name = os.getenv("SERVICE_NAME", agent_name)
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "")
+    region = os.getenv("CLOUD_RUN_REGION", os.getenv("_REGION", ""))
+
+    resource = Resource.create({
+        "service.name": service_name,
+        "cloud.provider": "gcp",
+        "gcp.project_id": project_id,
+        "gcp.region": region,
+    })
+
+    provider = TracerProvider(resource=resource)
+    otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
+    exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=otlp_endpoint.startswith("http://"))
+    provider.add_span_processor(BatchSpanProcessor(exporter))
+    trace.set_tracer_provider(provider)
+
+    # 若 FastAPI 已載入，啟用自動攔截（由 app 初始化處呼叫）
+    try:
+        import sre_assistant.server.app as appmod  # type: ignore
+        if hasattr(appmod, "app"):
+            FastAPIInstrumentor().instrument_app(appmod.app)
+    except Exception:
+        pass

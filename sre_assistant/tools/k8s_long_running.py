@@ -8,7 +8,7 @@ try:
 except Exception:
     _ADK_CFG = {}
 _HITL_REQUIRE = set((_ADK_CFG.get('agent') or {}).get('tools_require_approval') or [])
-_HIGH_RISK_NS = {'prod','production','prd'}
+_HIGH_RISK_NS = set(((_ADK_CFG.get('policy') or {}).get('high_risk_namespaces') or ['prod','production','prd']))
 
 import os, yaml
 import os, time, uuid

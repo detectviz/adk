@@ -172,3 +172,30 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 
 ## v15.7.7 打包版
 - 封裝自 `v15.7.6-clean` 並套用 v15.7.7 修正：移除 `sub_agents/**`，改讀 `experts/*.yaml`；HITL 判斷內聚於 `k8s_long_running.py`。
+
+
+## v15.7.8 變更
+- 全域移除樣板註解字樣。
+- K8s 高風險命名空間改由 `adk.yaml.policy.high_risk_namespaces` 配置，預設 `['prod','production','prd']`。
+- 新增 `docs/HARDCODE_AUDIT.md`，列出疑似硬編碼以供人工審核。
+- 再次清理可能造成雙執行模式的殘留目錄（`sub_agents/` 等）。
+
+
+### Cloud Build 環境變數注入
+Cloud Run 部署時，Cloud Build 會以 substitutions 注入下列環境變數：
+- `OTEL_EXPORTER_OTLP_ENDPOINT`（預設 `https://otel.googleapis.com:4317`）
+- `GOOGLE_OTLP_AUTH=true`
+
+可於 `deployment/cloudbuild.yaml` 的 `substitutions` 區塊調整 `_OTEL_ENDPOINT`。
+
+
+### OpenTelemetry 初始化
+- 啟用：預設開啟；可設 `OTEL_ENABLED=false` 關閉。
+- 端點：由 `OTEL_EXPORTER_OTLP_ENDPOINT` 提供，Cloud Build 部署時會注入。
+- Resource：`service.name` 來源優先序 `SERVICE_NAME` > `adk.yaml.agent.name` > `sre-assistant`；另設定 `cloud.provider=gcp`、`gcp.project_id`、`gcp.region`。
+
+### experts.*.yaml 的 model 與 slo
+- `experts/<name>.yaml` 可指定：
+  - `model`: 例如 `gemini-2.0-pro`、`gemini-2.0-flash`
+  - `slo`: 例如 `{ p95_response_ms: 2000 }`
+- 由 `runtime.get_effective_models()` 與 `runtime.get_slo_targets()` 查詢，後續可用於裝配根代理與 SLO 守門。

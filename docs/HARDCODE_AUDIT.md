@@ -1,0 +1,60 @@
+# 硬編碼稽核報告 (v15.7.8)
+
+- 清理『自動產生註解』命中檔案數：1
+- 發現疑似硬編碼如下，請人工確認是否需參數化：
+
+  - [URL/Endpoint] README.md → `http://localhost:8000`
+  - [URL/Endpoint] README.md → `http://localhost:8080`
+  - [URL/Endpoint] README.md → `http://localhost:8001/.well-known/agent.json`
+  - [URL/Endpoint] SPEC.md → `http://localhost:8000`。`
+  - [URL/Endpoint] SPEC.md → `http://localhost:8080`。`
+  - [URL/Endpoint] AGENT.md → `https://agents.md/#examples)。`
+  - [URL/Endpoint] sre_assistant/core/telemetry.py → `http://localhost:4318/v1/traces`
+  - [URL/Endpoint] sre_assistant/core/otel_logging.py → `http://localhost:4318`
+  - [URL/Endpoint] sre_assistant/core/profiling_pyroscope.py → `http://localhost:4040`
+  - [URL/Endpoint] sre_assistant/core/telemetry_gcp.py → `https://telemetry.googleapis.com:443/v1/traces`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `prod`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `production`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `prd`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `prod`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `production`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `prod`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `production`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `prod`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `production`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `prod`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `production`
+  - [High-risk namespace literal] sre_assistant/tools/k8s_long_running.py → `prd`
+  - [URL/Endpoint] sre_assistant/integrations/prometheus_http.py → `http://prometheus:9090`
+  - [URL/Endpoint] sre_assistant/integrations/prometheus_http.py → `http://localhost:9090`
+  - [URL/Endpoint] sre_assistant/integrations/grafana_http.py → `http://localhost:3000`
+  - [URL/Endpoint] sre_assistant/observability/otel.py → `http://localhost:4317`
+  - [URL/Endpoint] sre_assistant/observability/otel.py → `https://www.googleapis.com/auth/cloud-platform`
+  - [OTLP port literal] sre_assistant/observability/otel.py → `:4317`
+  - [High-risk namespace literal] tests/test_policy_enforcement.py → `prod`
+  - [High-risk namespace literal] tests/unit/test_k8s_lr_session_state.py → `prod`
+  - [URL/Endpoint] tests/server/test_sse_hitl_e2e.py → `http://test`
+  - [High-risk namespace literal] tests/tools/test_k8s_long_running_hitl.py → `prod`
+  - [High-risk namespace literal] docs/V14_NOTES.md → `prod`
+  - [URL/Endpoint] docs/ACCEPTANCE_V14_1.md → `http://localhost:9090）`
+  - [URL/Endpoint] docs/OBS_STACK.md → `http://localhost:4318`
+  - [URL/Endpoint] docs/OBS_STACK.md → `http://localhost:4040`
+  - [High-risk namespace literal] docs/K8S_OPERATIONS.md → `prod`
+  - [Bearer token literal] docs/GCP_OTEL.md → `Bearer Token`
+  - [OTLP port literal] docs/GCP_OTEL.md → `:4317`
+  - [OTLP port literal] docs/GCP_OTEL.md → `:4317`
+  - [High-risk namespace literal] ui/demo.html → `prod`
+  - [OTLP port literal] obs/docker-compose.yml → `:4317`
+  - [OTLP port literal] obs/docker-compose.yml → `:4317`
+  - [OTLP port literal] obs/tempo.yaml → `:4317`
+  - [URL/Endpoint] obs/mimir.yaml → `http://localhost:9093`
+  - [URL/Endpoint] obs/provisioning/datasources/datasources.yaml → `http://mimir:9009/prometheus`
+  - [URL/Endpoint] obs/provisioning/datasources/datasources.yaml → `http://loki:3100`
+  - [URL/Endpoint] obs/provisioning/datasources/datasources.yaml → `http://tempo:3200`
+  - [URL/Endpoint] obs/provisioning/datasources/datasources.yaml → `http://pyroscope:4040`
+  - [URL/Endpoint] deploy/collector/alloy-otel-config.yaml → `http://app:4317}`
+  - [OTLP port literal] deploy/collector/alloy-otel-config.yaml → `:4317`
+  - [URL/Endpoint] docker/docker-compose.yaml → `http://collector:4317`
+  - [OTLP port literal] docker/docker-compose.yaml → `:4317`
+  - [OTLP port literal] docker/docker-compose.yaml → `:4317`
+  - [URL/Endpoint] data/schema.json → `http://json-schema.org/draft-07/schema#`

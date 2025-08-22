@@ -20,3 +20,20 @@
    - GKE/GCE：掛載對應 SA 與範圍即可
 3. 端對端驗證：
    - 啟動服務 → 產生請求 → 在 Cloud Trace/Monitoring 查看資料
+
+
+### 以 Cloud Build 注入 OTLP 設定
+`deployment/cloudbuild.yaml` 在部署 `gcloud run deploy` 時會帶：
+```
+--set-env-vars=OTEL_EXPORTER_OTLP_ENDPOINT=$_OTEL_ENDPOINT,GOOGLE_OTLP_AUTH=true
+```
+可透過 substitutions 覆寫：
+```yaml
+substitutions:
+  _OTEL_ENDPOINT: https://otel.googleapis.com:4317
+```
+
+
+### Resource 設定
+- Cloud Build 會注入：`SERVICE_NAME=$_SERVICE_NAME`（可在 substitutions 覆寫）。
+- 若未注入則從 `adk.yaml.agent.name` 推導，最後 fallback `sre-assistant`。

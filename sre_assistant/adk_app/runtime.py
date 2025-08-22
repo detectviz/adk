@@ -149,3 +149,38 @@ def _load_experts_tool_allowlist() -> set[str]:
         except Exception:
             continue
     return allow
+
+import yaml, glob, os
+
+def get_effective_models()->dict:
+    """
+    讀取 experts/*.yaml 的 model 欄位，回傳 {expert_name: model_name}。
+    無設定者略過。
+    """
+    out={}
+    for yp in glob.glob(os.path.join('experts','*.yaml')):
+        name=os.path.splitext(os.path.basename(yp))[0]
+        try:
+            data=yaml.safe_load(open(yp,'r',encoding='utf-8')) or {}
+            model=data.get('model')
+            if isinstance(model,str) and model.strip():
+                out[name]=model.strip()
+        except Exception:
+            continue
+    return out
+
+def get_slo_targets()->dict:
+    """
+    讀取 experts/*.yaml 的 slo 欄位，回傳 {expert_name: slo_dict}。
+    """
+    out={}
+    for yp in glob.glob(os.path.join('experts','*.yaml')):
+        name=os.path.splitext(os.path.basename(yp))[0]
+        try:
+            data=yaml.safe_load(open(yp,'r',encoding='utf-8')) or {}
+            slo=data.get('slo') or {}
+            if isinstance(slo, dict) and slo:
+                out[name]=slo
+        except Exception:
+            continue
+    return out
