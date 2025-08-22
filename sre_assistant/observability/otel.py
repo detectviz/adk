@@ -64,3 +64,44 @@ def init_otel()->None:
             FastAPIInstrumentor().instrument_app(appmod.app)
     except Exception:
         pass
+
+
+def _init_metrics(resource):
+    """
+    函式用途（繁中）：初始化 OTel Metrics，將度量以 OTLP gRPC 匯出。
+    參數說明：
+    - resource：OTel Resource 物件，內含 service.name、gcp.* 等屬性。
+    回傳：無；若缺少相依套件則安靜略過。
+    """
+    try:
+        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+        from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+        from opentelemetry import metrics
+    except Exception:
+        return
+    import os
+    otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
+    reader = PeriodicExportingMetricReader(OTLPMetricExporter(endpoint=otlp_endpoint))
+    provider = MeterProvider(resource=resource, metric_readers=[reader])
+    metrics.set_meter_provider(provider)
+
+
+def _init_logs(resource):
+    """
+    函式用途（繁中）：初始化 OTel Logs，將日誌以 OTLP gRPC 匯出。
+    說明：若缺少 `opentelemetry-exporter-otlp` 或對應 logs 套件時將安靜略過。
+    """
+    try:
+        from opentelemetry.sdk._logs import LoggerProvider
+        from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+        from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+        from opentelemetry import _logs
+    except Exception:
+        return
+    import os
+    otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
+    exporter = OTLPLogExporter(endpoint=otlp_endpoint)
+    provider = LoggerProvider(resource=resource)
+    provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
+    _logs.set_logger_provider(provider)

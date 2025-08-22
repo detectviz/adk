@@ -24,3 +24,8 @@ class EventBus:
             yield ev
 
 BUS = EventBus()
+
+
+# 事件：adk_request_credential
+# 用途（繁中）：當工具需要人工核可時，透過 SSE 推送此事件至前端 Dev UI。
+# Payload 建議欄位：{ "function_call_id": str, "tool": str, "reason": str }

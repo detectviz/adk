@@ -1,4 +1,3 @@
-
 # ADK 事件嚴格型別解析器：將 Runner 串流事件統一為標準種類，避免啟發式歧義
 from __future__ import annotations
 from dataclasses import dataclass
@@ -66,7 +65,8 @@ def extract_decision(e: Any) -> Optional[DecisionRecord]:
         input_json = {"tool": tool, "args": d.get("args")}
         output_json = {"result": d.get("result"), "error": d.get("error")}
         return DecisionRecord(agent_name, et, input_json, output_json, d.get("latency_ms"))
-        if et == 'FunctionCallFinished':
+    # FunctionCallFinished：視為函式級決策
+    if et == 'FunctionCallFinished':
         agent_name = d.get('agent',{}).get('name') or 'main'
         input_json = {"function": d.get('function'), "args": d.get('args')}
         output_json = {"result": d.get('result'), "error": d.get('error')}

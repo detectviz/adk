@@ -1,97 +1,77 @@
-
-# Session 服務：優先採用官方 google.adk.sessions，若不可用再回退到本地最小實作
+# 提供 Session 儲存服務的兩種實作（記憶體/資料庫），並以工廠函式依設定載入。
 from __future__ import annotations
-from typing import Dict, Any
 import os, time
+from typing import Dict, Any, Optional
 
-try:
-    # 官方 ADK SessionService（建議在生產使用）
-    from google.adk.sessions import InMemorySessionService as _AdkMem
-    from google.adk.sessions import DatabaseSessionService as _AdkDB
-except Exception:
-    _AdkMem = None
-    _AdkDB = None
+class InMemorySessionService:
+    """
+    類別用途：以記憶體字典維護 session 狀態（適合本地開發與單機測試）。
+    結構：{ session_id: { 'state': dict, 'updated_at': epoch_ms } }
+    """
+    def __init__(self):
+        self._store: Dict[str, Dict[str, Any]] = {}
 
-# --- 本地 fallback（僅當無法使用官方時） ---
-class _LocalInMemorySessionService:
-    """以記憶體保存 Session 狀態的最小實作（開發用途）。"""
-        """
-        2025-08-22 03:37:34Z
-        函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-        參數說明：
-        - `self`：參數用途請描述。
-        回傳：請描述回傳資料結構與語義。
-        """
-    def __init__(self): self._store: Dict[str, Dict[str, Any]] = {}
-    def get(self, session_id: str) -> Dict[str, Any]:
-        """
-        2025-08-22 03:37:34Z
-        函式用途：`get` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-        參數說明：
-        - `self`：參數用途請描述。
-        - `session_id`：參數用途請描述。
-        回傳：請描述回傳資料結構與語義。
-        """
-        return self._store.setdefault(session_id, {"created_at": time.time(), "state": {}})
-    def set(self, session_id: str, state: Dict[str, Any]) -> None:
-        """
-        2025-08-22 03:37:34Z
-        函式用途：`set` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-        參數說明：
-        - `self`：參數用途請描述。
-        - `session_id`：參數用途請描述。
-        - `state`：參數用途請描述。
-        回傳：請描述回傳資料結構與語義。
-        """
-        self._store.setdefault(session_id, {"created_at": time.time(), "state": {}})["state"] = state
+    def get_state(self, session_id: str) -> Dict[str, Any]:
+        """取得指定 session 的狀態字典，不存在則建立。"""
+        if session_id not in self._store:
+            self._store[session_id] = {'state': {}, 'updated_at': int(time.time()*1000)}
+        return self._store[session_id]['state']
 
-class _LocalDatabaseSessionService:
-    """以事件表持久化 Session 狀態的最小實作（非官方）。建議改用官方 _AdkDB。"""
-    KEY = "__session_state__"
-    def get(self, session_id: str) -> Dict[str, Any]:
-        """
-        2025-08-22 03:37:34Z
-        函式用途：`get` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-        參數說明：
-        - `self`：參數用途請描述。
-        - `session_id`：參數用途請描述。
-        回傳：請描述回傳資料結構與語義。
-        """
+    def set_state(self, session_id: str, state: Dict[str, Any]) -> None:
+        """設定指定 session 的狀態字典。"""
+        self._store[session_id] = {'state': dict(state), 'updated_at': int(time.time()*1000)}
+
+class DatabaseSessionService:
+    """
+    類別用途：以資料庫持久化 session 狀態（需 SQLAlchemy；若無相依則拋出 RuntimeError）。
+    資料表建議：sessions(id TEXT PRIMARY KEY, state JSONB/TEXT, updated_at BIGINT)
+    """
+    def __init__(self, database_url: str):
         try:
-            from .persistence import DB
-            events = DB.list_events(session_id, limit=200)
-            for e in events:
-                if e.get("type") == self.KEY:
-                    return e.get("event") or {}
-        except Exception:
-            pass
-        return {"state": {}}
-    def set(self, session_id: str, state: Dict[str, Any]) -> None:
-        """
-        2025-08-22 03:37:34Z
-        函式用途：`set` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-        參數說明：
-        - `self`：參數用途請描述。
-        - `session_id`：參數用途請描述。
-        - `state`：參數用途請描述。
-        回傳：請描述回傳資料結構與語義。
-        """
-        try:
-            from .persistence import DB
-            DB.write_event(session_id, "system", self.KEY, state)
-        except Exception:
-            pass
+            from sqlalchemy import create_engine, text
+        except Exception as e:
+            raise RuntimeError("需要 SQLAlchemy 以啟用 DatabaseSessionService") from e
+        self._engine = create_engine(database_url, future=True)
+        # 嘗試建立最小表結構
+        with self._engine.begin() as conn:
+            conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                id TEXT PRIMARY KEY,
+                state TEXT,
+                updated_at BIGINT
+            )"""))
 
-# --- 對外導出：優先官方，否則回退 ---
-class InMemorySessionService(_AdkMem if _AdkMem else _LocalInMemorySessionService): pass
-class DatabaseSessionService(_AdkDB if _AdkDB else _LocalDatabaseSessionService): pass
+    def get_state(self, session_id: str) -> Dict[str, Any]:
+        from sqlalchemy import text
+        import json, time
+        with self._engine.begin() as conn:
+            row = conn.execute(text("SELECT state FROM sessions WHERE id=:id"), {'id': session_id}).fetchone()
+            if row is None or not row[0]:
+                conn.execute(text("INSERT INTO sessions(id,state,updated_at) VALUES(:id,:s,:t)"),
+                             {'id': session_id, 's': '{}', 't': int(time.time()*1000)})
+                return {}
+            return json.loads(row[0])
 
-def pick_session_service():
-    """依環境變數 SESSION_BACKEND 選擇服務：memory | db | vertex(保留)。"""
-    be = (os.getenv("SESSION_BACKEND","memory") or "memory").lower()
-    if be == "db":
-        return DatabaseSessionService()
-    if be == "vertex":
-        # 若有自定 Vertex 實作可在此導向；否則回退為 DB 或 Memory
-        return DatabaseSessionService() if _AdkDB else InMemorySessionService()
+    def set_state(self, session_id: str, state: Dict[str, Any]) -> None:
+        from sqlalchemy import text
+        import json, time
+        with self._engine.begin() as conn:
+            conn.execute(text("""
+            INSERT INTO sessions(id,state,updated_at)
+            VALUES(:id,:s,:t)
+            ON CONFLICT(id) DO UPDATE SET state=:s, updated_at=:t
+            """), {'id': session_id, 's': json.dumps(state), 't': int(time.time()*1000)})
+
+def get_session_service()->object:
+    """
+    函式用途：依據環境變數 SESSION_BACKEND 選擇實作，預設 InMemory。
+    - SESSION_BACKEND=database 且 DATABASE_URL 有值 → DatabaseSessionService
+    - 其餘 → InMemorySessionService
+    """
+    backend = os.getenv('SESSION_BACKEND','memory').lower()
+    if backend in ('db','database'):
+        url = os.getenv('DATABASE_URL','')
+        if not url:
+            raise RuntimeError('SESSION_BACKEND=database 但缺少 DATABASE_URL')
+        return DatabaseSessionService(url)
     return InMemorySessionService()

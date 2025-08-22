@@ -1,4 +1,3 @@
-
 # 根代理組裝（符合 ADK 導覽結構）。
 # 這裡僅做薄封裝，真正實作仍在 `sre_assistant/adk_app/runtime.py` 所提供的 RUNNER。
 from __future__ import annotations

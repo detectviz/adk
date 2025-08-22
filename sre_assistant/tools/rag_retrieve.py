@@ -7,26 +7,14 @@ from ..rag.vectorstore_pg import search_similar
 
 _model = None
 def get_model():
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`get_model` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     global _model
     if _model is None:
         _model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     return _model
 
 def rag_search(question: str, top_k: int = 5) -> Dict[str,Any]:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`rag_search` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `question`：參數用途請描述。
-    - `top_k`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     emb = get_model().encode(question).tolist()
     return {"hits": search_similar(emb, top_k=top_k)}
 

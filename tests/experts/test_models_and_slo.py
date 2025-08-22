@@ -1,5 +1,3 @@
-
-# -*- coding: utf-8 -*-
 # 驗證：experts/*.yaml 的 model 與 slo 會被 runtime 提供查詢
 import os, yaml
 from sre_assistant.adk_app.runtime import get_effective_models, get_slo_targets

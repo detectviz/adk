@@ -1,4 +1,3 @@
-
 # AGENT 設計說明（對齊 ADK）
 
 > 本文件以範例導向闡述代理與工具的組裝，參考 [agents.md/examples](https://agents.md/#examples)。

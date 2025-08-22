@@ -1,5 +1,3 @@
-
-# -*- coding: utf-8 -*-
 # 人工核可（HITL）供應者設定檔範例
 # 可定義多個 provider，前端可依 provider_id 顯示不同表單/流程
 providers:

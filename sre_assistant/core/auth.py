@@ -1,4 +1,3 @@
-
 # 檔案：sre_assistant/core/auth.py
 # 角色：API Key 驗證；devkey 僅在 ALLOW_DEV_KEY=true 時啟用。
 import os

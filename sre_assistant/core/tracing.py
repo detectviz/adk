@@ -14,14 +14,7 @@ except Exception:
 
 @contextmanager
 def start_span(name: str, attrs: Dict[str, str] | None = None):
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`start_span` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `name`：參數用途請描述。
-    - `attrs`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     if _TRACER is None:
         yield None
         return
@@ -43,12 +36,7 @@ def start_span(name: str, attrs: Dict[str, str] | None = None):
         span.end()
 
 def current_trace_ids() -> Tuple[str|None, str|None]:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`current_trace_ids` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     if trace is None:
         return None, None
     try:

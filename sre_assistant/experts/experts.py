@@ -13,23 +13,12 @@ except Exception:
     AgentTool = None
 
 def _ensure():
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`_ensure` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     if LlmAgent is None or AgentTool is None:
         raise RuntimeError("缺少 google-adk 套件，無法建立專家代理與 AgentTool")
 
 def make_diagnostic_expert(registry) -> Any:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`make_diagnostic_expert` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `registry`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     _ensure()
     agent = LlmAgent(
         name="DiagnosticExpert",
@@ -40,13 +29,7 @@ def make_diagnostic_expert(registry) -> Any:
     return AgentTool(name="DiagnosticExpertTool", agent=agent)
 
 def make_remediation_expert(registry) -> Any:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`make_remediation_expert` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `registry`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     _ensure()
     agent = LlmAgent(
         name="RemediationExpert",
@@ -57,13 +40,7 @@ def make_remediation_expert(registry) -> Any:
     return AgentTool(name="RemediationExpertTool", agent=agent)
 
 def make_postmortem_expert(registry) -> Any:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`make_postmortem_expert` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `registry`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     _ensure()
     agent = LlmAgent(
         name="PostmortemExpert",
@@ -74,13 +51,7 @@ def make_postmortem_expert(registry) -> Any:
     return AgentTool(name="PostmortemExpertTool", agent=agent)
 
 def make_config_expert(registry) -> Any:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`make_config_expert` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `registry`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     _ensure()
     agent = LlmAgent(
         name="ConfigExpert",
@@ -92,15 +63,7 @@ def make_config_expert(registry) -> Any:
 
 
 def _select_tools(registry, section: str, default: list[str]) -> list[Any]:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`_select_tools` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `registry`：參數用途請描述。
-    - `section`：參數用途請描述。
-    - `default`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     cfg = load_adk_config()
     allow = (((cfg.get("experts",{}) or {}).get(section, {}) or {}).get("tools_allowlist")) or default
     out = []

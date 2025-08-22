@@ -1,4 +1,3 @@
-
 # GCP Observability 導入指南（Traces/Logs/Metrics）
 
 ## 依賴

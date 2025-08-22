@@ -45,14 +45,7 @@ def _wrap_tool(name: str, fn) -> Any:
     return FunctionTool(name=name, func=fn)
 
 def _select_tools_by_names(tool_objs: Dict[str, Any], names: List[str] | None) -> List[Any]:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`_select_tools_by_names` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `tool_objs`：參數用途請描述。
-    - `names`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     if not names:
         return list(tool_objs.values())
     out = []
@@ -62,13 +55,7 @@ def _select_tools_by_names(tool_objs: Dict[str, Any], names: List[str] | None) -
     return out
 
 def build_runner_from_config(cfg: dict) -> "LoopAgent":
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`build_runner_from_config` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `cfg`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     if LlmAgent is None or LoopAgent is None or BuiltInPlanner is None:
         raise RuntimeError("缺少 google-adk 套件，無法建立 Runner")
 
@@ -121,12 +108,7 @@ def build_runner_from_config(cfg: dict) -> "LoopAgent":
 
 def get_runner():
     # 讀取 adk.yaml 並合併 experts/*.yaml 覆蓋
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`get_runner` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     cfg = load_combined_config("adk.yaml")
     return build_runner_from_config(cfg)
 

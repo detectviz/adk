@@ -12,12 +12,7 @@ from opentelemetry._logs import set_logger_provider
 _LOGGER_CONFIGURED = False
 
 def init_otel_logging() -> None:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`init_otel_logging` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     global _LOGGER_CONFIGURED
     if _LOGGER_CONFIGURED:
         return

@@ -1,4 +1,3 @@
-
 # 文件/知識庫載入入口（與 ADK ArtifactLoader 角色對齊）。
 from __future__ import annotations
 

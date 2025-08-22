@@ -68,14 +68,7 @@ logger.setLevel(logging.INFO)
 
 def log_event(event: str, payload: Dict[str, Any]) -> None:
     # 以 JSON 格式輸出事件日誌，便於搜尋與分析
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`log_event` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `event`：參數用途請描述。
-    - `payload`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     record = {"ts": time.time(), "event": event}
     record.update(payload or {})
     logger.info(json.dumps(record, ensure_ascii=False))

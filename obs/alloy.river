@@ -1,4 +1,3 @@
-
 // -*- river -*-
 // Grafana Alloy 設定：接收 OTLP（4317 gRPC / 4318 HTTP），輸出到 Tempo（traces）、Mimir（metrics via remote_write）、Loki（logs）、Pyroscope（profiles）
 

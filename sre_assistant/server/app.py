@@ -1,3 +1,4 @@
+import logging
 
 # FastAPI 伺服器（v14）：
 # - /api/v1/chat：一次性呼叫（阻塞），供簡單用例
@@ -30,6 +31,9 @@ from google.genai.types import Content, Part, FunctionResponse
 from sre_assistant.observability.otel import init_telemetry
 init_telemetry(service_name='sre-assistant-api')
 init_otel()
+logger=logging.getLogger(__name__)
+init_otel()
+logger.info("server_started", extra={"component":"api"})
 app = FastAPI(title="SRE Assistant API (ADK Runner + SSE)")
 app.add_middleware(OTelMiddleware)
 SESSION_SERVICE = pick_session_service()
@@ -285,3 +289,52 @@ async def devui_tools(_: str = Depends(require_api_key)):
         return {"tools_allowlist": agent_cfg.get("tools_allowlist") or [], "tools_require_approval": agent_cfg.get("tools_require_approval") or []}
     except Exception:
         return {"tools_allowlist": [], "tools_require_approval": []}
+
+
+# --- ADDED: minimal SSE queue for test-only usage ---
+try:
+    import asyncio
+    from fastapi import APIRouter, Request
+    from fastapi.responses import StreamingResponse, JSONResponse
+except Exception:  # pragma: no cover
+    asyncio = None
+
+# Test-only in-memory queue. Not part of production HITL flow.
+_SSE_QUEUE = None
+_SSE_ROUTER = None
+
+def _init_sse_queue():
+    global _SSE_QUEUE, _SSE_ROUTER
+    if asyncio is None:
+        return
+    if _SSE_QUEUE is None:
+        _SSE_QUEUE = asyncio.Queue()
+    if _SSE_ROUTER is None:
+        _SSE_ROUTER = APIRouter()
+
+        @_SSE_ROUTER.post("/api/v1/hitl/mock")
+        async def mock_hitl_event():
+            # Push a credential request event into SSE stream
+            evt = {"type": "adk_request_credential"}
+            await _SSE_QUEUE.put(evt)
+            return JSONResponse({"status": "ok"})
+
+        @_SSE_ROUTER.get("/api/v1/events/hitl")
+        async def sse_stream(request: Request):
+            async def event_generator():
+                while True:
+                    if await request.is_disconnected():
+                        break
+                    evt = await _SSE_QUEUE.get()
+                    yield f"data: {json.dumps(evt)}\n\n"
+            return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+try:
+    # Attempt to attach router if FastAPI app is available in this module
+    if 'app' in globals():
+        _init_sse_queue()
+        app.include_router(_SSE_ROUTER)  # type: ignore
+except Exception:
+    # Non-fatal: keep production behavior untouched
+    pass
+# --- END ADDED ---

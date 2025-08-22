@@ -8,15 +8,7 @@ from opentelemetry import trace
 
 class OTelMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        """
-        2025-08-22 03:37:34Z
-        函式用途：`dispatch` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-        參數說明：
-        - `self`：參數用途請描述。
-        - `request`：參數用途請描述。
-        - `call_next`：參數用途請描述。
-        回傳：請描述回傳資料結構與語義。
-        """
+        
         tracer = trace.get_tracer(__name__)
         start = time.time()
         with tracer.start_as_current_span(f"HTTP {request.method} {request.url.path}") as span:

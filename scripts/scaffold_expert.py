@@ -1,4 +1,3 @@
-
 # 腳手架：快速建立專家代理骨架。
 import os, sys, textwrap
 
@@ -19,12 +18,7 @@ class {name}:
 '''
 
 def main():
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`main` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     if len(sys.argv) < 2:
         print("用法: python -m scripts.scaffold_expert <ExpertClassName>")
         sys.exit(1)

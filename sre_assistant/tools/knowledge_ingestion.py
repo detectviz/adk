@@ -8,27 +8,14 @@ from ..rag.vectorstore_pg import upsert_document
 
 _model = None
 def get_model():
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`get_model` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     global _model
     if _model is None:
         _model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")  # 正式嵌入模型
     return _model
 
 def ingest_text(doc_id: str, text: str, metadata: Dict[str,Any]|None=None) -> Dict[str,Any]:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`ingest_text` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `doc_id`：參數用途請描述。
-    - `text`：參數用途請描述。
-    - `metadata`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     emb = get_model().encode(text).tolist()
     upsert_document(doc_id, text, emb, metadata or {})
     return {"ok": True, "doc_id": doc_id}

@@ -1,5 +1,4 @@
-
-# SRE Assistant 技術白皮書（v14.2）
+# SRE Assistant 技術白皮書
 
 > 狀態：穩定（Ready）  
 > 對齊：Google Agent Development Kit (ADK) — LoopAgent / BuiltInPlanner / LlmAgent / AgentTool / FunctionTool / LongRunningFunctionTool / Runner / SessionService / Dev UI

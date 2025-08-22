@@ -45,7 +45,7 @@ def _start_restart(ctx: ToolContext, namespace: str, deployment_name: str, reaso
     # 將操作狀態寫入 Session.state，並關聯 function_call_id 以利 HITL 回傳對應
     ops = ctx.session.state.setdefault('lr_ops', {})
     ops[op_id] = {"namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": False, "progress": 0, "result": None, "function_call_id": getattr(ctx, 'function_call_id', None)}
-    need_hitl = namespace.lower() in {"prod","production"}
+    need_hitl = namespace in (load_adk_config().get('policy', {}).get('high_risk_namespaces', []))
     namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": not need_hitl, "progress": 0}
     if need_hitl:
         prov = get_provider('hitl-approval')
@@ -141,3 +141,44 @@ def _need_hitl(tool_name: str, namespace: str) -> bool:
     require = ((cfg.get("agent") or {}).get("tools_require_approval") or [])
     high_risk = namespace.lower() in {"prod","production","prd"}
     return (tool_name in require) or high_risk
+
+
+
+import time
+
+class RolloutStatus:
+    SUCCESS = "success"
+    BACKOFF = "backoff"
+    TIMEOUT = "timeout"
+    PENDING = "pending"
+
+def _eval_rollout(pod_statuses, deadline_seconds=300):
+    """
+    Evaluate rollout states given a list of pod status dicts.
+    Each pod status is expected to have fields:
+      - ready (bool)
+      - phase (e.g., "Running","Pending","CrashLoopBackOff")
+      - reason (string or None)
+    Returns: one of RolloutStatus.*
+    """
+    start = time.time()
+    # Quick path: BackOff detected
+    for p in pod_statuses or []:
+        phase = (p or {}).get("phase") or ""
+        reason = ((p or {}).get("reason") or "").lower()
+        if "backoff" in reason or "crashloopbackoff" in phase.lower():
+            return RolloutStatus.BACKOFF
+
+    # All ready?
+    if pod_statuses and all(bool((p or {}).get("ready")) for p in pod_statuses):
+        return RolloutStatus.SUCCESS
+
+    # Timeout evaluation
+    if deadline_seconds is not None and deadline_seconds <= 0:
+        return RolloutStatus.TIMEOUT
+
+    # If not ready yet, check time progression in caller; here return pending
+    elapsed = time.time() - start
+    if elapsed > (deadline_seconds or 0):
+        return RolloutStatus.TIMEOUT
+    return RolloutStatus.PENDING

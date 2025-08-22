@@ -10,12 +10,7 @@ from sre_assistant.tools.grafana import grafana_create_dashboard_tool
 pytestmark = pytest.mark.e2e
 
 def test_prometheus_query_range():
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`test_prometheus_query_range` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     if not os.getenv("PROM_URL"):
         pytest.skip("PROM_URL 未設定，跳過")
     res = promql_query_tool("up", "instant@1699999999")
@@ -24,12 +19,7 @@ def test_prometheus_query_range():
     assert "error" not in (res.get("stats") or {})
 
 def test_k8s_rollout_restart():
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`test_k8s_rollout_restart` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     if not os.getenv("KUBECONFIG") and os.getenv("K8S_IN_CLUSTER","").lower() not in {"1","true","yes"}:
         pytest.skip("未配置 K8s 環境，跳過")
     out = k8s_rollout_restart_tool(namespace=os.getenv("K8S_NS","default"), deployment_name=os.getenv("K8S_DEPLOY","nonexistent"), reason="e2e-test")
@@ -37,12 +27,7 @@ def test_k8s_rollout_restart():
     assert isinstance(out, dict)
 
 def test_grafana_create_dashboard():
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`test_grafana_create_dashboard` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     if not os.getenv("GRAFANA_URL") or not os.getenv("GRAFANA_TOKEN"):
         pytest.skip("Grafana 未配置，跳過")
     r = grafana_create_dashboard_tool(service_type="web")

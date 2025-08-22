@@ -1,4 +1,3 @@
-
 # SRE Assistant (ADK)
 
 ADK 驅動的智慧 SRE 助理。以單一協調器代理，結合診斷/修復/覆盤專家與顯式工具，支援 HITL、RAG、真連接 Prometheus/K8s/Grafana，並內建 ADK Web Dev UI。
@@ -28,7 +27,7 @@ make accept      # 一鍵驗收（v14.1）
 ```
 
 ## 文件
-- `SPEC.md`、`docs/ADK_WEB_UI.md`、`docs/ACCEPTANCE_V14_1.md`
+- `SPEC.md`、`docs/ADK_WEB_UI.md`
 - `AGENT.md`、`TESTING_GUIDE.md`、`DEVELOPMENT_SETUP.md`
 
 
@@ -96,7 +95,7 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 - 工具適配層：`adapters/adk_runtime.py` 將函式工具轉為 ADK `FunctionTool/LongRunningFunctionTool`。
 
 
-### 政策閘與 HITL（更新）
+### 政策閘與 HITL
 - 政策閘僅執行 **靜態拒絕與審計**，不再於外層自動觸發 HITL 或丟出例外。
 - **HITL 門檻** 改為由 `adk.yaml.policy.risk_threshold` 定義，並由 **工具本身** 決定是否呼叫 `request_credential()`。
 - SSE 事件 `adk_request_credential` 由工具觸發，迴圈不中斷；前端核可後由長任務輪詢續跑或使用者重試。
@@ -162,25 +161,6 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 - `rbac` 映射與 `tools_allowlist` 可在 `adk.yaml` 中配置。
 - `ALLOW_DEV_KEY=true` 才允許 `devkey`。預設關閉。
 
-
-## v15.7.6 重要變更
-- 移除非 ADK 協調器與自訂 ToolRegistry/agents 目錄，統一由 `adk_app/runtime.py` 組裝。
-- 移除 `core/otel_grpc.py` 與 `core/policy.py`，採用官方推薦：追蹤由 OTel 自動化，策略檢查在工具內執行。
-- `k8s_long_running`：長任務狀態僅存於 `session.state`；HITL 觸發嚴格依 `adk.yaml` 與高風險命名空間。
-- `runtime.py` 引入 `BuiltInPlanner` 的占位導入，保持對齊官方設計。
-
-
-## v15.7.7 打包版
-- 封裝自 `v15.7.6-clean` 並套用 v15.7.7 修正：移除 `sub_agents/**`，改讀 `experts/*.yaml`；HITL 判斷內聚於 `k8s_long_running.py`。
-
-
-## v15.7.8 變更
-- 全域移除樣板註解字樣。
-- K8s 高風險命名空間改由 `adk.yaml.policy.high_risk_namespaces` 配置，預設 `['prod','production','prd']`。
-- 新增 `docs/HARDCODE_AUDIT.md`，列出疑似硬編碼以供人工審核。
-- 再次清理可能造成雙執行模式的殘留目錄（`sub_agents/` 等）。
-
-
 ### Cloud Build 環境變數注入
 Cloud Run 部署時，Cloud Build 會以 substitutions 注入下列環境變數：
 - `OTEL_EXPORTER_OTLP_ENDPOINT`（預設 `https://otel.googleapis.com:4317`）
@@ -207,6 +187,16 @@ Cloud Run 部署時，Cloud Build 會以 substitutions 注入下列環境變數�
 
 
 ## 設定範例
-- 主設定：`adk.yaml`（含繁中註解）
-- 環境變數範例：`.env.example`（含繁中註解）
+- 主設定：`adk.yaml`
+- 環境變數範例：`.env.example`
 - 覆寫優先序：環境變數 > `adk.yaml` > 程式預設；詳見 `docs/CONFIG.md`。
+
+
+### ADK 對齊重點
+- 事件名稱：HITL 流程以 `adk_request_credential` 單一事件對齊 Dev UI。
+- Session 後端：`SESSION_BACKEND=memory|database`；資料庫模式需 `DATABASE_URL`。詳見 `sre_assistant/core/session.py`。
+
+
+### OTel Logs 支援
+- 新增 OTel Logs 匯出；若套件不存在會自動略過。詳見 `docs/LOGGING.md`。
+

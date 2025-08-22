@@ -1,4 +1,3 @@
-
 # 角色：簡化的評測占位，之後可接入 ADK Eval。
 def run_eval():
     """{ts}

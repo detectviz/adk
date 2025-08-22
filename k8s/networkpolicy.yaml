@@ -1,8 +1,3 @@
-# 檔案：k8s/networkpolicy.yaml
-# 產生時間：2025-08-22T03:34:52.621849Z
-# 專案：SRE Assistant（對齊 Google ADK），本檔案已補齊繁體中文註解以提升可讀性與可維護性。
-# 類型：一般設定檔（支援中文註解）。
-
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -15,6 +10,6 @@ spec:
     - Ingress
     - Egress
   ingress:
-    - from: []  # 預設拒絕，可按需開白名單
+    - from: [] # 預設拒絕，可按需開白名單
   egress:
-    - to: []     # 預設拒絕，可按需開白名單
+    - to: [] # 預設拒絕，可按需開白名單

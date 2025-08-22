@@ -1,4 +1,3 @@
-
 # 記憶體後端配置（長期記憶/RAG 入口）。
 from __future__ import annotations
 

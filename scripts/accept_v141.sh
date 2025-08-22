@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 # v14.1 驗收腳本：真連接整合 + E2E 測試
 set -euo pipefail

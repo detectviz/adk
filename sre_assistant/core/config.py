@@ -1,7 +1,4 @@
-
-# -*- coding: utf-8 -*-
-# 統一設定載入模組（繁中註解）
-# 目的：消除分散硬編碼，集中處理優先序：環境變數 > adk.yaml > 預設。
+# 消除分散硬編碼，集中處理優先序：環境變數 > adk.yaml > 預設。
 from __future__ import annotations
 import os, yaml
 from typing import Any, Dict, List

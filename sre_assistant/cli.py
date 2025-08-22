@@ -7,12 +7,7 @@ from .core.hitl import APPROVALS
 from .core.persistence import DB
 
 def main():
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`main` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     parser = argparse.ArgumentParser(description="SRE Assistant CLI")
     sub = parser.add_subparsers(dest="cmd")
     p_chat = sub.add_parser("chat"); p_chat.add_argument("message", type=str)

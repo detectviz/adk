@@ -13,12 +13,7 @@ from opentelemetry.exporter.gcp_logging import GCPLoggingHandler
 from opentelemetry.exporter.cloud_monitoring import CloudMonitoringMetricsExporter
 
 def init_gcp_observability() -> None:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`init_gcp_observability` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：此函式無參數或皆使用外部環境。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     project_id = os.getenv("GCP_PROJECT_ID")
     if not project_id:
         raise RuntimeError("未設定 GCP_PROJECT_ID")

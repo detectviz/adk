@@ -1,4 +1,3 @@
-
 # 共用工具轉接（非詳實定義；實際工具仍於 sre_assistant/tools 之下）。
 from __future__ import annotations
 def list_shared_tools()->list[str]:

@@ -1,4 +1,3 @@
-
 # GCP 直投 OpenTelemetry（OTLP over gRPC）
 
 ## 設定
@@ -42,3 +41,8 @@ substitutions:
 ### 建議的環境變數
 - `SERVICE_NAME`：優先設定 OTel `service.name`
 - `GOOGLE_CLOUD_PROJECT`、`CLOUD_RUN_REGION`：若未注入，可在 `adk.yaml` 的 `gcp.project_id`、`gcp.region` 設定
+
+
+### Logs 匯出支援
+- 需要 `opentelemetry-exporter-otlp`（含 logs 模組）。未安裝時會自動略過，不影響服務。
+- 於 `observability/otel.py` 的 `_init_logs()` 自動初始化。

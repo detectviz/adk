@@ -1,4 +1,3 @@
-
 # 運維與可選元件
 kubernetes>=28.1.0
 psycopg[binary]>=3.2.1

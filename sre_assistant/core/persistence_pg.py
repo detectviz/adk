@@ -10,27 +10,14 @@ except Exception:
 
 class PgDatabase:
     def __init__(self, dsn: str):
-        """
-        2025-08-22 03:37:34Z
-        函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-        參數說明：
-        - `self`：參數用途請描述。
-        - `dsn`：參數用途請描述。
-        回傳：請描述回傳資料結構與語義。
-        """
+        
         if psycopg is None:
             raise RuntimeError("未安裝 psycopg，無法使用 PostgreSQL")
         self.conn = psycopg.connect(dsn, autocommit=True)
         self._init_schema()
 
     def _init_schema(self):
-        """
-        2025-08-22 03:37:34Z
-        函式用途：`_init_schema` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-        參數說明：
-        - `self`：參數用途請描述。
-        回傳：請描述回傳資料結構與語義。
-        """
+        
         with self.conn.cursor() as cur:
             cur.execute("""
             CREATE TABLE IF NOT EXISTS decisions(

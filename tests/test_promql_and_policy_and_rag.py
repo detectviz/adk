@@ -1,8 +1,3 @@
-# 檔案：tests/test_promql_and_policy_and_rag.py
-# 產生時間：2025-08-22T03:34:52.621849Z
-# 專案：SRE Assistant（對齊 Google ADK），本檔案已補齊繁體中文註解以提升可讀性與可維護性。
-# 說明：一般模組或測試檔，已加入中文檔頭說明。
-
 import os
 from sre_assistant.tools.promql import promql_query_tool
 from sre_assistant.core.policy import SRESecurityPolicy
@@ -27,8 +22,7 @@ def test_promql_strict_bad_query(monkeypatch):
 def test_policy_dynamic_dir(tmp_path, monkeypatch):
     # 建立動態政策檔
     p = tmp_path / "p1.yaml"
-    p.write_text("deny_tools: ['GrafanaDashboardTool']
-", encoding="utf-8")
+    p.write_text("deny_tools: ['GrafanaDashboardTool']", encoding="utf-8")
     reg = build_registry()
     pol = SRESecurityPolicy(registry=reg, policy_dir=str(tmp_path))
     allowed, reason, risk, req = pol.evaluate_tool_call("GrafanaDashboardTool", {"service_type":"web"})

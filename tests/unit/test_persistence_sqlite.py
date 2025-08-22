@@ -4,14 +4,7 @@ import os, json, tempfile, pathlib
 from sre_assistant.core import persistence as P
 
 def test_sqlite_audit_event_decision(tmp_path, monkeypatch):
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`test_sqlite_audit_event_decision` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `tmp_path`：參數用途請描述。
-    - `monkeypatch`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
+    
     db_path = tmp_path / "sre.db"
     monkeypatch.setenv("DB_PATH", str(db_path))
     monkeypatch.delenv("PG_DSN", raising=False)

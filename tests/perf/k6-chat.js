@@ -1,4 +1,3 @@
-
 // 負載測試（k6）：對 /api/v1/chat 發送請求，觀察 P95 延遲
 import http from 'k6/http';
 import { sleep, check } from 'k6';

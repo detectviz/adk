@@ -1,4 +1,3 @@
-
 # 正式導入 Google ADK
 
 - 構建協調器：`sre_assistant/adapters/adk_runtime.py` 會嘗試引入 `google.adk`。
