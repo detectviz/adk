@@ -2,13 +2,16 @@
 # Kubernetes 長任務工具（v14.4）：HITL（request_credential）+ 真正 rollout 輪詢
 from __future__ import annotations
 import yaml
+# 由設定檔/環境變數取得審批清單與高風險命名空間
+_HITL_REQUIRE = set(get_list('agent.tools_require_approval', []))
+_HIGH_RISK_NS = set(get_list('policy.high_risk_namespaces', ['prod','production','prd']))
+
+from sre_assistant.core.config import get_list
 
 try:
     _ADK_CFG = yaml.safe_load(open('adk.yaml','r',encoding='utf-8')) or {}
 except Exception:
     _ADK_CFG = {}
-_HITL_REQUIRE = set((_ADK_CFG.get('agent') or {}).get('tools_require_approval') or [])
-_HIGH_RISK_NS = set(((_ADK_CFG.get('policy') or {}).get('high_risk_namespaces') or ['prod','production','prd']))
 
 import os, yaml
 import os, time, uuid

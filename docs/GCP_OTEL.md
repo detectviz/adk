@@ -37,3 +37,8 @@ substitutions:
 ### Resource 設定
 - Cloud Build 會注入：`SERVICE_NAME=$_SERVICE_NAME`（可在 substitutions 覆寫）。
 - 若未注入則從 `adk.yaml.agent.name` 推導，最後 fallback `sre-assistant`。
+
+
+### 建議的環境變數
+- `SERVICE_NAME`：優先設定 OTel `service.name`
+- `GOOGLE_CLOUD_PROJECT`、`CLOUD_RUN_REGION`：若未注入，可在 `adk.yaml` 的 `gcp.project_id`、`gcp.region` 設定

@@ -8,6 +8,7 @@ OpenTelemetry 初始化模組（繁中註解）
 """
 from __future__ import annotations
 import os, yaml
+from sre_assistant.core.config import get
 from typing import Dict, Any
 
 def _load_adk()->Dict[str, Any]:
@@ -38,10 +39,10 @@ def init_otel()->None:
         return  # 未安裝 OTel 套件時安靜略過
 
     cfg = _load_adk()
-    agent_name = ((cfg.get("agent") or {}).get("name")) or "sre-assistant"
+    agent_name = get("agent.name", "sre-assistant")
     service_name = os.getenv("SERVICE_NAME", agent_name)
-    project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "")
-    region = os.getenv("CLOUD_RUN_REGION", os.getenv("_REGION", ""))
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT", get("gcp.project_id", ""))
+    region = os.getenv("CLOUD_RUN_REGION", os.getenv("_REGION", get("gcp.region","")))
 
     resource = Resource.create({
         "service.name": service_name,

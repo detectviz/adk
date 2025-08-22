@@ -1,56 +1,47 @@
 
-# adk.yaml 設定讀取輔助
+# -*- coding: utf-8 -*-
+# 統一設定載入模組（繁中註解）
+# 目的：消除分散硬編碼，集中處理優先序：環境變數 > adk.yaml > 預設。
 from __future__ import annotations
-from pathlib import Path
-import yaml
+import os, yaml
+from typing import Any, Dict, List
 
-def load_adk_config(path: str = "adk.yaml") -> dict:
-    """
-    2025-08-22 03:37:34Z
-    函式用途：`load_adk_config` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
-    參數說明：
-    - `path`：參數用途請描述。
-    回傳：請描述回傳資料結構與語義。
-    """
-    p = Path(path)
-    if not p.exists():
-        return {}
+def _load_yaml(path: str = "adk.yaml") -> Dict[str, Any]:
     try:
-        return yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+        with open(path, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
     except Exception:
         return {}
 
+_YAML = _load_yaml()
 
-def _deep_merge(dst: dict, src: dict) -> dict:
-    """遞迴合併字典，src 覆蓋 dst；僅支援 dict/list/標量（簡化版）。"""
-    for k, v in (src or {}).items():
-        if isinstance(v, dict) and isinstance(dst.get(k), dict):
-            _deep_merge(dst[k], v)
-        else:
-            dst[k] = v
-    return dst
-
-def load_combined_config(base_path: str = "adk.yaml") -> dict:
-    """載入主設定 adk.yaml，並將 experts/*.yaml 逐一合併到 `experts` 區塊。
-    搜尋順序：
-      1) 專案根目錄的 `experts/*.yaml`
-      2) 程式內建的 `sre_assistant/experts/*.yaml`
-    合併規則：同鍵以 experts/*.yaml 覆蓋 adk.yaml；未提供則保留原值。
+def get(key: str, default: Any = None) -> Any:
     """
-    cfg = load_adk_config(base_path)
-    experts = cfg.setdefault("experts", {})
-    from pathlib import Path
-    search_dirs = [Path("experts"), Path("sre_assistant/experts")]
-    for name in ("diagnostic","remediation","postmortem","config"):
-        for d in search_dirs:
-            yp = d / f"{name}.yaml"
-            if yp.exists():
-                try:
-                    y = yaml.safe_load(yp.read_text(encoding="utf-8")) or {}
-                    # 期望格式：{prompt:..., model:..., tools_allowlist:[...], slo:{...}}
-                    experts.setdefault(name, {})
-                    _deep_merge(experts[name], y)
-                    break
-                except Exception:
-                    continue
-    return cfg
+    函式用途：以 'a.b.c' 路徑取值。先看環境變數 ADK_A_B_C，再看 adk.yaml，最後回傳預設。
+    參數：key：以點號分隔的設定路徑；default：預設值。
+    回傳：對應設定值或預設值。
+    """
+    env_key = "ADK_" + key.replace(".", "_").upper()
+    if env_key in os.environ:
+        return os.environ[env_key]
+    # 走 YAML 路徑
+    cur = _YAML
+    for part in key.split("."):
+        if isinstance(cur, dict) and part in cur:
+            cur = cur[part]
+        else:
+            return default
+    return cur
+
+def get_list(key: str, default: List[str] | None = None) -> List[str]:
+    """
+    函式用途：取出字串清單類型的設定。
+    支援以逗號分隔的環境變數覆蓋。
+    """
+    env_key = "ADK_" + key.replace(".", "_").upper()
+    if env_key in os.environ:
+        return [x.strip() for x in os.environ[env_key].split(",") if x.strip()]
+    val = get(key, default or [])
+    if isinstance(val, list):
+        return [str(x) for x in val]
+    return default or []

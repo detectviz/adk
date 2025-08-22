@@ -199,3 +199,14 @@ Cloud Run 部署時，Cloud Build 會以 substitutions 注入下列環境變數�
   - `model`: 例如 `gemini-2.0-pro`、`gemini-2.0-flash`
   - `slo`: 例如 `{ p95_response_ms: 2000 }`
 - 由 `runtime.get_effective_models()` 與 `runtime.get_slo_targets()` 查詢，後續可用於裝配根代理與 SLO 守門。
+
+
+## 設定讀取策略
+- 採環境變數優先：可使用 `ADK_<PATH>` 形式覆寫（例如 `ADK_POLICY_HIGH_RISK_NAMESPACES=prod,production,prd`）。
+- 其後讀取 `adk.yaml`；最後採預設值。詳見 `docs/CONFIG.md`。
+
+
+## 設定範例
+- 主設定：`adk.yaml`（含繁中註解）
+- 環境變數範例：`.env.example`（含繁中註解）
+- 覆寫優先序：環境變數 > `adk.yaml` > 程式預設；詳見 `docs/CONFIG.md`。
