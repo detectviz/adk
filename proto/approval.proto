@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package sre_assistant.approval.v1;
+
+option go_package = "github.com/sre-assistant/proto/gen/go/sre_assistant/approval/v1";
+option java_package = "com.sreassistant.approval.v1";
+option java_outer_classname = "ApprovalProto";
+
+// 審批服務 - 標準 HITL (Human-in-the-Loop) 實作
+service ApprovalService {
+  // 請求審批
+  rpc RequestApproval(ApprovalRequest) returns (ApprovalResponse);
+  
+  // 提交審批決定
+  rpc SubmitApproval(ApprovalDecision) returns (ApprovalResult);
+  
+  // 獲取審批狀態
+  rpc GetApprovalStatus(ApprovalStatusRequest) returns (ApprovalStatus);
+  
+  // 取消審批請求
+  rpc CancelApproval(CancelApprovalRequest) returns (CancelApprovalResponse);
+}
+
+// 審批請求
+message ApprovalRequest {
+  string request_id = 1;
+  string session_id = 2;
+  string user_id = 3;
+  ApprovalType approval_type = 4;
+  string action = 5;
+  string resource = 6;
+  RiskLevel risk_level = 7;
+  string description = 8;
+  map<string, string> context = 9;
+  repeated string required_approvers = 10;
+  int64 timeout_seconds = 11;
+  bool auto_approve_low_risk = 12;
+}
+
+// 審批響應
+message ApprovalResponse {
+  string request_id = 1;
+  ApprovalStatus status = 2;
+  string approval_url = 3;
+  repeated string notified_approvers = 4;
+  int64 expires_at = 5;
+}
+
+// 審批決定
+message ApprovalDecision {
+  string request_id = 1;
+  string approver_id = 2;
+  ApprovalAction action = 3;
+  string reason = 4;
+  map<string, string> conditions = 5;
+  int64 timestamp = 6;
+}
+
+// 審批結果
+message ApprovalResult {
+  string request_id = 1;
+  bool success = 2;
+  string message = 3;
+  ApprovalAction final_decision = 4;
+}
+
+// 審批狀態請求
+message ApprovalStatusRequest {
+  string request_id = 1;
+}
+
+// 審批狀態
+message ApprovalStatus {
+  string request_id = 1;
+  ApprovalState state = 2;
+  ApprovalAction decision = 3;
+  string approver_id = 4;
+  string reason = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+  int64 expires_at = 8;
+}
+
+// 取消審批請求
+message CancelApprovalRequest {
+  string request_id = 1;
+  string reason = 2;
+}
+
+// 取消審批響應
+message CancelApprovalResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 審批類型
+enum ApprovalType {
+  APPROVAL_TYPE_UNSPECIFIED = 0;
+  KUBERNETES_OPERATION = 1;
+  INFRASTRUCTURE_CHANGE = 2;
+  CONFIGURATION_UPDATE = 3;
+  DEPLOYMENT_ACTION = 4;
+  DATA_OPERATION = 5;
+  SECURITY_ACTION = 6;
+}
+
+// 風險等級
+enum RiskLevel {
+  RISK_LEVEL_UNSPECIFIED = 0;
+  LOW = 1;
+  MEDIUM = 2;
+  HIGH = 3;
+  CRITICAL = 4;
+}
+
+// 審批狀態
+enum ApprovalState {
+  APPROVAL_STATE_UNSPECIFIED = 0;
+  PENDING = 1;
+  APPROVED = 2;
+  REJECTED = 3;
+  EXPIRED = 4;
+  CANCELLED = 5;
+}
+
+// 審批操作
+enum ApprovalAction {
+  APPROVAL_ACTION_UNSPECIFIED = 0;
+  APPROVE = 1;
+  REJECT = 2;
+  APPROVE_WITH_CONDITIONS = 3;
+}

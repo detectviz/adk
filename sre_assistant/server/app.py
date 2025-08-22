@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Header, Depends, Request
 from fastapi.responses import StreamingResponse, HTMLResponse
 from pydantic import BaseModel
 import json
+import uuid
 from ..core.telemetry import init_tracing
 from sre_assistant.adk_app.runtime import RUNNER
 from ..core.adk_events import extract_decision, is_request_credential, coerce_sse_payload
@@ -20,7 +21,7 @@ init_tracing()
 init_pyroscope()
 init_otel_logging()
 
-from ..adk_app.runtime import RUNNER, run_chat  # Runner 與同步封裝
+from ..adk_app.runtime import RUNNER  # 標準 ADK Runner
 from ..core.auth import require_api_key, AuthError
 from ..core.debounce import DEBOUNCER
 from ..core.persistence import DB, list_events_range, list_decisions_range
@@ -84,13 +85,44 @@ def health_ready():
         raise HTTPException(status_code=503, detail=f"db not ready: {e}")
 
 @app.post("/api/v1/chat")
-def chat(req: ChatRequest, _: str = Depends(require_api_key)):
+async def chat(req: ChatRequest, _: str = Depends(require_api_key)):
     if not DEBOUNCER.allow_msg(req.message, req.session_id):
         raise HTTPException(status_code=409, detail="debounced")
-    res = run_chat(user_id=req.user_id, session_id=req.session_id, message=req.message)
-    adv = slo_guard.evaluate(res["metrics"]["duration_ms"])
-    res["slo_advice"] = adv.__dict__
-    return res
+    
+    import time
+    start_time = time.time()
+    
+    try:
+        # 使用標準 ADK Runner
+        session_id = req.session_id or str(uuid.uuid4())
+        
+        # 執行 Agent
+        events = []
+        async for event in RUNNER.run_async(req.message, session_id=session_id):
+            events.append(event)
+            if event.is_final_response():
+                break
+        
+        # 構建回應
+        final_event = events[-1] if events else None
+        response_text = final_event.content.text if final_event and final_event.content else ""
+        
+        duration_ms = (time.time() - start_time) * 1000
+        
+        res = {
+            "response": response_text,
+            "session_id": session_id,
+            "events": len(events),
+            "metrics": {"duration_ms": duration_ms}
+        }
+        
+        adv = slo_guard.evaluate(duration_ms)
+        res["slo_advice"] = adv.__dict__
+        return res
+        
+    except Exception as e:
+        logger.error(f"Chat API 錯誤: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- SSE 串流工具函式 ---
 async def _stream_events(user_id: str, session_id: str, content: Content) -> AsyncGenerator[bytes, None]:
@@ -231,8 +263,7 @@ async def list_effective_tools(_: str = Depends(require_api_key)):
 
 @app.post("/api/v1/ops/{op_id}/cancel")
 async def cancel_op(op_id: str, _: str = Depends(require_api_key)):
-    """{ts}
-函式用途：標記長任務取消旗標。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
+    """標記長任務取消旗標。"""
     try:
         from sre_assistant.core.audit import write_hitl_audit
         sess = RUNNER.get_session_service().get_current_session()
@@ -246,8 +277,7 @@ async def cancel_op(op_id: str, _: str = Depends(require_api_key)):
 
 @app.post("/api/v1/ops/{op_id}/resume")
 async def resume_op(op_id: str, _: str = Depends(require_api_key)):
-    """{ts}
-函式用途：標記長任務恢復旗標。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
+    """標記長任務恢復旗標。"""
     try:
         from sre_assistant.core.audit import write_hitl_audit
         sess = RUNNER.get_session_service().get_current_session()
@@ -261,8 +291,7 @@ async def resume_op(op_id: str, _: str = Depends(require_api_key)):
 
 @app.post("/api/v1/hitl/approve")
 async def hitl_approve(function_call_id: str, approved: bool = True, reason: str = "", approver: str = "user", _: str = Depends(require_api_key)):
-    """{ts}
-函式用途：接收 HITL 審批並記錄於 session.state。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
+    """接收 HITL 審批並記錄於 session.state。"""
     try:
         from sre_assistant.core.audit import write_hitl_audit
         sess = RUNNER.get_session_service().get_current_session()
@@ -279,8 +308,7 @@ async def hitl_approve(function_call_id: str, approved: bool = True, reason: str
 
 @app.get("/api/v1/devui/tools")
 async def devui_tools(_: str = Depends(require_api_key)):
-    """{ts}
-函式用途：提供 Dev UI 同步工具清單。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
+    """提供 Dev UI 同步工具清單。"""
     try:
         from sre_assistant.core.audit import write_hitl_audit
         from sre_assistant.core.config import load_combined_config

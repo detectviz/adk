@@ -1,4 +1,3 @@
-
 # 以 Python 腳本示意如何將 ADK 應用註冊至 Vertex AI Agent Engine（需官方 SDK/權限）。
 def main():
     """

@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package sre_assistant.v1;
+
+option go_package = "github.com/sre-assistant/proto/gen/go/sre_assistant/v1";
+option java_package = "com.sreassistant.v1";
+option java_outer_classname = "AgentProto";
+
+// SRE Assistant Agent Service - 標準 A2A 通訊介面
+service SREAssistantService {
+  // 處理聊天請求的主要端點
+  rpc Chat(ChatRequest) returns (stream ChatResponse);
+  
+  // 執行診斷分析
+  rpc Execute(ExecuteRequest) returns (ExecuteResponse);
+  
+  // 獲取 Agent 健康狀態
+  rpc Health(HealthRequest) returns (HealthResponse);
+  
+  // 獲取 Agent 配置信息
+  rpc GetConfig(ConfigRequest) returns (ConfigResponse);
+}
+
+// 聊天請求消息
+message ChatRequest {
+  string session_id = 1;
+  string user_id = 2;
+  string message = 3;
+  map<string, string> context = 4;
+  repeated Tool available_tools = 5;
+}
+
+// 聊天響應消息
+message ChatResponse {
+  string response_id = 1;
+  string session_id = 2;
+  string content = 3;
+  ResponseType type = 4;
+  repeated ToolCall tool_calls = 5;
+  map<string, string> metadata = 6;
+  bool is_final = 7;
+}
+
+// 執行請求消息
+message ExecuteRequest {
+  string action_type = 1;
+  map<string, string> parameters = 2;
+  string context = 3;
+  bool require_approval = 4;
+}
+
+// 執行響應消息
+message ExecuteResponse {
+  bool success = 1;
+  string result = 2;
+  string error_message = 3;
+  repeated ExecutionStep steps = 4;
+  map<string, string> metadata = 5;
+}
+
+// 健康檢查請求
+message HealthRequest {
+  string component = 1;
+}
+
+// 健康檢查響應
+message HealthResponse {
+  HealthStatus status = 1;
+  string message = 2;
+  map<string, string> details = 3;
+  int64 timestamp = 4;
+}
+
+// 配置請求
+message ConfigRequest {
+  string config_type = 1;
+}
+
+// 配置響應
+message ConfigResponse {
+  map<string, string> config = 1;
+  string version = 2;
+}
+
+// 工具定義
+message Tool {
+  string name = 1;
+  string description = 2;
+  map<string, string> parameters = 3;
+  bool is_long_running = 4;
+}
+
+// 工具調用
+message ToolCall {
+  string tool_name = 1;
+  map<string, string> parameters = 2;
+  string call_id = 3;
+  ToolCallStatus status = 4;
+}
+
+// 執行步驟
+message ExecutionStep {
+  string step_id = 1;
+  string description = 2;
+  StepStatus status = 3;
+  string result = 4;
+  int64 timestamp = 5;
+}
+
+// 響應類型枚舉
+enum ResponseType {
+  RESPONSE_TYPE_UNSPECIFIED = 0;
+  TEXT = 1;
+  TOOL_CALL = 2;
+  ERROR = 3;
+  THINKING = 4;
+  FINAL = 5;
+}
+
+// 健康狀態枚舉
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTHY = 1;
+  DEGRADED = 2;
+  UNHEALTHY = 3;
+}
+
+// 工具調用狀態枚舉
+enum ToolCallStatus {
+  TOOL_CALL_STATUS_UNSPECIFIED = 0;
+  PENDING = 1;
+  RUNNING = 2;
+  COMPLETED = 3;
+  FAILED = 4;
+  CANCELLED = 5;
+}
+
+// 執行步驟狀態枚舉
+enum StepStatus {
+  STEP_STATUS_UNSPECIFIED = 0;
+  QUEUED = 1;
+  IN_PROGRESS = 2;
+  COMPLETED = 3;
+  FAILED = 4;
+  SKIPPED = 5;
+}

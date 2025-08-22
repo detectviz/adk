@@ -1,3 +1,12 @@
+# 變更紀錄
+
+## 變更要點（v14+）
+* v13.2：LongRunning + Runner/SessionService。  
+* v14：Session 可切換；HITL 改為 request_credential；SSE 事件與前端示例。  
+* v14.1：真連接 Prometheus/K8s/Grafana + E2E 驗收。  
+* v14.2：整合 ADK Web Dev UI。
+
+
 ## v15.7.6 重要變更
 - 移除非 ADK 協調器與自訂 ToolRegistry/agents 目錄，統一由 `adk_app/runtime.py` 組裝。
 - 移除 `core/otel_grpc.py` 與 `core/policy.py`，採用官方推薦：追蹤由 OTel 自動化，策略檢查在工具內執行。

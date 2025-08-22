@@ -1,0 +1,21 @@
+[
+  {
+    "query": "你有什麼資料？",
+    "expected_tool_use": [],
+    "expected_intermediate_agent_responses": [],
+    "reference": "我可以存取 `train` 和 `test` 這兩個資料表。兩個資料表都包含貼紙銷售的資訊，包括日期、國家、商店、產品和銷售數量。`train` 資料表包含歷史銷售資料，而 `test` 資料表包含較近期的銷售資料。\n"
+  },
+  {
+    "query": "測試資料中有哪些國家？",
+    "expected_tool_use": [
+      {
+        "tool_name": "call_db_agent",
+        "tool_input": {
+          "question": "測試資料表中有哪些不同的國家？"
+        }
+      }
+    ],
+    "expected_intermediate_agent_responses": [],
+    "reference": "**結果：** 測試資料表中不同的國家有加拿大、芬蘭、義大利、肯亞、挪威和新加坡。\n\n**說明：** 我查詢了 `test` 資料表，以找出 `country` 欄位中所有不同的值。查詢回傳了國家列表：加拿大、芬蘭、義大利、肯亞、挪威和新加坡。\n"
+  }
+]

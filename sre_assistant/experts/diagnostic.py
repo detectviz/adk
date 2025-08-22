@@ -32,10 +32,10 @@ def build_agent(tool_objs: Dict[str, Any]) -> "LlmAgent":
     exp_cfg = ((cfg.get("experts") or {}).get("diagnostic") or {})
     model = exp_cfg.get('model') or agent_cfg.get('model') or os.getenv('ADK_MODEL', 'gemini-2.0-flash')
     tools = _select_tools(tool_objs, ["rag_search"], "diagnostic")
+    prompt = exp_cfg.get("prompt") or '你是診斷專家，負責告警分類、假設生成與資料蒐集。必要時提出可驗證的下一步。'
     return LlmAgent(
         name="DiagnosticExpert",
         model=model,
-        prompt = exp_cfg.get("prompt")
-    instruction=prompt or '你是診斷專家，負責告警分類、假設生成與資料蒐集。必要時提出可驗證的下一步。' ,
+        instruction=prompt,
         tools=tools,
     )
