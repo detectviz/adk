@@ -3,7 +3,8 @@
 # Kubernetes 長任務工具（v14.4）：HITL（request_credential）+ 真正 rollout 輪詢
 from __future__ import annotations
 import os, time, uuid
-from typing import Dict, Any, Optional
+from typing import Dict, Any
+from ..core.config import load_adk_config, Optional
 
 from google.adk.tools.long_running_tool import LongRunningFunctionTool
 from google.adk.tools.tool_context import ToolContext
@@ -16,9 +17,22 @@ from .k8s import rollout_restart_deployment
 # 內存暫存操作上下文（示例）；生產請改 DB/Redis
 _LR_OPS: Dict[str, Dict[str, Any]] = {}
 
-def _start_restart(ctx: ToolContext, namespace: str, deployment_name: str, reason: str) -> dict: ToolContext, namespace: str, deployment_name: str, reason: str = "") -> Dict[str, Any]:
+def _start_restart(ctx: ToolContext, namespace: str, deployment_name: str, reason: str) -> dict:
+    cfg = load_adk_config()
+    require = set((cfg.get('agent',{}) or {}).get('tools_require_approval') or [])
+    risk_th = (cfg.get('policy',{}) or {}).get('risk_threshold', 'High')
+    # K8sRolloutRestartLongRunningTool 屬高風險，若在 require 清單或高於門檻，則觸發核可
+    tool_name = 'K8sRolloutRestartLongRunningTool'
+    if (tool_name in require) or True:
+        try:
+            ctx.request_credential(prompt=f"請核可 Deployment 重啟：{namespace}/{deployment_name}", fields={"namespace": namespace, "deployment": deployment_name, "reason": reason})
+        except Exception:
+            pass ToolContext, namespace: str, deployment_name: str, reason: str = "") -> Dict[str, Any]:
     """開始重啟流程：prod/production 需 HITL；否則直接觸發短任務並進入輪詢。"""
     op_id = f"op-{int(time.time()*1000)}"
+    # 將操作狀態寫入 Session.state，並關聯 function_call_id 以利 HITL 回傳對應
+    ops = ctx.session.state.setdefault('lr_ops', {})
+    ops[op_id] = {"namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": False, "progress": 0, "result": None, "function_call_id": getattr(ctx, 'function_call_id', None)}
     need_hitl = namespace.lower() in {"prod","production"}
     _LR_OPS[op_id] = {"namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": not need_hitl, "progress": 0}
     if need_hitl:
@@ -43,12 +57,22 @@ def _execute_restart(op_id: str) -> Dict[str, Any]:
     return {"op_id": op_id, "status": "RUNNING" if res.get("success") else "FAILED", "result": res}
 
 def _poll_restart(ctx: ToolContext, op_id: str) -> Dict[str, Any]:
-    # 讀取前端核可回應，若已核可/拒絕則更新 session 狀態
-    try:
-        auth = ctx.get_auth_response(function_call_id=op_id)
-        if auth and isinstance(auth, dict):
-            st = ctx.session.state.setdefault('lr_ops', {})
-            info = st.setdefault(op_id, {"approved": False, "progress": 0, "result": None})
+    ops = ctx.session.state.setdefault('lr_ops', {})
+    st = ops.get(op_id) or {"approved": False, "progress": 0, "result": None}
+    # 若有 function_call_id，嘗試讀取核可回應
+    fcid = st.get('function_call_id')
+    if fcid:
+        try:
+            auth = ctx.get_auth_response(function_call_id=fcid)
+            if auth and isinstance(auth, dict):
+                if auth.get('approved') is True:
+                    st['approved'] = True
+                if auth.get('rejected') is True:
+                    st['approved'] = False
+                    st['result'] = {"success": False, "message": auth.get('reason','HITL 拒絕')}
+        except Exception:
+            pass
+    info = st.setdefault(op_id, {"approved": False, "progress": 0, "result": None})
             if auth.get('approved') is True:
                 info['approved'] = True
             if auth.get('rejected') is True:

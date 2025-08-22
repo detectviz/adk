@@ -1,0 +1,14 @@
+# 專家設定檔（diagnostic）：集中管理 Prompt、工具白名單、模型、SLO 目標
+# 說明：此檔會在啟動時由 runtime 合併覆蓋到 adk.yaml.experts.diagnostic
+# - model：可覆蓋 agent.model
+# - tools_allowlist：此專家允許使用的工具清單（名稱需與 runtime 建立的工具一致）
+# - prompt：此專家的系統提示詞（會覆蓋程式內預設）
+# - slo：此專家負責的 SLO 指標（範例，供觀測與測試）
+model: gemini-2.0-pro
+tools_allowlist:
+  - rag_search
+prompt: |
+  你是 診斷專家。請專注於告警分類、假設生成、關鍵證據彙整，輸出需包含可操作建議。
+slo:
+  p95_latency_seconds: 2.0
+  success_rate_threshold: 0.98

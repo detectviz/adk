@@ -9,6 +9,13 @@ from sre_assistant.tools.rag_retrieve import rag_retrieve_vector_tool
 pytestmark = pytest.mark.integration
 
 def test_pgvector_ingest_and_retrieve(monkeypatch):
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`test_pgvector_ingest_and_retrieve` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：
+    - `monkeypatch`：參數用途請描述。
+    回傳：請描述回傳資料結構與語義。
+    """
     dsn = os.getenv("PG_DSN")
     if not dsn:
         pytest.skip("PG_DSN 未設定，略過整合測試")

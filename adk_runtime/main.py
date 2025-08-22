@@ -11,6 +11,12 @@ from sre_assistant.tools.knowledge_ingestion import knowledge_ingestion_tool
 from sre_assistant.tools.rag_retrieve import rag_retrieve_vector_tool
 
 def build_registry() -> ToolRegistry:
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`build_registry` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：此函式無參數或皆使用外部環境。
+    回傳：請描述回傳資料結構與語義。
+    """
     base = os.path.join(os.path.dirname(__file__), "..", "sre_assistant", "tools", "specs")
     reg = ToolRegistry()
     reg.register_from_yaml(os.path.join(base, "PromQLQueryTool.yaml"), func=promql_query_tool)

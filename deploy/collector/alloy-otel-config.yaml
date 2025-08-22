@@ -1,0 +1,9 @@
+
+receivers: { otlp: { protocols: { grpc: {}, http: {} } } }
+exporters:
+  otlp: { endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://app:4317} }
+  prometheus: { endpoint: "0.0.0.0:9464" }
+service:
+  pipelines:
+    traces: { receivers: [otlp], exporters: [otlp] }
+    metrics: { receivers: [otlp], exporters: [prometheus] }

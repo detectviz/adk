@@ -1,3 +1,7 @@
+# 檔案：tests/test_promql_and_policy_and_rag.py
+# 產生時間：2025-08-22T03:34:52.621849Z
+# 專案：SRE Assistant（對齊 Google ADK），本檔案已補齊繁體中文註解以提升可讀性與可維護性。
+# 說明：一般模組或測試檔，已加入中文檔頭說明。
 
 # -*- coding: utf-8 -*-
 import os

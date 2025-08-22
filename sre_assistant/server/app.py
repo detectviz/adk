@@ -11,8 +11,7 @@ from fastapi.responses import StreamingResponse, HTMLResponse
 from pydantic import BaseModel
 import json
 from ..core.telemetry import init_tracing
-from sre_assistant.adk_app.coordinator import build_coordinator
-from adk.registry import ToolRegistry
+from sre_assistant.adk_app.runtime import RUNNER
 from ..core.adk_events import extract_decision, is_request_credential, coerce_sse_payload
 from ..core.session import pick_session_service
 from ..core.profiling_pyroscope import init_pyroscope
@@ -29,12 +28,15 @@ from ..core.slo_guard import SLOGuardian
 
 from google.genai.types import Content, Part, FunctionResponse
 
+from sre_assistant.observability.otel import init_telemetry
+init_telemetry(service_name='sre-assistant-api')
 app = FastAPI(title="SRE Assistant API (ADK Runner + SSE)")
 app.add_middleware(OTelMiddleware)
 SESSION_SERVICE = pick_session_service()
 # 啟動 GCP Observability（可選）
 if os.getenv('GCP_OBS_ENABLED','').lower() in {'1','true','yes'}:
     try:
+        from sre_assistant.core.audit import write_hitl_audit
         from sre_assistant.core.telemetry_gcp import init_gcp_observability
         init_gcp_observability()
     except Exception as _e:
@@ -44,9 +46,11 @@ if os.getenv('GCP_OBS_ENABLED','').lower() in {'1','true','yes'}:
 # 事件寫入（存在 PG_DSN 時啟用）
 from importlib import import_module
 try:
+        from sre_assistant.core.audit import write_hitl_audit
     _adb = import_module('sre_assistant.core.audit_db')
     def record_event(session_id, event_type, payload, user_id=None):
-        try: _adb.record_event(session_id, event_type, payload, user_id)
+        try:
+        from sre_assistant.core.audit import write_hitl_audit _adb.record_event(session_id, event_type, payload, user_id)
         except Exception: pass
 except Exception:
     def record_event(session_id, event_type, payload, user_id=None):
@@ -57,6 +61,7 @@ slo_guard = SLOGuardian(p95_ms=30000)
 
 def auth_dep(x_api_key: str = Header(default="", alias="X-API-Key")) -> str:
     try:
+        from sre_assistant.core.audit import write_hitl_audit
         return require_api_key(x_api_key)
     except AuthError as e:
         raise HTTPException(status_code=401 if str(e)=="invalid api key" else 429, detail=str(e))
@@ -69,6 +74,7 @@ class ChatRequest(BaseModel):
 @app.get("/health/ready")
 def health_ready():
     try:
+        from sre_assistant.core.audit import write_hitl_audit
         DB.list_decisions(limit=1)
         return {"ok": True, "db": "ready"}
     except Exception as e:
@@ -89,6 +95,7 @@ async def _stream_events(user_id: str, session_id: str, content: Content) -> Asy
     state = SESSION_SERVICE.get(session_id)
         async for event in RUNNER.run_async(user_id=user_id, session_id=session_id, new_message=content, state=state):
             try:
+        from sre_assistant.core.audit import write_hitl_audit
                 d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__
                 if 'state' in d:
                     SESSION_SERVICE.set(session_id, d['state'])
@@ -96,14 +103,18 @@ async def _stream_events(user_id: str, session_id: str, content: Content) -> Asy
                 pass
         # 將事件落盤以便回放
         try:
-            DB.write_event(session_id, user_id, event.__class__.__name__, (event.to_dict() if hasattr(event,'to_dict') else event.__dict__))\n        # 嘗試從事件萃取 decision 訊息（啟發式）\n        try:\n            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__\n            agent_name = (d.get('agent') or {}).get('name') or d.get('agent_name') or 'main'\n            decision_type = event.__class__.__name__\n            input_json = {k:v for k,v in d.items() if k not in ('output','result')}\n            output_json = d.get('output') or d.get('result') or d\n            latency_ms = d.get('latency_ms') or None\n            DB.write_decision(session_id, agent_name, decision_type, input_json, output_json, None, latency_ms)\n        except Exception:\n            pass
+        from sre_assistant.core.audit import write_hitl_audit
+            DB.write_event(session_id, user_id, event.__class__.__name__, (event.to_dict() if hasattr(event,'to_dict') else event.__dict__))\n        # 嘗試從事件萃取 decision 訊息（啟發式）\n        try:
+        from sre_assistant.core.audit import write_hitl_audit\n            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__\n            agent_name = (d.get('agent') or {}).get('name') or d.get('agent_name') or 'main'\n            decision_type = event.__class__.__name__\n            input_json = {k:v for k,v in d.items() if k not in ('output','result')}\n            output_json = d.get('output') or d.get('result') or d\n            latency_ms = d.get('latency_ms') or None\n            DB.write_decision(session_id, agent_name, decision_type, input_json, output_json, None, latency_ms)\n        except Exception:\n            pass
         except Exception:
             pass
         try:
+        from sre_assistant.core.audit import write_hitl_audit
             d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__
             record_event(session_id, d.get('type','event'), d, user_id)
         except Exception:
-            pass\n        try:\n            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__\n            parts = (d.get('content') or {}).get('parts') or []\n            for p in parts:\n                fc = p.get('function_call')\n                if fc and fc.get('id'):\n                    allowed_function_calls.setdefault(session_id,set()).add(fc['id'])\n        except Exception:\n            pass
+            pass\n        try:
+        from sre_assistant.core.audit import write_hitl_audit\n            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__\n            parts = (d.get('content') or {}).get('parts') or []\n            for p in parts:\n                fc = p.get('function_call')\n                if fc and fc.get('id'):\n                    allowed_function_calls.setdefault(session_id,set()).add(fc['id'])\n        except Exception:\n            pass
         # 以最簡 JSON 形式傳遞（前端自行判斷是否為 adk_request_credential）
         yield f"data: {json.dumps(event.to_dict() if hasattr(event, 'to_dict') else event.__dict__, ensure_ascii=False)}\n\n".encode("utf-8")
 
@@ -206,6 +217,7 @@ async def list_effective_tools(_: str = Depends(auth_dep)):
     # 讀取 adk.yaml 的 allowlist 與 require_approval
     cfg = {}
     try:
+        from sre_assistant.core.audit import write_hitl_audit
         if Path("adk.yaml").exists():
             cfg = yaml.safe_load(Path("adk.yaml").read_text(encoding="utf-8")) or {}
     except Exception:
@@ -217,3 +229,65 @@ async def list_effective_tools(_: str = Depends(auth_dep)):
         if n in REGISTRY.list():
             tools.append({"name": n, "require_approval": n in require})
     return {"tools": tools}
+
+
+@app.post("/api/v1/ops/{op_id}/cancel")
+async def cancel_op(op_id: str, _: str = Depends(auth_dep)):
+    """自動產生註解時間：{ts}
+函式用途：標記長任務取消旗標。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
+    try:
+        from sre_assistant.core.audit import write_hitl_audit
+        sess = RUNNER.get_session_service().get_current_session()
+    except Exception:
+        class S: state={}
+        sess=S()
+    st = getattr(sess, 'state', {})
+    lr = st.setdefault('lr_ops', {})
+    lr.setdefault(op_id, {})['cancelled']=True
+    return {"ok": True, "op_id": op_id, "cancelled": True}
+
+@app.post("/api/v1/ops/{op_id}/resume")
+async def resume_op(op_id: str, _: str = Depends(auth_dep)):
+    """自動產生註解時間：{ts}
+函式用途：標記長任務恢復旗標。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
+    try:
+        from sre_assistant.core.audit import write_hitl_audit
+        sess = RUNNER.get_session_service().get_current_session()
+    except Exception:
+        class S: state={}
+        sess=S()
+    st = getattr(sess, 'state', {})
+    lr = st.setdefault('lr_ops', {})
+    lr.setdefault(op_id, {})['resume']=True
+    return {"ok": True, "op_id": op_id, "resume": True}
+
+@app.post("/api/v1/hitl/approve")
+async def hitl_approve(function_call_id: str, approved: bool = True, reason: str = "", approver: str = "user", _: str = Depends(auth_dep)):
+    """自動產生註解時間：{ts}
+函式用途：接收 HITL 審批並記錄於 session.state。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
+    try:
+        from sre_assistant.core.audit import write_hitl_audit
+        sess = RUNNER.get_session_service().get_current_session()
+    except Exception:
+        class S: state={}
+        sess=S()
+    st = getattr(sess, 'state', {})
+    auth = st.setdefault('auth_responses', {})
+    auth[function_call_id] = {"approved": approved, "reason": reason, "approver": approver}
+            # DB 審計寫入
+        db = RUNNER.get_persistence() if hasattr(RUNNER, 'get_persistence') else None
+        write_hitl_audit(db, function_call_id, approved, approver, reason)
+        return {"ok": True}
+
+@app.get("/api/v1/devui/tools")
+async def devui_tools(_: str = Depends(auth_dep)):
+    """自動產生註解時間：{ts}
+函式用途：提供 Dev UI 同步工具清單。""".format(ts=__import__('datetime').datetime.utcnow().isoformat()+"Z")
+    try:
+        from sre_assistant.core.audit import write_hitl_audit
+        from sre_assistant.core.config import load_combined_config
+        cfg = load_combined_config("adk.yaml")
+        agent_cfg = (cfg.get("agent") or {})
+        return {"tools_allowlist": agent_cfg.get("tools_allowlist") or [], "tools_require_approval": agent_cfg.get("tools_require_approval") or []}
+    except Exception:
+        return {"tools_allowlist": [], "tools_require_approval": []}

@@ -1,0 +1,4 @@
+prompt: 你是修復專家。僅在收到 HITL 審批後執行變更。
+tools_allowlist:
+- K8sRolloutRestartLongRunningTool
+- k8s_scale_deployment

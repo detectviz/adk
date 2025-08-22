@@ -7,16 +7,42 @@ from .config import Config
 
 class Debouncer:
     def __init__(self, ttl_seconds: int | None = None):
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `ttl_seconds`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         self.ttl = ttl_seconds if ttl_seconds is not None else Config.DEBOUNCE_TTL
         # _hits 儲存 key->timestamp，key 包含訊息內容與可選的 session_id
         self._hits: Dict[str, float] = {}
 
     def _hash(self, text: str, session_id: Optional[str]) -> str:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`_hash` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `text`：參數用途請描述。
+        - `session_id`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         norm = " ".join((text or "").lower().split())
         base = norm + "|" + (session_id or "")
         return hashlib.sha256(base.encode("utf-8")).hexdigest()
 
     def allow_msg(self, text: str, session_id: Optional[str] = None) -> bool:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`allow_msg` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `text`：參數用途請描述。
+        - `session_id`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         k = self._hash(text, session_id)
         now = time.time()
         ts = self._hits.get(k, 0)

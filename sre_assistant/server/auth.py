@@ -6,6 +6,13 @@ from fastapi import Header, HTTPException
 from ..core.persistence import DB
 
 async def auth_dep(x_api_key: str = Header(default="")) -> str:
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`auth_dep` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：
+    - `x_api_key`：參數用途請描述。
+    回傳：請描述回傳資料結構與語義。
+    """
     if not x_api_key:
         raise HTTPException(status_code=401, detail="Missing X-API-Key")
     # 這裡簡化：直接查角色（實務應建立快取）
@@ -19,6 +26,13 @@ DEV_KEY_ENABLED = os.getenv("DEV_API_KEY_ENABLED","false").lower() in ("1","true
 DEV_KEY = os.getenv("DEV_API_KEY","devkey")
 
 async def auth_dep_dev(x_api_key: str = Header(default="")) -> str:
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`auth_dep_dev` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：
+    - `x_api_key`：參數用途請描述。
+    回傳：請描述回傳資料結構與語義。
+    """
     if DEV_KEY_ENABLED and x_api_key == DEV_KEY:
         return "dev"
     return await auth_dep(x_api_key)  # 回退到正式驗證

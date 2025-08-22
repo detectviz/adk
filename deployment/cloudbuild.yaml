@@ -1,0 +1,24 @@
+
+# Cloud Build：建鏡像並部署到 Cloud Run（作為 API 層）。
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build','-t','$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG','.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push','$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: ['run','deploy','sre-assistant-api','--image','$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG','--region','$_REGION','--platform','managed','--allow-unauthenticated --service $_SERVICE']
+substitutions:
+  _REGION: us-central1
+  _TAG: latest
+images:
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _REGION: us-central1
+  _TAG: latest
+  _SERVICE: sre-assistant-api
+  _REPO: sre-assistant
+  _IMAGE: api

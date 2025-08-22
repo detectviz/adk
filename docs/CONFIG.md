@@ -19,3 +19,13 @@ runner:
   sse_resume_guard: true
 ```
 - 並調整載入程式讀取新節點。
+
+
+## policy.risk_threshold
+- 允許值：Low / Medium / High / Critical
+- 工具應自行以此門檻判斷是否需要觸發 `request_credential()`。
+
+
+## 合併規則（runtime）
+- `adk.yaml` 為主設定；若存在 `experts/*.yaml`，則覆蓋到 `experts` 區塊對應專家。
+- `experts.*.model` > `agent.model` > `ADK_MODEL`。工具白名單同理以 `experts.*.tools_allowlist` 覆蓋。

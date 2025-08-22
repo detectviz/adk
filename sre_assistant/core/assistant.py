@@ -28,6 +28,14 @@ from .config import Config
 
 class SREAssistant:
     def __init__(self, registry: ToolRegistry):
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`__init__` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `registry`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         self.registry = registry
         self.executor = ToolExecutor(registry)
         self.policy = SRESecurityPolicy(registry=registry)
@@ -43,12 +51,37 @@ class SREAssistant:
         }
 
     def classify(self, text: str) -> Intent:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`classify` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `text`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         return simple_intent_classifier(text)
 
     def plan(self, intent: Intent) -> List[Step]:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`plan` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `intent`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         return self.planner.plan(intent)
 
     async def _execute_steps(self, decision_id: int, steps: List[Step]) -> List[StepResult]:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`_execute_steps` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `decision_id`：參數用途請描述。
+        - `steps`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         results: List[StepResult] = []
         for s in steps:
             allowed, reason, risk, req_from_spec = self.policy.evaluate_tool_call(s.tool, s.args)
@@ -98,6 +131,14 @@ class SREAssistant:
         return results
 
     async def execute_approval(self, approval_id: int) -> Dict[str, Any]:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`execute_approval` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `approval_id`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         a = APPROVALS.get(approval_id)
         if not a:
             return {"ok": False, "error": "not_found"}
@@ -124,6 +165,14 @@ class SREAssistant:
             return {"ok": False, "error": "E_UNKNOWN", "message": str(e), "latency_ms": dt}
 
     async def chat(self, message: str) -> Dict[str, Any]:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`chat` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `message`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         session_id = str(uuid.uuid4())
         REQUEST_TOTAL.labels(agent="SREAssistant", status="start").inc()
         with REQUEST_LATENCY.labels(agent="SREAssistant").time():

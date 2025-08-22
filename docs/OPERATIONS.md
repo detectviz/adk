@@ -22,3 +22,14 @@
 
 ## Dev UI 工具選單同步
 - 透過 `GET /api/v1/tools/effective` 取得 allowlist 與核可需求，避免與 `adk.yaml` 產生不一致。
+
+
+## HITL 核可流程（最終版）
+1. 工具根據 `adk.yaml.policy.risk_threshold` 或 `agent.tools_require_approval` 決定是否呼叫 `request_credential()`。
+2. 事件流送出 `adk_request_credential`；前端提交 `/api/v1/hitl/approve|reject`。
+3. 長任務工具在 `_poll_*` 階段讀取核可回應並繼續執行；非長任務工具可要求使用者重試。
+
+
+## Session.state 與長任務
+- `_start_restart` 將 `op_id` 與 `function_call_id` 寫入 `Session.state['lr_ops']`。
+- `_poll_restart` 透過 `ctx.get_auth_response(function_call_id=...)` 讀取核可結果並續跑。

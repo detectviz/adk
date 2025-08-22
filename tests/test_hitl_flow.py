@@ -7,6 +7,12 @@ from adk_runtime.main import build_registry
 from sre_assistant.core.hitl import APPROVALS
 
 def test_hitl_restart_flow():
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`test_hitl_restart_flow` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：此函式無參數或皆使用外部環境。
+    回傳：請描述回傳資料結構與語義。
+    """
     a = SREAssistant(build_registry())
     res = asyncio.run(a.chat("please restart service"))
     pend = [s for s in res["actions_taken"] if s.get("error_code")=="E_REQUIRE_APPROVAL"]

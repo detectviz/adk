@@ -1,17 +1,57 @@
 
 # -*- coding: utf-8 -*-
-# 設定模組：集中管理環境變數與預設值
-import os
+# adk.yaml 設定讀取輔助
+from __future__ import annotations
+from pathlib import Path
+import yaml
 
-class Config:
-    HOST: str = os.getenv("SRE_API_HOST", "0.0.0.0")
-    PORT: int = int(os.getenv("SRE_API_PORT", "8000"))
-    SQLITE_PATH: str = os.getenv("SQLITE_PATH", "/mnt/data/sre_assistant.db")
-    ENABLE_METRICS: bool = os.getenv("ENABLE_METRICS", "1") == "1"
-    ENABLE_TRACING: bool = os.getenv("ENABLE_TRACING", "0") == "1"
-    MODEL_NAME: str = os.getenv("MODEL_NAME", "gemini-2.5-flash")
-    RAG_CORPUS: str | None = os.getenv("RAG_CORPUS")
-    RATE_CAPACITY: int = int(os.getenv("RATE_CAPACITY", "120"))
-    RATE_REFILL: float = float(os.getenv("RATE_REFILL", "2.0"))
-    DEBOUNCE_TTL: int = int(os.getenv("DEBOUNCE_TTL", "10"))
-    CACHE_TTL_DEFAULT: int = int(os.getenv("CACHE_TTL_DEFAULT", "20"))
+def load_adk_config(path: str = "adk.yaml") -> dict:
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`load_adk_config` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：
+    - `path`：參數用途請描述。
+    回傳：請描述回傳資料結構與語義。
+    """
+    p = Path(path)
+    if not p.exists():
+        return {}
+    try:
+        return yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return {}
+
+
+def _deep_merge(dst: dict, src: dict) -> dict:
+    """遞迴合併字典，src 覆蓋 dst；僅支援 dict/list/標量（簡化版）。"""
+    for k, v in (src or {}).items():
+        if isinstance(v, dict) and isinstance(dst.get(k), dict):
+            _deep_merge(dst[k], v)
+        else:
+            dst[k] = v
+    return dst
+
+def load_combined_config(base_path: str = "adk.yaml") -> dict:
+    """載入主設定 adk.yaml，並將 experts/*.yaml 逐一合併到 `experts` 區塊。
+    搜尋順序：
+      1) 專案根目錄的 `experts/*.yaml`
+      2) 程式內建的 `sre_assistant/experts/*.yaml`
+    合併規則：同鍵以 experts/*.yaml 覆蓋 adk.yaml；未提供則保留原值。
+    """
+    cfg = load_adk_config(base_path)
+    experts = cfg.setdefault("experts", {})
+    from pathlib import Path
+    search_dirs = [Path("experts"), Path("sre_assistant/experts")]
+    for name in ("diagnostic","remediation","postmortem","config"):
+        for d in search_dirs:
+            yp = d / f"{name}.yaml"
+            if yp.exists():
+                try:
+                    y = yaml.safe_load(yp.read_text(encoding="utf-8")) or {}
+                    # 期望格式：{prompt:..., model:..., tools_allowlist:[...], slo:{...}}
+                    experts.setdefault(name, {})
+                    _deep_merge(experts[name], y)
+                    break
+                except Exception:
+                    continue
+    return cfg

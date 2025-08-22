@@ -12,6 +12,14 @@ class RuleBasedPlanner:
     注意：實務可替換為 LLM 驅動的 Planner，或按服務定義 DSL 生成計畫。
     """
     def plan(self, intent: Intent) -> List[Step]:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`plan` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `self`：參數用途請描述。
+        - `intent`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         if intent.type == "diagnostic":
             # 先查 up 指標，再查 Runbook（orders 為範例）
             return [

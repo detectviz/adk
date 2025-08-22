@@ -16,12 +16,24 @@ PG_DSN = os.getenv("PG_DSN","")
 
 @contextlib.contextmanager
 def _conn():
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`_conn` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：此函式無參數或皆使用外部環境。
+    回傳：請描述回傳資料結構與語義。
+    """
     if not psycopg or not PG_DSN:
         raise RuntimeError("缺少 psycopg 或未設定 PG_DSN")
     with psycopg.connect(PG_DSN, row_factory=dict_row) as c:
         yield c
 
 def init_schema() -> None:
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`init_schema` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：此函式無參數或皆使用外部環境。
+    回傳：請描述回傳資料結構與語義。
+    """
     with _conn() as c, c.cursor() as cur:
         cur.execute("""
         CREATE TABLE IF NOT EXISTS audits (
@@ -48,6 +60,13 @@ def init_schema() -> None:
         c.commit()
 
 def write_audit_db(event: Dict[str,Any]) -> None:
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`write_audit_db` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：
+    - `event`：參數用途請描述。
+    回傳：請描述回傳資料結構與語義。
+    """
     init_schema()
     with _conn() as c, c.cursor() as cur:
         cur.execute("""
@@ -61,6 +80,16 @@ def write_audit_db(event: Dict[str,Any]) -> None:
         c.commit()
 
 def record_event(session_id: str, event_type: str, payload: Dict[str,Any], user_id: str | None = None) -> None:
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`record_event` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：
+    - `session_id`：參數用途請描述。
+    - `event_type`：參數用途請描述。
+    - `payload`：參數用途請描述。
+    - `user_id`：參數用途請描述。
+    回傳：請描述回傳資料結構與語義。
+    """
     init_schema()
     with _conn() as c, c.cursor() as cur:
         cur.execute("""
@@ -69,6 +98,14 @@ def record_event(session_id: str, event_type: str, payload: Dict[str,Any], user_
         c.commit()
 
 def load_events(session_id: str, limit: int = 200) -> list[Dict[str,Any]]:
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`load_events` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：
+    - `session_id`：參數用途請描述。
+    - `limit`：參數用途請描述。
+    回傳：請描述回傳資料結構與語義。
+    """
     with _conn() as c, c.cursor() as cur:
         cur.execute("""
         SELECT id, session_id, user_id, event_type, payload, created_at

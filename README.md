@@ -94,3 +94,57 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 ## 專家與 AgentTool
 - `experts/experts.py` 定義 Diagnostic/Remediation/Postmortem/Config 四個專家，以 `AgentTool` 掛載到主代理。
 - 工具適配層：`adapters/adk_runtime.py` 將函式工具轉為 ADK `FunctionTool/LongRunningFunctionTool`。
+
+
+### 政策閘與 HITL（更新）
+- 政策閘僅執行 **靜態拒絕與審計**，不再於外層自動觸發 HITL 或丟出例外。
+- **HITL 門檻** 改為由 `adk.yaml.policy.risk_threshold` 定義，並由 **工具本身** 決定是否呼叫 `request_credential()`。
+- SSE 事件 `adk_request_credential` 由工具觸發，迴圈不中斷；前端核可後由長任務輪詢續跑或使用者重試。
+
+### 專家工具拆分
+- 各專家（Diagnostic/Remediation/Postmortem/Config）之工具清單由 `adk.yaml.experts.<name>.tools_allowlist` 管理。
+
+
+### Runtime 收斂與工具管理（對齊 ADK）
+- 已移除自訂 `ToolRegistry`。所有工具改由 `runtime.py` 直接建立 `FunctionTool/LongRunningFunctionTool` 列表並傳入 `LlmAgent`。
+- `runtime.build_runner_from_config(cfg)`：從 `adk.yaml` 載入模型、迭代上限與工具 allowlist，並組裝專家 AgentTool。
+
+
+### 專家代理模組分拆
+- 檔案：
+  - `sre_assistant/experts/diagnostic.py`
+  - `sre_assistant/experts/remediation.py`
+  - `sre_assistant/experts/postmortem.py`
+  - `sre_assistant/experts/config.py`
+- 每個模組導出 `build_agent(tool_objs)`，會依 `adk.yaml.experts.<name>.model` 覆蓋主模型，並依 `experts.<name>.tools_allowlist` 取得工具。
+- `runtime.py` 於啟動時載入工具物件後，呼叫各模組 `build_agent(...)`，再以 `AgentTool` 掛載到主代理。
+
+
+### 專家 YAML 外掛化（experts/*.yaml）
+- 每位專家的 `prompt/model/tools_allowlist/slo` 可在 `experts/*.yaml` 中集中管理，啟動時由 `runtime` 合併到 `adk.yaml`。
+- 優先順序：`experts/*.yaml` 覆蓋 `adk.yaml.experts.*` 覆蓋 `agent.*`。
+
+### Prometheus SLO 導出
+- 執行 `make export-slo` 自動生成 `observability/slo_rules.yaml`。
+- SLO 來源：`experts/*.yaml` 的 `slo` 欄位（例如 `p95_latency_seconds`、`success_rate_threshold`）。
+- 指標需求：需暴露 `agent_request_duration_seconds_bucket` 與 `agent_requests_total`（本專案已在 SPEC 中定義）。
+
+
+## Dev UI 與 HITL SSE 端到端
+- 訂閱：`GET /api/v1/events`（SSE）
+- 觸發：`POST /api/v1/hitl/mock_request`（產生 `adk_request_credential`）
+- 審批：`POST /api/v1/hitl/approve`
+- 簡易頁面：`server/static/devui.html` 可直接開啟驗證。
+
+
+## 協調器自動工具掛載
+- 系統會掃描 `sub_agents/*/tools.py` 的 `list_tools()`，彙總白名單並過濾可掛載工具。
+- 實作：`sre_assistant/adk_app/assembly.py`、`adk_app/runtime.py` 的 `_filter_tools_by_subagents()`。
+
+## Cloud Build 觸發器
+- 使用 `deployment/cloudbuild.yaml` 與 `deployment/cloudbuild.trigger.json`。
+- 變數：`_REGION`、`_TAG`、`_SERVICE`、`_REPO`、`_IMAGE`。
+- 在 Cloud Build Triggers 匯入 `cloudbuild.trigger.json`，調整 github 值後啟用。
+
+## 程式碼清理
+- 執行 `python3 scripts/clean_dead_code.py` 檢視疑似未用模組。僅列印，請人工確認後再移除。

@@ -11,6 +11,12 @@ SQLITE_PATH = os.getenv("DB_PATH","/mnt/data/sre-assistant.db")
 
 @contextlib.contextmanager
 def _sqlite():
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`_sqlite` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：此函式無參數或皆使用外部環境。
+    回傳：請描述回傳資料結構與語義。
+    """
     os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
     conn = sqlite3.connect(SQLITE_PATH)
     try:
@@ -19,6 +25,12 @@ def _sqlite():
         conn.commit(); conn.close()
 
 def init_schema():
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`init_schema` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：此函式無參數或皆使用外部環境。
+    回傳：請描述回傳資料結構與語義。
+    """
     if USE_SQLITE:
         with _sqlite() as c:
             cur=c.cursor()
@@ -46,6 +58,16 @@ class DB:
 
     @staticmethod
     def write_audit(session_id: str, user_id: str, action: str, payload: Dict[str,Any]) -> None:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`write_audit` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `session_id`：參數用途請描述。
+        - `user_id`：參數用途請描述。
+        - `action`：參數用途請描述。
+        - `payload`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         init_schema()
         if USE_SQLITE:
             with _sqlite() as c:
@@ -59,6 +81,16 @@ class DB:
 
     @staticmethod
     def write_event(session_id: str, user_id: str, event_type: str, event_json: Dict[str,Any]) -> None:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`write_event` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `session_id`：參數用途請描述。
+        - `user_id`：參數用途請描述。
+        - `event_type`：參數用途請描述。
+        - `event_json`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         init_schema()
         if USE_SQLITE:
             with _sqlite() as c:
@@ -96,6 +128,14 @@ class DB:
 
     @staticmethod
     def list_events(session_id: str, limit: int = 100) -> List[Dict[str,Any]]:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`list_events` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `session_id`：參數用途請描述。
+        - `limit`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         init_schema()
         if USE_SQLITE:
             with _sqlite() as c:
@@ -110,6 +150,14 @@ class DB:
 
     @staticmethod
     def list_decisions(limit: int = 50, offset: int = 0) -> List[Dict[str,Any]]:
+        """
+        自動產生註解時間：2025-08-22 03:37:34Z
+        函式用途：`list_decisions` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+        參數說明：
+        - `limit`：參數用途請描述。
+        - `offset`：參數用途請描述。
+        回傳：請描述回傳資料結構與語義。
+        """
         init_schema()
         if USE_SQLITE:
             with _sqlite() as c:
@@ -147,6 +195,16 @@ def list_events_range(session_id: str, since: str|None=None, until: str|None=Non
             return [{"id":r["id"],"type":r["event_type"],"event":r["event_json"],"created_at":r["created_at"].isoformat()} for r in rows]
 
 def list_decisions_range(since: str|None=None, until: str|None=None, limit: int=50, offset: int=0):
+    """
+    自動產生註解時間：2025-08-22 03:37:34Z
+    函式用途：`list_decisions_range` 的用途請填寫。此為自動生成之繁體中文註解，請依實際邏輯補充。
+    參數說明：
+    - `since`：參數用途請描述。
+    - `until`：參數用途請描述。
+    - `limit`：參數用途請描述。
+    - `offset`：參數用途請描述。
+    回傳：請描述回傳資料結構與語義。
+    """
     init_schema()
     if USE_SQLITE:
         q = "SELECT id, session_id, agent_name, decision_type, confidence, execution_time_ms, created_at FROM decisions WHERE 1=1"

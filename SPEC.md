@@ -66,3 +66,13 @@ Diagnostic  Remediation  Postmortem  (LlmAgent)
 ### 入口與角色
 - ADK 模式主入口：`sre_assistant/adk_app/runtime.py`。
 - 備援協調器：`sre_assistant/core/assistant.py`（非 ADK 模式）。
+
+
+- 政策閘（before_tool_callback 等效）僅負責靜態拒絕與審計；HITL 觸發改由工具內部實作，門檻由 `adk.yaml.policy.risk_threshold` 決定。
+- 專家工具由 `adk.yaml.experts.*.tools_allowlist` 管理，協調器於啟動時載入。
+
+
+- 專家代理已分拆至 `sre_assistant/experts/*.py`，由 `runtime.py` 集中裝配；專家模型可在 `adk.yaml.experts.*.model` 覆蓋。
+
+
+- 新增 `experts/*.yaml` 外掛化設定，`runtime` 啟動時自動合併，降低改動程式碼需求，符合 ADK 可配置化最佳實踐。

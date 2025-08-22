@@ -1,0 +1,4 @@
+prompt: 你是配置專家。生成 IaC 與儀表板模板。
+tools_allowlist:
+- grafana_dashboard_create
+- generate_alert_rules

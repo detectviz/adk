@@ -41,3 +41,52 @@ PostmortemExpert  # 文件/RAG → 覆盤報告
 ## HITL 與長任務（對齊 ADK）
 - `start_func`：判斷高風險操作時呼叫 `tool_context.request_credential(...)`，並在 `Session.state['lr_ops']` 建立 op 狀態。
 - `poll_func`：呼叫 `tool_context.get_auth_response(function_call_id=op_id)`；若已核可則繼續操作，若拒絕則回傳失敗並結束。
+
+
+## 配置鍵位（adk.yaml）
+```yaml
+agent:
+  model: gemini-2.0-flash
+  tools_allowlist: [rag_search, K8sRolloutRestartLongRunningTool, ingest_text]
+  tools_require_approval: [K8sRolloutRestartLongRunningTool]
+
+policy:
+  risk_threshold: High   # Low/Medium/High/Critical
+experts:
+  diagnostic:
+    tools_allowlist: [rag_search]
+  remediation:
+    tools_allowlist: [K8sRolloutRestartLongRunningTool]
+  postmortem:
+    tools_allowlist: [rag_search]
+  config:
+    tools_allowlist: [ingest_text]
+```
+
+
+## 專家代理標準化
+- 各專家以 `LlmAgent` 實例定義於 runtime 中組裝，並以 `AgentTool` 掛載於主代理。
+- 若需拆分檔案，可在 `sre_assistant/experts/` 下提供 `*_expert_agent` 實例並於 runtime 匯入。
+
+
+## 模型覆蓋規則（experts.*.model）
+- 解析順序：`experts.<name>.model` > `agent.model` > `ADK_MODEL` 環境變數。
+- 例：
+```yaml
+agent:
+  model: gemini-2.0-flash
+experts:
+  diagnostic:
+    model: gemini-2.0-pro        # 僅診斷專家使用更強模型
+    tools_allowlist: [rag_search]
+  remediation:
+    tools_allowlist: [K8sRolloutRestartLongRunningTool]
+```
+
+
+## 專家設定鍵位一覽
+- `experts/<name>.yaml`：
+  - `model`：覆蓋此專家的 LLM 模型。
+  - `tools_allowlist`：此專家允許的工具。
+  - `prompt`：此專家系統提示詞。
+  - `slo`：此專家的 SLO 指標（供觀測/測試）。
