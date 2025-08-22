@@ -1,4 +1,3 @@
-
 # 角色：ADK 部署腳本占位。實務上會呼叫 Agent Engine/Cloud Run。
 def deploy():
     """{ts}

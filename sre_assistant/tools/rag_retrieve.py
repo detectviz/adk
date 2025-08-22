@@ -1,4 +1,3 @@
-
 # RAG 檢索工具：以向量近鄰搜尋回傳前 K 筆
 from __future__ import annotations
 from typing import Dict, Any, List

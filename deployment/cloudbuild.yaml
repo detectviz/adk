@@ -1,26 +1,41 @@
-
 # Cloud Build：建鏡像並部署到 Cloud Run（作為 API 層）。
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build','-t','$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG','.']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push','$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG']
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG",
+        ".",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      ["push", "$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG"]
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
-    args: ['run','deploy','sre-assistant-api','--image','$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG','--region','$_REGION','--platform','managed','--allow-unauthenticated\n      - '--set-env-vars=OTEL_EXPORTER_OTLP_ENDPOINT=$_OTEL_ENDPOINT,GOOGLE_OTLP_AUTH=true,SERVICE_NAME=$_SERVICE_NAME' --service $_SERVICE']
+    args:
+      [
+        "run",
+        "deploy",
+        "sre-assistant-api",
+        "--image",
+        "$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG",
+        "--region",
+        "$_REGION",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--set-env-vars=OTEL_EXPORTER_OTLP_ENDPOINT=$_OTEL_ENDPOINT,GOOGLE_OTLP_AUTH=true,SERVICE_NAME=$_SERVICE_NAME",
+        "--service",
+        "$_SERVICE",
+      ]
 substitutions:
   _REGION: us-central1
   _TAG: latest
   _SERVICE: sre-assistant-api
   _OTEL_ENDPOINT: https://otel.googleapis.com:4317
 images:
-  - '$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG'
+  - "$_REGION-docker.pkg.dev/$PROJECT_ID/sre-assistant/api:$_TAG"
 
 options:
   logging: CLOUD_LOGGING_ONLY
-substitutions:
-  _REGION: us-central1
-  _TAG: latest
-  _SERVICE: sre-assistant-api
-  _REPO: sre-assistant
-  _IMAGE: api
