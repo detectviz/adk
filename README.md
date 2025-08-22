@@ -55,3 +55,8 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 
 ## 長任務狀態
 - 改以 `ToolContext.session.state['lr_ops']` 儲存；HITL API 讀寫 Session 狀態，支援多副本。
+
+## 設定檔說明
+- `adk.yaml`：**代理行為**設定（模型、工具白名單、需審批清單、安全策略）。
+- `adk_config.yaml`：**開發工具/Dev UI** 設定（Web Dev UI、Runner 旗標）。
+> 可保留分離設計；若要合併，請將 `web/features` 與 `runner` 區塊搬至 `adk.yaml` 的 `dev_ui` 與 `runner` 節點，並更新讀取邏輯。

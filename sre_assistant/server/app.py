@@ -11,6 +11,8 @@ from fastapi.responses import StreamingResponse, HTMLResponse
 from pydantic import BaseModel
 import json
 from ..core.telemetry import init_tracing
+from sre_assistant.adk_app.coordinator import build_coordinator
+from adk.registry import ToolRegistry
 from ..core.adk_events import extract_decision, is_request_credential, coerce_sse_payload
 from ..core.session import pick_session_service
 from ..core.profiling_pyroscope import init_pyroscope

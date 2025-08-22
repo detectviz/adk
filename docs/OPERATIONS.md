@@ -1,21 +1,21 @@
 
-# 營運手冊（Operations）
+# 營運手冊（HITL 與事件流程）
 
-## HITL 審批流
-1. 透過 `/api/v1/chat` 觸發變更類步驟（例如 K8s restart），API 會返回 `approval_id`。
-2. 使用者在後台或 CLI 對該 `approval_id` 執行核准或拒絕：
-   - `POST /api/v1/approvals/{aid}/decision`
-3. 核准後執行該步驟：
-   - `POST /api/v1/approvals/{aid}/execute`
+## HITL 互動新流程（對齊程式碼）
+1. 後端工具在需要人工核可時，呼叫 `tool_context.request_credential(...)`。
+2. ADK 事件流產生 `RequestCredential`，在 SSE 轉換為 `type=adk_request_credential` 後送往前端。
+3. 前端顯示核可表單（可依 `sre_assistant/hitl/providers.yaml` 動態渲染欄位）。
+4. 使用者核可：`POST /api/v1/hitl/approve`，或拒絕：`POST /api/v1/hitl/reject`。
+5. 後端將核可/拒絕寫入 `Session.state['lr_ops'][op_id]`，長任務繼續或終止。
+6. 事件、決策持續經由 SSE 推送，便於即時追蹤與回放。
 
-## 回放與重跑
-- `GET /api/v1/decisions` 查詢歷史決策。
-- `POST /api/v1/replay` 重跑某次決策的步驟並產生新決策。
+> 已淘汰：舊的 `approval_id` 模式與非事件化流程。
 
-## 監控與 SLO
-- Prometheus 指標位於 `/metrics`。
-- 端到端延遲由 `SLOGuardian` 評估，超標時於回應 `slo_advice` 中提供降級建議。
+## 端點摘要
+- `POST /api/v1/hitl/approve`：核可長任務。欄位：`session_id, op_id, approver, ticket_id?`  
+- `POST /api/v1/hitl/reject`：拒絕長任務。欄位：`session_id, op_id, reason`  
+- `GET /api/v1/sse/{session_id}`：SSE 事件流，含 `adk_request_credential`。
 
-## 常見問題
-- DB 準備：`/health/ready` 若回 503，請確認 `/mnt/data` 可寫入或調整 `SQLITE_PATH`。
-- 驗證失敗：請建立 API Key 或使用開發金鑰 `devkey`。
+## 回放與審計
+- 事件回放：`GET /api/v1/sessions/{session_id}/events` 或 `/events_range`  
+- 決策回放：`GET /api/v1/sessions/{session_id}/decisions` 或 `/decisions_range`
