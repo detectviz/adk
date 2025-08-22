@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# 注意：此檔為「非 ADK 模式」的備援協調器，預設不在生產中使用。
+# 正式協調器實作請參考：sre_assistant/adk_app/coordinator.py（LoopAgent + BuiltInPlanner）
+
 
 # -*- coding: utf-8 -*-
 # 協調器：建立決策→執行步驟→關聯工具記錄→更新決策輸出。

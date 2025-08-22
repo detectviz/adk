@@ -16,9 +16,9 @@ from .k8s import rollout_restart_deployment
 # 內存暫存操作上下文（示例）；生產請改 DB/Redis
 _LR_OPS: Dict[str, Dict[str, Any]] = {}
 
-def _start_restart(ctx: ToolContext, namespace: str, deployment_name: str, reason: str = "") -> Dict[str, Any]:
+def _start_restart(ctx: ToolContext, namespace: str, deployment_name: str, reason: str) -> dict: ToolContext, namespace: str, deployment_name: str, reason: str = "") -> Dict[str, Any]:
     """開始重啟流程：prod/production 需 HITL；否則直接觸發短任務並進入輪詢。"""
-    op_id = str(uuid.uuid4())
+    op_id = f"op-{int(time.time()*1000)}"
     need_hitl = namespace.lower() in {"prod","production"}
     _LR_OPS[op_id] = {"namespace": namespace, "deployment_name": deployment_name, "reason": reason, "approved": not need_hitl, "progress": 0}
     if need_hitl:
@@ -43,8 +43,10 @@ def _execute_restart(op_id: str) -> Dict[str, Any]:
     return {"op_id": op_id, "status": "RUNNING" if res.get("success") else "FAILED", "result": res}
 
 def _poll_restart(ctx: ToolContext, op_id: str) -> Dict[str, Any]:
+    ops = ctx.session.state.setdefault('lr_ops', {})
+    st = ops.get(op_id) or {"approved": False, "progress": 0, "result": None}
     """前端輪詢：若已核可且尚未執行，執行一次；否則回報進度。"""
-    info = _LR_OPS.get(op_id)
+    info = st
     if not info:
         return {"op_id": op_id, "status": "UNKNOWN", "message": "查無此操作"}
     if info.get("approved") and "result" not in info:

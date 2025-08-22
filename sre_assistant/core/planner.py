@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import List
 from .intents import Intent, Step
 
-class BuiltInPlanner:
+class RuleBasedPlanner:
     """最小可用 Planner。
     注意：實務可替換為 LLM 驅動的 Planner，或按服務定義 DSL 生成計畫。
     """

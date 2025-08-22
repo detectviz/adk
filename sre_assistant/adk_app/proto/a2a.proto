@@ -1,8 +1,0 @@
-
-syntax = "proto3";
-package sre.a2a.v1;
-service AgentBridge {
-  rpc Relay (RelayRequest) returns (RelayResponse) {}
-}
-message RelayRequest { string session_id = 1; string agent = 2; string intent = 3; string payload_json = 4; }
-message RelayResponse { string status = 1; string message = 2; string output_json = 3; }

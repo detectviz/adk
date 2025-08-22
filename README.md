@@ -46,3 +46,12 @@ make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
 ## GCP Observability
 - 檔案：`sre_assistant/core/telemetry_gcp.py`、`docs/GCP_OBSERVABILITY.md`
 - 啟動：設定 `GCP_OBS_ENABLED=true` 與必要憑證與專案變數。
+
+
+## A2A（ADK 官方）
+- 暴露：使用 `sre_assistant/adk_app/a2a_expose.py:create_app(agent)` 取得 ASGI app，由 Uvicorn 掛載。
+- 消費：使用 `sre_assistant/adk_app/a2a_consume.py:get_remote_agent(endpoint)` 取得 `RemoteA2aAgent`。
+- 不要自行定義或維護 gRPC/proto。
+
+## 長任務狀態
+- 改以 `ToolContext.session.state['lr_ops']` 儲存；HITL API 讀寫 Session 狀態，支援多副本。
