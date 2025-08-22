@@ -122,3 +122,47 @@ class DB:
                 cur.execute("SELECT id, session_id, agent_name, decision_type, confidence, execution_time_ms, created_at FROM decisions ORDER BY id DESC LIMIT %s OFFSET %s", (limit, offset))
                 rows=cur.fetchall()
                 return [{"id":r["id"],"session_id":r["session_id"],"agent_name":r["agent_name"],"decision_type":r["decision_type"],"confidence":r["confidence"],"execution_time_ms":r["execution_time_ms"],"created_at":r["created_at"].isoformat()} for r in rows]
+
+
+def list_events_range(session_id: str, since: str|None=None, until: str|None=None, limit: int=100, offset: int=0):
+    """以時間範圍與 offset/limit 取回事件（ISO8601字串）。"""
+    init_schema()
+    if USE_SQLITE:
+        q = "SELECT id,event_type,event_json,created_at FROM events WHERE session_id=?"
+        args=[session_id]
+        if since: q += " AND created_at >= ?"; args.append(since)
+        if until: q += " AND created_at <= ?"; args.append(until)
+        q += " ORDER BY id DESC LIMIT ? OFFSET ?"; args += [limit, offset]
+        with _sqlite() as c:
+            cur=c.cursor(); cur.execute(q, args); rows=cur.fetchall()
+            return [{"id":r[0],"type":r[1],"event":json.loads(r[2] or "{}"),"created_at":r[3]} for r in rows]
+    else:
+        with _pg() as c, c.cursor() as cur:
+            q = "SELECT id, event_type, event_json, created_at FROM events WHERE session_id=%s"
+            args=[session_id]
+            if since: q += " AND created_at >= %s"; args.append(since)
+            if until: q += " AND created_at <= %s"; args.append(until)
+            q += " ORDER BY id DESC LIMIT %s OFFSET %s"; args += [limit, offset]
+            cur.execute(q, args); rows=cur.fetchall()
+            return [{"id":r["id"],"type":r["event_type"],"event":r["event_json"],"created_at":r["created_at"].isoformat()} for r in rows]
+
+def list_decisions_range(since: str|None=None, until: str|None=None, limit: int=50, offset: int=0):
+    init_schema()
+    if USE_SQLITE:
+        q = "SELECT id, session_id, agent_name, decision_type, confidence, execution_time_ms, created_at FROM decisions WHERE 1=1"
+        args=[]
+        if since: q += " AND created_at >= ?"; args.append(since)
+        if until: q += " AND created_at <= ?"; args.append(until)
+        q += " ORDER BY id DESC LIMIT ? OFFSET ?"; args += [limit, offset]
+        with _sqlite() as c:
+            cur=c.cursor(); cur.execute(q, args); rows=cur.fetchall()
+            return [{"id":r[0],"session_id":r[1],"agent_name":r[2],"decision_type":r[3],"confidence":r[4],"execution_time_ms":r[5],"created_at":r[6]} for r in rows]
+    else:
+        with _pg() as c, c.cursor() as cur:
+            q = "SELECT id, session_id, agent_name, decision_type, confidence, execution_time_ms, created_at FROM decisions WHERE 1=1"
+            args=[]
+            if since: q += " AND created_at >= %s"; args.append(since)
+            if until: q += " AND created_at <= %s"; args.append(until)
+            q += " ORDER BY id DESC LIMIT %s OFFSET %s"; args += [limit, offset]
+            cur.execute(q, args); rows=cur.fetchall()
+            return [{"id":r["id"],"session_id":r["session_id"],"agent_name":r["agent_name"],"decision_type":r["decision_type"],"confidence":r["confidence"],"execution_time_ms":r["execution_time_ms"],"created_at":r["created_at"].isoformat()} for r in rows]

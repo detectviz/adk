@@ -1,16 +1,18 @@
 
 # -*- coding: utf-8 -*-
-# RAG 檢索工具：pgvector 近鄰查詢 → 引用與信心分數
+# RAG 檢索工具：以向量近鄰搜尋回傳前 K 筆
 from __future__ import annotations
 from typing import Dict, Any, List
-from ..tools.knowledge_ingestion import _embed_texts
-from ..core.vectorstore_pg import search_similar
+from sentence_transformers import SentenceTransformer
+from ..rag.vectorstore_pg import search_similar
 
-def rag_search(query: str, top_k: int = 6) -> Dict[str, Any]:
-    q_emb = _embed_texts([query])[0]
-    rows = search_similar(q_emb, top_k=top_k)
-    citations=[
-        {"doc_id": str(r["doc_id"]), "text": r["content"], "confidence": float(r["score"]), "metadata": r.get("metadata", {})}
-        for r in rows
-    ]
-    return {"query": query, "citations": citations}
+_model = None
+def get_model():
+    global _model
+    if _model is None:
+        _model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+    return _model
+
+def rag_search(question: str, top_k: int = 5) -> Dict[str,Any]:
+    emb = get_model().encode(question).tolist()
+    return {"hits": search_similar(emb, top_k=top_k)}

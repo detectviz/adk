@@ -1,17 +1,28 @@
 
 # -*- coding: utf-8 -*-
-# 政策引擎（簡版）：白名單/風險分級/HITL 標記
+# 政策閘（最小實作）：根據 adk.yaml 中 allowlist 與 require_approval 控制工具執行
 from __future__ import annotations
 from typing import Dict, Any, Tuple
+import os, yaml
 
 class RiskLevel:
-    LOW="Low"; MEDIUM="Medium"; HIGH="High"; CRITICAL="Critical"
+    Low="Low"; Medium="Medium"; High="High"; Critical="Critical"
+
+def _load_cfg(path: str="adk.yaml") -> Dict[str,Any]:
+    if not os.path.exists(path): return {}
+    return yaml.safe_load(open(path,"r",encoding="utf-8").read()) or {}
 
 def evaluate_tool_call(tool_name: str, kwargs: Dict[str,Any]) -> Tuple[bool, str, str, bool]:
-    ns = (kwargs.get("namespace") or "").lower()
-    destructive = any(k in tool_name.lower() for k in ["restart","delete","scale","patch"])
-    if destructive and ns in {"prod","production"}:
-        return (True, "高風險操作，需要 HITL", RiskLevel.CRITICAL, True)
-    if destructive:
-        return (True, "破壞性操作，風險中等", RiskLevel.HIGH, False)
-    return (True, "允許", RiskLevel.LOW, False)
+    """回傳：(allowed, reason, risk_level, require_approval)"""
+    cfg = _load_cfg()
+    allow = set((cfg.get("agent",{}).get("tools_allowlist") or []))
+    req = set((cfg.get("agent",{}).get("tools_require_approval") or []))
+    if allow and tool_name not in allow:
+        return False, "Not in allowlist", RiskLevel.High, False
+    require_approval = tool_name in req
+    # 粗略風險評級（示例）：含 delete/patch/exec 字樣者高風險
+    name = tool_name.lower()
+    risk = RiskLevel.Medium
+    if any(x in name for x in ["delete","patch","exec","restart"]):
+        risk = RiskLevel.High
+    return True, "ok", risk, require_approval

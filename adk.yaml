@@ -1,0 +1,15 @@
+
+agent:
+  name: sre-assistant
+  version: "14.4.3"
+  default_model: "gemini-2.0-pro"
+  tools_allowlist:
+    - PromQLQueryTool
+    - GrafanaDashboardTool
+    - K8sRolloutRestartLongRunningTool
+    - K8sOperateTool
+    - RAGRetrieveTool
+  tools_require_approval:
+    - K8sRolloutRestartLongRunningTool
+security:
+  policy: camel-basic

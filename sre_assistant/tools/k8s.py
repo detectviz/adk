@@ -125,3 +125,16 @@ def _has_progress_deadline_exceeded(dep) -> bool:
         if c.type=="Progressing" and getattr(c, "reason", "")=="ProgressDeadlineExceeded":
             return True
     return False
+
+
+def _collect_deploy_events(namespace: str, deployment_name: str, limit: int = 10):
+    """收集與 Deployment 相關的近期 Events 節錄（便於覆盤）。"""
+    _load_k8s_config()
+    v1 = client.CoreV1Api()
+    field_selector = f"involvedObject.kind=Deployment,involvedObject.name={deployment_name},involvedObject.namespace={namespace}"
+    ev = v1.list_event_for_all_namespaces(field_selector=field_selector, _preload_content=True)
+    items = getattr(ev, "items", []) or []
+    out=[]
+    for e in items[-limit:]:
+        out.append({"type": getattr(e, 'type', ''), "reason": getattr(e, 'reason',''), "message": getattr(e, 'message','')})
+    return out

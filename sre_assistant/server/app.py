@@ -11,6 +11,8 @@ from fastapi.responses import StreamingResponse, HTMLResponse
 from pydantic import BaseModel
 import json
 from ..core.telemetry import init_tracing
+from ..core.adk_events import extract_decision, is_request_credential, coerce_sse_payload
+from ..core.session import pick_session_service
 from ..core.profiling_pyroscope import init_pyroscope
 from ..core.otel_logging import init_otel_logging
 init_tracing()
@@ -20,12 +22,14 @@ init_otel_logging()
 from ..adk_app.runtime import RUNNER, run_chat  # Runner 與同步封裝
 from ..core.auth import require_api_key, AuthError
 from ..core.debounce import DEBOUNCER
-from ..core.persistence import DB
+from ..core.persistence import DB, list_events_range, list_decisions_range
 from ..core.slo_guard import SLOGuardian
 
 from google.genai.types import Content, Part, FunctionResponse
 
 app = FastAPI(title="SRE Assistant API (ADK Runner + SSE)")
+app.add_middleware(OTelMiddleware)
+SESSION_SERVICE = pick_session_service()
 # 啟動 GCP Observability（可選）
 if os.getenv('GCP_OBS_ENABLED','').lower() in {'1','true','yes'}:
     try:
@@ -80,7 +84,14 @@ def chat(req: ChatRequest, _: str = Depends(auth_dep)):
 # --- SSE 串流工具函式 ---
 async def _stream_events(user_id: str, session_id: str, content: Content) -> AsyncGenerator[bytes, None]:
     """將 ADK Runner 的事件以 SSE 形式回拋前端。"""
-    async for event in RUNNER.run_async(user_id=user_id, session_id=session_id, new_message=content):
+    state = SESSION_SERVICE.get(session_id)
+        async for event in RUNNER.run_async(user_id=user_id, session_id=session_id, new_message=content, state=state):
+            try:
+                d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__
+                if 'state' in d:
+                    SESSION_SERVICE.set(session_id, d['state'])
+            except Exception:
+                pass
         # 將事件落盤以便回放
         try:
             DB.write_event(session_id, user_id, event.__class__.__name__, (event.to_dict() if hasattr(event,'to_dict') else event.__dict__))\n        # 嘗試從事件萃取 decision 訊息（啟發式）\n        try:\n            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__\n            agent_name = (d.get('agent') or {}).get('name') or d.get('agent_name') or 'main'\n            decision_type = event.__class__.__name__\n            input_json = {k:v for k,v in d.items() if k not in ('output','result')}\n            output_json = d.get('output') or d.get('result') or d\n            latency_ms = d.get('latency_ms') or None\n            DB.write_decision(session_id, agent_name, decision_type, input_json, output_json, None, latency_ms)\n        except Exception:\n            pass
@@ -155,3 +166,34 @@ async def get_session_decisions(session_id: str, limit: int = 100, offset: int =
     """查詢近期 decisions（DB 來源，支援 SQLite/PG）。"""
     rows = DB.list_decisions(limit=limit, offset=offset)
     return {"session_id": session_id, "decisions": rows}
+
+
+from pydantic import BaseModel
+
+class HitlApproveBody(BaseModel):
+    session_id: str
+    op_id: str
+    approver: str
+    ticket_id: str | None = None
+
+class HitlRejectBody(BaseModel):
+    session_id: str
+    op_id: str
+    reason: str
+
+@app.post("/api/v1/hitl/approve")
+async def api_hitl_approve(body: HitlApproveBody, user_id: str = Depends(auth_dep)):
+    return hitl_approve(body.session_id, user_id, body.op_id, body.approver, body.ticket_id)
+
+@app.post("/api/v1/hitl/reject")
+async def api_hitl_reject(body: HitlRejectBody, user_id: str = Depends(auth_dep)):
+    return hitl_reject(body.session_id, user_id, body.op_id, body.reason)
+
+
+@app.get("/api/v1/sessions/{session_id}/events_range")
+async def get_session_events_range(session_id: str, since: str|None=None, until: str|None=None, limit: int=100, offset: int=0, _: str = Depends(auth_dep)):
+    return {"session_id": session_id, "events": list_events_range(session_id, since, until, limit, offset)}
+
+@app.get("/api/v1/decisions_range")
+async def get_decisions_range(since: str|None=None, until: str|None=None, limit: int=50, offset: int=0, _: str = Depends(auth_dep)):
+    return {"decisions": list_decisions_range(since, until, limit, offset)}

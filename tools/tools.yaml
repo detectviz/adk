@@ -1,0 +1,11 @@
+
+tools:
+  - name: K8sRolloutRestartLongRunningTool
+    module: sre_assistant.tools.k8s_long_running
+    callable: k8s_rollout_restart_long_running_tool
+  - name: rag_search
+    module: sre_assistant.tools.rag_retrieve
+    callable: rag_search
+  - name: ingest_text
+    module: sre_assistant.tools.knowledge_ingestion
+    callable: ingest_text

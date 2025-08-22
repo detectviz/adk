@@ -3,6 +3,7 @@
 # A2A gRPC Client（最小示例）
 from __future__ import annotations
 import grpc, json
+from ..core.otel_grpc import ClientInterceptor
 try:
     from sre_assistant.adk_app.proto import a2a_pb2, a2a_pb2_grpc
 except Exception:

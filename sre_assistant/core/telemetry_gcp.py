@@ -22,6 +22,10 @@ def init_gcp_observability() -> None:
     env = os.getenv("ENV","dev")
 
     res = Resource.create({
+        "service.instance.id": os.getenv("HOSTNAME","local"),
+        "cloud.provider": "gcp",
+        "cloud.region": os.getenv("GCP_REGION",""),
+        "cloud.availability_zone": os.getenv("GCP_ZONE",""),
         "service.name": service_name,
         "service.version": service_ver,
         "deployment.environment": env,

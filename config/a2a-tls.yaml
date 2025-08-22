@@ -1,0 +1,9 @@
+
+server:
+  cert: tls/server.crt
+  key: tls/server.key
+  ca: tls/ca.crt
+client:
+  cert: tls/client.crt
+  key: tls/client.key
+  ca: tls/ca.crt

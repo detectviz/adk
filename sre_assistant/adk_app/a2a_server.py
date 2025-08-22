@@ -21,12 +21,19 @@ class AgentBridgeServicer(a2a_pb2_grpc.AgentBridgeServicer):
             output_json=json.dumps({"echo": request.payload_json}, ensure_ascii=False)
         )
 
-def serve(host="0.0.0.0", port=50051):
+def serve(host="0.0.0.0", port=50051, tls: bool=False, cert_path: str|None=None, key_path: str|None=None, ca_path: str|None=None):
     if a2a_pb2_grpc is None:
         raise RuntimeError("尚未以 protoc 產生 gRPC 代碼。請先執行 make a2a-proto")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     a2a_pb2_grpc.add_AgentBridgeServicer_to_server(AgentBridgeServicer(), server)
-    server.add_insecure_port(f"{host}:{port}")
+    if tls:
+        with open(cert_path,'rb') as f: cert=f.read()
+        with open(key_path,'rb') as f: key=f.read()
+        with open(ca_path,'rb') as f: ca=f.read()
+        creds = grpc.ssl_server_credentials([(key, cert)], root_certificates=ca, require_client_auth=True)
+        server.add_secure_port(f"{host}:{port}", creds)
+    else:
+        server.add_insecure_port(f"{host}:{port}")
     server.start()
     server.wait_for_termination()
 
