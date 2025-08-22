@@ -1,65 +1,97 @@
 
 # -*- coding: utf-8 -*-
-# pgvector 向量庫：以文字向量常值 '[1,2,3]'::vector 寫入與查詢，降低驅動適配風險。
+# pgvector 向量儲存與檢索（最小可運行版）
+# - 以 PG_DSN 連線 PostgreSQL（需安裝 pgvector 擴充）
+# - 自動建立資料表與 IVFFlat 索引（cosine）
+# - 以 content 的 SHA256 作為去重鍵；提供批量 upsert 與近鄰查詢
 from __future__ import annotations
-from typing import List, Dict, Any, Optional
-import os
+from typing import List, Dict, Any, Iterable, Optional, Tuple
+import os, uuid, hashlib, contextlib
 
 try:
     import psycopg
+    from psycopg.rows import dict_row
 except Exception:
-    psycopg = None
+    psycopg = None  # 未安裝時拋出於使用階段
 
-def _vec_literal(vec: List[float]) -> str:
-    # 產生 pgvector 的文字常值，例如 '[0.1, -0.2, ...]'
-    return "[" + ",".join(f"{float(x):.6f}" for x in vec) + "]"
+EMBED_DIM = int(os.getenv("EMBED_DIM","384"))
+PG_DSN = os.getenv("PG_DSN", "")
 
-class PgVectorStore:
-    def __init__(self, dsn: str, dim: int = 384):
-        if psycopg is None:
-            raise RuntimeError("未安裝 psycopg，無法使用 pgvector")
-        self.dim = dim
-        self.conn = psycopg.connect(dsn, autocommit=True)
-        self._init_schema()
+@contextlib.contextmanager
+def _conn():
+    # 建立同步連線；若缺依賴或 DSN，於呼叫端明確報錯
+    if not psycopg or not PG_DSN:
+        raise RuntimeError("缺少 psycopg 或 PG_DSN 未設定，無法連線 PostgreSQL。")
+    with psycopg.connect(PG_DSN, row_factory=dict_row) as c:
+        yield c
 
-    def _init_schema(self):
-        with self.conn.cursor() as cur:
-            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
-            cur.execute(f"""
-            CREATE TABLE IF NOT EXISTS rag_chunks (
-              id BIGSERIAL PRIMARY KEY,
-              doc_id BIGINT,
-              content TEXT NOT NULL,
-              embedding vector({self.dim}),
-              tags TEXT,
-              status TEXT,
-              created_at TIMESTAMPTZ DEFAULT NOW()
-            );
-            """)
+def init_schema() -> None:
+    """建立 extension / tables / indexes（若不存在）。"""
+    with _conn() as c, c.cursor() as cur:
+        cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS documents (
+          id UUID PRIMARY KEY,
+          title TEXT,
+          metadata JSONB DEFAULT '{}'::jsonb,
+          created_at TIMESTAMPTZ DEFAULT now()
+        );""")
+        cur.execute(f"""
+        CREATE TABLE IF NOT EXISTS chunks (
+          id UUID PRIMARY KEY,
+          doc_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+          content TEXT NOT NULL,
+          content_hash TEXT NOT NULL,
+          embedding vector({EMBED_DIM}) NOT NULL,
+          metadata JSONB DEFAULT '{{}}'::jsonb,
+          created_at TIMESTAMPTZ DEFAULT now()
+        );""")
+        # 以 cosine 相似度，IVFFlat 索引
+        lists = int(os.getenv("PGVECTOR_LISTS","100"))
+        cur.execute(f"CREATE INDEX IF NOT EXISTS idx_chunks_embedding ON chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = {lists});")
+        cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_chunks_content_hash ON chunks(content_hash);")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_chunks_doc ON chunks(doc_id);")
+        c.commit()
 
-    def upsert(self, doc_id: int, chunks: List[str], embeddings: List[List[float]], tags: List[str], status: str):
-        with self.conn.cursor() as cur:
-            for c, e in zip(chunks, embeddings):
-                lit = _vec_literal(e)
-                cur.execute(
-                    "INSERT INTO rag_chunks(doc_id, content, embedding, tags, status) VALUES (%s,%s," + lit + "::vector,%s,%s)",
-                    (doc_id, c, ",".join(tags), status)
-                )
+def _hash(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
-    def search(self, query_vec: List[float], top_k: int = 5, status: Optional[List[str]] = None) -> List[Dict[str, Any]]:
-        lit = _vec_literal(query_vec)
-        cond = ""
-        args: list[Any] = [top_k]
-        if status:
-            cond = "WHERE status = ANY(%s)"
-            args = [status, top_k]
-        with self.conn.cursor() as cur:
-            cur.execute(
-                f"SELECT id, doc_id, content, tags, status, embedding <#> {lit}::vector AS distance FROM rag_chunks {cond} ORDER BY embedding <#> {lit}::vector LIMIT %s",
-                args
-            )
-            rows = cur.fetchall()
-        res = []
-        for r in rows:
-            res.append({"id": r[0], "doc_id": r[1], "content": r[2], "tags": (r[3] or '').split(','), "status": r[4], "distance": float(r[5])})
-        return res
+def upsert_documents(docs: Iterable[Dict[str,Any]]) -> List[str]:
+    """插入 documents 並回傳 id 清單。doc 欄位：title, metadata。"""
+    ids=[]
+    with _conn() as c, c.cursor() as cur:
+        for d in docs:
+            did = uuid.uuid4()
+            cur.execute("INSERT INTO documents(id,title,metadata) VALUES(%s,%s,%s) RETURNING id;",
+                        (did, d.get("title"), d.get("metadata", {})))
+            ids.append(str(cur.fetchone()["id"]))
+        c.commit()
+    return ids
+
+def upsert_chunks(doc_id: str, texts: List[str], embeds: List[List[float]], metadatas: Optional[List[Dict[str,Any]]] = None) -> Tuple[int,int]:
+    """批量 upsert；以 content_hash 做去重。回傳 (新增數, 跳過數)。"""
+    metadatas = metadatas or [{} for _ in texts]
+    added=skipped=0
+    with _conn() as c, c.cursor() as cur:
+        for t,e,m in zip(texts, embeds, metadatas):
+            h=_hash(t)
+            try:
+                cur.execute("INSERT INTO chunks(id,doc_id,content,content_hash,embedding,metadata) VALUES(%s,%s,%s,%s,%s,%s)",
+                    (uuid.uuid4(), uuid.UUID(doc_id), t, h, e, m))
+                added+=1
+            except Exception:
+                skipped+=1
+        c.commit()
+    return added, skipped
+
+def search_similar(query_embed: List[float], top_k: int = 8, distance_threshold: float = 0.4) -> List[Dict[str,Any]]:
+    """以 cosine 近鄰檢索；回傳 [{doc_id, content, metadata, score}]。"""
+    with _conn() as c, c.cursor() as cur:
+        cur.execute("""
+            SELECT doc_id, content, metadata, 1 - (embedding <-> %s) AS score
+            FROM chunks
+            ORDER BY embedding <-> %s
+            LIMIT %s;
+        """, (query_embed, query_embed, top_k))
+        rows = cur.fetchall()
+    return [dict(r) for r in rows if float(r.get("score",0)) >= (1.0 - distance_threshold)]

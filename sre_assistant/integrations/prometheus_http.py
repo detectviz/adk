@@ -7,6 +7,7 @@
 from __future__ import annotations
 from typing import Dict, Any, Tuple
 import os, time, requests
+from ._retry import session_with_retry
 
 DEFAULT_TIMEOUT = float(os.getenv("PROM_TIMEOUT", "8"))
 PROM_URL = os.getenv("PROM_URL", "http://localhost:9090")
@@ -20,7 +21,7 @@ class PrometheusClient:
     def _get(self, path: str, params: Dict[str, Any]) -> Tuple[Dict[str, Any] | None, str | None]:
         url = f"{self.base_url}{path}"
         try:
-            r = requests.get(url, params=params, timeout=self.timeout)
+            r = session_with_retry().get(url, params=params, timeout=self.timeout)
             if r.status_code != 200:
                 return None, f"E_HTTP_{r.status_code}"
             data = r.json()

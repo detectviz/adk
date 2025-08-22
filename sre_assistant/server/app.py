@@ -26,6 +26,27 @@ from ..core.slo_guard import SLOGuardian
 from google.genai.types import Content, Part, FunctionResponse
 
 app = FastAPI(title="SRE Assistant API (ADK Runner + SSE)")
+# 啟動 GCP Observability（可選）
+if os.getenv('GCP_OBS_ENABLED','').lower() in {'1','true','yes'}:
+    try:
+        from sre_assistant.core.telemetry_gcp import init_gcp_observability
+        init_gcp_observability()
+    except Exception as _e:
+        print('[GCP_OBS] 初始化失敗:', _e)
+
+
+# 事件寫入（存在 PG_DSN 時啟用）
+from importlib import import_module
+try:
+    _adb = import_module('sre_assistant.core.audit_db')
+    def record_event(session_id, event_type, payload, user_id=None):
+        try: _adb.record_event(session_id, event_type, payload, user_id)
+        except Exception: pass
+except Exception:
+    def record_event(session_id, event_type, payload, user_id=None):
+        pass
+
+allowed_function_calls = {}  # session_id -> set(call_id)
 slo_guard = SLOGuardian(p95_ms=30000)
 
 def auth_dep(x_api_key: str = Header(default="", alias="X-API-Key")) -> str:
@@ -60,6 +81,16 @@ def chat(req: ChatRequest, _: str = Depends(auth_dep)):
 async def _stream_events(user_id: str, session_id: str, content: Content) -> AsyncGenerator[bytes, None]:
     """將 ADK Runner 的事件以 SSE 形式回拋前端。"""
     async for event in RUNNER.run_async(user_id=user_id, session_id=session_id, new_message=content):
+        # 將事件落盤以便回放
+        try:
+            DB.write_event(session_id, user_id, event.__class__.__name__, (event.to_dict() if hasattr(event,'to_dict') else event.__dict__))
+        except Exception:
+            pass
+        try:
+            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__
+            record_event(session_id, d.get('type','event'), d, user_id)
+        except Exception:
+            pass\n        try:\n            d = event.to_dict() if hasattr(event,'to_dict') else event.__dict__\n            parts = (d.get('content') or {}).get('parts') or []\n            for p in parts:\n                fc = p.get('function_call')\n                if fc and fc.get('id'):\n                    allowed_function_calls.setdefault(session_id,set()).add(fc['id'])\n        except Exception:\n            pass
         # 以最簡 JSON 形式傳遞（前端自行判斷是否為 adk_request_credential）
         yield f"data: {json.dumps(event.to_dict() if hasattr(event, 'to_dict') else event.__dict__, ensure_ascii=False)}\n\n".encode("utf-8")
 

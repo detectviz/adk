@@ -30,3 +30,19 @@ make accept      # 一鍵驗收（v14.1）
 ## 文件
 - `SPEC.md`、`docs/ADK_WEB_UI.md`、`docs/ACCEPTANCE_V14_1.md`
 - `AGENT.md`、`TESTING_GUIDE.md`、`DEVELOPMENT_SETUP.md`
+
+
+## A2A（Agent-to-Agent）
+```bash
+make a2a-expose   # 暴露本地 DiagnosticExpert 為 A2A 服務（:8001）
+make a2a-consume  # 範例：從主協調器建立 RemoteA2aAgent
+# 驗收：GET http://localhost:8001/.well-known/agent.json
+```
+
+## Kubernetes 滾動重啟
+- 模組：`sre_assistant/tools/k8s_rollout.py`，先 RBAC 預檢，再觸發 rollout 並輪詢完成。
+- 需變數：`KUBECONFIG` 或 `K8S_IN_CLUSTER=true`。
+
+## GCP Observability
+- 檔案：`sre_assistant/core/telemetry_gcp.py`、`docs/GCP_OBSERVABILITY.md`
+- 啟動：設定 `GCP_OBS_ENABLED=true` 與必要憑證與專案變數。

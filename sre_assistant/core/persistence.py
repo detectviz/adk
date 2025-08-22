@@ -1,127 +1,75 @@
 
 # -*- coding: utf-8 -*-
-# 持久化：SQLite with trace 欄位與 FTS
+# 資料層：提供審計/事件/決策儲存（sqlite 預設；PG_DSN 待擴充）
 from __future__ import annotations
-import sqlite3, json, hashlib
-from typing import Any, Dict, List, Optional, Tuple
-from .config import Config
+from typing import Dict, Any, List, Optional, Tuple
+import os, json, sqlite3, contextlib
 
-class Database:
-    def __init__(self):
-        self.path = Config.SQLITE_PATH
-        self.conn = sqlite3.connect(self.path, check_same_thread=False)
-        self.conn.execute("PRAGMA journal_mode=WAL;")
-        self._init_schema()
+PG_DSN = os.getenv("PG_DSN","")
+USE_SQLITE = not bool(PG_DSN)
+SQLITE_PATH = os.getenv("DB_PATH","/mnt/data/sre-assistant.db")
 
-    def _init_schema(self):
-        self.conn.execute(
-            'CREATE TABLE IF NOT EXISTS decisions ('
-            'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-            'session_id TEXT NOT NULL,'
-            'agent_name TEXT NOT NULL,'
-            'decision_type TEXT NOT NULL,'
-            'input TEXT NOT NULL,'
-            'output TEXT NOT NULL,'
-            'confidence REAL,'
-            'execution_time_ms INTEGER,'
-            'trace_id TEXT,'
-            'span_id TEXT,'
-            'created_at DATETIME DEFAULT CURRENT_TIMESTAMP'
-            ');'
-        )
-        self.conn.execute(
-            'CREATE TABLE IF NOT EXISTS tool_executions ('
-            'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-            'decision_id INTEGER,'
-            'tool_name TEXT NOT NULL,'
-            'parameters TEXT,'
-            'result TEXT,'
-            'status TEXT NOT NULL,'
-            'error_message TEXT,'
-            'duration_ms INTEGER,'
-            'trace_id TEXT,'
-            'span_id TEXT,'
-            'executed_at DATETIME DEFAULT CURRENT_TIMESTAMP'
-            ');'
-        )
-        self.conn.execute(
-            'CREATE TABLE IF NOT EXISTS approvals ('
-            'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-            'tool TEXT NOT NULL,'
-            'args TEXT NOT NULL,'
-            'status TEXT NOT NULL,'
-            'created_at DATETIME DEFAULT CURRENT_TIMESTAMP,'
-            'decided_at DATETIME,'
-            'decided_by TEXT,'
-            'reason TEXT'
-            ');'
-        )
-        self.conn.execute(
-            'CREATE TABLE IF NOT EXISTS api_keys ('
-            'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-            'key_hash TEXT NOT NULL UNIQUE,'
-            'role TEXT NOT NULL,'
-            'created_at DATETIME DEFAULT CURRENT_TIMESTAMP'
-            ');'
-        )
-        self.conn.execute(
-            'CREATE TABLE IF NOT EXISTS rag_entries ('
-            'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-            'title TEXT NOT NULL,'
-            'content TEXT NOT NULL,'
-            'author TEXT,'
-            'tags TEXT,'
-            'status TEXT,'
-            'created_at DATETIME DEFAULT CURRENT_TIMESTAMP'
-            ');'
-        )
-        try:
-            self.conn.execute('CREATE VIRTUAL TABLE IF NOT EXISTS rag_entries_fts USING fts5(title, content)')
-        except Exception:
-            pass
-        # 嘗試新增缺失欄位（向前兼容）
-        for alter in [
-            "ALTER TABLE decisions ADD COLUMN trace_id TEXT",
-            "ALTER TABLE decisions ADD COLUMN span_id TEXT",
-            "ALTER TABLE tool_executions ADD COLUMN trace_id TEXT",
-            "ALTER TABLE tool_executions ADD COLUMN span_id TEXT",
-        ]:
-            try: self.conn.execute(alter)
-            except Exception: pass
-        self.conn.commit()
+@contextlib.contextmanager
+def _sqlite():
+    os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
+    conn = sqlite3.connect(SQLITE_PATH)
+    try:
+        yield conn
+    finally:
+        conn.commit(); conn.close()
 
-    # decisions
-    def insert_decision(self, session_id: str, agent_name: str, decision_type: str, input: str, output: str, confidence: float | None, execution_time_ms: int, trace_id: str | None = None, span_id: str | None = None) -> int:
-        cur = self.conn.cursor()
-        cur.execute(
-            'INSERT INTO decisions(session_id, agent_name, decision_type, input, output, confidence, execution_time_ms, trace_id, span_id) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            (session_id, agent_name, decision_type, input, output, confidence, execution_time_ms, trace_id, span_id)
-        )
-        self.conn.commit()
-        return cur.lastrowid
+def init_schema():
+    if USE_SQLITE:
+        with _sqlite() as c:
+            cur=c.cursor()
+            cur.execute("""CREATE TABLE IF NOT EXISTS audits(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              session_id TEXT, user_id TEXT, action TEXT, payload TEXT,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+            cur.execute("""CREATE TABLE IF NOT EXISTS events(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              session_id TEXT, user_id TEXT, event_type TEXT, event_json TEXT,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+            cur.execute("""CREATE TABLE IF NOT EXISTS decisions(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              session_id TEXT, agent_name TEXT, decision_type TEXT,
+              input_json TEXT, output_json TEXT, confidence REAL,
+              execution_time_ms INTEGER,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+            cur.execute("""CREATE TABLE IF NOT EXISTS api_keys(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              key TEXT, role TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
 
-    def update_decision_output(self, decision_id: int, output: str, execution_time_ms: int | None = None):
-        cur = self.conn.cursor()
-        if execution_time_ms is None:
-            cur.execute('UPDATE decisions SET output=? WHERE id=?', (output, decision_id))
-        else:
-            cur.execute('UPDATE decisions SET output=?, execution_time_ms=? WHERE id=?', (output, execution_time_ms, decision_id))
-        self.conn.commit()
+class DB:
+    path = SQLITE_PATH
 
-    # tool execs
-    def insert_tool_execution(self, decision_id: int | None, tool_name: str, parameters: str, result: str, status: str, error_message: str | None, duration_ms: int, trace_id: str | None = None, span_id: str | None = None) -> int:
-        cur = self.conn.cursor()
-        cur.execute(
-            'INSERT INTO tool_executions(decision_id, tool_name, parameters, result, status, error_message, duration_ms, trace_id, span_id) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            (decision_id, tool_name, parameters, result, status, error_message, duration_ms, trace_id, span_id)
-        )
-        self.conn.commit()
-        return cur.lastrowid
+    @staticmethod
+    def write_audit(session_id: str, user_id: str, action: str, payload: Dict[str,Any]) -> None:
+        init_schema()
+        with _sqlite() as c:
+            c.execute("INSERT INTO audits(session_id,user_id,action,payload) VALUES(?,?,?,?)",
+                      (session_id, user_id, action, json.dumps(payload, ensure_ascii=False)))
 
-    # approvals / list / api_keys 與先前相同，為簡潔略
-    # ...（已在 v11 提供，保留原行為）
+    @staticmethod
+    def write_event(session_id: str, user_id: str, event_type: str, event_json: Dict[str,Any]) -> None:
+        init_schema()
+        with _sqlite() as c:
+            c.execute("INSERT INTO events(session_id,user_id,event_type,event_json) VALUES(?,?,?,?)",
+                      (session_id, user_id, event_type, json.dumps(event_json, ensure_ascii=False)))
 
-from .persistence import Database as _OldDB  # 兼容引用
-DB = Database()
+    @staticmethod
+    def list_events(session_id: str, limit: int = 100) -> List[Dict[str,Any]]:
+        init_schema()
+        with _sqlite() as c:
+            cur=c.cursor()
+            cur.execute("SELECT id,event_type,event_json,created_at FROM events WHERE session_id=? ORDER BY id DESC LIMIT ?", (session_id, limit))
+            return [{"id":r[0],"type":r[1],"event":json.loads(r[2] or "{}"),"created_at":r[3]} for r in cur.fetchall()]
+
+    @staticmethod
+    def list_decisions(limit: int = 50, offset: int = 0) -> List[Dict[str,Any]]:
+        init_schema()
+        with _sqlite() as c:
+            cur=c.cursor()
+            cur.execute("SELECT id, session_id, agent_name, decision_type, confidence, execution_time_ms, created_at FROM decisions ORDER BY id DESC LIMIT ? OFFSET ?", (limit, offset))
+            rows=cur.fetchall()
+            return [{"id":r[0],"session_id":r[1],"agent_name":r[2],"decision_type":r[3],"confidence":r[4],"execution_time_ms":r[5],"created_at":r[6]} for r in rows]

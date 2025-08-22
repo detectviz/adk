@@ -6,6 +6,7 @@
 from __future__ import annotations
 from typing import Dict, Any, Optional
 import os, requests
+from ._retry import session_with_retry
 
 GRAFANA_URL = os.getenv("GRAFANA_URL", "http://localhost:3000")
 GRAFANA_TOKEN = os.getenv("GRAFANA_TOKEN", "")  # 需有適當權限
@@ -22,6 +23,6 @@ class GrafanaClient:
     def upsert_dashboard(self, dashboard: Dict[str, Any], folder_id: Optional[int] = None, overwrite: bool = True) -> Dict[str, Any]:
         payload = { "dashboard": dashboard, "folderId": folder_id, "overwrite": overwrite }
         url = f"{self.base_url}/api/dashboards/db"
-        r = requests.post(url, headers=self.headers, json=payload, timeout=10)
+        r = session_with_retry().post(url, headers=self.headers, json=payload, timeout=10)
         r.raise_for_status()
         return r.json()

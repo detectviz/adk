@@ -40,3 +40,13 @@ obs-up:
 
 obs-down:
 	docker compose -f obs/docker-compose.yml down -v
+
+
+# A2A：暴露與消費
+a2a-expose:
+	python -m pip install -q 'google-adk[a2a]'
+	uvicorn sre_assistant.adk_app.a2a_expose:a2a_app --host 0.0.0.0 --port 8001
+
+a2a-consume:
+	python -m pip install -q 'google-adk[a2a]'
+	python -c "from sre_assistant.adk_app.a2a_consume import get_remote_diagnostic; a=get_remote_diagnostic(); print(a.name)"
