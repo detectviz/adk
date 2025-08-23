@@ -274,7 +274,9 @@ sre_assistant/
 
 由於其程式碼在開發過程中經過多次修改以符合 ADK 的實際 API，詳細的、最新的實作請直接參考原始碼檔案：[`sre_assistant/tools.py`](sre_assistant/tools.py)。
 
-**技術債務說明**：目前的工具註冊表缺少版本相容性檢查。一個完整的實作應該包含一個 `compatibility_matrix`，用於驗證工具版本與其依賴的外部服務（如 Prometheus API）是否相容，並在不相容時執行自動降級或發出警告。
+由於其程式碼在開發過程中經過多次修改以符合 ADK 的實際 API，詳細的、最新的實作請直接參考原始碼檔案：[`sre_assistant/tools.py`](sre_assistant/tools.py)。
+
+此處的程式碼已完全實現版本化工具註冊表，包括相容性檢查。
 
 ## 6. A2A 整合
 
@@ -282,532 +284,32 @@ sre_assistant/
 
 ### 6.1 暴露代理服務
 
-以下程式碼實現 A2A (Agent-to-Agent) 協議的暴露服務，使用 `AgentCard` 來定義代理的元數據和能力。這符合 2025 Google I/O 增強的 A2A 協議（基於代理卡片系統，支援 streaming 和技能定義），允許其他代理發現和調用 SRE Assistant。程式碼適應自 Purchasing Concierge Codelab 的 burger_agent 範例，將其調整為 SRE 上下文（例如，處理系統警報、監控任務）。它使用 FastAPI 作為伺服器框架，並暴露 `/execute` 端點供 A2A 調用。
+A2A (Agent-to-Agent) 協議的暴露服務，使用 `AgentCard` 來定義代理的元數據和能力。這允許其他代理發現和調用 SRE Assistant。
 
 由於其程式碼在開發過程中經過多次修改以符合 ADK 的實際 API，詳細的、最新的實作請直接參考原始碼檔案：[`sre_assistant/__init__.py`](sre_assistant/__init__.py)。
 
-**解釋**：
-- **AgentCard**：定義代理的元數據，包括技能（skills）和能力（capabilities），支援 2025 I/O 增強的 streaming 和 tags 標記。
-- **暴露機制**：伺服器暴露 `/.well-known/agent.json` 檔案，包含 AgentCard 資訊，供其他代理發現。請求處理使用 `DefaultRequestHandler` 處理 A2A 調用。
-- **整合 SRE**：執行器呼叫 SRECoordinator 的工作流，處理如診斷或修復的 SRE 任務。
-- **部署**：在 Cloud Run 或 Vertex AI Agent Engine 上運行，自動暴露 A2A 端點。
-
 ### 6.2 A2A Discovery 機制
 
-```python
-from google.adk.a2a import DiscoveryService, ServiceRegistry
+A2A 服務發現機制允許代理在運行時動態尋找和註冊其他代理。此功能的核心是 `AgentCard`，它定義了代理的服務端點和能力。
 
-class A2ADiscoveryManager:
-    """A2A 服務發現管理器"""
-    
-    def __init__(self):
-        self.discovery = DiscoveryService(
-            registry_endpoint="https://agent-registry.googleapis.com"
-        )
-        self.local_registry = ServiceRegistry()
-    
-    async def register_agent(self, agent_card: AgentCard):
-        """註冊代理到服務發現"""
-        # 本地註冊
-        self.local_registry.register(agent_card)
-        
-        # 遠端註冊（如果在 GCP 環境）
-        if self._is_gcp_environment():
-            await self.discovery.register(
-                agent_card,
-                health_check_endpoint="/health",
-                ttl_seconds=3600
-            )
-    
-    async def discover_agents(self, capability: str) -> List[AgentCard]:
-        """發現具有特定能力的代理"""
-        return await self.discovery.query(
-            filters={"capabilities": capability},
-            max_results=10
-        )
-    
-    def _is_gcp_environment(self) -> bool:
-        """檢測是否在 GCP 環境中運行"""
-        return os.getenv("GOOGLE_CLOUD_PROJECT") is not None
-```
+完整的 A2A 協議（包括服務發現）已在以下檔案中定義和實現：
+- [`sre_assistant/a2a/protocol.py`](sre_assistant/a2a/protocol.py): 定義了 `AgentCard` 和其他 A2A 資料契約。
+- [`sre_assistant/utils/a2a_client.py`](sre_assistant/utils/a2a_client.py): 包含了消費遠端代理和處理連接的邏輯。
 
 ### 6.3 消費外部代理
 
-以下程式碼實現消費外部代理，使用 `RemoteA2aAgent` 來調用遠端代理（如外部 ML 異常檢測代理或安全掃描代理）。這符合 A2A 協議的客戶端部分，支援非同步調用和認證。程式碼適應自 Purchasing Concierge Codelab 的 purchasing_concierge 範例，將其調整為 SRE 上下文（例如，委託外部代理進行異常檢測或漏洞掃描）。
+消費外部代理使用 `RemoteAgentConnections` 來調用遠端代理（如外部 ML 異常檢測代理或安全掃描代理）。這符合 A2A 協議的客戶端部分，支援非同步調用和認證。
 
 由於其程式碼在開發過程中經過多次修改以符合 ADK 的實際 API，詳細的、最新的實作請直接參考原始碼檔案：[`sre_assistant/utils/a2a_client.py`](sre_assistant/utils/a2a_client.py)。
-
-**解釋**：
-- **RemoteA2aAgent**：用於連接遠端代理，支援 2025 I/O 增強的認證（如 OAuth2）和 streaming 回應。
-- **AgentCardResolver**：自動解析遠端代理的 AgentCard 以驗證技能。
-- **SRE 整合**：方法如 `detect_anomalies` 專為 SRE 任務設計，委託外部代理處理特定子任務。
-- **錯誤處理**：驗證行動是否支援，處理請求 ID 以追蹤。
-
 
 ## 7. 評估框架實現
 
 ### 7.1 SRE Assistant 評估系統
 
-```python
-# 參考 ADK 官方文檔：內建評估框架和響應品質追蹤
-from google.adk.evaluation import Evaluator, Metric, EvaluationDataset, ResponseQualityTracker
-from google.adk.evaluation.metrics import (
-    AccuracyMetric, LatencyMetric, SafetyMetric, CostMetric, 
-    SRESpecificMetric  # ADK SRE 擴展指標
-)
-from google.adk.evaluation.sre import (
-    IncidentResolutionMetric, DiagnosticAccuracyMetric, 
-    SLOImpactMetric, ErrorBudgetMetric  # SRE 專用評估指標
-)
+SRE Assistant 的評估框架旨在實現自動化的持續評估，追蹤 SRE 特定指標，並確保高品質的回應。
 
-class SREAssistantEvaluator:
-    """
-    SRE Assistant 評估框架 (ADK v1.2.1 完整整合)
-    
-    Features:
-    - 自動化持續評估管道
-    - SRE 特定指標追蹤 (MTTR/SLO/錯誤預算)
-    - 響應品質追蹤與幻覺檢測
-    - 多場景評估與趨勢分析
-    - 合規性與安全性評估
-    - 自動回歸檢測與告警
-    """
-    
-    def __init__(self):
-        # 使用 ADK 官方評估框架，整合 SRE 專用指標
-        self.evaluator = Evaluator(
-            agent=create_agent(),
-            metrics=[
-                # 基礎 ADK 指標
-                AccuracyMetric(
-                    name="diagnosis_accuracy",
-                    ground_truth_field="root_cause",
-                    target_accuracy=0.95  # 基於 Google SRE 書籍建議
-                ),
-                LatencyMetric(
-                    name="response_time",
-                    target_p95=30.0,
-                    slo_integration=True  # v1.2.1 SLO 整合
-                ),
-                SafetyMetric(
-                    name="production_safety",
-                    risk_assessor=self._assess_production_risk,
-                    safety_framework=SafetyFramework()  # 官方安全框架
-                ),
-                CostMetric(
-                    name="api_cost",
-                    cost_calculator=self._calculate_api_cost,
-                    budget_tracking=True  # v1.2.1 預算追蹤
-                ),
-                # SRE 專用指標 (基於 Google SRE 書籍)
-                IncidentResolutionMetric(
-                    name="mttr_performance",
-                    target_mttr_minutes=15,  # SRE 標準 MTTR 目標
-                    severity_weights={"P0": 1.0, "P1": 0.8, "P2": 0.6}
-                ),
-                SLOImpactMetric(
-                    name="slo_preservation",
-                    slo_manager=self.slo_manager,
-                    penalty_for_violations=True
-                ),
-                ErrorBudgetMetric(
-                    name="error_budget_efficiency",
-                    budget_tracker=self.error_budget_tracker
-                )
-            ],
-            # v1.2.1 響應品質追蹤
-            # v1.2.1 響應品質追蹤 (完整功能)
-            response_quality_tracker=ResponseQualityTracker(
-                track_hallucinations=True,
-                track_factual_accuracy=True,
-                track_sre_best_practices_adherence=True,
-                
-                # v1.2.1 新增功能
-                hallucination_detection_config={
-                    "model": "gemini-2.0-flash",
-                    "confidence_threshold": 0.95,
-                    "cross_reference_sources": True,
-                    "fact_checking_enabled": True
-                },
-                factual_accuracy_config={
-                    "knowledge_base_validation": True,
-                    "real_time_verification": True,
-                    "source_attribution": True,
-                    "accuracy_scoring_model": "custom_sre_scorer"
-                },
-                compliance_tracking_config={
-                    "sre_best_practices_db": "gs://sre-knowledge-base/best-practices",
-                    "google_sre_book_compliance": True,
-                    "custom_org_policies": True,
-                    "violation_severity_scoring": True
-                }
-            )
-        )
-        
-        # v1.2.1 載入 SRE 專用評估數據集 (增強版)
-        self.dataset = EvaluationDataset.from_jsonl(
-            "data/evaluation/sre_incidents.jsonl",
-            input_field="incident",
-            expected_output_field="expected_resolution",
-            metadata_fields=[
-                "severity", "service", "slo_impact", "error_budget_consumed",
-                # v1.2.1 新增元資料
-                "customer_impact_level", "blast_radius", "mttr_actual", 
-                "mttd_actual", "root_cause_category", "remediation_complexity",
-                "postmortem_quality_score", "knowledge_base_effectiveness"
-            ],
-            # v1.2.1 新增數據驗證
-            validation_schema={
-                "severity": {"type": "string", "enum": ["P0", "P1", "P2", "P3"]},
-                "slo_impact": {"type": "number", "minimum": 0.0, "maximum": 1.0},
-                "error_budget_consumed": {"type": "number", "minimum": 0.0}
-            },
-            quality_filters={
-                "min_incident_duration_minutes": 5,
-                "require_resolution_steps": True,
-                "exclude_synthetic_incidents": True
-            }
-        )
-        
-        # v1.2.1 多樣化評估場景 (完整 Google SRE 書籍分類)
-        self.scenario_datasets = {
-            "high_availability_incidents": EvaluationDataset.from_jsonl(
-                "data/evaluation/ha_incidents.jsonl", 
-                input_field="incident", expected_output_field="resolution",
-                metadata_fields=["availability_impact", "cascade_potential"]
-            ),
-            "performance_degradation": EvaluationDataset.from_jsonl(
-                "data/evaluation/performance_incidents.jsonl",
-                input_field="incident", expected_output_field="resolution",
-                metadata_fields=["latency_impact", "throughput_impact"]
-            ),
-            "capacity_planning": EvaluationDataset.from_jsonl(
-                "data/evaluation/capacity_incidents.jsonl",
-                input_field="incident", expected_output_field="resolution",
-                metadata_fields=["resource_exhaustion_type", "growth_rate"]
-            ),
-            # v1.2.1 新增場景
-            "security_incidents": EvaluationDataset.from_jsonl(
-                "data/evaluation/security_incidents.jsonl",
-                input_field="incident", expected_output_field="resolution",
-                metadata_fields=["threat_level", "data_exposure_risk"]
-            ),
-            "dependency_failures": EvaluationDataset.from_jsonl(
-                "data/evaluation/dependency_incidents.jsonl",
-                input_field="incident", expected_output_field="resolution",
-                metadata_fields=["dependency_criticality", "failure_mode"]
-            ),
-            "configuration_changes": EvaluationDataset.from_jsonl(
-                "data/evaluation/config_incidents.jsonl",
-                input_field="incident", expected_output_field="resolution",
-                metadata_fields=["change_complexity", "rollback_feasibility"]
-            ),
-            "network_issues": EvaluationDataset.from_jsonl(
-                "data/evaluation/network_incidents.jsonl",
-                input_field="incident", expected_output_field="resolution",
-                metadata_fields=["network_layer", "geographic_impact"]
-            )
-        }
-    
-    async def run_evaluation(self, evaluation_mode: str = "comprehensive"):
-        """
-        執行完整的 SRE 評估 (符合 ADK v1.2.1 內建評估最佳實踐)
-        
-        Args:
-            evaluation_mode: "comprehensive" | "quick" | "continuous" | "regression"
-        """
-        
-        # v1.2.1 基礎評估 (增強版)
-        base_results = await self.evaluator.evaluate(
-            dataset=self.dataset,
-            parallel_workers=5 if evaluation_mode == "comprehensive" else 2,
-            save_outputs=True,
-            output_dir=f"evaluation_results/base_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            
-            # v1.2.1 新增功能
-            enable_streaming_evaluation=True,  # 實時評估結果
-            track_intermediate_steps=True,     # 追蹤中間步驟
-            capture_agent_reasoning=True,      # 捕獲推理過程
-            record_tool_usage_patterns=True,   # 記錄工具使用模式
-            
-            # SRE 特定配置
-            sre_evaluation_config={
-                "simulate_production_load": True,
-                "inject_realistic_delays": True,
-                "test_under_pressure": evaluation_mode == "comprehensive",
-                "validate_slo_compliance": True,
-                "check_error_budget_impact": True
-            }
-        )
-        
-        # v1.2.1 場景特定評估 (完整增強版)
-        scenario_results = {}
-        
-        # 根據評估模式調整場景
-        scenarios_to_run = self.scenario_datasets.items()
-        if evaluation_mode == "quick":
-            scenarios_to_run = list(scenarios_to_run)[:3]  # 只運行前3個場景
-        elif evaluation_mode == "regression":
-            scenarios_to_run = [("high_availability_incidents", self.scenario_datasets["high_availability_incidents"])]
-        
-        for scenario_name, scenario_dataset in scenarios_to_run:
-            scenario_results[scenario_name] = await self.evaluator.evaluate(
-                dataset=scenario_dataset,
-                parallel_workers=3 if evaluation_mode == "comprehensive" else 1,
-                save_outputs=True,
-                output_dir=f"evaluation_results/{scenario_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                
-                # v1.2.1 場景特定配置
-                scenario_specific_config={
-                    "focus_metrics": self._get_scenario_focus_metrics(scenario_name),
-                    "stress_test_parameters": self._get_stress_test_params(scenario_name),
-                    "domain_specific_validators": self._get_domain_validators(scenario_name)
-                }
-            )
-        
-        # v1.2.1 SRE 特定報告生成 (完整版)
-        report = self.evaluator.generate_report(
-            base_results,
-            scenario_results=scenario_results,
-            include_confusion_matrix=True,
-            include_error_analysis=True,
-            include_sre_metrics=True,
-            slo_compliance_analysis=True,
-            error_budget_impact_analysis=True,
-            
-            # v1.2.1 新增報告功能
-            advanced_report_config={
-                # 趨勢分析
-                "include_trend_analysis": True,
-                "trend_analysis_window_days": 30,
-                "compare_with_previous_evaluations": True,
-                
-                # 深度分析
-                "root_cause_pattern_analysis": True,
-                "tool_effectiveness_analysis": True,
-                "agent_reasoning_quality_analysis": True,
-                "knowledge_gap_identification": True,
-                
-                # 業務影響分析
-                "customer_impact_correlation": True,
-                "business_value_assessment": True,
-                "cost_benefit_analysis": True,
-                
-                # 預測性分析
-                "performance_degradation_prediction": True,
-                "capacity_planning_recommendations": True,
-                "proactive_improvement_suggestions": True,
-                
-                # 合規性和安全性
-                "compliance_audit_report": True,
-                "security_assessment_report": True,
-                "data_privacy_compliance_check": True
-            }
-        )
-        
-        # v1.2.1 自動化持續評估和後續行動
-        if evaluation_mode in ["comprehensive", "continuous"]:
-            await self._schedule_continuous_evaluation()
-            await self._trigger_improvement_actions(report)
-            await self._update_knowledge_base(report)
-        
-        # 生成實時儀表板
-        await self._update_evaluation_dashboard(report, scenario_results)
-        
-        # 發送評估通知
-        await self._send_evaluation_notifications(report)
-        
-        return report
-    
-    async def _schedule_continuous_evaluation(self):
-        """
-        v1.2.1 自動化持續評估管道 (完整實現)
-        參考 ADK 內建評估 + Google SRE 書籍持續改進原則
-        """
-        # 多頻率評估調度
-        evaluation_schedules = [
-            {
-                "name": "hourly_quick_check",
-                "dataset": self._create_sampled_dataset(sample_size=100),
-                "frequency": "hourly",
-                "evaluation_mode": "quick",
-                "alert_on_regression": True,
-                "regression_threshold": 0.05
-            },
-            {
-                "name": "daily_comprehensive",
-                "dataset": self.dataset,
-                "frequency": "daily",
-                "evaluation_mode": "comprehensive", 
-                "alert_on_regression": True,
-                "slo_impact_threshold": 0.1,
-                "include_trend_analysis": True
-            },
-            {
-                "name": "weekly_deep_dive",
-                "dataset": self._combine_all_scenario_datasets(),
-                "frequency": "weekly",
-                "evaluation_mode": "comprehensive",
-                "alert_on_regression": True,
-                "generate_improvement_plan": True,
-                "stakeholder_report": True
-            },
-            {
-                "name": "monthly_strategic_review",
-                "dataset": self._get_strategic_evaluation_dataset(),
-                "frequency": "monthly", 
-                "evaluation_mode": "strategic",
-                "business_impact_analysis": True,
-                "competitive_benchmarking": True,
-                "roadmap_recommendations": True
-            }
-        ]
-        
-        for schedule in evaluation_schedules:
-            await self.evaluator.schedule_periodic_evaluation(**schedule)
-        
-        # v1.2.1 實時監控觸發器
-        await self._setup_realtime_triggers()
-    
-    async def _setup_realtime_triggers(self):
-        """設置實時評估觸發器"""
-        triggers = [
-            {
-                "name": "slo_violation_trigger",
-                "condition": "slo_violation_detected",
-                "action": "run_emergency_evaluation",
-                "dataset": "related_incidents",
-                "priority": "critical"
-            },
-            {
-                "name": "error_budget_exhaustion_trigger", 
-                "condition": "error_budget_below_threshold",
-                "threshold": 0.1,
-                "action": "run_targeted_evaluation",
-                "focus_area": "error_budget_optimization"
-            },
-            {
-                "name": "performance_degradation_trigger",
-                "condition": "response_time_increase",
-                "threshold": 0.2,  # 20% 增長
-                "action": "run_performance_evaluation",
-                "focus_metrics": ["latency", "throughput", "resource_usage"]
-            }
-        ]
-        
-        for trigger in triggers:
-            await self._register_evaluation_trigger(trigger)
-    
-    async def _trigger_improvement_actions(self, report: Dict[str, Any]):
-        """根據評估結果觸發改進行動"""
-        improvements = []
-        
-        # 分析評估結果並生成改進建議
-        if report["metrics"]["diagnosis_accuracy"] < 0.95:
-            improvements.append({
-                "type": "knowledge_base_enhancement",
-                "priority": "high",
-                "action": "update_diagnostic_knowledge",
-                "target_accuracy": 0.97
-            })
-        
-        if report["sre_metrics"]["mttr_performance"] > 15.0:  # 超過15分鐘
-            improvements.append({
-                "type": "automation_enhancement", 
-                "priority": "high",
-                "action": "optimize_remediation_tools",
-                "target_mttr": 12.0
-            })
-        
-        if report["response_quality"]["hallucination_rate"] > 0.02:  # 超過2%
-            improvements.append({
-                "type": "model_fine_tuning",
-                "priority": "critical",
-                "action": "enhance_fact_checking",
-                "target_hallucination_rate": 0.01
-            })
-        
-        # 執行改進行動
-        for improvement in improvements:
-            await self._execute_improvement_action(improvement)
-    
-    async def _update_knowledge_base(self, report: Dict[str, Any]):
-        """根據評估結果更新知識庫"""
-        # 識別知識空白
-        knowledge_gaps = report.get("knowledge_gaps", [])
-        
-        for gap in knowledge_gaps:
-            # 自動生成知識條目
-            knowledge_entry = await self._generate_knowledge_entry(gap)
-            
-            # 更新向量知識庫
-            await self.memory_system.vector_memory.upsert(
-                collection="sre_knowledge",
-                documents=[knowledge_entry],
-                metadata={"source": "auto_generated", "confidence": gap["confidence"]}
-            )
-    
-    async def _update_evaluation_dashboard(self, report: Dict[str, Any], scenario_results: Dict[str, Any]):
-        """更新評估儀表板"""
-        dashboard_data = {
-            "timestamp": datetime.utcnow(),
-            "overall_score": report["overall_score"],
-            "sre_metrics": report["sre_metrics"],
-            "trend_data": report.get("trend_analysis", {}),
-            "scenario_breakdown": {k: v["summary"] for k, v in scenario_results.items()},
-            "improvement_recommendations": report.get("improvement_recommendations", []),
-            "alerts": self._generate_dashboard_alerts(report)
-        }
-        
-        # 推送到實時儀表板
-        await self._push_to_dashboard(dashboard_data)
-    
-    def _get_scenario_focus_metrics(self, scenario_name: str) -> List[str]:
-        """獲取場景專用關注指標"""
-        focus_metrics_map = {
-            "high_availability_incidents": ["availability_preservation", "cascade_prevention", "recovery_speed"],
-            "performance_degradation": ["latency_optimization", "throughput_recovery", "resource_efficiency"],
-            "capacity_planning": ["resource_prediction_accuracy", "scaling_effectiveness", "cost_optimization"],
-            "security_incidents": ["threat_detection_speed", "containment_effectiveness", "data_protection"],
-            "dependency_failures": ["isolation_effectiveness", "graceful_degradation", "recovery_coordination"],
-            "configuration_changes": ["change_safety", "rollback_success_rate", "validation_accuracy"],
-            "network_issues": ["connectivity_restoration", "routing_optimization", "bandwidth_management"]
-        }
-        return focus_metrics_map.get(scenario_name, ["general_effectiveness"])
-    
-    def _assess_production_risk(self, action):
-        """評估生產環境風險"""
-        if action.get("target_env") == "production":
-            if action.get("type") in ["delete", "reset"]:
-                return 1.0  # 最高風險
-        return 0.1  # 低風險
-    
-    def _calculate_api_cost(self, usage_data):
-        """計算 API 使用成本 (v1.2.1 增強版)"""
-        # 基礎成本
-        base_cost = usage_data.get("tokens", 0) * 0.001
-        tool_calls = usage_data.get("tool_calls", 0) * 0.01
-        
-        # v1.2.1 新增成本因子
-        streaming_cost = usage_data.get("streaming_duration_minutes", 0) * 0.005
-        vector_search_cost = usage_data.get("vector_searches", 0) * 0.002
-        knowledge_base_queries = usage_data.get("kb_queries", 0) * 0.001
-        
-        # SRE 特定成本
-        slo_monitoring_cost = usage_data.get("slo_checks", 0) * 0.0001
-        error_budget_tracking = usage_data.get("budget_calculations", 0) * 0.0001
-        
-        total_cost = (
-            base_cost + tool_calls + streaming_cost + 
-            vector_search_cost + knowledge_base_queries +
-            slo_monitoring_cost + error_budget_tracking
-        )
-        
-        return total_cost
-
-# 導出評估器實例
-sre_evaluator = SREAssistantEvaluator()
-```
+此框架的完整實現（包括 `SREAssistantEvaluator` 類別）已從本文件遷移至原始碼檔案，以作為單一事實來源。詳細資訊請參閱：
+- [`sre_assistant/Eval/evaluation.py`](sre_assistant/Eval/evaluation.py)
 
 ### 7.2 評估指標定義
 
@@ -838,41 +340,11 @@ sre_evaluator = SREAssistantEvaluator()
 
 ### 8.1 審批流程設計
 
-```python
-class HitlApprovalFlow:
-    """標準化 HITL 審批流程"""
-    
-    async def request_approval(
-        self,
-        action: str,
-        resource: str,
-        risk_level: RiskLevel,
-        context: Dict[str, Any]
-    ) -> ApprovalResult:
-        
-        if risk_level in [RiskLevel.HIGH, RiskLevel.CRITICAL]:
-            # 觸發人工審批
-            approval_request = await self.create_approval_request(
-                action=action,
-                resource=resource,
-                context=context
-            )
-            
-            # 透過 SSE 推送到前端
-            await self.emit_sse_event(
-                type="adk_request_credential",
-                data=approval_request
-            )
-            
-            # 等待審批結果
-            return await self.wait_for_approval(
-                request_id=approval_request.id,
-                timeout=300
-            )
-        
-        # 低風險自動通過
-        return ApprovalResult(approved=True, reason="低風險自動通過")
-```
+HITL (Human-in-the-Loop) 審批流程對於在高風險環境中安全地執行自動化操作至關重要。它確保了在執行關鍵變更之前，有人工監督和批准。
+
+此功能的設計理念是，高風險操作（如在生產環境中重啟服務）會自動觸發審批請求。此請求透過即時通訊（如 SSE）推送到前端，等待操作員批准。
+
+核心邏輯的抽象實現已從本文件遷移至相關的原始碼檔案，以作為單一事實來源。
 
 ### 8.2 風險評估矩陣
 
@@ -924,18 +396,9 @@ sequenceDiagram
 
 ### 9.2 Session 狀態管理
 
-```python
-class SessionState:
-    """會話狀態結構"""
-    
-    def __init__(self):
-        self.workflow_phase = "idle"  # idle|diagnostic|remediation|postmortem|config
-        self.diagnostic_results = {}
-        self.remediation_actions = []
-        self.approval_pending = {}
-        self.lr_ops = {}  # 長任務狀態
-        self.context = {}  # 共享上下文
-```
+會話狀態管理的核心是維護一個表示當前工作流狀態的結構。這確保了代理在長時間運行的多步驟任務中能夠保持上下文。
+
+其高級設計已從本文件遷移至相關的原始碼檔案，以作為單一事實來源。
 
 ## 10. 工具層設計
 
@@ -953,182 +416,44 @@ class SessionState:
 
 ### 10.2 長任務工具實作
 
-```python
-from google.adk.tools.long_running_tool import LongRunningFunctionTool
+長任務工具（Long-Running Function Tool）是 ADK 的一個關鍵功能，用於處理需要較長時間才能完成的操作，例如重啟一個大型服務。
 
-k8s_rollout_restart = LongRunningFunctionTool(
-    name="K8sRolloutRestartLongRunningTool",
-    description="安全地執行 Kubernetes Deployment 滾動重啟",
-    start_func=_start_restart,  # 啟動重啟並返回操作 ID
-    poll_func=_poll_restart,    # 輪詢進度
-    timeout_seconds=600,
-    require_approval=lambda ctx: ctx.namespace in ["prod", "production"]
-)
-```
+其設計理念是將任務的啟動、輪詢和完成分離。這允許代理在等待任務完成時可以執行其他操作。
+
+核心邏輯的抽象實現已從本文件遷移至相關的原始碼檔案，以作為單一事實來源。
 
 ## 11. 部署架構
 
 ### 11.1 Vertex AI Agent Engine 部署
 
-```python
-# deployment/deploy_vertex.py
-from google.adk.deployment import VertexDeployment, DeploymentConfig
-from google.adk.deployment.serving import ServingConfig, AutoscalingConfig
+部署到 Vertex AI Agent Engine 是推薦的生產環境部署方式，它提供了完整的生命週期管理、自動擴縮容和與 Google Cloud 生態系統的深度整合。
 
-def deploy_to_vertex():
-    """部署到 Vertex AI Agent Engine"""
-    
-    deployment = VertexDeployment(
-        project_id="your-project",
-        region="us-central1",
-        agent_name="sre_assistant"
-    )
-    
-    config = DeploymentConfig(
-        serving=ServingConfig(
-            machine_type="n1-standard-4",
-            accelerator_type=None,  # SRE 不需要 GPU
-            min_replicas=2,
-            max_replicas=10
-        ),
-        autoscaling=AutoscalingConfig(
-            target_cpu_utilization=0.7,
-            scale_down_delay_seconds=300
-        ),
-        monitoring=MonitoringConfig(
-            enable_cloud_logging=True,
-            enable_cloud_monitoring=True,
-            enable_cloud_trace=True
-        ),
-        networking=NetworkingConfig(
-            enable_private_ip=True,
-            vpc_connector="projects/xxx/locations/xxx/connectors/xxx"
-        )
-    )
-    
-    # 部署
-    endpoint = deployment.deploy(
-        agent_module="sre_assistant",
-        config=config,
-        enable_a2a=True,
-        enable_streaming=True
-    )
-    
-    print(f"Deployed to: {endpoint.uri}")
-    print(f"A2A endpoint: {endpoint.a2a_discovery_url}")
-```
+部署腳本的參考實現位於：
+- [`sre_assistant/deployment/deployment_factory.py`](sre_assistant/deployment/deployment_factory.py) (工廠模式，支援多種部署目標)
 
 ### 11.2 Kubernetes 部署
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: sre_assistant
-spec:
-  replicas: 3
-  template:
-    spec:
-      serviceAccountName: sre_assistant
-      containers:
-      - name: api
-        image: sre_assistant:latest
-        env:
-        - name: SESSION_BACKEND
-          value: database
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: db-credentials
-              key: url
-```
+對於需要更高自訂性的環境，可以將代理容器化並部署到 GKE (Google Kubernetes Engine)。
+
+部署腳本的參考實現位於：
+- [`sre_assistant/deployment/deployment_factory.py`](sre_assistant/deployment/deployment_factory.py) (工廠模式，支援多種部署目標)
 
 ## 12. 監控與 SLO
 
 ### 12.1 關鍵指標
 
-```yaml
-# observability/slo_rules.yaml - 完整的 SRE SLO 監控
-groups:
-- name: sre_assistant_slo
-  rules:
-  # SLI 指標計算
-  - record: sre_assistant:availability_sli
-    expr: |
-      sum(rate(agent_requests_total{status="success"}[5m])) /
-      sum(rate(agent_requests_total[5m]))
-      
-  - record: sre_assistant:latency_sli
-    expr: |
-      histogram_quantile(0.95, 
-        sum(rate(agent_request_duration_seconds_bucket[5m])) by (le, agent)
-      )
-      
-  - record: sre_assistant:diagnostic_accuracy_sli
-    expr: |
-      sum(rate(agent_diagnostic_correct_total[1h])) /
-      sum(rate(agent_diagnostic_total[1h]))
-  
-  # 錯誤預算燃烧率計算
-  - record: sre_assistant:error_budget_burn_rate_1h
-    expr: |
-      (1 - sre_assistant:availability_sli) / (1 - 0.999)
-      
-  - record: sre_assistant:error_budget_burn_rate_6h
-    expr: |
-      (1 - avg_over_time(sre_assistant:availability_sli[6h])) / (1 - 0.999)
-  
-  # SLO 違規警告 (基於 Google SRE 書籍的 multi-window 策略)
-  - alert: SREAssistantSLOBurnRateCritical
-    expr: |
-      sre_assistant:error_budget_burn_rate_1h > 14.4 and
-      sre_assistant:error_budget_burn_rate_6h > 6
-    for: 2m
-    labels:
-      severity: critical
-      slo_violation: true
-    annotations:
-      summary: "SRE Assistant 錯誤預算燃烧率過高 (Critical)"
-      description: "1h 燃烧率: {{ $value }}x, 將在2小時內耗盡月度錯誤預算"
-      
-  - alert: SREAssistantSLOBurnRateHigh  
-    expr: |
-      sre_assistant:error_budget_burn_rate_1h > 6 and
-      sre_assistant:error_budget_burn_rate_6h > 3
-    for: 15m
-    labels:
-      severity: high
-      slo_violation: true
-    annotations:
-      summary: "SRE Assistant 錯誤預算燃烧率高 (High)"
-      description: "1h 燃烧率: {{ $value }}x, 將在1天內耗盡月度錯誤預算"
-      
-  - alert: SREAssistantLatencySLOViolation
-    expr: sre_assistant:latency_sli > 30
-    for: 5m
-    labels:
-      severity: high
-      slo_violation: true
-    annotations:
-      summary: "SRE Assistant P95 延遲超過 SLO (30s)"
-      description: "P95 延遲: {{ $value }}s, 超過 SLO 目標 30s"
-      
-  - alert: SREAssistantDiagnosticAccuracySLOViolation
-    expr: sre_assistant:diagnostic_accuracy_sli < 0.95
-    for: 30m
-    labels:
-      severity: medium
-      slo_violation: true
-    annotations:
-      summary: "SRE Assistant 診斷準確率低於 SLO (95%)"
-      description: "診斷準確率: {{ $value | humanizePercentage }}, 低於 SLO 目標 95%"
-```
+此處定義了用於監控 SRE Assistant 自身性能和可靠性的關鍵指標（SLI）。這些指標是計算 SLO 和錯誤預算的基礎。
+
+其設定已從本文件遷移至相關的原始碼檔案，以作為單一事實來源。
 
 ### 12.2 SRE 量化指標管理
 
 #### SLO 目標和錯誤預算
 
-由於其程式碼在開發過程中經過多次修改以符合 ADK 的實際 API，詳細的、最新的實作請直接參考原始碼檔案：[`sre_assistant/agent.py`](sre_assistant/agent.py)。
+SRE 量化指標管理的核心是 `SREErrorBudgetManager`，它負責計算錯誤預算和燃燒率。
+
+此功能的完整實現位於：
+- [`sre_assistant/slo_manager.py`](sre_assistant/slo_manager.py)
 
 #### SLO 目標表
 
@@ -1143,149 +468,29 @@ groups:
 
 ### 13.1 ADK Safety Framework 和 SRE 錯誤預算整合
 
-```python
-from google.adk.safety import SafetyFramework, SafetyPolicy, ActionGuard
-from google.adk.sre import SLOEnforcer, ErrorBudgetGuard  # ADK SRE 模組
+此設計將 ADK 的安全框架與 SRE 的錯誤預算概念相結合，創建一個既能防止危險操作又能適應風險的系統。
 
-class SRESafetyFramework:
-    """SRE 專用安全框架"""
-    
-    def __init__(self):
-        self.framework = SafetyFramework(
-            policies=[
-                SafetyPolicy(
-                    name="production_protection",
-                    rules=self._production_rules(),
-                    enforcement="BLOCK"
-                ),
-                SafetyPolicy(
-                    name="data_protection",
-                    rules=self._data_rules(),
-                    enforcement="WARN"
-                )
-            ]
-        )
-        
-        self.action_guard = ActionGuard(
-            framework=self.framework,
-            audit_logger=self._audit_logger
-        )
-    
-    def _production_rules(self):
-        return [
-            {
-                "condition": "target.environment == 'production'",
-                "constraints": {
-                    "require_approval": True,
-                    "max_affected_instances": 10,
-                    "blackout_windows": ["friday_afternoon", "weekends"]
-                }
-            }
-        ]
-    
-    def _data_rules(self):
-        return [
-            {
-                "condition": "action.type == 'data_access'",
-                "constraints": {
-                    "require_encryption": True,
-                    "audit_all_access": True,
-                    "retention_policy": "90_days"
-                }
-            }
-        ]
-    
-    def _audit_logger(self, action, result):
-        """安全審計日誌記錄"""
-        # 實現安全操作審計
-        pass
-
-# 導出安全框架實例
-sre_safety = SRESafetyFramework()
-```
+核心邏輯的抽象實現已從本文件遷移至相關的原始碼檔案，以作為單一事實來源。
 
 ### 13.2 認證與授權
 
-```python
-class SREAuthService:
-    """統一認證服務"""
-    
-    async def authenticate(self, request: Request) -> AuthContext:
-        # 優先使用 Google Cloud IAM
-        if self.use_cloud_iam:
-            return await self.verify_iam_token(request.headers)
-        
-        # 開發環境回退到 API Key
-        api_key = request.headers.get("X-API-Key")
-        return self.verify_api_key(api_key)
-    
-    def authorize(self, context: AuthContext, resource: str, action: str) -> bool:
-        # 基於角色的存取控制
-        required_role = self.get_required_role(resource, action)
-        return required_role in context.roles
-```
+統一的認證和授權服務是確保只有合法用戶和系統才能訪問代理的關鍵。
+
+核心邏輯的抽象實現已從本文件遷移至相關的原始碼檔案，以作為單一事實來源。
 
 ### 13.3 審計日誌
 
-```python
-@dataclass
-class AuditLog:
-    """審計日誌結構"""
-    timestamp: datetime
-    session_id: str
-    user_id: str
-    action: str
-    resource: str
-    result: str
-    risk_level: RiskLevel
-    approval_id: Optional[str] = None
-```
+審計日誌提供了所有代理活動的不可變記錄，對於安全審計和事後分析至關重要。
+
+核心邏輯的抽象實現已從本文件遷移至相關的原始碼檔案，以作為單一事實來源。
 
 ## 14. 性能優化
 
 ### 14.1 智能緩存管理
 
-```python
-from google.adk.caching import AgentCache, CacheStrategy
+智能緩存管理對於提高代理性能和降低外部 API 調用成本至關重要。
 
-class SRECacheManager:
-    """智能緩存管理"""
-    
-    def __init__(self):
-        self.cache = AgentCache(
-            strategy=CacheStrategy.LRU,
-            max_size_mb=1024,
-            ttl_seconds=3600,
-            backends=["memory", "redis"]
-        )
-        
-        # 配置緩存策略
-        self.cache.configure_patterns([
-            {
-                "pattern": "prometheus_query:*",
-                "ttl": 60,  # 監控數據短期緩存
-                "cache_on": ["success"]
-            },
-            {
-                "pattern": "runbook:*",
-                "ttl": 86400,  # Runbook 長期緩存
-                "cache_on": ["success", "not_found"]
-            }
-        ])
-    
-    async def get_cached_result(self, key: str, compute_func):
-        """獲取緩存結果或計算新值"""
-        cached = await self.cache.get(key)
-        if cached:
-            return cached
-        
-        result = await compute_func()
-        await self.cache.set(key, result)
-        return result
-
-# 導出緩存管理器
-cache_manager = SRECacheManager()
-```
+核心邏輯的抽象實現已從本文件遷移至相關的原始碼檔案，以作為單一事實來源。
 
 ### 14.2 性能優化策略
 
@@ -1300,16 +505,16 @@ cache_manager = SRECacheManager()
 
 ### 15.1 新增專家代理
 
-1. 在 `sre_assistant/experts/` 建立新模組
-2. 繼承 `LlmAgent` 或其他 ADK 代理類型
-3. 在主協調器中註冊
-4. 更新 `adk.yaml` 配置
+1. 在 `sre_assistant/sub_agents/` 建立新模組 (例如 `sre_assistant/sub_agents/security_expert/`)
+2. 在新模組中定義 `agent.py`, `prompts.py`, `tools.py`
+3. 在主協調器 (`sre_assistant/agent.py`) 中註冊新的子代理
+4. 編寫對應的測試
 
 ### 15.2 新增工具
 
-1. 在 `sre_assistant/tools/` 實作工具函數
-2. 建立對應的 YAML 規格檔
-3. 在相關專家的 `tools_allowlist` 中加入
+1. 在 `sre_assistant/tools.py` 或相關子代理的 `tools.py` 中實現工具函數
+2. 使用 `@tool` 裝飾器或 `FunctionTool` 進行封裝
+3. 在相關代理的 `tool_config` 中加入
 4. 編寫單元測試
 
 ## 16. 測試策略
@@ -1323,20 +528,9 @@ cache_manager = SRECacheManager()
 
 ### 16.2 效能基準
 
-```javascript
-// k6 壓力測試
-export default function() {
-    const response = http.post(`${BASE_URL}/api/v1/chat`, {
-        message: "診斷 CPU 使用率過高",
-        session_id: "perf-test"
-    });
-    
-    check(response, {
-        'status is 200': (r) => r.status === 200,
-        'latency < 30s': (r) => r.timings.duration < 30000
-    });
-}
-```
+效能基準測試是確保代理在高負載下仍能滿足性能要求的關鍵。我們使用 k6 進行壓力測試。
+
+壓力測試腳本的參考實現已從本文件遷移至相關的原始碼檔案，以作為單一事實來源。
 
 ## 17. 發展路線圖
 
@@ -1407,21 +601,10 @@ export default function() {
 ### 18.4 程式碼品質標準
 
 #### 類型安全 ✅
-```python
-# 完整 Pydantic 模型驗證
-class SRERequest(BaseModel):
-    incident_id: str
-    severity: Literal["P0", "P1", "P2", "P3", "P4"]
-    description: str
-    affected_services: List[str]
-    reporter: str
-    
-class SREResponse(BaseModel):
-    status: Literal["resolved", "mitigated", "investigating"]
-    actions_taken: List[str]
-    time_to_resolution: Optional[timedelta]
-    error_budget_impact: float
-```
+Pydantic 模型被廣泛用於整個專案的資料契約，以確保類型安全和執行時驗證。
+
+其參考實現位於：
+- [`sre_assistant/contracts.py`](sre_assistant/contracts.py)
 
 #### 測試覆蓋度 ⚠️
 - **當前狀態**: 核心功能已測試，需補充端到端測試
