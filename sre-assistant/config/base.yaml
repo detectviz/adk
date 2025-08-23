@@ -1,0 +1,13 @@
+# config/base.yaml - 基礎配置
+deployment:
+  platform: "local"
+  host: "0.0.0.0"
+  port: 8080
+
+memory:
+  backend: "memory"
+  embedding_model: "textembedding-gecko@003"
+  embedding_dimension: 768
+
+llm_model: "gemini-2.0-flash"
+temperature: 0.2
