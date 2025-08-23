@@ -5,6 +5,8 @@
 
 from typing import Dict, List, Any, Optional
 from enum import Enum
+from packaging import version as packaging_version
+from packaging.specifiers import SpecifierSet
 
 # --- 模擬 ADK SDK 元件 ---
 # 說明：由於無法訪問真實的 google.adk，我們在此創建模擬類別。
@@ -87,7 +89,7 @@ class VersionedToolRegistry(ToolRegistry):
         self.compatibility_matrix = {
             "promql_query": {
                 "2.1.0": {"prometheus_api": ">=2.40.0"},
-                "2.0.0": {"prometheus_api": ">=2.35.0, <2.40.0"}
+                "2.0.0": {"prometheus_api": ">=2.35.0,<2.40.0"}
             },
             "k8s_rollout_restart": {
                 "3.0.0": {"kubernetes_api": ">=1.25.0"},
@@ -137,21 +139,20 @@ class VersionedToolRegistry(ToolRegistry):
         if not rules:
             return False # 如果該版本沒有規則，視為不相容
 
-        # 簡易的版本比較邏輯 (實際應用中應使用如 'packaging' 函式庫)
-        for service, required_version in rules.items():
-            env_version = env_versions.get(service)
-            if not env_version:
+        for service, required_specifier in rules.items():
+            env_version_str = env_versions.get(service)
+            if not env_version_str:
                 return False # 環境中缺少必要的服務版本資訊
 
-            # 這裡只做簡單的字符串比較，一個完整的實現需要解析 '>=', '<' 等符號
-            # 例如: ">=2.40.0"
-            if '>=' in required_version:
-                if not (env_version >= required_version.replace('>=', '')):
+            try:
+                # 使用 packaging library 進行可靠的版本比較
+                spec = SpecifierSet(required_specifier)
+                env_version = packaging_version.parse(env_version_str)
+                if env_version not in spec:
                     return False
-            elif '<' in required_version:
-                 if not (env_version < required_version.replace('<', '')):
-                    return False
-            # ...可以擴展更多比較符號
+            except packaging_version.InvalidVersion:
+                print(f"Warning: Invalid version format for {service}: {env_version_str}")
+                return False
 
         return True
 
