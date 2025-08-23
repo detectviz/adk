@@ -581,8 +581,11 @@ class ConfigAgent(LlmAgent):
 
 ## 4. 記憶體管理
 
-整合 Spanner 和 Vertex RAG，符合 ADK SessionService 擴展。
-請參閱計畫檔案：[`new-factory.md`](new-factory.md)。
+記憶體管理採用工廠模式，允許根據配置動態選擇後端（如 Weaviate, PostgreSQL, Vertex AI）。此設計確保了部署的靈活性和可測試性。
+
+核心實作位於以下檔案：
+- [`sre-assistant/memory/backend_factory.py`](sre-assistant/memory/backend_factory.py): 定義了記憶體後端的統一介面和工廠。
+- [`sre-assistant/memory.py`](sre-assistant/memory.py): 實現了 `SREMemorySystem`，整合了後端工廠和嵌入模型。
 
 
 ## 5. 工具註冊與管理
@@ -689,6 +692,8 @@ class VersionedToolRegistry(ToolRegistry):
 tool_registry = VersionedToolRegistry()
 ```
 
+**技術債務說明**：目前的工具註冊表缺少版本相容性檢查。一個完整的實作應該包含一個 `compatibility_matrix`，用於驗證工具版本與其依賴的外部服務（如 Prometheus API）是否相容，並在不相容時執行自動降級或發出警告。
+
 ## 6. A2A 整合
 
 符合 A2A 協議 (2025 I/O 增強)，使用代理卡片暴露服務。
@@ -712,6 +717,54 @@ import uvicorn
 from .agent import SRECoordinator  # 匯入主協調器
 from google.adk.a2a import Part, TextPart, new_artifact, completed_task
 from a2a_sdk.exceptions import ServerError, UnsupportedOperationError, ValueError
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Literal, Optional, Dict
+from collections import deque
+import uuid
+
+@dataclass
+class StreamingChunk:
+    """A2A Streaming 數據塊的標準化 Schema"""
+    chunk_id: str
+    timestamp: datetime
+    type: Literal["progress", "partial_result", "metrics_update", "final_result"]
+    progress: Optional[float] = None
+    partial_result: Optional[Dict] = None
+    idempotency_token: str
+
+class StreamingHandler:
+    """處理 A2A Streaming 的 backpressure 和 idempotency"""
+    def __init__(self, event_queue, context):
+        self.event_queue = event_queue
+        self.context = context
+        self.buffer = deque(maxlen=100)  # 用於 backpressure 的緩衝區
+        self.seen_tokens = set()  # 用於 idempotency
+
+    async def handle_with_flow_control(self, chunk: StreamingChunk):
+        """處理單個 chunk，包含流量控制和冪等性檢查"""
+        if chunk.idempotency_token in self.seen_tokens:
+            print(f"Skipping duplicate chunk: {chunk.idempotency_token}")
+            return  # 防止重複處理
+
+        self.seen_tokens.add(chunk.idempotency_token)
+        self.buffer.append(chunk)
+
+        # 實際的 backpressure 邏輯會更複雜，
+        # 這裡僅為示意
+        if len(self.buffer) >= self.buffer.maxlen:
+            print("Buffer full, pausing producer...")
+            # 實際應用中會在這裡通知生產者暫停
+
+        # 發送事件
+        parts = [Part(root=TextPart(text=str(chunk.partial_result)))]
+        await self.event_queue.enqueue_event(
+            streaming_update(
+                self.context.task_id,
+                self.context.context_id,
+                [new_artifact(parts, chunk.idempotency_token)]
+            )
+        )
 
 class SREAssistantExecutor:
     """SRE Assistant 執行器，用於處理 A2A 請求（如系統警報、監控任務）"""
@@ -733,18 +786,22 @@ class SREAssistantExecutor:
             raise ServerError(error=ValueError(f"Error processing SRE task: {e}")) from e
     
     async def _execute_with_streaming(self, context, event_queue, query):
-        """支援 streaming 的執行模式（2025 I/O 增強）"""
-        async for chunk in self.agent.execute_streaming(query):  # streaming 執行
-            # 實時發送中間結果
-            parts = [Part(root=TextPart(text=str(chunk)))]
-            await event_queue.enqueue_event(
-                streaming_update(
-                    context.task_id,
-                    context.context_id,
-                    [new_artifact(parts, f"sre_stream_{context.task_id}_{chunk.id}")]
-                )
+        """
+        支援 streaming 的執行模式（2025 I/O 增強）
+        **技術債務說明**：此為增強版藍圖，加入了 backpressure 和 idempotency 概念。
+        """
+        handler = StreamingHandler(event_queue, context)
+        async for chunk_data in self.agent.execute_streaming(query):
+            # 建立結構化的 chunk
+            chunk = StreamingChunk(
+                chunk_id=str(uuid.uuid4()),
+                timestamp=datetime.utcnow(),
+                type="partial_result",
+                partial_result=chunk_data,
+                idempotency_token=f"sre_stream_{context.task_id}_{chunk.id}"
             )
-        
+            await handler.handle_with_flow_control(chunk)
+
         # 發送最終完成事件
         await event_queue.enqueue_event(
             completed_task(context.task_id, context.context_id, [], [context.message])
@@ -2168,6 +2225,17 @@ def test_hitl_approval_flow():
         "message": "重啟生產環境服務"
     })
     assert "approval_required" in response.json()
+
+# 並發測試 (技術債務)
+async def test_concurrent_sessions():
+    # 根據技術債務清單，需實現 50+ 並發會話測試
+    # 以確保系統在生產負載下的穩定性。
+    async def run_session(session_id):
+        return await SRECoordinator().execute(f"Test message {session_id}")
+
+    tasks = [run_session(i) for i in range(50)]
+    results = await asyncio.gather(*tasks)
+    assert all(res["workflow_completed"] for res in results)
 ```
 
 ### 16.2 效能基準
