@@ -22,6 +22,11 @@ prometheus-api-client = "^0.6.0"
 # 用於解析 YAML 設定檔
 PyYAML = "^6.0.1"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+pytest-asyncio = "^0.23.7"
+hypothesis = "^6.100.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
