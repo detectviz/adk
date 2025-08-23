@@ -4,7 +4,7 @@
 # 它允許開發者使用如 Poetry 或 pip 等工具來管理環境。
 
 [tool.poetry]
-name = "sre-assistant"
+name = "sre_assistant"
 version = "0.1.0"
 description = "SRE Assistant Agent based on Google ADK"
 authors = ["Jules <jules@example.com>"]

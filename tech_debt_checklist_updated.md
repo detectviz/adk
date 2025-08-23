@@ -3,12 +3,12 @@
 ## TODO: High Priority
 
 [ ] 實現 StreamingChunk schema 和 backpressure
-    檔案：sre-assistant/utils/a2a_client.py (Line 45-80)
-    檔案：sre-assistant/__init__.py (Line 35-55)
-    新增：sre-assistant/a2a/protocol.py (需創建)
+    檔案：sre_assistant/utils/a2a_client.py (Line 45-80)
+    檔案：sre_assistant/__init__.py (Line 35-55)
+    新增：sre_assistant/a2a/protocol.py (需創建)
 
 [x] **(已完成)** 遷移到官方 MatchingEngineIndexEndpoint API
-    檔案：`sre-assistant/memory.py` 和 `sre-assistant/memory/backend_factory.py`
+    檔案：`sre_assistant/memory.py` 和 `sre_assistant/memory/backend_factory.py`
     **完成說明**：此項目已在2025-08-23實作工廠模式時完成。`VertexAIBackend` 類別現在使用官方 `MatchingEngineIndexEndpoint`，並由 `SREMemorySystem` 透過工廠模式調用。
 
 [ ] 添加 50 並發會話測試
@@ -17,7 +17,7 @@
     新增：test/test_contracts.py (需創建)
 
 [ ] 實現工具版本相容性檢查
-    檔案：sre-assistant/tools.py (Line 45-75)
+    檔案：sre_assistant/tools.py (Line 45-75)
     需要在 VersionedToolRegistry 類別中補充 check_compatibility() 方法
 
 ## TODO: Medium Priority
@@ -27,11 +27,11 @@
     檔案：sub_agents/postmortem/tools.py (ReportGeneratorTool)
 
 [ ] 實現 SLO 違規自動回滾
-    檔案：sre-assistant/slo_manager.py (Line 180-220)
+    檔案：sre_assistant/slo_manager.py (Line 180-220)
     檔案：sub_agents/remediation/tools.py (ConfigRollbackTool)
 
 [ ] 優化 ParallelAgent 權重算法
-    檔案：sre-assistant/agent.py (Line 115-125)
+    檔案：sre_assistant/agent.py (Line 115-125)
     特別是 diagnostic_phase 的 weights 設定
 
 ## TODO: Low Priority
@@ -217,7 +217,7 @@ class SREMemorySystem:
 
 ### 🟡 **嵌入生成 - 使用自定義而非官方 API**
 
-**位置**：`sre-assistant/memory.py`
+**位置**：`sre_assistant/memory.py`
 
 **問題**：文檔中提到但未顯示實際程式碼的 `generate_embedding` 方法
 
@@ -240,14 +240,14 @@ class SREMemorySystem:
 
 ### 🟡 **A2A 認證 - 不完整的官方實現**
 
-**位置**：`sre-assistant/utils/a2a_client.py`
+**位置**：`sre_assistant/utils/a2a_client.py`
 
 **問題程式碼**（Line 25-35）：
 ```python
 # 簡化的認證配置
 auth_config={
     "type": "oauth2",
-    "client_id": "sre-assistant-client",
+    "client_id": "sre_assistant-client",
     "client_secret": os.getenv("A2A_CLIENT_SECRET"),
     "auto_refresh": True,  # 只是標記，未實現
 }
@@ -290,7 +290,7 @@ def deploy_to_agent_engine():
 
     # 官方 Agent 部署
     agent = agents.Agent.create(
-        display_name="sre-assistant",
+        display_name="sre_assistant",
         model="gemini-2.0-flash",
         tools=[...],
         system_instruction=GLOBAL_SRE_PROMPT
@@ -302,13 +302,13 @@ def deploy_to_agent_engine():
         min_replica_count=2,
         max_replica_count=10,
         accelerator_type=None,
-        service_account="sre-assistant@project.iam.gserviceaccount.com"
+        service_account="sre_assistant@project.iam.gserviceaccount.com"
     )
 ```
 
 ### 🟢 **Callbacks - 正確但可優化**
 
-**位置**：`sre-assistant/agent.py` (Line 75-95)
+**位置**：`sre_assistant/agent.py` (Line 75-95)
 
 雖然使用了 `SafetyCallback` 和 `AuditCallback`，但某些方法是自定義的：
 ```python

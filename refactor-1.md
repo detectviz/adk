@@ -40,7 +40,7 @@
      - **不足**：無 ML 深度整合（如 machine-learning-engineering 範例的模型調用）。
    - **整體符合度**：高，體現 e2e，但需加強 ML/SRE 模式。
 
-## 4. **A2A Purchasing Concierge Codelab (docs/references/other-samples/purchasing-concierge-a2a)**
+## 4. **A2A Purchasing Concierge Codelab (docs/references/other-samples/purchasing-concierge-intro-a2a)**
    - **官方最佳實踐**：A2A 使用 AgentCard 暴露元數據（skills/capabilities/streaming）；伺服器用 FastAPI/A2AStarletteApplication 和 InMemoryTaskStore；客戶端用 RemoteA2aAgent 和 A2ACardResolver；auth 以 OAuth/service account；2025 I/O 增強包括 streaming 和 token 刷新；部署到 Cloud Run/Agent Engine。
    - **文檔體現**：
      - **A2A 協議**：充分。__init__.py 的 AgentCard 建構（skills/tags/examples）和 uvicorn 運行，utils/a2a_client.py 的 RemoteA2aAgent invoke，符合 codelab burger_agent/purchasing_concierge。

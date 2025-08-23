@@ -28,7 +28,7 @@ grep -E "^## |^### " ARCHITECTURE.md
 [6.2 A2A Discovery 機制](#62-a2a-discovery-機制)
 [6.3 消費外部代理](#63-消費外部代理) ([A2A 消費服務](docs/references/adk-docs/a2a/quickstart-consuming.md))
 [7. 評估框架實現](#7-評估框架實現)
-[7.1 SRE Assistant 評估系統](#71-sre-assistant-評估系統) ([ADK 評估](docs/references/adk-docs/evaluate/index.md))
+[7.1 SRE Assistant 評估系統](#71-sre_assistant-評估系統) ([ADK 評估](docs/references/adk-docs/evaluate/index.md))
 [7.2 評估指標定義](#72-評估指標定義)
 [8. HITL (Human-in-the-Loop) 機制](#8-hitl-human-in-the-loop-機制) ([HITL 範例](docs/references/adk-python-samples/human_in_loop/README.md))
 [8.1 審批流程設計](#81-審批流程設計)
@@ -121,7 +121,7 @@ SRE Assistant 是基於 Google Agent Development Kit (ADK) v1.2.1 (2025 更新) 
 符合 ADK Python 儲存庫和樣本的結構，聚焦 code-first 開發。採用 ADK 官方推薦的模組化設計，包括專門的 callbacks、evaluation 和 A2A 整合模組。
 
 ```bash
-sre-assistant/
+sre_assistant/
 ├── __init__.py                 # 組合根代理入口和 A2A 暴露
 ├── agent.py                    # 定義 SequentialAgent/LoopAgent 組合
 ├── contracts.py                # Pydantic 契約模型（Request/Response/ToolOutput/AgentState）
@@ -208,7 +208,7 @@ sre-assistant/
 
 主協調器 `SRECoordinator` 是整個 SRE Assistant 的核心，它是一個 `SequentialAgent`，負責按順序執行整個 SRE 工作流。
 
-由於其程式碼在開發過程中經過多次修改以符合 ADK 的實際 API，詳細的、最新的實作請直接參考原始碼檔案：[`sre-assistant/agent.py`](sre-assistant/agent.py)。
+由於其程式碼在開發過程中經過多次修改以符合 ADK 的實際 API，詳細的、最新的實作請直接參考原始碼檔案：[`sre_assistant/agent.py`](sre_assistant/agent.py)。
 
 ### 2.2 工作流控制邏輯
 
@@ -224,7 +224,7 @@ sre-assistant/
 
 此專案的所有資料契約模型均使用 Pydantic v2 進行定義，以確保類型安全和資料驗證。
 
-完整的模型定義，請參閱原始碼檔案：[`sre-assistant/contracts.py`](sre-assistant/contracts.py)。
+完整的模型定義，請參閱原始碼檔案：[`sre_assistant/contracts.py`](sre_assistant/contracts.py)。
 
 ## 3. 子代理設計
 
@@ -232,11 +232,11 @@ sre-assistant/
 
 參考 ADK Samples: RAG agent, software-bug-assistant。使用 LlmAgent 整合 RAG 和工具，具備完整類型安全和 Pydantic 驗證。
 
-請參閱原始碼檔案：[`sre-assistant/sub_agents/diagnostic/agent.py`](sre-assistant/sub_agents/diagnostic/agent.py)。
+請參閱原始碼檔案：[`sre_assistant/sub_agents/diagnostic/agent.py`](sre_assistant/sub_agents/diagnostic/agent.py)。
 
-請參閱原始碼檔案：[`sre-assistant/sub_agents/diagnostic/prompts.py`](sre-assistant/sub_agents/diagnostic/prompts.py)。
+請參閱原始碼檔案：[`sre_assistant/sub_agents/diagnostic/prompts.py`](sre_assistant/sub_agents/diagnostic/prompts.py)。
 
-請參閱原始碼檔案：[`sre-assistant/sub_agents/diagnostic/tools.py`](sre-assistant/sub_agents/diagnostic/tools.py)。
+請參閱原始碼檔案：[`sre_assistant/sub_agents/diagnostic/tools.py`](sre_assistant/sub_agents/diagnostic/tools.py)。
 
 ### 3.2 修復專家 (RemediationExpert)
 
@@ -584,8 +584,8 @@ class ConfigAgent(LlmAgent):
 記憶體管理採用工廠模式，允許根據配置動態選擇後端（如 Weaviate, PostgreSQL, Vertex AI）。此設計確保了部署的靈活性和可測試性。
 
 核心實作位於以下檔案：
-- [`sre-assistant/memory/backend_factory.py`](sre-assistant/memory/backend_factory.py): 定義了記憶體後端的統一介面和工廠。
-- [`sre-assistant/memory.py`](sre-assistant/memory.py): 實現了 `SREMemorySystem`，整合了後端工廠和嵌入模型。
+- [`sre_assistant/memory/backend_factory.py`](sre_assistant/memory/backend_factory.py): 定義了記憶體後端的統一介面和工廠。
+- [`sre_assistant/memory.py`](sre_assistant/memory.py): 實現了 `SREMemorySystem`，整合了後端工廠和嵌入模型。
 
 
 ## 5. 工具註冊與管理
@@ -593,7 +593,7 @@ class ConfigAgent(LlmAgent):
 使用 ADK ToolRegistry 管理。
 
 ```python
-# sre-assistant/tools.py
+# sre_assistant/tools.py
 from google.adk.tools import ToolRegistry
 from sub_agents.diagnostic.tools import (
     PromQLQueryTool,
@@ -703,7 +703,7 @@ tool_registry = VersionedToolRegistry()
 以下程式碼實現 A2A (Agent-to-Agent) 協議的暴露服務，使用 `AgentCard` 來定義代理的元數據和能力。這符合 2025 Google I/O 增強的 A2A 協議（基於代理卡片系統，支援 streaming 和技能定義），允許其他代理發現和調用 SRE Assistant。程式碼適應自 Purchasing Concierge Codelab 的 burger_agent 範例，將其調整為 SRE 上下文（例如，處理系統警報、監控任務）。它使用 FastAPI 作為伺服器框架，並暴露 `/execute` 端點供 A2A 調用。
 
 ```python
-# sre-assistant/__init__.py
+# sre_assistant/__init__.py
 """
 SRE Assistant - ADK Agent Package
 暴露主代理供 A2A 調用，符合 2025 I/O A2A 增強協議
@@ -973,7 +973,7 @@ class A2ADiscoveryManager:
 以下程式碼實現消費外部代理，使用 `RemoteA2aAgent` 來調用遠端代理（如外部 ML 異常檢測代理或安全掃描代理）。這符合 A2A 協議的客戶端部分，支援非同步調用和認證。程式碼適應自 Purchasing Concierge Codelab 的 purchasing_concierge 範例，將其調整為 SRE 上下文（例如，委託外部代理進行異常檢測或漏洞掃描）。
 
 ```python
-# sre-assistant/utils/a2a_client.py
+# sre_assistant/utils/a2a_client.py
 """
 A2A 客戶端：消費外部代理，符合 2025 I/O A2A 增強協議
 """
@@ -1008,7 +1008,7 @@ class SREExternalAgentConnector:
                 endpoint=endpoint,
                 auth_config={
                     "type": "oauth2",
-                    "client_id": "sre-assistant-client",
+                    "client_id": "sre_assistant-client",
                     "client_secret": os.getenv("A2A_CLIENT_SECRET"),
                     "scopes": ["https://www.googleapis.com/auth/a2a"],
                     "auto_refresh": True,  # 2025 I/O 增強：自動 token 刷新
@@ -1754,7 +1754,7 @@ def deploy_to_vertex():
     deployment = VertexDeployment(
         project_id="your-project",
         region="us-central1",
-        agent_name="sre-assistant"
+        agent_name="sre_assistant"
     )
     
     config = DeploymentConfig(
@@ -1797,15 +1797,15 @@ def deploy_to_vertex():
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sre-assistant
+  name: sre_assistant
 spec:
   replicas: 3
   template:
     spec:
-      serviceAccountName: sre-assistant
+      serviceAccountName: sre_assistant
       containers:
       - name: api
-        image: sre-assistant:latest
+        image: sre_assistant:latest
         env:
         - name: SESSION_BACKEND
           value: database
@@ -2401,7 +2401,7 @@ class SREResponse(BaseModel):
 	- **本架構體現**：✅ AgentCard 元數據、✅ RemoteA2aAgent 調用、⚠️ 需強化 streaming 實現
 
 - **A2A Purchasing Concierge**：2025 I/O 增強 A2A 協議
-	- [內部](docs/references/other-samples/purchasing-concierge-a2a) | [外部](https://github.com/alphinside/purchasing-concierge-intro-a2a-codelab-starter)
+	- [內部](docs/references/other-samples/purchasing-concierge-intro-a2a) | [外部](https://github.com/alphinside/purchasing-concierge-intro-a2a-codelab-starter)
 	- **本架構體現**：✅ FastAPI/A2AStarletteApplication、✅ OAuth2 認證、✅ streaming capabilities
 	- **2025 增強功能**：✅ token 刷新、✅ 多種 streaming 協議、✅ 服務帳戶認證
 

@@ -103,7 +103,7 @@
 	- [外部](https://github.com/a2aproject/a2a-samples/tree/main/samples/python)
 
 - A2A Purchasing Concierge Sample：購物助理的 A2A 示例。
-	- [內部](docs/references/other-samples/purchasing-concierge-a2a)
+	- [內部](docs/references/other-samples/purchasing-concierge-intro-a2a)
 	- [外部](https://github.com/alphinside/purchasing-concierge-intro-a2a-codelab-starter)
 
 - Google SRE Book：谷歌 SRE 書籍，提供 SRE 最佳實踐。
