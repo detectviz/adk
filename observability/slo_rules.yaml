@@ -1,5 +1,0 @@
-
-# 檔案：observability/slo_rules.yaml
-# 產生方式：由 scripts/export_slo_rules.py 根據 adk.yaml 與 experts/*.yaml 載入的 SLO 門檻自動生成。
-# 說明：此檔包含 Prometheus RuleGroups（recording + alerting）。請於 Prometheus / Cortex / Mimir 匯入。
-groups: []
