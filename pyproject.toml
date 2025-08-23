@@ -1,0 +1,27 @@
+# pyproject.toml
+# 說明：此檔案用於定義專案的元數據和依賴項。
+# 使用 pyproject.toml 是現代 Python 專案的標準做法，
+# 它允許開發者使用如 Poetry 或 pip 等工具來管理環境。
+
+[tool.poetry]
+name = "sre-assistant"
+version = "0.1.0"
+description = "SRE Assistant Agent based on Google ADK"
+authors = ["Jules <jules@example.com>"]
+# 註：由於目錄名稱包含連字號，此處暫不定義可安裝的套件。
+# 我們主要使用此檔案來管理依賴項。
+
+[tool.poetry.dependencies]
+python = "^3.9"
+# 核心框架
+google-adk = "1.2.1"
+# 用於資料契約
+pydantic = "^2.7"
+# 用於 Prometheus 工具
+prometheus-api-client = "^0.6.0"
+# 用於解析 YAML 設定檔
+PyYAML = "^6.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
