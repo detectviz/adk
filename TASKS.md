@@ -6,6 +6,7 @@
 
 - **[ ] SRE 量化指標**
     - [ ] 實作覆盤用的「五個為什麼 (5 Whys)」模板。
+    - [參考](docs/references/google-sre-book/Appendix%20D%20-%20Example%20Postmortem.md)
 - **[ ] 端到端 (E2E) 測試套件**
     - [ ] 為完整的人工介入 (Human-in-the-Loop, HITL) 審批流程建立測試。
     - [ ] 開發 API 端到端測試。
