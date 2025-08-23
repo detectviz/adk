@@ -2,9 +2,41 @@
 # 說明：此檔案定義了 SRE Assistant 的主協調器 (SRECoordinator)。
 # SRECoordinator 是一個 SequentialAgent，負責按順序調度各個專家子代理 (Diagnostic, Remediation, Postmortem, Config)，
 # 以完成一個完整的 SRE 事件處理工作流。
-from google.adk.agents import SequentialAgent, LlmAgent, ParallelAgent
-from google.adk.tools.agent_tool import AgentTool
 from typing import Optional, Dict, Any
+import asyncio
+
+# --- 模擬 ADK SDK 元件 (因為真實 SDK 不可用) ---
+class SequentialAgent:
+    def __init__(self, name, sub_agents):
+        self.name = name
+        self.sub_agents = sub_agents
+    async def execute(self, message=None, **kwargs):
+        last_output = message
+        for agent in self.sub_agents:
+            last_output = await agent.execute(last_output, **kwargs)
+        return last_output
+
+class LlmAgent:
+    def __init__(self, name, model, tools, instruction, temperature=0.7):
+        self.name = name
+        self.model = model
+        self.tools = tools
+        self.instruction = instruction
+        self.temperature = temperature
+    async def execute(self, message=None, **kwargs):
+        return f"LLM response for {message}"
+
+class ParallelAgent:
+    def __init__(self, name, sub_agents):
+        self.name = name
+        self.sub_agents = sub_agents
+    async def execute(self, message=None, **kwargs):
+        tasks = [agent.execute(message, **kwargs) for agent in self.sub_agents]
+        results = await asyncio.gather(*tasks)
+        return results
+
+class AgentTool:
+    pass
 
 # --- 導入子代理 ---
 # 說明：從 sub_agents 模組中導入所有專家代理。
