@@ -3,7 +3,7 @@
 # 它能夠從基礎設定檔、特定環境設定檔和環境變數中載入、合併和驗證配置，
 # 為系統提供極大的靈活性。
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from pydantic import BaseModel, Field, validator
 from enum import Enum
 import os
@@ -91,10 +91,60 @@ class MemoryConfig(BaseModel):
             raise ValueError("weaviate_url required for Weaviate backend")
         return v
 
+class AuthProvider(str, Enum):
+    """認證提供者選項"""
+    GOOGLE_IAM = "google_iam"
+    OAUTH2 = "oauth2"
+    API_KEY = "api_key"
+    JWT = "jwt"
+    MTLS = "mtls"
+    LOCAL = "local"  # 開發用
+
+class AuthConfig(BaseModel):
+    """認證配置"""
+    provider: AuthProvider
+
+    # Google IAM 配置
+    service_account_path: Optional[str] = None
+    impersonate_service_account: Optional[str] = None
+
+    # OAuth2 配置
+    oauth_client_id: Optional[str] = None
+    oauth_client_secret: Optional[str] = None
+    oauth_redirect_uri: Optional[str] = None
+    oauth_scopes: List[str] = Field(default_factory=list)
+
+    # JWT 配置
+    jwt_secret: Optional[str] = None
+    jwt_algorithm: str = "HS256"
+    jwt_expiry_seconds: int = 3600
+
+    # API Key 配置
+    api_key_header: str = "X-API-Key"
+    api_keys_file: Optional[str] = None
+
+    # mTLS 配置
+    mtls_cert_path: Optional[str] = None
+    mtls_key_path: Optional[str] = None
+    mtls_ca_path: Optional[str] = None
+
+    # 通用配置
+    enable_rbac: bool = True
+    enable_rate_limiting: bool = True
+    max_requests_per_minute: int = 60
+    enable_audit_logging: bool = True
+
+    @validator('service_account_path')
+    def validate_google_iam(cls, v, values):
+        if values.get('provider') == AuthProvider.GOOGLE_IAM and not v:
+            raise ValueError("service_account_path required for Google IAM")
+        return v
+
 class SREAssistantConfig(BaseModel):
     """完整配置"""
     deployment: DeploymentConfig
     memory: MemoryConfig
+    auth: AuthConfig  # 新增認證配置
 
     # 額外配置
     llm_model: str = "gemini-2.0-flash"
@@ -186,6 +236,10 @@ class ConfigManager:
     def get_memory_config(self) -> MemoryConfig:
         """取得記憶體配置"""
         return self.config.memory
+
+    def get_auth_config(self) -> AuthConfig:
+        """取得認證配置"""
+        return self.config.auth
 
 # 單例模式：在應用程式中共享同一個配置實例
 config_manager = ConfigManager()

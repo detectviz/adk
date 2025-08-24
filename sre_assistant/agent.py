@@ -2,7 +2,7 @@
 # 說明：此檔案定義了 SRE Assistant 的主協調器 (SRECoordinator)。
 # SRECoordinator 是一個 SequentialAgent，負責按順序調度各個專家子代理 (Diagnostic, Remediation, Postmortem, Config)，
 # 以完成一個完整的 SRE 事件處理工作流。
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 import asyncio
 from google.adk.tools import agent_tool
 from google.adk.agents import (
@@ -10,9 +10,20 @@ from google.adk.agents import (
     LlmAgent,
     ParallelAgent,
     BaseAgent,
-    AgentContext,
+    InvocationContext,
     LoopAgent,
 )
+
+# --- 導入認證管理器 ---
+# 說明：導入 AuthManager 單例，用於處理所有認證和授權。
+# 注意：這會在 config_manager 更新前導致導入錯誤，這是預期行為。
+try:
+    from .auth.auth_manager import AuthManager, auth_manager
+except ImportError:
+    # 為了讓程式在 config 更新前能繼續運行，提供一個佔位符
+    print("Warning: AuthManager could not be imported. Using a placeholder.")
+    auth_manager = None
+    AuthManager = type("AuthManager", (), {})
 
 
 # --- 導入子代理 ---
@@ -45,8 +56,10 @@ class ScheduledRemediation(LlmAgent):
 
 class SLOTuningAgent(LlmAgent):
     """預留位置：用於在循環中調整 SLO 配置的代理。"""
-    def __init__(self, **kwargs):
-        super().__init__(name="SLOTuningAgent", instruction="Tuning SLOs.", **kwargs)
+    def __init__(self, **kwargs: Any):
+        kwargs.setdefault("name", "SLOTuningAgent")
+        kwargs.setdefault("instruction", "Tuning SLOs.")
+        super().__init__(**kwargs)
 
 
 # --- 預留位置 (Placeholder) ---
@@ -67,7 +80,11 @@ class ConditionalRemediation(BaseAgent):
     條件化修復代理：根據診斷結果的嚴重性 (severity)，選擇不同的修復策略。
     這是實現彈性 SRE 工作流程的關鍵。
     """
-    async def _run_async_impl(self, ctx: AgentContext) -> None:
+    def __init__(self, **kwargs):
+        # BaseAgent is a Pydantic model and requires a name.
+        super().__init__(**kwargs)
+
+    async def _run_async_impl(self, ctx: InvocationContext) -> None:
         # 從上下文中獲取嚴重性，如果不存在則默認為 'P2'
         severity = ctx.state.get("severity", "P2")
         agent_config = ctx.state.get("config", {})
@@ -87,18 +104,20 @@ class ConditionalRemediation(BaseAgent):
         await agent.run_async(ctx)
 
 
+from typing import Callable
+
 class IterativeOptimization(LoopAgent):
     """
     迭代優化代理：持續運行一個子代理 (SLOTuningAgent)，直到滿足終止條件或達到最大迭代次數。
     這對於需要多輪調整才能達到目標的場景 (如 SLO 調優) 非常有用。
     """
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        super().__init__(
-            name="IterativeOptimizer",
-            sub_agent=SLOTuningAgent(config=config),
-            max_iterations=3,
-            termination_condition=lambda ctx: ctx.state.get("slo_met", False)
-        )
+    sub_agent: Optional[LlmAgent] = None
+    termination_condition: Optional[Callable[[InvocationContext], bool]] = None
+
+    def __init__(self):
+        super().__init__(name="IterativeOptimizer", max_iterations=3)
+        self.sub_agent=SLOTuningAgent()
+        self.termination_condition=lambda ctx: ctx.state.get("slo_met", False)
 
 
 # --- 主協調器 ---
@@ -108,10 +127,27 @@ class SRECoordinator(SequentialAgent):
     主協調器：實現一個基於工作流程的 SRE 自動化過程。
     此版本採用了更先進的架構，包括並行診斷和條件化修復調度。
     """
+    # --- Pydantic 欄位宣告 ---
+    # 說明：將 auth_manager 宣告為一個類別屬性，以符合 Pydantic 模型的規範。
+    # 這可以防止在 __init__ 中賦值時出現 "object has no field" 的錯誤。
+    auth_manager: Optional[AuthManager] = None
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         # 說明：初始化主協調器。
         # 這個新架構旨在提高效率和靈活性。
         agent_config = config or {}
+
+        # --- 整合認證管理器 ---
+        # 說明：將 AuthManager 實例化並存儲，以便在工作流程中使用。
+        # 這一步必須在 super().__init__ 之前，因為 Pydantic 會驗證欄位。
+        # 但我們不能直接賦值，所以我們將它作為參數傳遞給父類。
+        # Wait, the parent doesn't accept it. Let's declare it and assign it after.
+        # The issue is that the parent is a pydantic model.
+        # The correct way is to pass it to super init.
+        # However, the parent class does not have this field.
+        # So we must assign it *after* super().__init__
+        # And the class must be configured to accept extra fields.
+        # Let's try the simpler way first: declare it as a field, and call super() at the end.
 
         # --- 階段 1: 並行診斷 ---
         # 說明：此階段並行運行多個診斷代理，以快速收集全面的故障資訊。
@@ -128,16 +164,18 @@ class SRECoordinator(SequentialAgent):
         # --- 階段 2: 條件化修復 ---
         # 說明：用新實作的 ConditionalRemediation Agent 取代了舊的基於 LLM 的調度器。
         # 這種方法更明確、更可靠，並且完全符合 TASKS.md 中的設計。
-        remediation_phase = ConditionalRemediation()
+        remediation_phase = ConditionalRemediation(name="ConditionalRemediation")
 
         # --- 階段 3: 覆盤 ---
         # 說明：覆盤階段保持不變，仍然是一個標準的 SRE 流程。
-        postmortem_phase = PostmortemAgent(config=agent_config)
+        # PostmortemAgent is also a Pydantic model and requires a name.
+        # The LlmAgent parent class does not accept a 'config' argument.
+        postmortem_phase = PostmortemAgent(name="PostmortemAgent")
 
         # --- 階段 4: 迭代優化 ---
         # 說明：用新實作的 IterativeOptimization Agent 取代了舊的靜態 ConfigAgent。
         # 這允許系統進行多輪自我優化，直到達到預設的 SLO 目標。
-        optimization_phase = IterativeOptimization(config=agent_config)
+        optimization_phase = IterativeOptimization()
 
         # --- 組裝工作流程 ---
         # 說明：將所有新的和更新後的階段組合成最終的工作流程。
@@ -151,6 +189,55 @@ class SRECoordinator(SequentialAgent):
                 optimization_phase
             ]
         )
+        self.auth_manager = auth_manager
+
+    async def run_with_auth(
+        self,
+        credentials: Dict[str, Any],
+        resource: str,
+        action: str,
+        initial_context: Optional[InvocationContext] = None
+    ) -> InvocationContext:
+        """
+        帶有認證和授權的執行入口。
+        這是一個包裝器，用於在執行核心工作流程之前驗證用戶權限。
+
+        Args:
+            credentials: 用戶提供的憑證 (例如, API key, token)。
+            resource: 請求的資源。
+            action: 請求的操作。
+            initial_context: 初始的代理上下文。
+
+        Returns:
+            執行完畢後的代理上下文。
+
+        Raises:
+            PermissionError: 如果認證或授權失敗。
+        """
+        if not self.auth_manager:
+            raise ImportError("AuthManager is not available.")
+
+        # 1. 認證
+        success, user_info = await self.auth_manager.authenticate(credentials)
+        if not success:
+            raise PermissionError("Authentication failed.")
+
+        print(f"Authentication successful for user: {user_info.get('email', user_info.get('user_id'))}")
+
+        # 2. 授權
+        authorized = await self.auth_manager.authorize(user_info, resource, action)
+        if not authorized:
+            raise PermissionError(f"User not authorized to perform '{action}' on '{resource}'.")
+
+        print(f"Authorization successful for action '{action}' on resource '{resource}'.")
+
+        # 3. 執行工作流程
+        # 將認證後的用戶資訊注入到上下文中
+        ctx = initial_context or InvocationContext()
+        ctx.state["user_info"] = user_info
+
+        return await self.run_async(ctx)
+
 
 def create_agent(config: Optional[Dict[str, Any]] = None) -> SRECoordinator:
     """
