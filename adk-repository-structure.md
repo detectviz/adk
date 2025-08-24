@@ -1,4 +1,4 @@
-# ADK 目錄結構 Repository Structure
+# ADK 官方建議目錄結構 Repository Structure
 
 ``` bash
 ├── my_adk_project/

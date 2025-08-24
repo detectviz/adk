@@ -60,6 +60,7 @@ grep -E "^## |^### " ARCHITECTURE.md
 [16.2 效能基準](#162-效能基準)
 [17. 發展路線圖](#17-發展路線圖)
 [18. ADK 最佳實踐整合](#18-adk-最佳實踐整合)
+[19. 參考資源](#19-參考資源)
 
 ## 執行摘要
 
@@ -554,3 +555,28 @@ SRE 量化指標管理的核心是 `SREErrorBudgetManager`，它負責計算錯�
 - **SRE 領域整合**: 深度整合 SRE 工作流模式（診斷、修復、覆盤），並透過 `SLOManager` 和 `ErrorBudgetTracker` 實現量化指標管理。
 - **程式碼品質**: 廣泛使用 Pydantic 模型確保類型安全，並透過單元測試、契約測試和並發測試保證程式碼的穩定性。
 - **標準化部署**: 支援透過 Vertex AI Agent Engine 和容器化（Docker/Kubernetes）進行部署，並提供相應的配置。
+
+## 19. 參考資源
+- ADK 官方文檔：官方文檔，提供 ADK 的詳細介紹和使用方法。
+	- [內部](docs/references/adk-docs)
+	- [外部](https://google.github.io/adk-docs)
+
+- ADK Python Repository：包含用於測試不同功能的範例。這些範例通常比較簡單，僅用於測試一個或幾個場景。
+	- [內部](docs/references/adk-python-samples)
+	- [外部](https://github.com/google/adk-python/tree/main/contributing/samples)
+
+- ADK Samples Repository：更複雜的 e2e 範例，供客戶直接使用或修改。
+	- [內部](docs/references/adk-samples-agents)
+	- [外部](https://github.com/google/adk-samples/tree/main/python/agents)
+
+- A2A Samples Repository：a2a 範例，供客戶直接使用或修改。
+	- [內部](docs/references/a2a-samples)
+	- [外部](https://github.com/a2aproject/a2a-samples/tree/main/samples/python)
+
+- A2A Purchasing Concierge Sample：購物助理的 A2A 示例。
+	- [內部](docs/references/other-samples/purchasing-concierge-intro-a2a)
+	- [外部](https://github.com/alphinside/purchasing-concierge-intro-a2a-codelab-starter)
+
+- Google SRE Book：提供 SRE 最佳實踐。
+	- [內部](docs/references/google-sre-book)
+	- [外部](https://sre.google/sre-book/)
