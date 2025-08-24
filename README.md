@@ -102,8 +102,8 @@ This project uses [Poetry](https://python-poetry.org/) for dependency management
 
 1.  **Clone the repository:**
     ```sh
-    git clone https://github.com/your-repo/sre-assistant.git
-    cd sre-assistant
+    git clone https://github.com/your-repo/adk.git
+    cd adk
     ```
 
 2.  **Install dependencies:**
