@@ -8,6 +8,7 @@ name = "sre_assistant"
 version = "0.1.0"
 description = "SRE Assistant Agent based on Google ADK"
 authors = ["Jules <jules@example.com>"]
+packages = [{include = "sre_assistant"}]
 # 註：由於目錄名稱包含連字號，此處暫不定義可安裝的套件。
 # 我們主要使用此檔案來管理依賴項。
 
