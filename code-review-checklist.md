@@ -1,128 +1,245 @@
 # 程式碼審查清單 - SRE Assistant (ADK v1.2.1)
 
-本清單確保 SRE Assistant 程式碼庫，基於 Google Agent Development Kit (ADK) v1.2.1（2025 更新）開發，完全符合官方最佳實踐，參考 ADK 官方文檔、Python 儲存庫、樣本儲存庫、A2A Purchasing Concierge Codelab 和 Google SRE 書籍。清單涵蓋 Python API 標準、多代理架構、工具整合、A2A 協議、記憶體管理、部署、安全性和測試。每項必須逐一驗證，以消除不足，確保 SRE 工作流的企業級可靠性。
+**版本**: 2.0.0  
+**更新日期**: 2025-08-24  
+**適用範圍**: 基於 Google Agent Development Kit (ADK) v1.2.1 開發的 SRE Assistant  
+**審查標準**: 生產級就緒 (Production-Ready)
 
-## 1. Python API 標準
-- [ ] **Code-First 設計**：所有代理和工具定義採用 ADK 的 code-first 方法（例如 `from google.adk.agents import SequentialAgent`, `agent.add_tool()`）。除非明確需要（如 `agent_config.json` 用於環境特定配置），不得依賴外部配置文件。
-- [ ] **代理初始化**：代理（例如 `SRECoordinator`, `DiagnosticAgent`）繼承自適當的 ADK 類別（`SequentialAgent`, `LlmAgent` 等），並設置 `name`, `model`（如 `gemini-2.5-flash`）、`instruction` 和 `temperature`（SRE 任務建議 0.1-0.3 以降低隨機性）。
-- [ ] **工具綁定**：工具透過 `agent.add_tool()` 或 `tools=[...]` 動態綁定，符合 ADK 文檔的模組化要求。
-- [ ] **錯誤處理**：所有代理和工具實作包含異常處理（try-except），返回結構化錯誤（如 `{"status": "error", "message": "..."}`），參考 ADK API Reference。
-- [ ] **版本相容性**：明確指定 `google-adk==1.2.1` 在 `pyproject.toml`，確保與 2025 更新相容。
+## 執行摘要
 
-## 2. 多代理架構
-- [ ] **層級設計**：主協調器使用 `SequentialAgent` 實現 SRE 工作流（診斷→修復→覆盤→配置），符合 Google SRE Book 的 incident response 流程。
-- [ ] **子代理模組化**：子代理（`DiagnosticAgent`, `RemediationAgent` 等）位於 `sub_agents/`，各自獨立模組（包含 `agent.py`, `prompts.py`, `tools.py`），符合 ADK Samples 的模組化結構。
-- [ ] **並行與循環**：診斷階段使用 `ParallelAgent`（如 `aggregation_strategy="weighted_merge"`），修復階段使用 `LoopAgent`（如 `max_iterations=3`, `backoff_strategy="exponential"`），參考 ADK Samples 的 workflow orchestration。
-- [ ] **上下文傳遞**：使用 `ContextPropagator` 傳遞上下文（如 `incident_id`, `severity`），確保跨代理一致性。
-- [ ] **錯誤容忍**：`SequentialAgent` 設置 `continue_on_error=True`，確保單階段失敗不中斷工作流。
+本清單確保 SRE Assistant 完全符合 Google ADK 官方最佳實踐，消除所有技術債務風險。每項檢查點都基於官方文檔、實戰經驗和架構審查結果制定。
 
-## 3. 工具整合
-- [ ] **工具類型**：使用 `FunctionTool` 和 `LongRunningFunctionTool`（如 `K8sRolloutRestartTool`），符合 ADK Tools 文檔。
-- [ ] **參數驗證**：每個工具定義 `args_schema`（JSON Schema）以驗證輸入，參考 ADK API Reference。
-- [ ] **工具註冊**：使用 `ToolRegistry` 集中管理工具（`tools.py`），支援 `get_tools_by_category()` 等查詢方法。
-- [ ] **異步處理**：長時間運行工具（如 K8s 操作）使用 `LongRunningFunctionTool`，設置 `start_func`, `poll_func`, `timeout_seconds`，並支援 HITL（`require_approval`）。
-- [ ] **Pre-built 工具**：整合官方 pre-built 工具（如 `SearchTool`），用於知識檢索或外部 API 呼叫。
+## 1. 架構設計審查
 
-## 4. A2A 協議
-- [ ] **代理卡片**：在 `__init__.py` 使用 `AgentCard` 定義元數據（`name`, `skills`, `capabilities`），支援 `streaming=True` 和 `tags/examples`，符合 A2A Purchasing Concierge Codelab。
-- [ ] **伺服器暴露**：使用 `A2AStarletteApplication` 和 FastAPI 暴露 `/.well-known/agent.json`，支援 A2A 發現。
-- [ ] **客戶端調用**：在 `utils/a2a_client.py` 使用 `RemoteA2aAgent` 和 `AgentCardResolver` 調用外部代理（如 ML 異常檢測），支援 OAuth 或服務帳戶認證。
-- [ ] **Streaming 支援**：處理 A2A streaming 回應（`async for chunk in response.stream()`），符合 2025 I/O 增強。
-- [ ] **認證安全**：實現 token 刷新邏輯，確保長期運行穩定性。
+### 1.1 多代理協調架構
+- [ ] **層級設計正確性**：確認使用 `SequentialAgent` 實現 SRE 工作流（診斷→修復→覆盤→配置）
+- [ ] **子代理模組化**：驗證所有子代理位於 `sub_agents/` 目錄，各自包含 `agent.py`、`prompts.py`、`tools.py`
+- [ ] **並行執行優化**：檢查 `ParallelAgent` 使用 `aggregation_strategy="weighted_merge"` 且權重配置合理
+- [ ] **循環重試機制**：確認 `LoopAgent` 設置 `max_iterations=3` 和 `backoff_strategy="exponential"`
+- [ ] **上下文傳遞完整性**：驗證 `ContextPropagator` 正確傳遞 `incident_id`、`severity`、`trace_id`
 
-## 5. 記憶體管理
-- [ ] **SessionService 擴展**：`memory.py` 繼承 `InMemorySessionService`，整合 Spanner 和 Vertex RAG（使用 `MatchingEngineIndexEndpoint` 的 `upsert_datapoints`/`find_neighbors`）。
-- [ ] **向量嵌入**：使用官方 `TextEmbeddingModel`（如 `textembedding-gecko`）生成嵌入向量，避免自訂 `generate_embedding`。
-- [ ] **持久化**：支援 Redis/PostgreSQL 作為備用後端，確保生產環境狀態持久化。
-- [ ] **緩存管理**：使用 `AgentCache`（如 `SRECacheManager`）實現 LRU 緩存，設置 `ttl_seconds` 和 `cache_on` 策略（如 Prometheus 查詢緩存 60s）。
-- [ ] **數據一致性**：確保 `store_incident` 和 `search_similar_incidents` 支援事務性操作。
+### 1.2 配置管理系統
+- [ ] **三層配置架構**：確認實現 base.yaml → environments/{env}.yaml → 環境變數 的優先級覆蓋
+- [ ] **Pydantic 類型安全**：檢查 `DeploymentConfig` 和 `MemoryConfig` 包含完整驗證器
+- [ ] **環境隔離**：驗證 development、staging、production 配置正確分離
+- [ ] **配置驗證腳本**：運行 `test/verify_config.py` 確認配置載入正確
 
-## 6. 部署
-- [ ] **容器化**：`Dockerfile` 使用 `python:3.12-slim` 作為基礎鏡像，包含 `google-adk==1.2.1`。
-- [ ] **Vertex AI Agent Engine**：`deploy.py` 使用 `vertex_ai.deploy_agent` API，指定 `gen2` 執行環境，支援 streaming。
-- [ ] **Cloud Build**：`cloudbuild.yaml` 配置自動建構和部署到 Cloud Run 或 Vertex AI。
-- [ ] **環境變數**：使用 `.env.example` 定義 `GEMINI_API_KEY`, `GOOGLE_CLOUD_PROJECT` 等，參考 ADK Deployment 文檔。
-- [ ] **自動擴展**：K8s 部署使用 HPA（Horizontal Pod Autoscaler），確保高並發性能。
+```python
+# 必須通過的配置驗證
+assert config_manager.config.deployment.platform in ["agent_engine", "cloud_run", "gke", "local"]
+assert config_manager.config.memory.backend in ["weaviate", "postgresql", "vertex_ai", "redis", "memory"]
+```
 
-## 7. 安全性
-- [ ] **Safety Framework**：使用 `SafetyFramework` 和 `SafetyPolicy`（如 `SRESafetyFramework`）實現生產環境保護（`require_approval`）和數據安全（`require_encryption`）。
-- [ ] **認證與授權**：`SREAuthService` 支援 Google Cloud IAM 和 API Key，實現 RBAC（基於角色的存取控制）。
-- [ ] **審計日誌**：`AuditLog` 記錄所有操作（`action`, `risk_level`），透過 `AuditCallback` 輸出到日誌系統。
-- [ ] **HITL 機制**：高風險操作（如 K8s 重啟）使用 `LongRunningFunctionTool` 的 `require_approval`，透過 SSE 推送人工審批請求。
-- [ ] **數據加密**：敏感數據（如 `incident_data`）在傳輸和儲存時加密，符合 ADK Safety 文檔。
+## 2. 契約與類型系統審查
 
-## 8. 測試
-- [ ] **單元測試**：`test/test_agent.py` 覆蓋代理和工具邏輯（使用 pytest），如 `test_diagnostic_expert_metrics_analysis`。
-- [ ] **整合測試**：測試完整工作流（如 `test_full_workflow`），驗證 `workflow_completed`。
-- [ ] **E2E 測試**：模擬 HITL 流程（如 `test_hitl_approval_flow`），使用 HTTP 客戶端測試 API。
-- [ ] **效能測試**：使用 k6 測試（如 `latency < 30s`），確保符合 SLO（P95 延遲 < 30s）。
-- [ ] **覆蓋率**：確保測試覆蓋率 >80%，包括 callbacks 和 A2A 調用。
+### 2.1 Pydantic 契約模型
+- [ ] **請求/響應模型**：確認 `SRERequest`、`SREResponse` 包含所有必要字段和驗證
+- [ ] **狀態管理模型**：檢查 `AgentState`、`SLOStatus`、`ErrorBudgetStatus` 正確實現
+- [ ] **風險評估模型**：驗證 `RiskAssessment` 包含 `slo_impact`、`error_budget_impact`
+- [ ] **版本相容性**：確認所有模型包含 `schema_version` 字段
 
-## 9. SRE 最佳實踐（參考 Google SRE Book）
-- [ ] **Incident Response**：`SequentialAgent` 實現診斷→修復→覆盤順序，符合 SRE incident response 流程。
-- [ ] **錯誤預算**：`ConfigAgent` 包含工具計算 SLO 違規（如 `FunctionTool` 計算 unavailability），觸發警報。
-- [ ] **Blame-Free Postmortem**：`PostmortemAgent` 使用 “5 Whys” 模板生成報告，包含 `root_cause` 和 `action_items`。
-- [ ] **自動化**：工具（如 `K8sRolloutRestartTool`）支援 rollback，減少人工操作，符合 MTTR 優化。
-- [ ] **監控整合**：Prometheus 指標（如 `sre_assistant:request_success_rate`）與 ADK 評估框架整合，支援 SLO 追蹤。
+### 2.2 類型註解覆蓋
+- [ ] **函數簽名**：所有公開函數必須有完整類型註解
+- [ ] **返回類型**：明確標註返回類型，包括 `Optional` 和 `Union`
+- [ ] **泛型使用**：正確使用 `List[Dict[str, Any]]` 而非裸露的 `list` 或 `dict`
 
-## 10. 文件與可維護性
-- [ ] **程式碼註釋**：每個代理、工具和方法包含清晰註釋，說明功能和參考（如 “參考 ADK Samples: RAG agent”）。
-- [ ] **README 更新**：`README.md` 包含專案概述、安裝步驟、運行範例和資源映射。
-- [ ] **目錄結構**：符合 ADK Samples（如 `sub_agents/`, `tools.py`），模組化且一致。
-- [ ] **版本控制**：提交訊息遵循語義化規範（e.g., `feat: add DiagnosticAgent`, `fix: update A2A auth`）。
-- [ ] **參考資源**：`docs/references/` 包含 ADK 文檔、樣本和 SRE 書籍的整理文件，輔助開發。
+## 3. A2A 協議實現審查
 
-## 11. 性能與擴展性
-- [ ] **緩存優化**：`SRECacheManager` 緩存 Prometheus 查詢（60s）和 runbook（24h），減少響應時間。
-- [ ] **異步並行**：工具調用（如 `PromQLQueryTool`）使用異步（`async/await`），提升併發性能。
-- [ ] **代理熱註冊**：支援動態添加子代理（`SRECoordinator.register_sub_agent`），符合 ADK 擴展性。
-- [ ] **負載均衡**：部署配置支援 K8s HPA 或 Cloud Run 自動擴展，處理高流量。
-- [ ] **效能基準**：確保 P95 延遲 < 30s，可用性 > 99.9%，符合 SLO。
+### 3.1 Streaming 協議
+- [ ] **StreamingChunk Schema**：確認實現包含所有必要字段
+```python
+@dataclass
+class StreamingChunk:
+    chunk_id: str
+    timestamp: datetime
+    type: Literal["progress", "partial_result", "metrics_update", "final_result"]
+    progress: Optional[float]
+    partial_result: Optional[Dict]
+    idempotency_token: str
+```
 
-## 使用指南
-1. **逐項檢查**：開發者在提交 pull request 前，使用本清單逐項驗證程式碼。
-2. **自動化檢查**：整合 linter（如 flake8）檢查 Python 規範，CI/CD 運行 pytest 和 k6 測試。
-3. **審查流程**：至少兩名審查者確認所有項目通過，參考 ADK 文檔和 SRE 書籍解決爭議。
-4. **更新頻率**：每季檢查 ADK 更新（如 v1.3.x），同步清單。
+### 3.2 連接管理
+- [ ] **RemoteAgentConnections**：驗證正確管理代理連接和認證
+- [ ] **TaskUpdateCallback**：確認回調機制正確實現
+- [ ] **OAuth Token 刷新**：檢查 `_refresh_token_if_needed()` 包含重試邏輯
+- [ ] **Backpressure 處理**：驗證 `deque(maxlen=100)` 緩衝區和流量控制
 
-## 參考資源
-- ADK 官方文檔：官方文檔，提供 ADK 的詳細介紹和使用方法。
-	- [內部](docs/references/adk-docs)
-	- [外部](https://google.github.io/adk-docs)
+### 3.3 代理暴露
+- [ ] **AgentCard 完整性**：確認包含 name、skills、capabilities、streaming=True
+- [ ] **FastAPI 端點**：驗證 `/.well-known/agent.json` 正確暴露
+- [ ] **SSE 支援**：檢查 Server-Sent Events 正確實現
 
-- ADK Python Repository：包含用於測試不同功能的範例。這些範例通常比較簡單，僅用於測試一個或幾個場景。
-	- [內部](docs/references/adk-python-samples)
-	- [外部](https://github.com/google/adk-python/tree/main/contributing/samples)
+## 4. 工具版本管理審查
 
-- ADK Samples Repository：更複雜的 e2e 範例，供客戶直接使用或修改。
-	- [內部](docs/references/adk-samples-agents)
-	- [外部](https://github.com/google/adk-samples/tree/main/python/agents)
+### 4.1 版本相容性
+- [ ] **相容性矩陣**：確認 `compatibility_matrix` 定義所有工具依賴
+```python
+compatibility_matrix = {
+    "promql_query": {
+        "2.1.0": {"prometheus_api": ">=2.40.0"},
+        "2.0.0": {"prometheus_api": ">=2.35.0,<2.40.0"}
+    }
+}
+```
 
-- A2A Samples Repository：a2a 範例，供客戶直接使用或修改。
-	- [內部](docs/references/a2a-samples)
-	- [外部](https://github.com/a2aproject/a2a-samples/tree/main/samples/python)
+### 4.2 版本檢查
+- [ ] **check_compatibility()**：驗證使用 `packaging` 庫進行版本比較
+- [ ] **降級策略**：確認 `FallbackStrategy.USE_PREVIOUS_VERSION` 正確實現
+- [ ] **版本註冊**：檢查所有工具都有版本號和默認版本設置
 
-- A2A Purchasing Concierge Sample：購物助理的 A2A 示例。
-	- [內部](docs/references/other-samples/purchasing-concierge-intro-a2a)
-	- [外部](https://github.com/alphinside/purchasing-concierge-intro-a2a-codelab-starter)
+## 5. 記憶體管理審查
 
-- Google SRE Book：谷歌 SRE 書籍，提供 SRE 最佳實踐。
-	- [內部](docs/references/google-sre-book)
-	- [外部](https://sre.google/sre-book/)
+### 5.1 後端工廠模式
+- [ ] **多後端支援**：確認支援 Weaviate、PostgreSQL、Vertex AI、Redis、Memory
+- [ ] **統一介面**：驗證 `VectorBackend` 抽象類正確實現
+- [ ] **健康檢查**：每個後端必須實現 `health_check()` 方法
 
-## 審查清單
-- [ ] **Code-First 設計**：所有代理和工具定義採用 ADK 的 code-first 方法（例如 `from google.adk.agents import SequentialAgent`, `agent.add_tool()`）。除非明確需要（如 `agent_config.json` 用於環境特定配置），不得依賴外部配置文件。
-- [ ] **代理初始化**：代理（例如 `SRECoordinator`, `DiagnosticAgent`）繼承自適當的 ADK 類別（`SequentialAgent`, `LlmAgent` 等），並設置 `name`, `model`（如 `gemini-2.5-flash`）、`instruction` 和 `temperature`（SRE 任務建議 0.1-0.3 以降低隨機性）。
-- [ADK Python Repository](https://github.com/google/adk-python/tree/main/contributing/samples)
-> 包含用於測試不同功能的範例。這些範例通常比較簡單，僅用於測試一個或幾個場景。
-- [ADK Samples Repository](https://github.com/google/adk-samples/tree/main/python/agents)
-> e2e 範例，供客戶直接使用或修改。
-- [A2A Samples Repository](https://github.com/a2aproject/a2a-samples/tree/main/samples/python)
-> a2a 範例，供客戶直接使用或修改。
-- [A2A Purchasing Concierge Sample](https://github.com/alphinside/purchasing-concierge-intro-a2a-codelab-starter)
-> 購物助理的 A2A 示例。
-- [Google SRE Book](https://sre.google/sre-book/)
-> 谷歌 SRE 書籍，提供 SRE 最佳實踐。
+### 5.2 官方 API 使用
+- [ ] **嵌入模型**：使用官方 `TextEmbeddingModel.from_pretrained()`
+- [ ] **Vertex AI 整合**：使用 `MatchingEngineIndexEndpoint` API
+```python
+# 正確的官方 API 使用
+self.embedding_model = TextEmbeddingModel.from_pretrained("textembedding-gecko@003")
+self.index_endpoint = MatchingEngineIndexEndpoint(index_endpoint_name="...")
+```
 
+## 6. SRE 量化指標審查
 
-通過本清單，SRE Assistant 程式碼將完全符合 ADK v1.2.1 標準和 SRE 原則，無技術不足，具備企業級可靠性。
+### 6.1 錯誤預算管理
+- [ ] **多窗口監控**：確認實現 1h、6h、72h 燃燒率計算
+- [ ] **警報閾值**：驗證符合 Google SRE Book 建議
+```python
+alert_thresholds = {
+    1: (14.4, "CRITICAL"),   # 2小時內耗盡
+    6: (6.0, "HIGH"),        # 1天內耗盡
+    72: (1.0, "MEDIUM")      # 1個月內耗盡
+}
+```
+
+### 6.2 SLO 合規性
+- [ ] **SLO 目標設置**：確認 availability=99.9%、latency_p95<30s、error_rate<1%
+- [ ] **違規處理**：驗證自動觸發修復工作流
+- [ ] **指標追蹤**：確認所有 SLI 正確記錄和計算
+
+## 7. 安全性審查
+
+### 7.1 認證與授權
+- [ ] **OAuth 2.0 實現**：驗證 A2A 通訊使用正確的認證流程
+- [ ] **服務帳戶管理**：確認使用 Google Cloud IAM 服務帳戶
+- [ ] **Token 安全**：檢查 token 不會記錄在日誌中
+
+### 7.2 數據保護
+- [ ] **PII 清理**：確認 `_scrub_pii()` 正確移除敏感信息
+- [ ] **審計日誌**：驗證使用 append-only 存儲和數字簽名
+- [ ] **加密傳輸**：確認所有外部通訊使用 TLS 1.2+
+
+### 7.3 HITL 安全
+- [ ] **風險評估**：驗證高風險操作需要人工審批
+- [ ] **審批流程**：確認 SSE 推送審批請求正確實現
+- [ ] **超時處理**：檢查審批超時自動拒絕
+
+## 8. 測試覆蓋審查
+
+### 8.1 單元測試
+- [ ] **覆蓋率 >80%**：運行 `pytest --cov` 確認覆蓋率
+- [ ] **契約測試**：驗證 `test_contracts.py` 使用 Hypothesis
+- [ ] **工具測試**：每個工具都有對應的單元測試
+
+### 8.2 並發測試
+- [ ] **50 並發會話**：運行 `test_concurrent_sessions.py` 無錯誤
+- [ ] **無 Race Condition**：確認使用適當的鎖機制
+- [ ] **資源清理**：驗證所有異步資源正確釋放
+
+### 8.3 整合測試
+- [ ] **完整工作流**：測試診斷→修復→覆盤完整流程
+- [ ] **A2A 通訊**：驗證代理間通訊正確
+- [ ] **錯誤恢復**：測試各種失敗場景的恢復機制
+
+## 9. 部署就緒審查
+
+### 9.1 部署策略
+- [ ] **多環境支援**：確認支援 Agent Engine、Cloud Run、GKE、Local
+- [ ] **環境變數配置**：驗證所有配置可通過環境變數覆蓋
+- [ ] **健康檢查端點**：確認 `/health` 和 `/ready` 端點正確實現
+
+### 9.2 可觀測性
+- [ ] **結構化日誌**：使用 JSON 格式日誌
+- [ ] **追蹤 ID**：每個請求都有唯一 trace_id
+- [ ] **指標導出**：Prometheus 格式指標正確暴露
+
+### 9.3 容器化
+- [ ] **Dockerfile 優化**：多階段構建，最小化鏡像大小
+- [ ] **非 root 用戶**：容器以非特權用戶運行
+- [ ] **資源限制**：設置適當的 CPU 和記憶體限制
+
+## 10. 性能優化審查
+
+### 10.1 緩存策略
+- [ ] **查詢緩存**：Prometheus 查詢緩存 60 秒
+- [ ] **知識緩存**：Runbook 緩存 24 小時
+- [ ] **緩存失效**：實現適當的緩存失效機制
+
+### 10.2 異步處理
+- [ ] **工具並行化**：驗證工具調用使用 `asyncio.gather()`
+- [ ] **連接池**：數據庫和 HTTP 客戶端使用連接池
+- [ ] **超時設置**：所有外部調用都有合理超時
+
+## 11. 文檔完整性審查
+
+### 11.1 架構文檔
+- [ ] **ARCHITECTURE.md 更新**：反映最新實現
+- [ ] **API 文檔**：所有公開 API 都有文檔
+- [ ] **配置示例**：提供各環境配置範例
+
+### 11.2 操作文檔
+- [ ] **部署指南**：包含詳細部署步驟
+- [ ] **故障排除**：常見問題和解決方案
+- [ ] **監控指南**：如何設置監控和警報
+
+## 12. 合規性檢查
+
+### 12.1 許可證合規
+- [ ] **依賴許可證**：確認所有依賴符合許可要求
+- [ ] **版權聲明**：所有源文件包含版權聲明
+
+### 12.2 編碼標準
+- [ ] **PEP 8 合規**：運行 `flake8` 無錯誤
+- [ ] **類型檢查**：運行 `mypy --strict` 無錯誤
+- [ ] **格式化**：使用 `black` 格式化所有代碼
+
+## 審查完成確認
+
+### 必須通過項目（P0）
+- [ ] 所有 P0 技術債務已解決
+- [ ] 無已知安全漏洞
+- [ ] 測試覆蓋率 >80%
+- [ ] 文檔完整且更新
+
+### 審查簽核
+- [ ] **技術負責人審查**：_______________（簽名/日期）
+- [ ] **安全團隊審查**：_______________（簽名/日期）
+- [ ] **SRE 團隊審查**：_______________（簽名/日期）
+
+## 持續改進追蹤
+
+### 下次審查項目
+1. Terraform 模組實現
+2. Canary 部署策略
+3. 5 Whys postmortem 模板
+4. OpenTelemetry 整合
+
+### 版本更新計劃
+- ADK v1.3.0 升級評估（預計 2025 Q2）
+- 依賴庫季度更新
+- 安全補丁月度檢查
+
+---
+
+**注意事項**：
+1. 本清單為最低要求，團隊可根據需要添加額外檢查項
+2. 任何 P0 項目未通過都應阻止部署
+3. 審查結果應存檔至少 6 個月
+4. 每季度更新清單以反映最新最佳實踐
+
+**最後更新者**：Google ADK 首席架構師  
+**下次審查日期**：2025-11-24

@@ -2,7 +2,7 @@
 
 本文件追蹤 SRE Assistant 專案剩餘的開發與優化任務。
 
-## P1 - 短期改進 (預計一週內完成)
+- **[ ] 認證授權工廠模式設計**：[auth-factory.md](auth-factory.md)
 
 - **[ ] SRE 量化指標**
     - [ ] 實作覆盤用的「五個為什麼 (5 Whys)」模板。
@@ -12,20 +12,28 @@
     - [ ] 開發 API 端到端測試。
     - [ ] 建立性能基準測試套件。
 
-## P2 - 中期優化 (預計 2-4 週內完成)
-
 - **[ ] 可觀測性增強**
     - [ ] 整合 OpenTelemetry 以進行追蹤 (traces) 與指標 (metrics)。
     - [ ] 跨服務實現分散式追蹤。
     - [ ] 為關鍵操作定義並匯出客製化指標。
+
+- **[ ] 建議的部署策略**
+   - **開發環境**：Local + PostgreSQL
+   - **測試環境**：Cloud Run + Weaviate
+   - **生產環境**：Agent Engine + Weaviate（成本效益）或 Vertex AI（全託管）
+
+- **[ ] 監控和維護**：
+   - 使用已實現的 SREErrorBudgetManager 監控服務健康
+   - 透過 VersionedToolRegistry 管理工具升級
+   - 利用配置系統實現零停機部署
+
 - **[ ] 部署優化**
     - [ ] 實作金絲雀 (Canary) 部署策略。
     - [ ] 新增對藍綠 (Blue-Green) 部署的支援。
     - [ ] 建立在 SLO 違規或部署失敗時的自動回滾機制。
-
-## P3 - 長期改進
-
+ 
 - **[ ] 基礎設施即程式碼 (Infrastructure as Code)**
     - [ ] 開發 Terraform 模組以部署代理及其依賴項。
+
 - **[ ] 容器化**
     - [ ] 進行 Docker 映像檔優化 (例如，使用更小的基礎映像、多階段建置)。
