@@ -32,15 +32,24 @@ SRE Assistant 是基於 Google ADK 的智慧型 SRE 助理，採用**進階工�
 
 ```mermaid
 graph TD
-    subgraph "User Interface Layer"
+    subgraph "User Interface (Clients)"
         UI[REST API / SSE / Web UI]
     end
 
-    subgraph "ADK Core"
-        Runner[ADK Runner + Session/Memory Services]
+    subgraph "ADK Runtime"
+        Runner[ADK Runner]
     end
 
-    subgraph "SRE Workflow Coordinator (SequentialAgent)"
+    subgraph "SRE Assistant Core Services"
+        direction TB
+        Auth[Auth Manager]
+        Config[Config Manager]
+        Memory[Memory Service]
+        Session[Session Service]
+        SLO[SLO Manager]
+    end
+
+    subgraph "SRE Workflow (SREWorkflow)"
         direction LR
         A[Phase 1: Parallel Diagnostics] --> B[Phase 2: Conditional Remediation]
         B --> C[Phase 3: Postmortem]
@@ -54,7 +63,7 @@ graph TD
         P3[Trace Analyzer]
     end
 
-    subgraph "Phase 2 Details (Conditional Logic)"
+    subgraph "Phase 2 Details (ConditionalRemediation)"
         direction TB
         C1{Severity Check} -- P0 --> C2[HITL Remediation]
         C1 -- P1 --> C3[Automated Remediation]
@@ -69,16 +78,24 @@ graph TD
     end
 
     UI --> Runner
-    Runner --> A
+    Runner --> SREWorkflow
 
-    A -- Contains --> P1
-    A -- Contains --> P2
-    A -- Contains --> P3
+    SREWorkflow -- Uses --> Auth
+    SREWorkflow -- Uses --> Config
+    SREWorkflow -- Uses --> Memory
+    SREWorkflow -- Uses --> Session
+    SREWorkflow -- Uses --> SLO
 
+    SREWorkflow -- Contains --> A
+    SREWorkflow -- Contains --> B
+    SREWorkflow -- Contains --> C
+    SREWorkflow -- Contains --> D
+
+    A -- Contains --> P1 & P2 & P3
     B -- Contains --> C1
-
     D -- Contains --> L1
 
+    style SREWorkflow fill:#bbf,stroke:#333,stroke-width:2px
     style A fill:#cde4ff
     style B fill:#cde4ff
     style C fill:#cde4ff
@@ -92,36 +109,115 @@ graph TD
 ```bash
 sre_assistant/
 ├── __init__.py                 # A2A 暴露和服務註冊
+├── README.md                   # SRE Assistant 模組說明
 ├── workflow.py                 # SREWorkflow 工作流程協調器
 ├── contracts.py                # Pydantic 資料模型
 ├── tools.py                    # 版本化工具註冊表
+├── citation_manager.py         # RAG 引用格式管理
+├── slo_manager.py              # SLO/錯誤預算管理器
+├── prompts.py                  # 共享的 Prompt 模板
+├── response_quality.py         # 回應品質評估工具
+├── memory.py                   # (待釐清，可能與 memory/ 衝突)
+│
+├── a2a/                        # A2A (Agent-to-Agent) 協議實作
+│   └── protocol.py
 │
 ├── auth/                       # 認證授權模組
+│   ├── __init__.py
 │   ├── auth_factory.py         # 認證提供者工廠
 │   └── auth_manager.py         # 統一管理器 (含速率限制、審計)
 │
-├── citation_manager.py         # RAG 引用格式管理
+├── config/                     # 配置管理系統
+│   ├── config_manager.py       # 三層配置管理器
+│   ├── base.yaml               # 基礎配置
+│   └── environments/           # 環境特定配置
+│       ├── development.yaml
+│       ├── production.yaml
+│       └── staging.yaml
 │
-├── memory/                     # 記憶體與持久化模組
-│   ├── backend_factory.py      # 向量數據庫後端工廠
-│   └── session/
-│       └── firestore_task_store.py # Session 持久化
+├── deployment/                 # 部署工廠
+│   └── deployment_factory.py
 │
-├── sub_agents/
+├── memory/                     # 長期記憶體 (RAG) 模組
+│   └── backend_factory.py      # 向量數據庫後端工廠
+│
+├── session/                    # 會話 (短期記憶) 持久化模組
+│   └── firestore_task_store.py # Firestore 會話存儲
+│
+├── sub_agents/                 # 領域專家代理
+│   ├── __init__.py
 │   ├── diagnostic/             # 診斷專家 (含 RAG)
 │   ├── remediation/            # 修復專家 (含 HITL)
 │   ├── postmortem/             # 覆盤專家 (含報告生成)
 │   └── config/                 # 配置專家 (含 IaC)
 │
-└── tests/                      # 測試
-    ├── test_workflow.py        # 工作流程整合測試
-    ├── test_auth.py            # 認證授權測試
-    └── test_contracts.py       # 契約測試
+├── tests/                      # 測試套件
+│   ├── test_agent.py           # 工作流程整合測試
+│   ├── test_auth.py            # 認證授權測試
+│   ├── test_contracts.py       # Pydantic 契約測試
+│   ├── test_citation.py        # 引用系統測試
+│   ├── test_concurrent_sessions.py # 並發會話測試
+│   ├── test_session.py         # 會話持久化測試
+│   └── verify_config.py        # 配置驗證腳本
+│
+├── utils/                      # 通用工具函式
+│   └── a2a_client.py
+│
+└── Eval/                       # 評估框架
+    └── evaluation.py
 ```
 
-## 2. 核心模組設計
+## 2. 核心模組與服務設計
 
-### 2.1 主工作流程 (SREWorkflow)
+### 2.1 核心服務模組 (Core Service Modules)
+
+除了主工作流程外，SRE Assistant 還包含一系列核心服務模組，為整個系統提供基礎支撐。
+
+#### 2.1.1 配置管理 (`config/`)
+
+- **實作**: `sre_assistant/config/config_manager.py`
+- **設計**: 系統採用一個強大的**三層配置架構**，以提供最大的靈活性和環境隔離。
+    1.  **基礎配置 (`base.yaml`)**: 定義所有環境共享的預設值。
+    2.  **環境配置 (`environments/*.yaml`)**: 為特定環境（如 `development`, `staging`, `production`）提供專屬配置，並覆寫基礎值。
+    3.  **環境變數覆寫**: 在啟動時，可以透過環境變數覆寫任何配置，這是容器化部署（如 Docker, Kubernetes）的最佳實踐。
+- **功能**: `ConfigManager` 是一個單例服務，它在啟動時自動載入、深度合併和驗證（使用 Pydantic）所有配置層，確保整個應用程式在執行期間都能安全、一致地存取配置。
+
+#### 2.1.2 認證授權 (`auth/`)
+
+- **實作**: `sre_assistant/auth/auth_manager.py`, `auth_factory.py`
+- **設計**: 一個基於**工廠模式**的認證授權系統。`AuthFactory` 根據配置動態創建不同的認證提供者（如 Google IAM, OAuth2, API Key），而 `AuthManager` 作為統一的入口，處理所有安全相關操作。
+- **功能**:
+    - **多提供者支援**: 靈活適應不同部署環境的安全要求。
+    - **RBAC**: 支援基於角色的存取控制。
+    - **安全中間件**: 整合了速率限制、審計日誌和安全快取功能。
+
+#### 2.1.3 會話持久化 (`session/`)
+
+- **實作**: `sre_assistant/session/firestore_task_store.py`
+- **設計**: 將會話（短期記憶）管理與長期記憶（RAG）分離，是一個獨立的模組。
+- **功能**: 目前的核心實作是 `FirestoreTaskStore`，它將每個任務 (Task/Session) 的狀態作為一個文檔存儲在 Google Cloud Firestore 中。這確保了服務在無狀態、可水平擴展的環境（如 Cloud Run, GKE）中重啟或擴展時，用戶的對話狀態不會遺失。
+
+#### 2.1.4 長期記憶 (`memory/`)
+
+- **實作**: `sre_assistant/memory/backend_factory.py`
+- **設計**: 系統的長期記憶（用於 RAG）是透過一個**向量數據庫後端工廠** `MemoryBackendFactory` 來管理的。
+- **功能**: 提供一個統一的 `VectorBackend` 接口，並透過工廠模式支援多種後端，包括 `Weaviate`、`PostgreSQL (pgvector)` 和 `VertexAIBackend` (Vertex AI Vector Search)，使得在不同環境中切換知識庫後端變得輕而易舉。
+
+#### 2.1.5 SLO 管理 (`slo_manager.py`)
+
+- **實作**: `sre_assistant/slo_manager.py`
+- **設計**: `SREErrorBudgetManager` 是對 Google SRE 手冊中錯誤預算理念的直接程式碼實現。
+- **功能**:
+    - **計算錯誤預算**: 根據配置的 SLO 目標（如 99.9%）計算允許的錯誤量。
+    - **多窗口燃燒率警報**: 實作了基於多個時間窗口（如 1 小時、6 小時、3 天）的燃燒率計算和警報機制。這可以幫助團隊區分需要立即處理的緊急事件和需要關注的長期趨勢，避免警報疲勞。
+
+#### 2.1.6 其他模組
+- **`deployment/`**: 包含一個部署工廠，用於根據配置創建和管理不同平台的部署資源。
+- **`a2a/`**: 實現了 Agent-to-Agent 通訊協議，允許 SRE Assistant 與其他外部代理進行協作。
+- **`utils/`**: 提供跨模組共享的通用工具函式。
+- **`Eval/`**: 包含了用於評估代理性能和準確性的框架和腳本。
+
+### 2.2 主工作流程 (SREWorkflow)
 
 `SREWorkflow` 是系統的核心，它繼承自 `SequentialAgent`，負責按順序調度四個主要階段：
 

@@ -36,9 +36,13 @@ poetry run pytest
 ```
 
 測試套件包含：
-- **整合測試** (`test_agent.py`): 驗證 `SRECoordinator` 的初始化與基本工作流程。
+- **整合測試** (`test_agent.py`): 驗證 `SREWorkflow` 的初始化與核心工作流程。
+- **認證測試** (`test_auth.py`): 驗證 `AuthManager` 和 `AuthFactory` 的功能。
+- **引用測試** (`test_citation.py`): 確保 RAG 的引用能被正確格式化。
+- **並發測試** (`test_concurrent_sessions.py`): 確保系統能處理多個並發會話而不會產生競爭條件。
 - **契約測試** (`test_contracts.py`): 使用基於屬性的測試 (Hypothesis) 來驗證 Pydantic 資料模型。
-- **並發測試** (`test_concurrent_sessions.py`): 確保系統能夠處理多個並發會話而不會產生競爭條件。
+- **會話測試** (`test_session.py`): 驗證會話狀態的持久化與讀取。
+- **配置驗證** (`verify_config.py`): 一個用於檢查配置完整性的腳本。
 
 ## 目前狀態
 
