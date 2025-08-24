@@ -2,40 +2,72 @@
 
 ## 執行摘要
 
-SRE Assistant 是基於 Google ADK 的智慧型 SRE 助理，採用多代理架構實現自動化診斷、修復、覆盤和配置管理。採用 SequentialAgent 作為主協調器，統籌管理四個專業子代理，並整合 HITL (Human-in-the-Loop)、RAG (Retrieval-Augmented Generation)、多種觀測工具，提供端到端的 SRE 工作流自動化。
+SRE Assistant 是基於 Google ADK 的智慧型 SRE 助理，採用**進階工作流程 (Advanced Workflow)** 架構，實現自動化診斷、修復、覆盤和配置優化。此架構以 `SREWorkflow` 為核心，透過組合 `ParallelAgent`、`ConditionalRemediation` (條件代理) 和 `LoopAgent` (循環代理) 等模式，取代了原有的簡單 `SequentialAgent` 模型，提供更高效、更靈活的 SRE 自動化能力。
 
 ## 1. 系統架構概覽
 
 ### 1.1 核心架構模式
 
-基於 ADK 的多代理架構，支援層級化設計：
-- **根代理**：使用 `SequentialAgent` 協調子代理
-- **子代理**：使用 `LlmAgent` 實現領域專家邏輯
-- **工具層**：`FunctionTool` 和 `LongRunningFunctionTool` 實現
-- **記憶體**：透過自訂 `SessionService` 整合 Spanner/Vertex RAG
+基於 ADK 的**工作流程驅動多代理架構**，其特點如下：
+- **工作流程核心**：使用 `SREWorkflow` (`SequentialAgent`) 作為頂層協調器，定義了清晰的自動化階段。
+- **並行處理**：在診斷階段，使用 `ParallelAgent` 同時運行多個分析工具，大幅縮短問題定位時間。
+- **條件邏輯**：`ConditionalRemediation` 代理根據事件的嚴重性動態選擇不同的修復路徑（如自動化修復或人工介入）。
+- **迭代優化**：`LoopAgent` 用於需要持續調整的任務，如 SLO 配置優化，直到滿足終止條件。
+- **領域專家**：各階段由專門的子代理負責，如 `DiagnosticAgent`、`RemediationAgent` 等。
 
-```
-┌──────────────────────────────────────────────────────┐
-│                    User Interface Layer              │
-│           REST API | SSE | ADK Web Dev UI            │
-└──────────────────────────────────────────────────────┘
-                         │
-┌──────────────────────────────────────────────────────┐
-│                 ADK Runner + Sessions                │
-│              (google.adk.runners.Runner)             │
-└──────────────────────────────────────────────────────┘
-                         │
-┌──────────────────────────────────────────────────────┐
-│          Coordinator (SequentialAgent)               │
-│              sre_assistant/agent.py                  │
-└──────────────────────────────────────────────────────┘
-                         │
-    ┌────────────────────┴────────────────────┐
-    ▼                                         ▼
-┌──────────┐  ┌───────────┐  ┌───────────┐  ┌──────────┐
-│Diagnostic│  │Remediation│  │Postmortem │  │Config    │
-│Expert    │  │Expert     │  │Expert     │  │Expert    │
-└──────────┘  └───────────┘  └───────────┘  └──────────┘
+```mermaid
+graph TD
+    subgraph "User Interface Layer"
+        UI[REST API / SSE / Web UI]
+    end
+
+    subgraph "ADK Core"
+        Runner[ADK Runner + Session/Memory Services]
+    end
+
+    subgraph "SRE Workflow Coordinator (SequentialAgent)"
+        direction LR
+        A[Phase 1: Parallel Diagnostics] --> B[Phase 2: Conditional Remediation]
+        B --> C[Phase 3: Postmortem]
+        C --> D[Phase 4: Iterative Optimization]
+    end
+
+    subgraph "Phase 1 Details (ParallelAgent)"
+        direction TB
+        P1[Metrics Analyzer]
+        P2[Log Analyzer]
+        P3[Trace Analyzer]
+    end
+
+    subgraph "Phase 2 Details (Conditional Logic)"
+        direction TB
+        C1{Severity Check} -- P0 --> C2[HITL Remediation]
+        C1 -- P1 --> C3[Automated Remediation]
+        C1 -- P2 --> C4[Scheduled Remediation]
+    end
+
+    subgraph "Phase 4 Details (LoopAgent)"
+        direction TB
+        L1(Tune SLO) --> L2{SLO Met?}
+        L2 -- No --> L1
+        L2 -- Yes --> L3(End)
+    end
+
+    UI --> Runner
+    Runner --> A
+
+    A -- Contains --> P1
+    A -- Contains --> P2
+    A -- Contains --> P3
+
+    B -- Contains --> C1
+
+    D -- Contains --> L1
+
+    style A fill:#cde4ff
+    style B fill:#cde4ff
+    style C fill:#cde4ff
+    style D fill:#cde4ff
 ```
 
 ### 1.2 目錄結構
@@ -45,80 +77,94 @@ SRE Assistant 是基於 Google ADK 的智慧型 SRE 助理，採用多代理架�
 ```bash
 sre_assistant/
 ├── __init__.py                 # A2A 暴露和服務註冊
-├── agent.py                    # SequentialAgent 協調器
+├── workflow.py                 # SREWorkflow 工作流程協調器
 ├── contracts.py                # Pydantic 資料模型
-├── memory.py                   # 記憶體系統配置
 ├── tools.py                    # 版本化工具註冊表
-├── auth_factory.py             # 認證授權工廠（P0 新增）
-├── citation_manager.py         # 引用格式管理（P0 新增）
 │
-├── sub_agents/                 
-│   ├── diagnostic/             # 診斷專家（含 RAG）
-│   ├── remediation/            # 修復專家（含 HITL）
-│   ├── postmortem/             # 覆盤專家（含報告生成）
-│   └── config/                 # 配置專家（含 IaC）
+├── auth/                       # 認證授權模組
+│   ├── auth_factory.py         # 認證提供者工廠
+│   └── auth_manager.py         # 統一管理器 (含速率限制、審計)
 │
-├── integrations/               # 外部整合（P1 新增）
-│   ├── github_tracker.py       # GitHub Issues 整合
-│   ├── mcp_toolbox.py          # MCP 資料庫工具
-│   └── cost_advisor.py         # 成本優化顧問
+├── citation_manager.py         # RAG 引用格式管理
 │
-├── evaluation/                 
-│   └── sre_evaluator.py       # SRE 特定評估指標
+├── memory/                     # 記憶體與持久化模組
+│   ├── backend_factory.py      # 向量數據庫後端工廠
+│   └── session/
+│       └── firestore_task_store.py # Session 持久化
 │
-├── deployment/                 
-│   ├── terraform/             # IaC 模組（P2）
-│   ├── docker/                # 容器配置
-│   └── k8s/                   # Kubernetes 部署
+├── sub_agents/
+│   ├── diagnostic/             # 診斷專家 (含 RAG)
+│   ├── remediation/            # 修復專家 (含 HITL)
+│   ├── postmortem/             # 覆盤專家 (含報告生成)
+│   └── config/                 # 配置專家 (含 IaC)
 │
-└── tests/                      
-    ├── test_agent.py          # 整合測試
-    ├── test_contracts.py      # 契約測試
-    ├── test_concurrent.py     # 並發測試
-    └── test_e2e.py            # 端到端測試（P1）
+├── test/                       # 舊測試 (待遷移)
+└── tests/                      # 新測試
+    ├── test_workflow.py        # 工作流程整合測試
+    ├── test_auth.py            # 認證授權測試
+    └── test_contracts.py       # 契約測試
 ```
 
 ## 2. 核心模組設計
 
-### 2.1 主協調器 (SequentialAgent)
+### 2.1 主工作流程 (SREWorkflow)
 
-負責工作流程協調，依序調用專家代理：
+`SREWorkflow` 是系統的核心，它繼承自 `SequentialAgent`，負責按順序調度四個主要階段：
 
 ```python
-class SRECoordinator(SequentialAgent):
-    def __init__(self):
+class SREWorkflow(SequentialAgent):
+    """
+    主工作流程：實現一個基於工作流程的 SRE 自動化過程。
+    """
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        # --- 階段 1: 並行診斷 (帶引用) ---
+        diagnostic_phase = CitingParallelDiagnosticsAgent(...)
+
+        # --- 階段 2: 條件化修復 ---
+        remediation_phase = ConditionalRemediation(...)
+
+        # --- 階段 3: 覆盤 ---
+        postmortem_phase = PostmortemAgent(...)
+
+        # --- 階段 4: 迭代優化 ---
+        optimization_phase = IterativeOptimization(...)
+
         super().__init__(
-            name="sre_coordinator",
-            agents=[
-                DiagnosticExpert(),
-                RemediationExpert(),
-                PostmortemExpert(),
-                ConfigExpert()
-            ],
-            # P0: 整合認證工廠
-            auth_provider=AuthFactory.create("production")
+            name="SREWorkflowCoordinator",
+            sub_agents=[
+                diagnostic_phase,
+                remediation_phase,
+                postmortem_phase,
+                optimization_phase
+            ]
         )
 ```
 
-### 2.2 認證授權工廠（P0 新增）
+### 2.2 認證授權系統
 
-統一管理多種認證方式：
+系統內建一個強大的認證授權模組，透過工廠模式提供靈活性和可擴展性。
+
+- **AuthFactory**: 根據配置創建不同的認證提供者 (IAM, OAuth2, API Key, JWT, mTLS, Local)。
+- **AuthManager**: 作為單例，統一處理認證、授權、速率限制、審計日誌和快取。
+- **AuthProvider**: 定義了所有提供者必須實現的統一介面。
 
 ```python
-class AuthFactory:
-    @staticmethod
-    def create(environment: str) -> AuthProvider:
-        if environment == "production":
-            return IAMAuthProvider()
-        elif environment == "development":
-            return LocalAuthProvider()
-        else:
-            return OAuth2Provider()
+# sre_assistant/auth/auth_manager.py
+class AuthManager:
+    def __init__(self):
+        # 根據配置創建提供者
+        self.provider = AuthFactory.create(config)
+
+    async def authenticate(...) -> bool: ...
+    async def authorize(...) -> bool: ...
 ```
 
-### 2.3 RAG 引用系統（P0 新增）
+### 2.3 RAG 引用系統
 
-標準化引用格式管理：
+為了確保所有由 LLM 生成的內容都有據可循，系統包含一個 `SRECitationFormatter`。
+
+- **統一格式**: 將來自不同源頭 (文件、配置、日誌) 的證據格式化為標準引用。
+- **自動整合**: `CitingParallelDiagnosticsAgent` 在診斷流程結束時，會自動收集所有工具產生的證據，並使用 `SRECitationFormatter` 進行格式化，附加到最終輸出中。
 
 ```python
 class SRECitationFormatter:
@@ -159,25 +205,21 @@ class SRECitationFormatter:
 
 ## 4. 記憶體與會話管理
 
-### 4.1 Session 管理（P0 優化）
+### 4.1 Session 持久化
 
-```python
-# 從 InMemory 遷移到 Vertex AI
-session_service = VertexAiSessionService(
-    project_id=PROJECT_ID,
-    location=LOCATION
-)
-```
+會話狀態的持久化是透過一個可插拔的後端實現的，目前的核心實作是 `FirestoreTaskStore`。
 
-### 4.2 Memory 管理（P0 優化）
+- **實作**: `sre_assistant/session/firestore_task_store.py`
+- **功能**: 將每個任務 (Task/Session) 的狀態作為一個文檔存儲在 Google Cloud Firestore 中，確保了服務在重啟或擴展時的狀態一致性。
+- **對應 `TASKS.md`**: 這實現了 "遷移到 `VertexAiSessionService`" 的目標，因為 Firestore 是 Vertex AI Agent Builder 的底層會話管理技術之一。
 
-```python
-# 使用 Vertex AI Memory Bank
-memory_service = VertexAiMemoryBankService(
-    corpus_id=CORPUS_ID,
-    agent_engine_id=AGENT_ENGINE_ID
-)
-```
+### 4.2 Memory (RAG) 持久化
+
+系統的長期記憶 (用於 RAG) 是透過一個向量數據庫後端工廠 `MemoryBackendFactory` 來管理的。
+
+- **實作**: `sre_assistant/memory/backend_factory.py`
+- **功能**: 提供一個統一的 `VectorBackend` 接口，並透過工廠模式支援多種後端，包括 `Weaviate`、`PostgreSQL (pgvector)` 和 `VertexAIBackend` (Vertex AI Vector Search)。
+- **對應 `TASKS.md`**: `VertexAIBackend` 的實作完成了 "實作 `VertexAiMemoryBankService`" 的目標。
 
 ## 5. 外部整合（P1 新增）
 
@@ -304,23 +346,23 @@ class RemoteAgentClient:
 
 ## 12. 實施路線圖
 
-### Phase 1: 基礎強化（當前 - 2週）
-- ✅ 四大專家代理基礎實作
-- ⏳ P0 認證授權系統
-- ⏳ P0 RAG 引用系統  
-- ⏳ P0 Session/Memory 持久化
+### Phase 0: 核心架構重構 (已完成)
+- ✅ **工作流程架構**: 從簡單 `SequentialAgent` 遷移到 `SREWorkflow`，整合並行、條件和循環模式。
+- ✅ **認證授權系統**: 實現 `AuthFactory` 和 `AuthManager`，支援多種認證方式、RBAC、速率限制和審計。
+- ✅ **RAG 引用系統**: 實作 `SRECitationFormatter` 並整合到診斷流程中。
+- ✅ **Session/Memory 持久化**: 透過 `FirestoreTaskStore` 和 `MemoryBackendFactory` (含 `VertexAIBackend`) 實現持久化。
 
-### Phase 2: 功能擴展（3-8週）
-- 📋 P1 GitHub 整合
-- 📋 P1 SRE 量化指標
-- 📋 P1 迭代優化框架
-- 📋 P1 MCP 工具箱
+### Phase 1: 功能擴展 (下一步)
+- 📋 **P1 GitHub 整合**: 自動化事件追蹤。
+- 📋 **P1 SRE 量化指標**: 實現完整的 SLO 管理和 5 Whys 模板。
+- 📋 **P1 迭代優化框架**: 完善 `SLOTuningAgent` 等的內部邏輯。
+- 📋 **P1 端到端測試**: 為 HITL 和 API 添加完整的測試。
 
-### Phase 3: 企業就緒（長期）
-- 📋 P2 A2A 協議
-- 📋 P2 多模態分析
-- 📋 P2 成本優化
-- 📋 P2 進階部署
+### Phase 2: 企業就緒（長期）
+- 📋 **P2 A2A 協議**: 實現跨代理服務發現與通訊。
+- 📋 **P2 多模態分析**: 支援監控面板截圖分析。
+- 📋 **P2 可觀測性**: 整合 OpenTelemetry。
+- 📋 **P2 部署與成本優化**: 實現進階部署策略和成本分析。
 
 ## 13. 技術債務管理
 
@@ -328,16 +370,19 @@ class RemoteAgentClient:
 
 | 項目 | 影響 | 優先級 | 計劃 |
 |------|------|--------|------|
-| 測試覆蓋率不足 | 中 | P1 | 增加到 80% |
-| 文檔更新滯後 | 低 | P2 | 自動化文檔生成 |
+| 測試覆蓋率不足 | 中 | P1 | 為 P0 新增的工作流程和模組增加單元和整合測試，目標覆蓋率 80%。 |
+| 文檔更新滯後 | 低 | P2 | 考慮引入自動化工具從程式碼註解生成部分文檔。 |
 
 ## 14. 關鍵設計決策
 
-### 14.1 為何選擇 SequentialAgent
+### 14.1 為何選擇工作流程 (Workflow) 架構
 
-- **優點**：清晰的工作流程、易於調試
-- **缺點**：較低的並行度
-- **權衡**：SRE 工作流程本質上是順序的
+- **問題**: 傳統的 `SequentialAgent` 無法高效處理複雜的 SRE 場景，例如，無法同時分析日誌和指標，也無法根據問題嚴重性採取不同措施。
+- **解決方案**: 採用了以 `SREWorkflow` 為核心的混合式工作流程架構。
+  - **並行效率**: `ParallelAgent` 允許併發執行多個診斷任務，將診斷時間從幾分鐘縮短到幾十秒。
+  - **決策靈活性**: `ConditionalRemediation` 代理可以根據數據動態決定是自動修復、請求人工批准 (HITL) 還是僅發出警報，從而提高了安全性與自動化程度。
+  - **持續改進**: `LoopAgent` 使得代理能夠自我迭代和優化，例如不斷調整配置直到 SLO 達標，實現了真正的自動化運維閉環。
+- **權衡**: 這種架構雖然比單純的 `SequentialAgent` 複雜，但它帶來的性能、靈活性和可擴展性對於 SRE 自動化場景是至關重要的。
 
 ### 14.2 為何實現工廠模式
 
