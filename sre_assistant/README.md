@@ -4,14 +4,14 @@
 
 ## 架構概覽
 
-本助理採用以 `SRECoordinator` (`SequentialAgent`) 為核心的多代理架構，依序調度四個專家子代理：
+本助理採用以 `SREWorkflow` 為核心的**進階工作流程 (Advanced Workflow)** 架構，取代了原有的簡單循序模型。該工作流程定義了清晰的自動化階段：
 
-1.  **DiagnosticExpert (診斷專家)**: 負責並行分析指標、日誌和追蹤，找出問題根因。
-2.  **RemediationExpert (修復專家)**: 根據診斷結果執行修復操作。
-3.  **PostmortemExpert (覆盤專家)**: 在事件解決後生成事後檢討報告。
-4.  **ConfigExpert (配置專家)**: 根據覆盤建議優化系統配置。
+1.  **並行診斷 (Parallel Diagnostics)**: 使用 `ParallelAgent` 同時分析指標、日誌和追蹤，以快速定位問題。
+2.  **條件修復 (Conditional Remediation)**: 根據問題的嚴重性，動態選擇不同的修復策略，如全自動修復、需要人工審批 (HITL) 的修復等。
+3.  **覆盤 (Postmortem)**: 事件解決後，自動生成事後檢討報告。
+4.  **迭代優化 (Iterative Optimization)**: 使用 `LoopAgent` 持續調整系統配置，直到滿足預設的 SLO 目標。
 
-詳細的設計請參閱專案根目錄下的 `ARCHITECTURE.md` 文件。
+這種基於工作流程的架構提供了更高的效率、靈活性和安全性。詳細的設計請參閱專案根目錄下的 `ARCHITECTURE.md` 文件。
 
 ## 開發環境設置
 
@@ -42,10 +42,12 @@ poetry run pytest
 
 ## 目前狀態
 
-本專案已完成重大的重構與功能增強。已完成的關鍵里程碑包括：
+本專案已完成 P0 階段的核心架構重構與功能開發，達成了以下關鍵里程碑：
+
+- **工作流程架構 (Workflow Architecture)**: 核心邏輯已從簡單的循序代理重構為一個包含並行、條件和循環模式的進階工作流程，顯著提升了處理效率和靈活性。
+- **認證授權系統 (Auth System)**: 內建一個基於工廠模式的強大認證授權系統，支援 IAM, OAuth2, API Key 等多種方式，並包含速率限制、審計日誌和 RBAC 功能。
+- **RAG 引用系統 (RAG Citation System)**: 實作了標準化的引用格式化工具 (`SRECitationFormatter`)，確保所有 AI 生成的分析結果都有據可循。
+- **持久化 Session/Memory**: 實現了基於 Firestore 的會話持久化和基於 `MemoryBackendFactory` (支援 Vertex AI) 的向量記憶體持久化。
 - **進階配置系統**: 一個三層配置系統（基礎、環境、環境變數），用於彈性部署。
-- **穩健的記憶體管理**: 使用官方 ADK API 進行記憶體與檢索，並採用工廠模式以支援多種後端（Weaviate, PostgreSQL, Vertex AI）。
 - **版本化工具註冊表**: 一個 `VersionedToolRegistry` 用於管理工具版本並確保相容性。
-- **量化的 SRE 指標**: 實作了 `SREErrorBudgetManager` 以進行 SLO 追蹤。
-- **增強的 A2A 協議**: 一個穩健的代理對代理 (Agent-to-Agent) 實作，支援串流與回呼。
 - **全面的測試**: 測試套件已擴展，包含契約測試與並發測試。
