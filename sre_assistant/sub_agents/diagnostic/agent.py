@@ -17,34 +17,76 @@ from .tools import (
 from .prompts import DIAGNOSTIC_PROMPT
 from ...citation_manager import SRECitationFormatter
 from typing import List, Dict, Any, AsyncGenerator
+import json
+from google.adk.tools import agent_tool
 
 class DiagnosticAgent(LlmAgent):
     """
     診斷專家：整合多源數據進行根因分析
-    參考 ADK Sample: RAG agent, software-bug-assistant
-
-    此代理的核心職責是利用其工具集收集數據，並根據其指示 (instruction)
-    來分析數據，最終生成一份結構化的診斷報告。
+    增強版本包含自動嚴重性評估
     """
 
-    def __init__(self, config=None, instruction=DIAGNOSTIC_PROMPT.base, tools=None):
+    def __init__(self, config=None, instruction=None, tools=None):
         """
         初始化診斷代理。
-
-        Args:
-            config (dict, optional): 代理的配置。 Defaults to None.
-            instruction (str, optional): 指導模型行為的系統指令。預設為基礎診斷提示。
-            tools (list, optional): 此代理可用的工具列表。如果未提供，則載入所有診斷工具。
         """
+        # 增強的指令，包含嚴重性評估
+        enhanced_instruction = (instruction or DIAGNOSTIC_PROMPT.base) + """
+
+        **重要**: 在診斷結束時，你必須評估問題的嚴重性並設置 severity 級別：
+        - P0: 生產環境完全不可用，影響所有用戶
+        - P1: 生產環境部分不可用，影響大量用戶
+        - P2: 功能降級但可用，影響部分用戶
+        - P3: 非關鍵問題，影響少數用戶或無用戶影響
+
+        使用 set_severity 工具來設置評估的嚴重性級別。
+        """
+
+        # 添加嚴重性設置工具
+        severity_tool = self._create_severity_tool()
+        all_tools = (tools or self._load_all_tools()) + [severity_tool]
+
         super().__init__(
-            # 註：ADK 的 LlmAgent 需要一個 name 和 model 參數。
             name="DiagnosticExpert",
             model="gemini-1.5-flash-001",
-            tools=tools or self._load_all_tools(),
-            instruction=instruction
+            tools=all_tools,
+            instruction=enhanced_instruction
         )
-        # 註：config 參數暫時保留，以備將來擴展，但目前不在代理中使用。
-        # self.config = config or {} # 移除此行以避免 Pydantic 驗證錯誤
+
+    def _create_severity_tool(self):
+        """創建用於設置嚴重性的工具"""
+
+        @agent_tool
+        def set_severity(
+            severity: str,
+            reason: str,
+            impact_assessment: Dict[str, Any]
+        ) -> Dict[str, Any]:
+            """
+            設置事件的嚴重性級別。
+
+            Args:
+                severity: P0, P1, P2 或 P3
+                reason: 設置此嚴重性的原因
+                impact_assessment: 影響評估，包含：
+                    - affected_users: 受影響用戶數量或百分比
+                    - affected_services: 受影響服務列表
+                    - business_impact: 業務影響描述
+                    - error_rate: 錯誤率
+                    - response_time_degradation: 響應時間降級百分比
+
+            Returns:
+                確認嚴重性設置的結果
+            """
+            # 這個工具會自動更新 context.state
+            return {
+                "status": "success",
+                "severity_set": severity,
+                "reason": reason,
+                "impact": impact_assessment
+            }
+
+        return set_severity
 
     def _load_all_tools(self):
         """載入所有可用的診斷工具函數。"""
@@ -57,25 +99,28 @@ class DiagnosticAgent(LlmAgent):
 
     @classmethod
     def create_metrics_analyzer(cls, config=None):
-        """
-        工廠方法：建立一個專注於**指標分析**的診斷代理實例。
+        """工廠方法：建立專注於指標分析的診斷代理"""
+        metrics_tools = [
+            promql_query,
+            anomaly_detection,
+            cls._create_metrics_severity_evaluator()  # 專門的指標嚴重性評估
+        ]
 
-        此實例被配置為僅使用與指標相關的工具，並遵循專為指標分析設計的提示。
-        這種模式使得我們可以建立多個專注於特定任務的「微代理」。
+        instruction = DIAGNOSTIC_PROMPT.metrics_focus + """
+
+        基於指標分析評估嚴重性時，重點關注：
+        - 錯誤率 > 50% → P0
+        - 錯誤率 > 10% → P1
+        - 響應時間增加 > 5x → P1
+        - 響應時間增加 > 2x → P2
         """
-        metrics_tools = [promql_query, anomaly_detection]
-        return cls(
-            config=config,
-            instruction=DIAGNOSTIC_PROMPT.metrics_focus,
-            tools=metrics_tools
-        )
+
+        return cls(config=config, instruction=instruction, tools=metrics_tools)
 
     @classmethod
     def create_log_analyzer(cls, config=None):
         """
         工廠方法：建立一個專注於**日誌分析**的診斷代理實例。
-
-        此實例被配置為僅使用日誌搜尋工具，並遵循專為日誌分析設計的提示。
         """
         log_tools = [log_search]
         return cls(
@@ -88,54 +133,75 @@ class DiagnosticAgent(LlmAgent):
     def create_trace_analyzer(cls, config=None):
         """
         工廠方法：建立一個專注於**分散式追蹤分析**的診斷代理實例。
-
-        此方法是對 ARCHITECTURE.md 的一個擴展，以滿足 SRECoordinator 中
-        並行診斷 (ParallelAgent) 的需求。
         """
         trace_tools = [trace_analysis]
-        # 未來可以為追蹤分析建立一個專門的提示模板。
         return cls(
             config=config,
-            instruction=DIAGNOSTIC_PROMPT.base, # 暫時使用基礎提示
+            instruction=DIAGNOSTIC_PROMPT.base,
             tools=trace_tools
         )
 
-class CitingDiagnosticAgent(BaseAgent):
-    """
-    一個包裝代理，它運行一個診斷代理，然後從工具調用歷史中提取引用資訊，
-    並將格式化後的引用附加到最終的診斷報告中。
-    """
-    def __init__(self, diagnostic_agent: DiagnosticAgent, **kwargs):
-        super().__init__(**kwargs)
-        self.diagnostic_agent = diagnostic_agent
-        self.citation_formatter = SRECitationFormatter()
+    @staticmethod
+    def _create_metrics_severity_evaluator():
+        """創建基於指標的嚴重性自動評估工具"""
 
-    async def _run_async_impl(self, context: InvocationContext) -> AsyncGenerator[Event, None]:
-        """
-        運行內部診斷代理，收集引用，並格式化最終輸出。
-        """
-        final_event = None
-        # 運行內部代理並收集所有事件
-        async for event in self.diagnostic_agent.run_async(context):
-            yield event
-            if event.type == "result":
-                final_event = event
+        @agent_tool
+        def evaluate_metrics_severity(
+            error_rate: float,
+            response_time_ms: float,
+            baseline_response_time_ms: float,
+            affected_endpoints: list
+        ) -> Dict[str, Any]:
+            """
+            基於指標自動評估嚴重性。
 
-        if final_event is None:
-            # 如果沒有結果事件，則不執行任何操作
-            return
+            Args:
+                error_rate: 當前錯誤率 (0-1)
+                response_time_ms: 當前響應時間（毫秒）
+                baseline_response_time_ms: 基線響應時間（毫秒）
+                affected_endpoints: 受影響的端點列表
 
-        citations = []
-        for turn in context.history:
-            if turn.role == "tool":
-                # 假設工具輸出是一個元組 (result, citation_info)
-                tool_output = turn.content
-                if isinstance(tool_output, tuple) and len(tool_output) == 2:
-                    # 第二個元素是引用字典
-                    citations.append(tool_output[1])
+            Returns:
+                嚴重性評估結果
+            """
+            severity = "P3"  # 默認最低級別
+            reasons = []
 
-        if citations:
-            formatted_citations = self.citation_formatter.format_citations(citations)
-            # 將引用附加到最終結果的內容中
-            original_content = final_event.content or ""
-            final_event.content = f"{original_content}\n\n{formatted_citations}"
+            # 錯誤率評估
+            if error_rate > 0.5:
+                severity = "P0"
+                reasons.append(f"Critical error rate: {error_rate*100:.1f}%")
+            elif error_rate > 0.1:
+                severity = "P1" if severity != "P0" else severity
+                reasons.append(f"High error rate: {error_rate*100:.1f}%")
+            elif error_rate > 0.01:
+                severity = "P2" if severity not in ["P0", "P1"] else severity
+                reasons.append(f"Elevated error rate: {error_rate*100:.1f}%")
+
+            # 響應時間評估
+            if baseline_response_time_ms > 0:
+                degradation = response_time_ms / baseline_response_time_ms
+                if degradation > 5:
+                    severity = "P1" if severity != "P0" else severity
+                    reasons.append(f"Severe response time degradation: {degradation:.1f}x")
+                elif degradation > 2:
+                    severity = "P2" if severity not in ["P0", "P1"] else severity
+                    reasons.append(f"Response time degradation: {degradation:.1f}x")
+
+            # 影響範圍評估
+            critical_endpoints = ["/api/payment", "/api/auth", "/api/checkout"]
+            if any(endpoint in critical_endpoints for endpoint in affected_endpoints):
+                severity = "P1" if severity not in ["P0"] else severity
+                reasons.append("Critical endpoints affected")
+
+            return {
+                "suggested_severity": severity,
+                "reasons": reasons,
+                "metrics": {
+                    "error_rate": error_rate,
+                    "response_time_ms": response_time_ms,
+                    "degradation_factor": response_time_ms / baseline_response_time_ms if baseline_response_time_ms > 0 else 0
+                }
+            }
+
+        return evaluate_metrics_severity
