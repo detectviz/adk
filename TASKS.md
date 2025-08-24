@@ -11,11 +11,11 @@
   - [x] 重構 `SRECoordinator` 採用工作流程架構
   - [x] 實作並行診斷 (`ParallelAgent`)
   - [x] 實作條件修復流程 (`ConditionalAgent`)
-  - [ ] 整合循環優化機制 (`LoopAgent`)
-  - [ ] 參考：[google-adk-workflows](docs/references/adk-samples-agents/google-adk-workflows)
-  - [ ] 參考：`docs/references/adk-python-samples/workflow_triage/` - 動態代理選擇模式
-  - [ ] 參考：`docs/references/adk-python-samples/multi_agent_loop_config/` - 循環工作流程
-  - [ ] 參考：`docs/references/adk-python-samples/parallel_functions/` - 並行執行模式
+  - [x] 整合循環優化機制 (`LoopAgent`)
+  - [x] 參考：[google-adk-workflows](docs/references/adk-samples-agents/google-adk-workflows)
+  - [x] 參考：`docs/references/adk-python-samples/workflow_triage/` - 動態代理選擇模式
+  - [x] 參考：`docs/references/adk-python-samples/multi_agent_loop_config/` - 循環工作流程
+  - [x] 參考：`docs/references/adk-python-samples/parallel_functions/` - 並行執行模式
 
 ### 認證授權系統
 - **[ ] 認證授權工廠模式設計**：[auth-factory.md](auth-factory.md)
