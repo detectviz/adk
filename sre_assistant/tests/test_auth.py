@@ -94,7 +94,7 @@ async def test_jwt_provider():
     authorized = await provider.authorize(user_info, 'deployment', 'restart')
     assert not authorized # Not in permissions claim
 
-    user_info['claims']['permissions'] = ['deployment:restart']
+    user_info['claims'] = {'permissions': ['deployment:restart']}
     authorized = await provider.authorize(user_info, 'deployment', 'restart')
     assert authorized
 

@@ -5,6 +5,29 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
 import json
+import uuid
+
+from sre_assistant.workflow import SREWorkflow
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.session_service import BaseSessionService
+from google.adk.agents.base_agent import BaseAgent
+from google.adk.session import Session
+
+# Mock classes to satisfy Pydantic validation
+class MockSessionService(BaseSessionService):
+    async def create_session(self, **kwargs): pass
+    async def get_session(self, **kwargs): pass
+    async def update_session(self, **kwargs): pass
+    async def delete_session(self, **kwargs): pass
+    async def list_sessions(self, **kwargs): return []
+
+class MockAgent(BaseAgent):
+    async def run_async(self, **kwargs): pass
+
+class MockSession(Session):
+    def __init__(self):
+        super().__init__(session_id="mock_session", session_service=MockSessionService())
+
 
 # 測試場景定義
 TEST_SCENARIOS = {
@@ -65,7 +88,7 @@ class TestE2EWorkflow:
     """端到端工作流程測試套件"""
 
     @pytest.fixture
-    async def mock_workflow(self):
+    def mock_workflow(self):
         """創建模擬的 SREWorkflow"""
         from sre_assistant.workflow import SREWorkflow
 
@@ -107,7 +130,7 @@ class TestE2EWorkflow:
         """測試完整的工作流程"""
 
         # 準備測試上下文
-        context = self._create_test_context(scenario)
+        context = self._create_test_context(scenario, mock_workflow)
 
         # 執行工作流程
         start_time = datetime.utcnow()
@@ -129,11 +152,14 @@ class TestE2EWorkflow:
         except Exception as e:
             pytest.fail(f"Workflow failed for scenario {scenario_name}: {e}")
 
-    def _create_test_context(self, scenario):
+    def _create_test_context(self, scenario, agent):
         """創建測試上下文"""
-        from google.adk.agents.invocation_context import InvocationContext
-
-        context = InvocationContext()
+        context = InvocationContext(
+            session_service=MockSessionService(),
+            invocation_id=f"inv-{uuid.uuid4()}",
+            agent=agent,
+            session=MockSession()
+        )
         context.state = {
             "incident_id": f"test-{datetime.utcnow().timestamp()}",
             "test_scenario": scenario,
@@ -151,15 +177,6 @@ class TestE2EWorkflow:
             f"Expected severity {scenario['expected_severity']}, got {result_context.state.get('severity')}"
 
         # 2. 驗證修復策略選擇
-        # This part is tricky as the agent itself is an object.
-        # We can check the name of the agent that was run.
-        # We need to modify the workflow to store this. For now, we assume it's stored.
-        # Let's modify the placeholder agents to store their name in the context.
-
-        # For now, let's assume the remediation phase stores the chosen agent's name
-        # A better approach would be to check the type of agent selected.
-        # Let's add a state entry in the mock agents.
-
         remediation_agent_name = result_context.state.get("remediation_agent_name")
         assert remediation_agent_name == scenario["expected_remediation"], \
             f"Expected remediation {scenario['expected_remediation']}, got {remediation_agent_name}"
@@ -194,7 +211,6 @@ class TestE2EWorkflow:
     @pytest.mark.asyncio
     async def test_workflow_error_handling(self, mock_workflow):
         """測試工作流程錯誤處理"""
-
         # This test is complex and requires more specific mocks.
         # For example, mocking a remediation tool to consistently fail.
         # We will add a placeholder for now.
@@ -212,12 +228,13 @@ from sre_assistant.workflow import HITLRemediationAgent, AutoRemediationWithLogg
 
 async def run_async_recorder(self, ctx):
     ctx.state["remediation_agent_name"] = self.name
-    await super(type(self), self)._run_async_impl(ctx)
+    # A real agent would return a new context, but for this mock, we'll just modify in place
+    return ctx
 
 # Patch the placeholder agents to record their name upon execution
 @pytest.fixture(autouse=True)
 def patch_remediation_agents():
-    with patch.object(HITLRemediationAgent, "_run_async_impl", new=run_async_recorder), \
-         patch.object(AutoRemediationWithLogging, "_run_async_impl", new=run_async_recorder), \
-         patch.object(ScheduledRemediation, "_run_async_impl", new=run_async_recorder):
+    with patch.object(HITLRemediationAgent, "run_async", new=run_async_recorder), \
+         patch.object(AutoRemediationWithLogging, "run_async", new=run_async_recorder), \
+         patch.object(ScheduledRemediation, "run_async", new=run_async_recorder):
         yield
