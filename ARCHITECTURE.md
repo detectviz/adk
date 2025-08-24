@@ -6,7 +6,21 @@ SRE Assistant 是基於 Google ADK 的智慧型 SRE 助理，採用**進階工�
 
 ## 1. 系統架構概覽
 
-### 1.1 核心架構模式
+### 1.1 分類評估
+
+根據 ADK 範例的分類標準來評估 SRE Assistant，並確認工作流程模式的適用性。
+
+| 屬性 | SRE Assistant 評估 | 理由 |
+|------|-------------------|------|
+| **代理名稱** | SRE Assistant | 智慧型 SRE 助理系統 |
+| **使用案例** | 自動化 SRE 工作流程：診斷、修復、覆盤、配置優化 | 處理生產環境事件的完整生命週期 |
+| **標籤** | `Multi-agent`, `RAG`, `HITL`, `Monitoring`, `Kubernetes`, `Prometheus`, `GitHub`, `Workflow` | 結合多種技術和整合 |
+| **互動類型** | **工作流程 (Workflow)** | 主要是自動化工作流程，次要支援對話 |
+| **複雜度** | **進階 (Advanced)** | 多代理協作、複雜狀態管理、外部整合 |
+| **代理類型** | **多代理 (Multi Agent)** | 4個專家代理 + 協調器 |
+| **垂直領域** | **DevOps/SRE** | 專門針對站點可靠性工程 |
+
+### 1.2 核心架構模式
 
 基於 ADK 的**工作流程驅動多代理架構**，其特點如下：
 - **工作流程核心**：使用 `SREWorkflow` (`SequentialAgent`) 作為頂層協調器，定義了清晰的自動化階段。
@@ -14,6 +28,7 @@ SRE Assistant 是基於 Google ADK 的智慧型 SRE 助理，採用**進階工�
 - **條件邏輯**：`ConditionalRemediation` 代理根據事件的嚴重性動態選擇不同的修復路徑（如自動化修復或人工介入）。
 - **迭代優化**：`LoopAgent` 用於需要持續調整的任務，如 SLO 配置優化，直到滿足終止條件。
 - **領域專家**：各階段由專門的子代理負責，如 `DiagnosticAgent`、`RemediationAgent` 等。
+
 
 ```mermaid
 graph TD
@@ -70,7 +85,7 @@ graph TD
     style D fill:#cde4ff
 ```
 
-### 1.2 目錄結構
+### 1.3 目錄結構
 
 - [官方建議目錄結構](adk-repository-structure.md)：請務必遵守
 
@@ -98,8 +113,7 @@ sre_assistant/
 │   ├── postmortem/             # 覆盤專家 (含報告生成)
 │   └── config/                 # 配置專家 (含 IaC)
 │
-├── test/                       # 舊測試 (待遷移)
-└── tests/                      # 新測試
+└── tests/                      # 測試
     ├── test_workflow.py        # 工作流程整合測試
     ├── test_auth.py            # 認證授權測試
     └── test_contracts.py       # 契約測試

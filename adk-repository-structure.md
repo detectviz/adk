@@ -35,9 +35,9 @@
 │   │   ├── deploy.py             # AdkApp 設定和部署邏輯
 │   │   ├── Dockerfile            # 用於 Cloud Run 部署 (可選)
 │   │   └── cloudbuild.yaml       # Cloud Build 步驟 (套件建置 + 部署)
-│   ├── Eval/                     # 用於 Cloud Build/Agent Engine/Cloud Run 的指令碼、配置
+│   ├── eval/                     # 用於 Cloud Build/Agent Engine/Cloud Run 的指令碼、配置
 │   │   └── evaluation.py         # 用於評估的指令碼、配置
-│   ├── test/                     # 單元測試和整合測試
+│   ├── tests/                    # 單元測試和整合測試
 │   │   └── test_agent.py         
 │   ├── pyproject.toml            # Poetry 配置和依賴項
 │   └── README.md                 # 專案說明

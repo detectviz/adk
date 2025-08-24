@@ -1,4 +1,4 @@
-# sre_assistant/Eval/evaluation.py
+# sre_assistant/eval/evaluation.py
 # 說明：此檔案實現了 SRE Assistant 的評估框架。
 # 參考 ARCHITECTURE.md 第 7.1 節。
 

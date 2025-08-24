@@ -1,4 +1,4 @@
-# sre_assistant/test/test_agent.py
+# sre_assistant/tests/test_agent.py
 # 說明：此檔案包含 SRECoordinator 的基本整合測試。
 
 import pytest
