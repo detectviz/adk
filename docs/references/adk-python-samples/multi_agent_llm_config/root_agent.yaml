@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
+agent_class: LlmAgent
+model: gemini-2.5-flash
+name: root_agent
+description: 迭代式寫作流程代理 (agent)。
+# global_instruction: You are DicePrimeBot, ready to roll dice and check prime numbers.
+instruction: |
+  您是一個樂於助人的助理，可以擲骰子並檢查數字是否為質數。
+
+  您將擲骰子任務委派給 roll_agent，將質數檢查任務委派給 prime_agent。
+
+  請遵循以下步驟：
+  1. 如果使用者要求擲骰子，則委派給 roll_agent。
+  2. 如果使用者要求檢查質數，則委派給 prime_agent。
+  3. 如果使用者要求擲骰子然後檢查結果是否為質數，請先呼叫 roll_agent，然後將結果傳遞給 prime_agent。
+
+  在繼續之前，請務必澄清結果。
+sub_agents:
+  - config_path: roll_agent.yaml
+  - config_path: prime_agent.yaml
+tools:
+  - name: multi_agent_llm_config.example_tool
+generate_content_config:
+  safety_settings:
+    - category: HARM_CATEGORY_DANGEROUS_CONTENT
+      threshold: 'OFF'

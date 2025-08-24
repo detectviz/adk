@@ -1,0 +1,4 @@
+工具{% for tool in tools %}
+- {{loop.index}}: {{ tool.name }}
+  - 描述： {{ tool.description }}
+  - 輸入結構： {{tool.inputSchema.properties}}{% endfor %}

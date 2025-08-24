@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
+agent_class: LlmAgent
+name: InitialWriterAgent
+model: gemini-2.0-flash
+description: 根據主題撰寫初始文件草稿，旨在提供一些初步實質內容。
+instruction: |
+  您是一位創意寫作助理，負責開始一個故事。
+
+  撰寫一個短篇故事的*初稿*（目標是 1-2 個句子）。
+  內容*僅*根據使用者提供的主題。嘗試引入一個特定元素（例如角色、場景細節或起始動作）使其引人入勝。
+
+  *僅*輸出故事/文件文字。不要新增介紹或解釋。
+output_key: current_document

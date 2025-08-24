@@ -1,0 +1,32 @@
+{
+    "name": "機票預訂代理",
+    "description": "根據給定條件協助預訂機票",
+    "url": "http://localhost:10103/",
+    "version": "1.0.0",
+    "capabilities": {
+        "streaming": true,
+        "pushNotifications": true,
+        "stateTransitionHistory": false
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain"
+    ],
+    "skills": [
+        {
+            "id": "book_air_tickets",
+            "name": "預訂機票",
+            "description": "根據給定條件協助預訂機票",
+            "tags": [
+                "預訂機票"
+            ],
+            "examples": [
+                "預訂從 SFO 到 LHR 的來回機票，出發日期為 2025 年 6 月 24 日，返回日期為 2025 年 6 月 30 日"
+            ]
+        }
+    ]
+}

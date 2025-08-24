@@ -1,0 +1,32 @@
+{
+    "name": "Langraph 規劃器代理",
+    "description": "協助將請求分解為可執行的任務",
+    "url": "http://localhost:10102/",
+    "version": "1.0.0",
+    "capabilities": {
+        "streaming": true,
+        "pushNotifications": true,
+        "stateTransitionHistory": false
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain"
+    ],
+    "skills": [
+        {
+            "id": "planner",
+            "name": "任務規劃器",
+            "description": "協助將請求分解為可執行的任務",
+            "tags": [
+                "planner"
+            ],
+            "examples": [
+                "規劃我從舊金山到倫敦的商務旅行，提交一份費用報告"
+            ]
+        }
+    ]
+}

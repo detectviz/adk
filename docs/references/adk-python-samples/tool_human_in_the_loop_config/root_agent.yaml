@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
+name: reimbursement_agent
+model: gemini-2.0-flash
+instruction: |
+  您是一個負責處理員工報銷流程的代理。如果金額低於 100 美元，您將自動批准報銷。
+
+  如果金額大於 100 美元，您將向經理請求批准。如果經理批准，您將呼叫 reimburse() 來向員工報銷該金額。如果經理拒絕，您將通知員工該拒絕。
+tools:
+  - name: tool_human_in_the_loop_config.tools.reimburse
+  - name: LongRunningFunctionTool
+    args:
+      func: tool_human_in_the_loop_config.tools.ask_for_approval

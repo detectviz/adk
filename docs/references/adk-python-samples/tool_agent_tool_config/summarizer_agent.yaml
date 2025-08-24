@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
+name: summarizer_agent
+model: gemini-2.0-flash
+description: '可以總結文字的摘要代理。'
+instruction: "給定一段文字，總結它。"
