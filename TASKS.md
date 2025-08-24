@@ -7,10 +7,10 @@
 ## P0 - 必須立即完成（影響系統核心運作）
 
 ### 🔄 工作流程架構重構（新增 - 最高優先級）
-- **[ ] 從 SequentialAgent 遷移到 Workflow 模式** ： [workflows.md](workflows.md)
-  - [ ] 重構 `SRECoordinator` 採用工作流程架構
-  - [ ] 實作並行診斷 (`ParallelAgent`)
-  - [ ] 實作條件修復流程 (`ConditionalAgent`)
+- **[x] 從 SequentialAgent 遷移到 Workflow 模式** ： [workflows.md](workflows.md)
+  - [x] 重構 `SRECoordinator` 採用工作流程架構
+  - [x] 實作並行診斷 (`ParallelAgent`)
+  - [x] 實作條件修復流程 (`ConditionalAgent`)
   - [ ] 整合循環優化機制 (`LoopAgent`)
   - [ ] 參考：[google-adk-workflows](docs/references/adk-samples-agents/google-adk-workflows)
   - [ ] 參考：`docs/references/adk-python-samples/workflow_triage/` - 動態代理選擇模式

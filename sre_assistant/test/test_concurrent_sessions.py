@@ -7,6 +7,9 @@
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+from google.genai import types
 import sys
 import os
 import importlib.util
@@ -46,11 +49,15 @@ async def mock_execute(query: str, **kwargs):
     await asyncio.sleep(0.01 + (int(session_id) % 10) * 0.005)
     return {"status": "resolved", "session_id": session_id}
 
-async def mock_execute_streaming(query: str, **kwargs):
-    """模擬的 execute_streaming 方法"""
-    session_id = query.split(" ")[-1]
+async def mock_runner_run(query: types.Content, **kwargs):
+    """模擬的 runner.run 方法，以匹配 ADK Runner 的 API"""
+    # 從 types.Content 中提取查詢字符串
+    query_text = query.parts[0].text
+    session_id = query_text.split(" ")[-1]
     for i in range(3):
         await asyncio.sleep(0.01)
+        # 模擬 Runner 返回的 Event 物件
+        # 為了簡化，我們只返回一個字典，測試斷言需要匹配這個結構
         yield {"chunk": i, "session_id": session_id}
 
 # --- 測試案例 ---
@@ -70,15 +77,22 @@ async def test_50_concurrent_sessions():
 
     async def run_single_session(session_id: int):
         """為單個會話創建代理實例並執行"""
-        # 每個異步任務都應該有自己的代理實例，以模擬真實世界中
-        # 每個請求由不同 worker 處理的情況，避免狀態共享。
+        # 每個異步任務都應該有自己的代理實例和 Runner，
+        # 以模擬真實世界中每個請求由不同 worker 處理的情況。
         agent = SRECoordinator()
+        runner = Runner(
+            app_name="sre_assistant",
+            agent=agent,
+            session_service=InMemorySessionService()
+        )
 
-        # 使用 patch 來模擬 SRECoordinator 的 execute_streaming 方法
-        # 這確保了我們只測試協調器的並發處理能力，而不執行其內部複雜邏輯。
-        with patch.object(agent, 'execute_streaming', side_effect=mock_execute_streaming, create=True):
+        # 使用 patch 來模擬 Runner 的 run 方法
+        # 這確保了我們只測試 Runner 的並發處理能力，而不執行其內部複雜邏輯。
+        with patch.object(runner, 'run', side_effect=mock_runner_run, create=True):
+            # 準備查詢輸入
+            query = types.Content(parts=[types.Part(text=f"Test query for session {session_id}")])
             # 收集 streaming 結果
-            results = [res async for res in agent.execute_streaming(f"Test query for session {session_id}")]
+            results = [res async for res in runner.run(query=query)]
             return results
 
     print(f"\nStarting {CONCURRENT_SESSIONS} concurrent session test...")
