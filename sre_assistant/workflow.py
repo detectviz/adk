@@ -297,7 +297,7 @@ class ConditionalRemediation(BaseAgent):
         # 實作票證系統整合（Jira, ServiceNow 等）
         pass
 
-async def _initiate_disaster_recovery(self, ctx: InvocationContext) -> None:
+    async def _initiate_disaster_recovery(self, ctx: InvocationContext) -> None:
         """啟動災難恢復流程"""
         # 實作災難恢復邏輯
         pass
