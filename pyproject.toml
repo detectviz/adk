@@ -24,6 +24,7 @@ prometheus-api-client = "^0.6.0"
 PyYAML = "^6.0.1"
 # 用於版本號比較
 packaging = "^24.0"
+pyjwt = "^2.10.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
