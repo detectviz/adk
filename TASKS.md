@@ -2,6 +2,8 @@
 
 本文件追蹤 SRE Assistant 專案的開發與優化任務，依優先級分類管理。
 
+- 參考資源：[ARCHITECTURE.md](ARCHITECTURE.md#151-參考資源)
+
 ## P0 - 必須立即完成（影響系統核心運作）
 
 ### 🔄 工作流程架構重構（新增 - 最高優先級）
@@ -54,6 +56,7 @@
   - [ ] SLO 違規自動告警
   - [ ] 量化指標儀表板
 - **[ ] 五個為什麼 (5 Whys) 模板**
+  - [ ] 參考：[google-sre-book.md](google-sre-book.md)
   - [ ] 基於 [Google SRE Book Appendix D](docs/references/google-sre-book/Appendix%20D%20-%20Example%20Postmortem.md) 實作
   - [ ] 自動化根因分析流程
 
