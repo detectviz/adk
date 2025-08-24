@@ -1,0 +1,14 @@
+# config/grafana/provisioning/datasources/datasource.yml
+# 此檔案用於自動設定 Grafana 的資料來源 (Data Sources)。
+# Grafana 啟動時會掃描 provisioning 目錄並載入此設定。
+
+apiVersion: 1
+
+datasources:
+  # 設定一個 Prometheus 資料來源
+  - name: Prometheus      # 資料來源在 Grafana UI 中顯示的名稱
+    type: prometheus       # 資料來源的類型
+    access: proxy          # 存取模式。'proxy' 表示 Grafana 後端會代理所有請求
+    url: http://prometheus:9090  # Prometheus 服務的地址。'prometheus' 是 docker-compose 中的服務名稱
+    isDefault: true        # 將此設定為預設資料來源
+    editable: false        # 在 UI 中禁止編輯此資料來源，以確保設定一致性

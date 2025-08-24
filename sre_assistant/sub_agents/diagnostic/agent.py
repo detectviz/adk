@@ -8,7 +8,7 @@ from google.adk.agents import LlmAgent
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.events.event import Event
-from .tools import (
+from .tool_registry import (
     promql_query,
     log_search,
     trace_analysis,

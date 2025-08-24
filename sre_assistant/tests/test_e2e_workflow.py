@@ -9,9 +9,9 @@ import uuid
 
 from sre_assistant.workflow import SREWorkflow
 from google.adk.agents.invocation_context import InvocationContext
-from google.adk.session_service import BaseSessionService
+from google.adk.sessions import BaseSessionService
 from google.adk.agents.base_agent import BaseAgent
-from google.adk.session import Session
+from google.adk.sessions import Session
 
 # Mock classes to satisfy Pydantic validation
 class MockSessionService(BaseSessionService):
@@ -130,7 +130,7 @@ class TestE2EWorkflow:
         """測試完整的工作流程"""
 
         # 準備測試上下文
-        context = self._create_test_context(scenario, mock_workflow)
+        context = self._create_test_context(scenario=scenario, agent=mock_workflow)
 
         # 執行工作流程
         start_time = datetime.utcnow()

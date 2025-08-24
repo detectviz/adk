@@ -1,0 +1,58 @@
+# docker-compose.yml
+# 說明：此檔案用於簡化 SRE Assistant 本地開發環境的完整服務堆疊設定。
+# 執行 `docker-compose up -d` 即可啟動所有必要的背景服務。
+
+version: '3.8'
+
+services:
+  # 1. PostgreSQL 資料庫服務
+  postgres:
+    image: postgres:15-alpine
+    container_name: sre_assistant_postgres
+    environment:
+      - POSTGRES_DB=sre_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # 2. Prometheus 監控服務
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: sre_assistant_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  # 3. Grafana 視覺化儀表板服務
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: sre_assistant_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/grafana/provisioning/:/etc/grafana/provisioning/
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: sre_assistant_pgdata
+  prometheus_data:
+    name: sre_assistant_promdata
+  grafana_data:
+    name: sre_assistant_grafanadata

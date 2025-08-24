@@ -1,0 +1,24 @@
+# config/prometheus/prometheus.yml
+# Prometheus 核心設定檔
+
+global:
+  scrape_interval: 15s # 設定預設的抓取間隔為 15 秒
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # 此任務 (job) 的名稱會以 `job=<job_name>` 的標籤形式
+  # 附加到所有從此處抓取的時間序列數據上。
+  - job_name: "prometheus"
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # 新增一個任務來監控 SRE Assistant 應用程式
+  - job_name: "sre_assistant"
+    static_configs:
+      # 'host.docker.internal' 是 Docker 提供的一個特殊 DNS 名稱，
+      # 它會解析為主機的內部 IP 地址。這允許 Docker 容器
+      # 連接到在主機上運行的服務。
+      - targets: ["host.docker.internal:8080"]
