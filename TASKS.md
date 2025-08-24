@@ -12,34 +12,34 @@
   - [x] 實作並行診斷 (`ParallelAgent`)
   - [x] 實作條件修復流程 (`ConditionalAgent`)
   - [x] 整合循環優化機制 (`LoopAgent`)
-  - [x] 參考：[google-adk-workflows](docs/references/adk-samples-agents/google-adk-workflows)
-  - [x] 參考：`docs/references/adk-python-samples/workflow_triage/` - 動態代理選擇模式
-  - [x] 參考：`docs/references/adk-python-samples/multi_agent_loop_config/` - 循環工作流程
-  - [x] 參考：`docs/references/adk-python-samples/parallel_functions/` - 並行執行模式
+  - 參考：[google-adk-workflows](docs/references/adk-samples-agents/google-adk-workflows)
+  - 參考：`docs/references/adk-python-samples/workflow_triage/` - 動態代理選擇模式
+  - 參考：`docs/references/adk-python-samples/multi_agent_loop_config/` - 循環工作流程
+  - 參考：`docs/references/adk-python-samples/parallel_functions/` - 並行執行模式
 
 ### 認證授權系統
 - **[x] 認證授權工廠模式設計**：[auth-factory.md](auth-factory.md)
   - [x] 實作 `AuthProvider` 介面
   - [x] 整合 IAM、OAuth2、API Key 支援
   - [x] 實現速率限制和審計日誌
-  - [ ] 參考：`docs/references/adk-python-samples/a2a_auth/` - OAuth 認證流程
-  - [ ] 參考：`docs/references/adk-python-samples/spanner/agent.py` - 多種認證方式實作
-  - [ ] 參考：`docs/references/adk-python-samples/google_api/` - Google API OAuth 整合
+  - 參考：`docs/references/adk-python-samples/a2a_auth/` - OAuth 認證流程
+  - 參考：`docs/references/adk-python-samples/spanner/agent.py` - 多種認證方式實作
+  - 參考：`docs/references/adk-python-samples/google_api/` - Google API OAuth 整合
 
 ### RAG 引用系統
 - **[x] 標準化引用格式管理**
   - [x] 實作 `SRECitationFormatter` 類別
   - [x] 支援配置檔、事件、文檔等多種引用格式
   - [x] 整合到 `DiagnosticExpert` 輸出
-  - [ ] 參考：`docs/references/adk-samples-agents/RAG/` - 標準引用實作
+  - 參考：`docs/references/adk-samples-agents/RAG/` - 標準引用實作
 
 ### Session/Memory 持久化
 - **[x] Vertex AI 服務整合**
   - [x] 遷移到 `VertexAiSessionService` (已透過 FirestoreTaskStore 實現)
   - [x] 實作 `VertexAiMemoryBankService` (已透過 VertexAIBackend 實現)
   - [x] 確保會話狀態持久化
-  - [ ] 參考：`docs/references/adk-python-samples/session_state_agent/` - Session 狀態管理
-  - [ ] 參考：`docs/references/adk-python-samples/history_management/` - 歷史記錄管理
+  - 參考：`docs/references/adk-python-samples/session_state_agent/` - Session 狀態管理
+  - 參考：`docs/references/adk-python-samples/history_management/` - 歷史記錄管理
 
 ## P1 - 重要功能（P0 完成後執行）
 
@@ -48,7 +48,7 @@
   - [ ] 實作 `SREIncidentTracker` 類別
   - [ ] GitHub Issues 自動創建和更新
   - [ ] PR 與事件關聯機制
-  - [ ] 參考：`docs/references/adk-samples-agents/software-bug-assistant/` - GitHub 整合模式
+  - 參考：`docs/references/adk-samples-agents/software-bug-assistant/` - GitHub 整合模式
 
 ### SRE 量化指標
 - **[ ] 完整 SLO 管理系統**
@@ -56,7 +56,7 @@
   - [ ] SLO 違規自動告警
   - [ ] 量化指標儀表板
 - **[ ] 五個為什麼 (5 Whys) 模板**
-  - [ ] 參考：[google-sre-book.md](google-sre-book.md)
+  - 參考：[google-sre-book.md](google-sre-book.md)
   - [ ] 基於 [Google SRE Book Appendix D](docs/references/google-sre-book/Appendix%20D%20-%20Example%20Postmortem.md) 實作
   - [ ] 自動化根因分析流程
 
@@ -65,24 +65,24 @@
   - [ ] 實作 `SREIterativeOptimizer` 類別
   - [ ] 支援多輪迭代改進
   - [ ] 配置效果評估機制
-  - [ ] 參考：`docs/references/adk-samples-agents/machine-learning-engineering/` - 迭代優化模式
-  - [ ] 參考：`docs/references/adk-python-samples/multi_agent_loop_config/` - Loop Agent 實作
+  - 參考：`docs/references/adk-samples-agents/machine-learning-engineering/` - 迭代優化模式
+  - 參考：`docs/references/adk-python-samples/multi_agent_loop_config/` - Loop Agent 實作
 
 ### MCP 工具箱整合
 - **[ ] 資料庫操作標準化**
   - [ ] 整合 MCP Toolbox for Databases
   - [ ] 實作 `SafeSQLQueryBuilder`
   - [ ] 時序資料查詢優化
-  - [ ] 參考：`docs/references/adk-samples-agents/software-bug-assistant/tools/database_tools.py`
-  - [ ] 參考：`docs/references/adk-python-samples/spanner/` - Spanner 工具整合
+  - 參考：`docs/references/adk-samples-agents/software-bug-assistant/tools/database_tools.py`
+  - 參考：`docs/references/adk-python-samples/spanner/` - Spanner 工具整合
 
 ### 端到端測試
 - **[ ] HITL 審批流程測試**
   - [ ] 完整的審批流程端到端測試
   - [ ] 高風險操作模擬
-  - [ ] 參考：`docs/references/adk-python-samples/human_in_loop/` - HITL 完整實作
-  - [ ] 參考：`docs/references/adk-python-samples/tool_human_in_the_loop_config/` - HITL 配置
-  - [ ] 參考：`docs/references/adk-python-samples/a2a_human_in_loop/` - A2A HITL 模式
+  - 參考：`docs/references/adk-python-samples/human_in_loop/` - HITL 完整實作
+  - 參考：`docs/references/adk-python-samples/tool_human_in_the_loop_config/` - HITL 配置
+  - 參考：`docs/references/adk-python-samples/a2a_human_in_loop/` - A2A HITL 模式
 - **[ ] API 端到端測試**
   - [ ] 覆蓋所有 API 端點
   - [ ] 錯誤處理測試
@@ -94,24 +94,24 @@
   - [ ] 實現 `AgentCard` 服務發現
   - [ ] 支援 `RemoteA2aAgent` 調用
   - [ ] 雙向串流通訊支援
-  - [ ] 參考：`docs/references/adk-python-samples/a2a_auth/` - A2A 認證架構
-  - [ ] 參考：`docs/references/adk-python-samples/a2a_human_in_loop/` - A2A HITL 整合
-  - [ ] 參考：`docs/references/a2a-samples/` - A2A 協議範例
+  - 參考：`docs/references/adk-python-samples/a2a_auth/` - A2A 認證架構
+  - 參考：`docs/references/adk-python-samples/a2a_human_in_loop/` - A2A HITL 整合
+  - 參考：`docs/references/a2a-samples/` - A2A 協議範例
 
 ### 多模態分析
 - **[ ] 視覺內容處理**
   - [ ] 監控面板截圖分析
   - [ ] 日誌圖表識別
   - [ ] 影片內容分析（如操作錄影）
-  - [ ] 參考：`docs/references/adk-samples-agents/fomc-research/` - 多模態處理
+  - 參考：`docs/references/adk-samples-agents/fomc-research/` - 多模態處理
 
 ### 可觀測性增強
 - **[ ] OpenTelemetry 整合**
   - [ ] 追蹤 (traces) 實現
   - [ ] 自定義指標匯出
   - [ ] 分散式追蹤跨服務
-  - [ ] 參考：`docs/references/adk-python-samples/callbacks/` - 回調機制
-  - [ ] 參考：`docs/references/adk-python-samples/token_usage/` - 使用量追蹤
+  - 參考：`docs/references/adk-python-samples/callbacks/` - 回調機制
+  - 參考：`docs/references/adk-python-samples/token_usage/` - 使用量追蹤
 
 ### 部署優化
 - **[ ] 進階部署策略**
@@ -142,16 +142,16 @@
   - [ ] 負載測試腳本
   - [ ] 延遲基準測試
   - [ ] 並發處理測試
-  - [ ] 參考：`docs/references/adk-python-samples/parallel_functions/` - 並行性能測試
+  - 參考：`docs/references/adk-python-samples/parallel_functions/` - 並行性能測試
 
 ## 建議的實施順序
 
 ### 第零階段（立即開始 - 1週）🔥
 1. **工作流程架構重構**
-   - Day 1-2: 分析現有 SequentialAgent 結構
-   - Day 3-4: 實作並行診斷 (ParallelAgent)
-   - Day 5-6: 整合條件執行邏輯
-   - Day 7: 測試新架構效能提升
+   - 分析現有 SequentialAgent 結構
+   - 實作並行診斷 (ParallelAgent)
+   - 整合條件執行邏輯
+   - 測試新架構效能提升
 
 ### 第一階段（1-2 週）
 1. 完成其他 P0 任務（認證、RAG、Session）
@@ -173,7 +173,7 @@
 2. 根據使用反饋調整優先級
 3. 持續優化和改進
 
-## 工作流程架構重構詳細計劃（新增）
+## 工作流程架構重構詳細計劃
 
 ### 為何是最高優先級？
 1. **性能提升**：並行診斷可減少 70% 診斷時間
