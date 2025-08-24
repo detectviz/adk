@@ -11,3 +11,9 @@ memory:
 
 llm_model: "gemini-2.0-flash"
 temperature: 0.2
+
+auth:
+  provider: "local"  # 默認本地開發
+  enable_rbac: false
+  enable_rate_limiting: false
+  enable_audit_logging: true
