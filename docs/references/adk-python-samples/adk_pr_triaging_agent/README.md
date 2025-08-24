@@ -1,68 +1,68 @@
-# ADK Pull Request Triaging Assistant
+# ADK 拉取請求分類助理
 
-The ADK Pull Request (PR) Triaging Assistant is a Python-based agent designed to help manage and triage GitHub pull requests for the `google/adk-python` repository. It uses a large language model to analyze new and unlabelled pull requests, recommend appropriate labels, assign a reviewer, and check contribution guides based on a predefined set of rules.
+ADK 拉取請求 (PR) 分類助理是一個基於 Python 的代理，旨在協助管理和分類 `google/adk-python` 儲存庫的 GitHub 拉取請求。它使用大型語言模型來分析新的和未標記的拉取請求，根據預定義的規則集推薦適當的標籤、指派審核者並檢查貢獻指南。
 
-This agent can be operated in two distinct modes:
+此代理可以兩種不同的模式運作：
 
-* an interactive mode for local use
-* a fully automated GitHub Actions workflow.
+* 用於本機使用的互動模式
+* 一個完全自動化的 GitHub Actions 工作流程。
 
 ---
 
-## Interactive Mode
+## 互動模式
 
-This mode allows you to run the agent locally to review its recommendations in real-time before any changes are made to your repository's pull requests.
+此模式允許您在本機執行代理，以便在對儲存庫的拉取請求進行任何變更之前，即時審查其建議。
 
-### Features
-* **Web Interface**: The agent's interactive mode can be rendered in a web browser using the ADK's `adk web` command.
-* **User Approval**: In interactive mode, the agent is instructed to ask for your confirmation before applying a label or posting a comment to a GitHub pull request.
+### 功能
+* **Web 介面**：代理的互動模式可以使用 ADK 的 `adk web` 命令在網頁瀏覽器中呈現。
+* **使用者批准**：在互動模式下，代理被指示在將標籤應用於或向 GitHub 拉取請求發表評論之前，請求您的確認。
 
-### Running in Interactive Mode
-To run the agent in interactive mode, first set the required environment variables. Then, execute the following command in your terminal:
+### 在互動模式下執行
+若要在互動模式下執行代理，請先設定必要的環境變數。然後，在您的終端機中執行以下命令：
 
 ```bash
 adk web
 ```
-This will start a local server and provide a URL to access the agent's web interface in your browser.
+這將啟動一個本機伺服器，並提供一個 URL，讓您在瀏覽器中存取代理的 Web 介面。
 
 ---
 
-## GitHub Workflow Mode
+## GitHub 工作流程模式
 
-For automated, hands-off PR triaging, the agent can be integrated directly into your repository's CI/CD pipeline using a GitHub Actions workflow.
+對於自動化的、無需手動操作的 PR 分類，可以將代理直接整合到您儲存庫的 CI/CD 管線中，使用 GitHub Actions 工作流程。
 
-### Workflow Triggers
-The GitHub workflow is configured to run on specific triggers:
+### 工作流程觸發器
+GitHub 工作流程設定為在特定觸發器上執行：
 
-*  **Pull Request Events**: The workflow executes automatically whenever a new PR is `opened` or an existing one is `reopened` or `edited`.
+*  **拉取請求事件**：每當新的 PR 被 `開啟` 或現有的 PR 被 `重新開啟` 或 `編輯` 時，工作流程都會自動執行。
 
-### Automated Labeling
-When running as part of the GitHub workflow, the agent operates non-interactively. It identifies and applies the best label or posts a comment directly without requiring user approval. This behavior is configured by setting the `INTERACTIVE` environment variable to `0` in the workflow file.
+### 自動化標記
+作為 GitHub 工作流程的一部分執行時，代理會以非互動方式運作。它會直接識別並應用最佳標籤或發表評論，而無需使用者批准。此行為是透過在工作流程檔案中將 `INTERACTIVE` 環境變數設定為 `0` 來配置的。
 
-### Workflow Configuration
-The workflow is defined in a YAML file (`.github/workflows/pr-triage.yml`). This file contains the steps to check out the code, set up the Python environment, install dependencies, and run the triaging script with the necessary environment variables and secrets.
+### 工作流程組態
+工作流程在一個 YAML 檔案 (`.github/workflows/pr-triage.yml`) 中定義。此檔案包含簽出程式碼、設定 Python 環境、安裝相依性以及使用必要的環境變數和密鑰執行分類腳本的步驟。
 
 ---
 
-## Setup and Configuration
+## 設定與組態
 
-Whether running in interactive or workflow mode, the agent requires the following setup.
+無論是在互動模式還是工作流程模式下執行，代理都需要以下設定。
 
-### Dependencies
-The agent requires the following Python libraries.
+### 相依性
+代理需要以下 Python 函式庫。
 
 ```bash
 pip install --upgrade pip
 pip install google-adk
 ```
 
-### Environment Variables
-The following environment variables are required for the agent to connect to the necessary services.
+### 環境變數
+代理需要以下環境變數才能連接到必要的服務。
 
-* `GITHUB_TOKEN`: **(Required)** A GitHub Personal Access Token with `pull_requests:write` permissions. Needed for both interactive and workflow modes.
-* `GOOGLE_API_KEY`: **(Required)** Your API key for the Gemini API. Needed for both interactive and workflow modes.
-* `OWNER`: The GitHub organization or username that owns the repository (e.g., `google`). Needed for both modes.
-* `REPO`: The name of the GitHub repository (e.g., `adk-python`). Needed for both modes.
-* `INTERACTIVE`: Controls the agent's interaction mode. For the automated workflow, this is set to `0`. For interactive mode, it should be set to `1` or left unset.
+* `GITHUB_TOKEN`: **(必要)** 具有 `pull_requests:write` 權限的 GitHub 個人存取權杖。互動和工作流程模式都需要。
+* `GOOGLE_API_KEY`: **(必要)** 您的 Gemini API 的 API 金鑰。互動和工作流程模式都需要。
+* `OWNER`: 擁有儲存庫的 GitHub 組織或使用者名稱（例如 `google`）。兩種模式都需要。
+* `REPO`: GitHub 儲存庫的名稱（例如 `adk-python`）。兩種模式都需要。
+* `INTERACTIVE`: 控制代理的互動模式。對於自動化工作流程，此設定為 `0`。對於互動模式，應設定為 `1` 或不設定。
 
-For local execution in interactive mode, you can place these variables in a `.env` file in the project's root directory. For the GitHub workflow, they should be configured as repository secrets.
+對於在本機互動模式下執行，您可以將這些變數放在專案根目錄中的 `.env` 檔案中。對於 GitHub 工作流程，應將它們設定為儲存庫密鑰。

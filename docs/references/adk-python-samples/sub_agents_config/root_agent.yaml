@@ -1,11 +1,11 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
 name: root_agent
 model: gemini-2.0-flash
-description: Root agent
+description: 根代理
 instruction: |
-  If the user query is about life, you should route it to the life sub-agent.
-  If the user query is about work, you should route it to the work sub-agent.
-  If the user query is about anything else, you should answer it yourself.
+  如果使用者查詢與生活有關，您應該將其路由到生活子代理。
+  如果使用者查詢與工作有關，您應該將其路由到工作子代理。
+  如果使用者查詢與其他任何事情有關，您應該自己回答。
 sub_agents:
   - config_path: ./work_agent.yaml
   - code: sub_agents_config.life_agent.agent

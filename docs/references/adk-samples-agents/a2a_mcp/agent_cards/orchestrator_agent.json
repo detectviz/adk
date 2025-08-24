@@ -1,6 +1,6 @@
 {
-    "name": "Orchestrator Agent",
-    "description": "Orchestrates the task generation and execution",
+    "name": "協調者代理",
+    "description": "協調任務的生成和執行",
     "url": "http://localhost:10101/",
     "version": "1.0.0",
     "capabilities": {
@@ -19,13 +19,13 @@
     "skills": [
         {
             "id": "executor",
-            "name": "Task Executor",
-            "description": "Orchestrates the task generation and execution, takes help from the planner to generate tasks",
+            "name": "任務執行者",
+            "description": "協調任務的生成和執行，並藉助規劃器來生成任務",
             "tags": [
-                "execute plan"
+                "執行計畫"
             ],
             "examples": [
-                "Plan my trip to London, submit an expense report"
+                "規劃我的倫敦之旅，提交一份費用報告"
             ]
         }
     ]

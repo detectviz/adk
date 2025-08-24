@@ -1,8 +1,7 @@
-This agent connects to a local MCP server via sse.
+此代理 (agent) 透過 sse 連接到本機 MCP 伺服器。
 
-To run this agent, start the local MCP server first by :
+若要執行此代理 (agent)，請先透過以下指令啟動本機 MCP 伺服器：
 
 ```bash
 uv run filesystem_server.py
 ```
-

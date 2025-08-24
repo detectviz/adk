@@ -64,7 +64,7 @@ class MyCustomAgent(BaseAgent):
         content=types.ModelContent(
             parts=[
                 types.Part(
-                    text=f"I feel good! value in my_field: `{self.my_field}`"
+                    text=f"我感覺很好！my_field 中的值：`{self.my_field}`"
                 )
             ]
         ),

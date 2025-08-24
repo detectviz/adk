@@ -24,13 +24,13 @@ PLACES_API_URL = 'https://places.googleapis.com/v1/places:searchText'
 
 
 def generate_embeddings(text):
-    """Generates embeddings for the given text using Google Generative AI.
+    """使用 Google Generative AI 為給定文字產生嵌入。
 
     Args:
-        text: The input string for which to generate embeddings.
+        text: 要為其產生嵌入的輸入字串。
 
     Returns:
-        A list of embeddings representing the input text.
+        代表輸入文字的嵌入列表。
     """
     return genai.embed_content(
         model=MODEL,
@@ -40,30 +40,30 @@ def generate_embeddings(text):
 
 
 def load_agent_cards():
-    """Loads agent card data from JSON files within a specified directory.
+    """從指定目錄中的 JSON 檔案載入代理卡資料。
 
     Returns:
-        A list containing JSON data from an agent card file found in the specified directory.
-        Returns an empty list if the directory is empty, contains no '.json' files,
-        or if all '.json' files encounter errors during processing.
+        一個列表，其中包含在指定目錄中找到的代理卡檔案中的 JSON 資料。
+        如果目錄為空、不包含 '.json' 檔案，
+        或如果在處理過程中所有 '.json' 檔案都遇到錯誤，則返回一個空列表。
     """
     card_uris = []
     agent_cards = []
     dir_path = Path(AGENT_CARDS_DIR)
     if not dir_path.is_dir():
         logger.error(
-            f'Agent cards directory not found or is not a directory: {AGENT_CARDS_DIR}'
+            f'找不到代理卡目錄或該路徑不是一個目錄：{AGENT_CARDS_DIR}'
         )
         return agent_cards
 
-    logger.info(f'Loading agent cards from card repo: {AGENT_CARDS_DIR}')
+    logger.info(f'正在從卡片庫載入代理卡：{AGENT_CARDS_DIR}')
 
     for filename in os.listdir(AGENT_CARDS_DIR):
         if filename.lower().endswith('.json'):
             file_path = dir_path / filename
 
             if file_path.is_file():
-                logger.info(f'Reading file: {filename}')
+                logger.info(f'正在讀取檔案：{filename}')
                 try:
                     with file_path.open('r', encoding='utf-8') as f:
                         data = json.load(f)
@@ -72,31 +72,30 @@ def load_agent_cards():
                         )
                         agent_cards.append(data)
                 except json.JSONDecodeError as jde:
-                    logger.error(f'JSON Decoder Error {jde}')
+                    logger.error(f'JSON 解碼器錯誤 {jde}')
                 except OSError as e:
-                    logger.error(f'Error reading file {filename}: {e}.')
+                    logger.error(f'讀取檔案 {filename} 時出錯：{e}。')
                 except Exception as e:
                     logger.error(
-                        f'An unexpected error occurred processing {filename}: {e}',
+                        f'處理 {filename} 時發生未預期的錯誤：{e}',
                         exc_info=True,
                     )
     logger.info(
-        f'Finished loading agent cards. Found {len(agent_cards)} cards.'
+        f'代理卡載入完成。共找到 {len(agent_cards)} 張卡片。'
     )
     return card_uris, agent_cards
 
 
 def build_agent_card_embeddings() -> pd.DataFrame:
-    """Loads agent cards, generates embeddings for them, and returns a DataFrame.
+    """載入代理卡，為其產生嵌入，並傳回一個 DataFrame。
 
     Returns:
-        Optional[pd.DataFrame]: A Pandas DataFrame containing the original
-        'agent_card' data and their corresponding 'Embeddings'. Returns None
-        if no agent cards were loaded initially or if an exception occurred
-        during the embedding generation process.
+        Optional[pd.DataFrame]: 一個 Pandas DataFrame，包含原始的
+        'agent_card' 資料及其對應的 'Embeddings'。如果最初沒有載入代理卡，
+        或在嵌入生成過程中發生例外，則返回 None。
     """
     card_uris, agent_cards = load_agent_cards()
-    logger.info('Generating Embeddings for agent cards')
+    logger.info('正在為代理卡產生嵌入')
     try:
         if agent_cards:
             df = pd.DataFrame(
@@ -107,49 +106,45 @@ def build_agent_card_embeddings() -> pd.DataFrame:
                 axis=1,
             )
             return df
-        logger.info('Done generating embeddings for agent cards')
+        logger.info('代理卡嵌入產生完成')
     except Exception as e:
-        logger.error(f'An unexpected error occurred : {e}.', exc_info=True)
+        logger.error(f'發生未預期的錯誤：{e}。', exc_info=True)
         return None
 
 
 def serve(host, port, transport):  # noqa: PLR0915
-    """Initializes and runs the Agent Cards MCP server.
+    """初始化並執行代理卡 MCP 伺服器。
 
     Args:
-        host: The hostname or IP address to bind the server to.
-        port: The port number to bind the server to.
-        transport: The transport mechanism for the MCP server (e.g., 'stdio', 'sse').
+        host: 要綁定伺服器的主機名稱或 IP 位址。
+        port: 要綁定伺服器的埠號。
+        transport: MCP 伺服器的傳輸機制（例如，'stdio'、'sse'）。
 
     Raises:
-        ValueError: If the 'GOOGLE_API_KEY' environment variable is not set.
+        ValueError: 如果未設定 'GOOGLE_API_KEY' 環境變數。
     """
     init_api_key()
-    logger.info('Starting Agent Cards MCP Server')
+    logger.info('正在啟動代理卡 MCP 伺服器')
     mcp = FastMCP('agent-cards', host=host, port=port)
 
     df = build_agent_card_embeddings()
 
     @mcp.tool(
         name='find_agent',
-        description='Finds the most relevant agent card based on a natural language query string.',
+        description='根據自然語言查詢字串尋找最相關的代理卡。',
     )
     def find_agent(query: str) -> str:
-        """Finds the most relevant agent card based on a query string.
+        """根據查詢字串尋找最相關的代理卡。
 
-        This function takes a user query, typically a natural language question or a task generated by an agent,
-        generates its embedding, and compares it against the
-        pre-computed embeddings of the loaded agent cards. It uses the dot
-        product to measure similarity and identifies the agent card with the
-        highest similarity score.
+        此函式接受使用者查詢（通常是自然語言問題或代理產生的任務），
+        產生其嵌入，並將其與已載入代理卡的預先計算嵌入進行比較。
+        它使用點積來測量相似度，並識別具有最高相似度分數的代理卡。
 
         Args:
-            query: The natural language query string used to search for a
-                   relevant agent.
+            query: 用於搜尋相關代理的自然語言查詢字串。
 
         Returns:
-            The json representing the agent card deemed most relevant
-            to the input query based on embedding similarity.
+            代表根據嵌入相似度被認為與輸入查詢最相關的代理卡的 json。
         """
         query_embedding = genai.embed_content(
             model=MODEL, content=query, task_type='retrieval_query'
@@ -159,17 +154,17 @@ def serve(host, port, transport):  # noqa: PLR0915
         )
         best_match_index = np.argmax(dot_products)
         logger.debug(
-            f'Found best match at index {best_match_index} with score {dot_products[best_match_index]}'
+            f'在索引 {best_match_index} 找到最佳匹配，分數為 {dot_products[best_match_index]}'
         )
         return df.iloc[best_match_index]['agent_card']
 
     @mcp.tool()
     def query_places_data(query: str):
-        """Query Google Places."""
-        logger.info(f'Search for places : {query}')
+        """查詢 Google Places。"""
+        logger.info(f'搜尋地點：{query}')
         api_key = os.getenv('GOOGLE_PLACES_API_KEY')
         if not api_key:
-            logger.info('GOOGLE_PLACES_API_KEY is not set')
+            logger.info('未設定 GOOGLE_PLACES_API_KEY')
             return {'places': []}
 
         headers = {
@@ -190,19 +185,19 @@ def serve(host, port, transport):  # noqa: PLR0915
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as http_err:
-            logger.info(f'HTTP error occurred: {http_err}')
-            logger.info(f'Response content: {response.text}')
+            logger.info(f'發生 HTTP 錯誤：{http_err}')
+            logger.info(f'回應內容：{response.text}')
         except requests.exceptions.ConnectionError as conn_err:
-            logger.info(f'Connection error occurred: {conn_err}')
+            logger.info(f'發生連線錯誤：{conn_err}')
         except requests.exceptions.Timeout as timeout_err:
-            logger.info(f'Timeout error occurred: {timeout_err}')
+            logger.info(f'發生逾時錯誤：{timeout_err}')
         except requests.exceptions.RequestException as req_err:
             logger.info(
-                f'An unexpected error occurred with the request: {req_err}'
+                f'請求發生未預期的錯誤：{req_err}'
             )
         except json.JSONDecodeError:
             logger.info(
-                f'Failed to decode JSON response. Raw response: {response.text}'
+                f'解碼 JSON 回應失敗。原始回應：{response.text}'
             )
 
         return {'places': []}
@@ -210,24 +205,24 @@ def serve(host, port, transport):  # noqa: PLR0915
     @mcp.tool()
     def query_travel_data(query: str) -> dict:
         """ "name": "query_travel_data",
-        "description": "Retrieves the most up-to-date, ariline, hotel and car rental availability. Helps with the booking.
-        This tool should be used when a user asks for the airline ticket booking, hotel or accommodation booking, or car rental reservations.",
+        "description": "擷取最新的航空公司、飯店和租車可用性。協助預訂。
+        當使用者要求預訂機票、飯店或住宿，或租車時，應使用此工具。",
         "parameters": {
             "type": "object",
             "properties": {
             "query": {
                 "type": "string",
-                "description": "A SQL to run against the travel database."
+                "description": "針對旅遊資料庫執行的 SQL。"
             }
             },
             "required": ["query"]
         }
         """
-        # The above is to influence gemini to pickup the tool.
-        logger.info(f'Query sqllite : {query}')
+        # 以上是為了影響 gemini 選擇此工具。
+        logger.info(f'查詢 sqllite：{query}')
 
         if not query or not query.strip().upper().startswith('SELECT'):
-            raise ValueError(f'In correct query {query}')
+            raise ValueError(f'不正確的查詢 {query}')
 
         try:
             with sqlite3.connect(SQLLITE_DB) as conn:
@@ -238,28 +233,27 @@ def serve(host, port, transport):  # noqa: PLR0915
                 result = {'results': [dict(row) for row in rows]}
                 return json.dumps(result)
         except Exception as e:
-            logger.error(f'Exception running query {e}')
+            logger.error(f'執行查詢時發生例外狀況 {e}')
             logger.error(traceback.format_exc())
-            if 'no such column' in e:
+            if 'no such column' in str(e):
                 return {
-                    'error': f'Please check your query, {e}. Use the table schema to regenerate the query'
+                    'error': f'請檢查您的查詢，{e}。使用資料表結構重新產生查詢'
                 }
-            return {'error': {e}}
+            return {'error': str(e)}
 
     @mcp.resource('resource://agent_cards/list', mime_type='application/json')
     def get_agent_cards() -> dict:
-        """Retrieves all loaded agent cards as a json / dictionary for the MCP resource endpoint.
+        """擷取所有已載入的代理卡，作為 MCP 資源端點的 json / 字典。
 
-        This function serves as the handler for the MCP resource identified by
-        the URI 'resource://agent_cards/list'.
+        此函式作為由 URI 'resource://agent_cards/list' 識別的 MCP 資源的處理常式。
 
         Returns:
-            A json / dictionary structured as {'agent_cards': [...]}, where the value is a
-            list containing all the loaded agent card dictionaries. Returns
-            {'agent_cards': []} if the data cannot be retrieved.
+            一個結構為 {'agent_cards': [...]} 的 json / 字典，其中值是
+            包含所有已載入代理卡字典的列表。如果無法擷取資料，
+            則返回 {'agent_cards': []}。
         """
         resources = {}
-        logger.info('Starting read resources')
+        logger.info('開始讀取資源')
         resources['agent_cards'] = df['card_uri'].to_list()
         return resources
 
@@ -267,17 +261,16 @@ def serve(host, port, transport):  # noqa: PLR0915
         'resource://agent_cards/{card_name}', mime_type='application/json'
     )
     def get_agent_card(card_name: str) -> dict:
-        """Retrieves an agent card as a json / dictionary for the MCP resource endpoint.
+        """擷取一個代理卡，作為 MCP 資源端點的 json / 字典。
 
-        This function serves as the handler for the MCP resource identified by
-        the URI 'resource://agent_cards/{card_name}'.
+        此函式作為由 URI 'resource://agent_cards/{card_name}' 識別的 MCP 資源的處理常式。
 
         Returns:
-            A json / dictionary
+            一個 json / 字典
         """
         resources = {}
         logger.info(
-            f'Starting read resource resource://agent_cards/{card_name}'
+            f'開始讀取資源 resource://agent_cards/{card_name}'
         )
         resources['agent_card'] = (
             df.loc[
@@ -289,6 +282,6 @@ def serve(host, port, transport):  # noqa: PLR0915
         return resources
 
     logger.info(
-        f'Agent cards MCP Server at {host}:{port} and transport {transport}'
+        f'代理卡 MCP 伺服器位於 {host}:{port}，傳輸方式為 {transport}'
     )
     mcp.run(transport=transport)

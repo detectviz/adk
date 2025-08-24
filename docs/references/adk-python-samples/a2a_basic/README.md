@@ -1,117 +1,117 @@
-# A2A Basic Sample Agent
+# A2A 基本範例代理
 
-This sample demonstrates the **Agent-to-Agent (A2A)** architecture in the Agent Development Kit (ADK), showcasing how multiple agents can work together to handle complex tasks. The sample implements an agent that can roll dice and check if numbers are prime.
+此範例展示了代理開發套件 (Agent Development Kit, ADK) 中的 **代理對代理 (Agent-to-Agent, A2A)** 架構，說明多個代理如何協同處理複雜任務。此範例實作了一個可以擲骰子並檢查數字是否為質數的代理。
 
-## Overview
+## 總覽
 
-The A2A Basic sample consists of:
+A2A 基本範例包含：
 
-- **Root Agent** (`root_agent`): The main orchestrator that delegates tasks to specialized sub-agents
-- **Roll Agent** (`roll_agent`): A local sub-agent that handles dice rolling operations
-- **Prime Agent** (`prime_agent`): A remote A2A agent that checks if numbers are prime, this agent is running on a separate A2A server
+- **根代理 (Root Agent)** (`root_agent`)：將任務委派給專門子代理的主要協調者。
+- **擲骰代理 (Roll Agent)** (`roll_agent`)：處理擲骰子操作的本地子代理。
+- **質數代理 (Prime Agent)** (`prime_agent`)：一個遠端的 A2A 代理，負責檢查數字是否為質數，此代理在一個獨立的 A2A 伺服器上執行。
 
-## Architecture
+## 架構
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌────────────────────┐
-│   Root Agent    │───▶│   Roll Agent     │    │   Remote Prime     │
-│  (Local)        │    │   (Local)        │    │   Agent            │
-│                 │    │                  │    │  (localhost:8001)  │
+│   根代理        │───▶│   擲骰代理       │    │   遠端質數代理     │
+│  (本地)         │    │   (本地)         │    │   (localhost:8001) │
+│                 │    │                  │    │                    │
 │                 │───▶│                  │◀───│                    │
 └─────────────────┘    └──────────────────┘    └────────────────────┘
 ```
 
-## Key Features
+## 主要功能
 
-### 1. **Local Sub-Agent Integration**
-- The `roll_agent` demonstrates how to create and integrate local sub-agents
-- Handles dice rolling with configurable number of sides
-- Uses a simple function tool (`roll_die`) for random number generation
+### 1. **本地子代理整合**
+- `roll_agent` 展示了如何建立與整合本地子代理。
+- 處理可設定面數的骰子擲骰。
+- 使用一個簡單的函式工具 (`roll_die`) 來產生隨機數。
 
-### 2. **Remote A2A Agent Integration**
-- The `prime_agent` shows how to connect to remote agent services
-- Communicates with a separate service via HTTP at `http://localhost:8001/a2a/check_prime_agent`
-- Demonstrates cross-service agent communication
+### 2. **遠端 A2A 代理整合**
+- `prime_agent` 展示了如何連接到遠端代理服務。
+- 透過 HTTP 與位於 `http://localhost:8001/a2a/check_prime_agent` 的獨立服務進行通訊。
+- 展示跨服務的代理通訊。
 
-### 3. **Agent Orchestration**
-- The root agent intelligently delegates tasks based on user requests
-- Can chain operations (e.g., "roll a die and check if it's prime")
-- Provides clear workflow coordination between multiple agents
+### 3. **代理協調**
+- 根代理根據使用者請求智慧地委派任務。
+- 可以鏈接操作（例如，「擲一個骰子並檢查它是否為質數」）。
+- 提供多個代理之間清晰的工作流程協調。
 
-### 4. **Example Tool Integration**
-- Includes an `ExampleTool` with sample interactions for context
-- Helps the agent understand expected behavior patterns
+### 4. **範例工具整合**
+- 包含一個帶有範例互動的 `ExampleTool` 以提供上下文。
+- 協助代理理解預期的行為模式。
 
-## Setup and Usage
+## 設定與使用
 
-### Prerequisites
+### 前提條件
 
-1. **Start the Remote Prime Agent server**:
+1. **啟動遠端質數代理伺服器**：
    ```bash
-   # Start the remote a2a server that serves the check prime agent on port 8001
+   # 啟動遠端 a2a 伺服器，該伺服器在 8001 連接埠上提供檢查質數代理服務
    adk api_server --a2a --port 8001 contributing/samples/a2a_basic/remote_a2a
    ```
 
-2. **Run the Main Agent**:
+2. **執行主要代理**：
    ```bash
-   # In a separate terminal, run the adk web server
+   # 在另一個終端機中，執行 adk web 伺服器
    adk web contributing/samples/
    ```
 
-### Example Interactions
+### 互動範例
 
-Once both services are running, you can interact with the root agent:
+當兩個服務都執行後，您可以與根代理進行互動：
 
-**Simple Dice Rolling:**
+**簡單的擲骰子：**
 ```
-User: Roll a 6-sided die
-Bot: I rolled a 4 for you.
-```
-
-**Prime Number Checking:**
-```
-User: Is 7 a prime number?
-Bot: Yes, 7 is a prime number.
+User: 擲一個 6 面骰
+Bot: 我為您擲出了一個 4。
 ```
 
-**Combined Operations:**
+**檢查質數：**
 ```
-User: Roll a 10-sided die and check if it's prime
-Bot: I rolled an 8 for you.
-Bot: 8 is not a prime number.
+User: 7 是質數嗎？
+Bot: 是的，7 是質數。
 ```
 
-## Code Structure
+**組合操作：**
+```
+User: 擲一個 10 面骰並檢查它是否為質數
+Bot: 我為您擲出了一個 8。
+Bot: 8 不是質數。
+```
 
-### Main Agent (`agent.py`)
+## 程式碼結構
 
-- **`roll_die(sides: int)`**: Function tool for rolling dice
-- **`roll_agent`**: Local agent specialized in dice rolling
-- **`prime_agent`**: Remote A2A agent configuration
-- **`root_agent`**: Main orchestrator with delegation logic
+### 主要代理 (`agent.py`)
 
-### Remote Prime Agent (`remote_a2a/check_prime_agent/`)
+- **`roll_die(sides: int)`**：用於擲骰子的函式工具。
+- **`roll_agent`**：專門處理擲骰子的本地代理。
+- **`prime_agent`**：遠端 A2A 代理設定。
+- **`root_agent`**：具備委派邏輯的主要協調者。
 
-- **`agent.py`**: Implementation of the prime checking service
-- **`agent.json`**: Agent card of the A2A agent
-- **`check_prime(nums: list[int])`**: Prime number checking algorithm
+### 遠端質數代理 (`remote_a2a/check_prime_agent/`)
+
+- **`agent.py`**：質數檢查服務的實作。
+- **`agent.json`**：A2A 代理的代理卡 (Agent Card)。
+- **`check_prime(nums: list[int])`**：質數檢查演算法。
 
 
-## Extending the Sample
+## 擴充範例
 
-You can extend this sample by:
+您可以透過以下方式擴充此範例：
 
-- Adding more mathematical operations (factorization, square roots, etc.)
-- Creating additional remote agent
-- Implementing more complex delegation logic
-- Adding persistent state management
-- Integrating with external APIs or databases
+- 新增更多數學運算（如因式分解、平方根等）。
+- 建立額外的遠端代理。
+- 實作更複雜的委派邏輯。
+- 新增持久性狀態管理。
+- 與外部 API 或資料庫整合。
 
-## Deployment to Other Environments
+## 部署至其他環境
 
-When deploying the remote A2A agent to different environments (e.g., Cloud Run, different hosts/ports), you **must** update the `url` field in the agent card JSON file:
+當將遠端 A2A 代理部署到不同環境（例如 Cloud Run、不同的主機/連接埠）時，您 **必須** 更新代理卡 JSON 檔案中的 `url` 欄位：
 
-### Local Development
+### 本地開發
 ```json
 {
   "url": "http://localhost:8001/a2a/check_prime_agent",
@@ -119,7 +119,7 @@ When deploying the remote A2A agent to different environments (e.g., Cloud Run, 
 }
 ```
 
-### Cloud Run Example
+### Cloud Run 範例
 ```json
 {
   "url": "https://your-service-abc123-uc.a.run.app/a2a/check_prime_agent",
@@ -127,7 +127,7 @@ When deploying the remote A2A agent to different environments (e.g., Cloud Run, 
 }
 ```
 
-### Custom Host/Port Example
+### 自訂主機/連接埠範例
 ```json
 {
   "url": "https://your-domain.com:9000/a2a/check_prime_agent",
@@ -135,19 +135,19 @@ When deploying the remote A2A agent to different environments (e.g., Cloud Run, 
 }
 ```
 
-**Important:** The `url` field in `remote_a2a/check_prime_agent/agent.json` must point to the actual RPC endpoint where your remote A2A agent is deployed and accessible.
+**重要事項：** `remote_a2a/check_prime_agent/agent.json` 中的 `url` 欄位必須指向您遠端 A2A 代理實際部署且可存取的 RPC 端點。
 
-## Troubleshooting
+## 疑難排解
 
-**Connection Issues:**
-- Ensure the local ADK web server is running on port 8000
-- Ensure the remote A2A server is running on port 8001
-- Check that no firewall is blocking localhost connections
-- **Verify the `url` field in `remote_a2a/check_prime_agent/agent.json` matches the actual deployed location of your remote A2A server**
-- Verify the agent card URL passed to RemoteA2AAgent constructor matches the running A2A server
+**連線問題：**
+- 確保本地 ADK Web 伺服器在 8000 連接埠上執行。
+- 確保遠端 A2A 伺服器在 8001 連接埠上執行。
+- 檢查是否有防火牆阻擋 localhost 連線。
+- **確認 `remote_a2a/check_prime_agent/agent.json` 中的 `url` 欄位與您遠端 A2A 伺服器的實際部署位置相符。**
+- 確認傳遞給 `RemoteA2AAgent` 建構函式的代理卡 URL 與正在執行的 A2A 伺服器相符。
 
 
-**Agent Not Responding:**
-- Check the logs for both the local ADK web server on port 8000 and remote A2A server on port 8001
-- Verify the agent instructions are clear and unambiguous
-- **Double-check that the RPC URL in the agent.json file is correct and accessible**
+**代理無回應：**
+- 檢查 8000 連接埠上的本地 ADK Web 伺服器與 8001 連接埠上的遠端 A2A 伺服器的日誌。
+- 確認代理的指令清晰明確。
+- **再次檢查 `agent.json` 檔案中的 RPC URL 是否正確且可存取。**

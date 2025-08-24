@@ -36,7 +36,7 @@ def error_response(error_message: str) -> dict[str, Any]:
 
 
 def run_graphql_query(query: str, variables: dict[str, Any]) -> dict[str, Any]:
-  """Executes a GraphQL query."""
+  """執行 GraphQL 查詢。"""
   payload = {"query": query, "variables": variables}
   response = requests.post(
       GITHUB_GRAPHQL_URL, headers=headers, json=payload, timeout=60
@@ -46,7 +46,7 @@ def run_graphql_query(query: str, variables: dict[str, Any]) -> dict[str, Any]:
 
 
 def parse_number_string(number_str: str | None, default_value: int = 0) -> int:
-  """Parse a number from the given string."""
+  """從給定的字串中解析數字。"""
   if not number_str:
     return default_value
 
@@ -54,80 +54,78 @@ def parse_number_string(number_str: str | None, default_value: int = 0) -> int:
     return int(number_str)
   except ValueError:
     print(
-        f"Warning: Invalid number string: {number_str}. Defaulting to"
-        f" {default_value}.",
+        f"警告：無效的數字字串：{number_str}。將使用預設值"
+        f" {default_value}。",
         file=sys.stderr,
     )
     return default_value
 
 
 def _check_url_exists(url: str) -> bool:
-  """Checks if a URL exists and is accessible."""
+  """檢查 URL 是否存在且可存取。"""
   try:
-    # Set a timeout to prevent the program from waiting indefinitely.
-    # allow_redirects=True ensures we correctly handle valid links
-    # after redirection.
+    # 設定超時以防止程式無限期等待。
+    # allow_redirects=True 確保我們在重新導向後能正確處理有效的連結。
     response = requests.head(url, timeout=5, allow_redirects=True)
-    # Status codes 2xx (Success) or 3xx (Redirection) are considered valid.
+    # 狀態碼 2xx (成功) 或 3xx (重新導向) 被視為有效。
     return response.ok
   except requests.RequestException:
-    # Catch all possible exceptions from the requests library
-    # (e.g., connection errors, timeouts).
+    # 捕捉 requests 函式庫所有可能的例外
+    # (例如連線錯誤、超時)。
     return False
 
 
 def _generate_github_url(repo_name: str, relative_path: str) -> str:
-  """Generates a standard GitHub URL for a repo file."""
+  """為儲存庫檔案產生標準的 GitHub URL。"""
   return f"https://github.com/google/{repo_name}/blob/main/{relative_path}"
 
 
 def convert_gcs_to_https(gcs_uri: str) -> Optional[str]:
-  """Converts a GCS file link into a publicly accessible HTTPS link.
+  """將 GCS 檔案連結轉換為可公開存取的 HTTPS 連結。
 
   Args:
-      gcs_uri: The Google Cloud Storage link, in the format
-        'gs://bucket_name/prefix/relative_path'.
+      gcs_uri: Google Cloud Storage 連結，格式為
+        'gs://bucket_name/prefix/relative_path'。
 
   Returns:
-      The converted HTTPS link as a string, or None if the input format is
-      incorrect.
+      轉換後的 HTTPS 連結字串，如果輸入格式不正確則為 None。
   """
-  # Parse the GCS link
+  # 解析 GCS 連結
   if not gcs_uri or not gcs_uri.startswith("gs://"):
-    print(f"Error: Invalid GCS link format: {gcs_uri}")
+    print(f"錯誤：無效的 GCS 連結格式：{gcs_uri}")
     return None
 
   try:
-    # Strip 'gs://' and split by '/', requiring at least 3 parts
-    # (bucket, prefix, path)
+    # 去除 'gs://' 並以 '/' 分割，至少需要 3 個部分
+    # (儲存桶、前綴、路徑)
     parts = gcs_uri[5:].split("/", 2)
     if len(parts) < 3:
       raise ValueError(
-          "GCS link must contain a bucket, prefix, and relative_path."
+          "GCS 連結必須包含儲存桶、前綴和相對路徑。"
       )
 
     _, prefix, relative_path = parts
   except (ValueError, IndexError) as e:
-    print(f"Error: Failed to parse GCS link '{gcs_uri}': {e}")
+    print(f"錯誤：解析 GCS 連結 '{gcs_uri}' 失敗：{e}")
     return None
 
-  # Replace .html with .md
+  # 將 .html 替換為 .md
   if relative_path.endswith(".html"):
     relative_path = relative_path.removesuffix(".html") + ".md"
 
-  # Convert the links for adk-docs
+  # 轉換 adk-docs 的連結
   if prefix == "adk-docs" and relative_path.startswith("docs/"):
     path_after_docs = relative_path[len("docs/") :]
     if not path_after_docs.endswith(".md"):
-      # Use the regular github url
+      # 使用常規的 github url
       return _generate_github_url(prefix, relative_path)
 
     base_url = "https://google.github.io/adk-docs/"
     if os.path.basename(path_after_docs) == "index.md":
-      # Use the directory path if it is a index file
+      # 如果是索引檔案，則使用目錄路徑
       final_path_segment = os.path.dirname(path_after_docs)
     else:
-      # Otherwise, use the file name without extention
+      # 否則，使用不含副檔名的檔案名稱
       final_path_segment = path_after_docs.removesuffix(".md")
 
     if final_path_segment and not final_path_segment.endswith("/"):
@@ -135,14 +133,14 @@ def convert_gcs_to_https(gcs_uri: str) -> Optional[str]:
 
     potential_url = urljoin(base_url, final_path_segment)
 
-    # Check if the generated link exists
+    # 檢查產生的連結是否存在
     if _check_url_exists(potential_url):
       return potential_url
     else:
-      # If it doesn't exist, fallback to the regular github url
+      # 如果不存在，則退回使用常規的 github url
       return _generate_github_url(prefix, relative_path)
 
-  # Convert the links for other cases, e.g. adk-python
+  # 轉換其他情況的連結，例如 adk-python
   else:
     return _generate_github_url(prefix, relative_path)
 
@@ -150,7 +148,7 @@ def convert_gcs_to_https(gcs_uri: str) -> Optional[str]:
 async def call_agent_async(
     runner: Runner, user_id: str, session_id: str, prompt: str
 ) -> str:
-  """Call the agent asynchronously with the user's prompt."""
+  """使用使用者的提示非同步呼叫代理。"""
   content = types.Content(
       role="user", parts=[types.Part.from_text(text=prompt)]
   )

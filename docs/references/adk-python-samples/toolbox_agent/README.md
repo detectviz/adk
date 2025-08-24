@@ -1,18 +1,18 @@
-# Toolbox Agent
+# 工具箱代理
 
-This agent utilizes [MCP toolbox for database](https://googleapis.github.io/genai-toolbox/getting-started/introduction/) to assist end users based on information stored in a database.
+此代理程式利用 [MCP toolbox for database](https://googleapis.github.io/genai-toolbox/getting-started/introduction/) 來根據儲存在資料庫中的資訊協助使用者。
 
-Follow the steps below to run this agent.
+請按照以下步驟執行此代理程式。
 
-## Prerequisites
+## 先決條件
 
-Before starting, ensure you have Python installed on your system.
+開始之前，請確保您的系統上已安裝 Python。
 
-## Installation Steps
+## 安裝步驟
 
-### 1. Install Toolbox
+### 1. 安裝工具箱
 
-Run the following command to download and install the toolbox:
+執行以下指令以下載並安裝工具箱：
 
 ```bash
 export OS="linux/amd64" # one of linux/amd64, darwin/arm64, darwin/amd64, or windows/amd64
@@ -20,29 +20,29 @@ curl -O https://storage.googleapis.com/genai-toolbox/v0.5.0/$OS/toolbox
 chmod +x toolbox
 ```
 
-### 2. Install SQLite
+### 2. 安裝 SQLite
 
-Install SQLite from [https://sqlite.org/](https://sqlite.org/)
+從 [https://sqlite.org/](https://sqlite.org/) 安裝 SQLite
 
-### 3. Install Required Python Dependencies
+### 3. 安裝必要的 Python 相依性
 
-**Important**: The ADK's `ToolboxToolset` class requires the `toolbox-core` package, which is not automatically installed with the ADK. Install it using:
+**重要**：ADK 的 `ToolboxToolset` 類別需要 `toolbox-core` 套件，該套件不會隨 ADK 自動安裝。請使用以下指令安裝：
 
 ```bash
 pip install toolbox-core
 ```
 
-### 4. Create Database (Optional)
+### 4. 建立資料庫（可選）
 
-*Note: A database instance is already included in the project folder. Skip this step if you want to use the existing database.*
+*注意：專案資料夾中已包含資料庫執行個體。如果您想使用現有的資料庫，請跳過此步驟。*
 
-To create a new database:
+若要建立新資料庫：
 
 ```bash
 sqlite3 tool_box.db
 ```
 
-Run the following SQL commands to set up the hotels table:
+執行以下 SQL 指令來設定 hotels 資料表：
 
 ```sql
 CREATE TABLE hotels(
@@ -69,27 +69,27 @@ VALUES
   (10, 'Comfort Inn Bern', 'Bern', 'Midscale', '2024-04-04', '2024-04-16', 0);
 ```
 
-### 5. Create Tools Configuration
+### 5. 建立工具設定
 
-Create a YAML file named `tools.yaml`. See the contents in the agent folder for reference.
+建立一個名為 `tools.yaml` 的 YAML 檔案。有關內容，請參閱代理程式資料夾。
 
-### 6. Start Toolbox Server
+### 6. 啟動工具箱伺服器
 
-Run the following command in the agent folder:
+在代理程式資料夾中執行以下指令：
 
 ```bash
 toolbox --tools-file "tools.yaml"
 ```
 
-The server will start at `http://127.0.0.1:5000` by default.
+伺服器預設會在 `http://127.0.0.1:5000` 啟動。
 
-### 7. Start ADK Web UI
+### 7. 啟動 ADK Web UI
 
-Follow the ADK documentation to start the web user interface.
+請按照 ADK 文件啟動 Web 使用者介面。
 
-## Testing the Agent
+## 測試代理程式
 
-Once everything is set up, you can test the agent with these sample queries:
+設定完成後，您可以使用以下範例查詢來測試代理程式：
 
-- **Query 1**: "What can you do for me?"
-- **Query 2**: "Could you let me know the information about 'Hilton Basel' hotel?"
+- **查詢 1**：「你能為我做什麼？」
+- **查詢 2**：「你能告訴我關於「巴塞爾希爾頓」飯店的資訊嗎？」

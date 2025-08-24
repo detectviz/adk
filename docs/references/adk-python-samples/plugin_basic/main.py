@@ -19,7 +19,7 @@ from google.adk.runners import InMemoryRunner
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
-# [Step 2] Import the plugin.
+# [步驟 2] 匯入外掛程式。
 from .count_plugin import CountInvocationPlugin
 
 
@@ -30,20 +30,20 @@ async def hello_world(tool_context: ToolContext, query: str):
 root_agent = Agent(
     model='gemini-2.0-flash',
     name='hello_world',
-    description='Prints hello world with user query.',
-    instruction="""Use hello_world tool to print hello world and user query.
+    description='印出 hello world 與使用者查詢。',
+    instruction="""使用 hello_world 工具印出 hello world 與使用者查詢。
     """,
     tools=[hello_world],
 )
 
 
 async def main():
-  """Main entry point for the agent."""
+  """代理程式的主要進入點。"""
   prompt = 'hello world'
   runner = InMemoryRunner(
       agent=root_agent,
       app_name='test_app_with_plugin',
-      # [Step 2] Add your plugin here. You can add multiple plugins.
+      # [步驟 2] 在此處新增您的外掛程式。您可以新增多個外掛程式。
       plugins=[CountInvocationPlugin()],
   )
   session = await runner.session_service.create_session(

@@ -26,21 +26,21 @@ root_agent = Agent(
     name='root_agent',
     model='gemini-2.0-flash',
     instruction="""\
-Answer user's questions based on the data you have.
+根據您擁有的資料回答使用者的問題。
 
-If you don't have the data, you can just say you don't know.
+如果您沒有資料，可以直接說不知道。
 
-Here are the data you have for San Jose
+以下是您擁有的聖荷西 (San Jose) 資料
 
-* temperature: 26 C
-* humidity: 20%
-* wind_speed: 29 mph
+*   溫度 (temperature): 26 C
+*   濕度 (humidity): 20%
+*   風速 (wind_speed): 29 mph
 
-Here are the data you have for Cupertino
+以下是您擁有的庫比蒂諾 (Cupertino) 資料
 
-* temperature: 16 C
-* humidity: 10%
-* wind_speed: 13 mph
+*   溫度 (temperature): 16 C
+*   濕度 (humidity): 10%
+*   風速 (wind_speed): 13 mph
 
 """,
     output_schema=WeahterData,

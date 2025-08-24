@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-This agent aims to test the Langchain tool with Langchain's StructuredTool
+這個代理 (agent) 的目的是用 Langchain 的 StructuredTool 來測試 Langchain 工具。
 """
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools.langchain_tool import LangchainTool
@@ -44,17 +44,16 @@ class MinusSchema(BaseModel):
 test_langchain_add_tool = StructuredTool.from_function(
     add,
     name="add",
-    description="Adds two numbers",
+    description="將兩個數字相加",
     args_schema=AddSchema,
 )
 
 root_agent = Agent(
     model="gemini-2.0-flash-001",
     name="test_app",
-    description="A helpful assistant for user questions.",
+    description="一個能回答使用者問題的實用助理。",
     instruction=(
-        "You are a helpful assistant for user questions, you have access to a"
-        " tool that adds two numbers."
+        "你是一個能回答使用者問題的實用助理，你有一個可以將兩個數字相加的工具。"
     ),
     tools=[
         LangchainTool(tool=test_langchain_add_tool),

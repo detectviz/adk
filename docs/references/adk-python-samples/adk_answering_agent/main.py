@@ -42,21 +42,20 @@ async def main():
 
   discussion_number = parse_number_string(DISCUSSION_NUMBER)
   if not discussion_number:
-    print(f"Error: Invalid discussion number received: {DISCUSSION_NUMBER}.")
+    print(f"錯誤：收到的討論編號無效：{DISCUSSION_NUMBER}。")
     return
 
   prompt = (
-      f"Please check discussion #{discussion_number} see if you can help answer"
-      " the question or provide some information!"
+      f"請檢查討論 #{discussion_number}，看看您是否能協助回答問題或提供一些資訊！"
   )
   response = await call_agent_async(runner, USER_ID, session.id, prompt)
-  print(f"<<<< Agent Final Output: {response}\n")
+  print(f"<<<< 代理程式最終輸出：{response}\n")
 
 
 if __name__ == "__main__":
   start_time = time.time()
   print(
-      f"Start Q&A checking on {OWNER}/{REPO} discussion #{DISCUSSION_NUMBER} at"
+      f"在 {OWNER}/{REPO} 的討論 #{DISCUSSION_NUMBER} 上開始問答檢查，時間："
       f" {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(start_time))}"
   )
   print("-" * 80)
@@ -64,7 +63,7 @@ if __name__ == "__main__":
   print("-" * 80)
   end_time = time.time()
   print(
-      "Q&A checking finished at"
+      "問答檢查完成於"
       f" {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(end_time))}",
   )
-  print("Total script execution time:", f"{end_time - start_time:.2f} seconds")
+  print("腳本總執行時間：", f"{end_time - start_time:.2f} 秒")

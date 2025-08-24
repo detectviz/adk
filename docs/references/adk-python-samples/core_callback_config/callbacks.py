@@ -27,12 +27,12 @@ def after_agent_callback1(callback_context):
 
 def after_agent_callback2(callback_context):
   print('@after_agent_callback2')
-  # ModelContent (or Content with role set to 'model') must be returned.
-  # Otherwise, the event will be excluded from the context in the next turn.
+  # 必須回傳 ModelContent (或角色設定為 'model' 的 Content)。
+  # 否則，該事件將在下一輪的上下文中被排除。
   return types.ModelContent(
       parts=[
           types.Part(
-              text='(stopped) after_agent_callback2',
+              text='(已停止) after_agent_callback2',
           ),
       ],
   )

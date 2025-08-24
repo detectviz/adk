@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Sample agent demonstrating output_schema with tools feature.
+"""示範 output_schema 與工具功能的範例代理。
 
-This agent shows how to use structured output (output_schema) alongside
-other tools. Previously, this combination was not allowed, but now it's
-supported through a workaround that uses a special set_model_response tool.
+此代理程式示範如何將結構化輸出 (output_schema) 與其他工具一併使用。
+先前不允許此組合，但現在透過使用特殊 set_model_response 工具的因應措施來支援。
 """
 
 from google.adk.agents import LlmAgent
@@ -26,26 +25,26 @@ import requests
 
 
 class PersonInfo(BaseModel):
-  """Structured information about a person."""
+  """關於個人的結構化資訊。"""
 
-  name: str = Field(description="The person's full name")
-  age: int = Field(description="The person's age in years")
-  occupation: str = Field(description="The person's job or profession")
-  location: str = Field(description="The city and country where they live")
-  biography: str = Field(description="A brief biography of the person")
+  name: str = Field(description="個人的全名")
+  age: int = Field(description="個人的年齡")
+  occupation: str = Field(description="個人的工作或職業")
+  location: str = Field(description="他們居住的城市和國家")
+  biography: str = Field(description="個人的簡短傳記")
 
 
 def search_wikipedia(query: str) -> str:
-  """Search Wikipedia for information about a topic.
+  """在維基百科上搜尋有關主題的資訊。
 
   Args:
-    query: The search query to look up on Wikipedia
+    query: 要在維基百科上查詢的搜尋查詢
 
   Returns:
-    Summary of the Wikipedia article if found, or error message if not found
+    如果找到，則為維基百科文章的摘要，如果找不到，則為錯誤訊息
   """
   try:
-    # Use Wikipedia API to search for the article
+    # 使用維基百科 API 搜尋文章
     search_url = (
         "https://en.wikipedia.org/api/rest_v1/page/summary/"
         + query.replace(" ", "_")
@@ -55,43 +54,43 @@ def search_wikipedia(query: str) -> str:
     if response.status_code == 200:
       data = response.json()
       return (
-          f"Title: {data.get('title', 'N/A')}\n\nSummary:"
-          f" {data.get('extract', 'No summary available')}"
+          f"標題：{data.get('title', '不適用')}\n\n摘要："
+          f" {data.get('extract', '沒有可用的摘要')}"
       )
     else:
       return (
-          f"Wikipedia article not found for '{query}'. Status code:"
+          f"找不到 '{query}' 的維基百科文章。狀態碼："
           f" {response.status_code}"
       )
 
   except Exception as e:
-    return f"Error searching Wikipedia: {str(e)}"
+    return f"搜尋維基百科時發生錯誤：{str(e)}"
 
 
 def get_current_year() -> str:
-  """Get the current year.
+  """取得目前年份。
 
   Returns:
-    The current year as a string
+    目前年份 (字串格式)
   """
   from datetime import datetime
 
   return str(datetime.now().year)
 
 
-# Create the agent with both output_schema and tools
+# 建立同時具有 output_schema 和工具的代理
 root_agent = LlmAgent(
     name="person_info_agent",
     model="gemini-2.5-pro",
     instruction="""
-You are a helpful assistant that gathers information about famous people.
+您是一位收集名人資訊的得力助手。
 
-When asked about a person, you should:
-1. Use the search_wikipedia tool to find information about them
-2. Use the get_current_year tool if you need to calculate ages
-3. Compile the information into a structured response using the PersonInfo format
+當被問及某人時，您應該：
+1. 使用 search_wikipedia 工具尋找有關他們的資訊
+2. 如果需要計算年齡，請使用 get_current_year 工具
+3. 使用 PersonInfo 格式將資訊編譯為結構化回應
 
-Always use the set_model_response tool to provide your final answer in the required structured format.
+務必使用 set_model_response 工具以必要的結構化格式提供您的最終答案。
     """.strip(),
     output_schema=PersonInfo,
     tools=[

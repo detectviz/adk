@@ -45,10 +45,10 @@ def error_response(error_message: str) -> dict[str, Any]:
 
 
 def read_file(file_path: str) -> str:
-  """Read the content of the given file."""
+  """讀取給定檔案的內容。"""
   try:
     with open(file_path, "r") as f:
       return f.read()
   except FileNotFoundError:
-    print(f"Error: File not found: {file_path}.")
+    print(f"錯誤：找不到檔案：{file_path}。")
     return ""

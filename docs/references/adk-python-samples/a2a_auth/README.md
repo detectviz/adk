@@ -1,167 +1,167 @@
-# A2A OAuth Authentication Sample Agent
+# A2A OAuth 驗證範例代理
 
-This sample demonstrates the **Agent-to-Agent (A2A)** architecture with **OAuth Authentication** workflows in the Agent Development Kit (ADK). The sample implements a multi-agent system where a remote agent can surface OAuth authentication requests to the local agent, which then guides the end user through the OAuth flow before returning the authentication credentials to the remote agent for API access.
+此範例展示了代理開發套件 (Agent Development Kit, ADK) 中的 **代理對代理 (Agent-to-Agent, A2A)** 架構與 **OAuth 驗證** 工作流程。此範例實作了一個多代理系統，其中遠端代理可以向本地代理提出 OAuth 驗證請求，然後由本地代理引導使用者完成 OAuth 流程，最後將驗證憑證回傳給遠端代理以進行 API 存取。
 
-## Overview
+## 總覽
 
-The A2A OAuth Authentication sample consists of:
+A2A OAuth 驗證範例包含：
 
-- **Root Agent** (`root_agent`): The main orchestrator that handles user requests and delegates tasks to specialized agents
-- **YouTube Search Agent** (`youtube_search_agent`): A local agent that handles YouTube video searches using LangChain tools
-- **BigQuery Agent** (`bigquery_agent`): A remote A2A agent that manages BigQuery operations and requires OAuth authentication for Google Cloud access
+- **根代理 (Root Agent)** (`root_agent`)：處理使用者請求並將任務委派給專門代理的主要協調者。
+- **YouTube 搜尋代理 (YouTube Search Agent)** (`youtube_search_agent`)：使用 LangChain 工具處理 YouTube 影片搜尋的本地代理。
+- **BigQuery 代理 (BigQuery Agent)** (`bigquery_agent`)：一個遠端的 A2A 代理，負責管理 BigQuery 操作，並需要透過 OAuth 驗證才能存取 Google Cloud。
 
-## Architecture
+## 架構
 
 ```
 ┌─────────────────┐    ┌────────────────────┐    ┌──────────────────┐
-│   End User      │───▶│   Root Agent       │───▶│   BigQuery Agent │
-│   (OAuth Flow)  │    │    (Local)         │    │  (Remote A2A)    │
+│   使用者         │───▶│   根代理           │───▶ │   BigQuery 代理   │
+│   (OAuth 流程)   │    │    (本地)          │    │  (遠端 A2A)       │
 │                 │    │                    │    │ (localhost:8001) │
-│   OAuth UI      │◀───│                    │◀───│   OAuth Request  │
+│   OAuth UI      │◀───│                    │◀───│   OAuth 請求     │
 └─────────────────┘    └────────────────────┘    └──────────────────┘
 ```
 
-## Key Features
+## 主要功能
 
-### 1. **Multi-Agent Architecture**
-- Root agent coordinates between local YouTube search and remote BigQuery operations
-- Demonstrates hybrid local/remote agent workflows
-- Seamless task delegation based on user request types
+### 1. **多代理架構 (Multi-Agent Architecture)**
+- 根代理協調本地 YouTube 搜尋與遠端 BigQuery 操作。
+- 展示混合式本地/遠端代理工作流程。
+- 根據使用者請求類型無縫委派任務。
 
-### 2. **OAuth Authentication Workflow**
-- Remote BigQuery agent surfaces OAuth authentication requests to the root agent
-- Root agent guides end users through Google OAuth flow for BigQuery access
-- Secure token exchange between agents for authenticated API calls
+### 2. **OAuth 驗證工作流程**
+- 遠端 BigQuery 代理向根代理提出 OAuth 驗證請求。
+- 根代理引導使用者完成 Google OAuth 流程以存取 BigQuery。
+- 在代理之間安全地交換權杖以進行驗證後的 API 呼叫。
 
-### 3. **Google Cloud Integration**
-- BigQuery toolset with comprehensive dataset and table management capabilities
-- OAuth-protected access to user's Google Cloud BigQuery resources
-- Support for listing, creating, and managing datasets and tables
+### 3. **Google Cloud 整合**
+- 具備完整資料集與資料表管理功能的 BigQuery 工具集。
+- 透過 OAuth 保護使用者對 Google Cloud BigQuery 資源的存取。
+- 支援列出、建立及管理資料集與資料表。
 
-### 4. **LangChain Tool Integration**
-- YouTube search functionality using LangChain community tools
-- Demonstrates integration of third-party tools in agent workflows
+### 4. **LangChain 工具整合**
+- 使用 LangChain 社群工具實現 YouTube 搜尋功能。
+- 展示在代理工作流程中整合第三方工具。
 
-## Setup and Usage
+## 設定與使用
 
-### Prerequisites
+### 前提條件
 
-1. **Set up OAuth Credentials**:
+1. **設定 OAuth 憑證**：
    ```bash
    export OAUTH_CLIENT_ID=your_google_oauth_client_id
    export OAUTH_CLIENT_SECRET=your_google_oauth_client_secret
    ```
 
-2. **Start the Remote BigQuery Agent server**:
+2. **啟動遠端 BigQuery 代理伺服器**：
    ```bash
-   # Start the remote a2a server that serves the BigQuery agent on port 8001
+   # 啟動遠端 a2a 伺服器，該伺服器在 8001 連接埠上提供 BigQuery 代理服務
    adk api_server --a2a --port 8001 contributing/samples/a2a_auth/remote_a2a
    ```
 
-3. **Run the Main Agent**:
+3. **執行主要代理**：
    ```bash
-   # In a separate terminal, run the adk web server
+   # 在另一個終端機中，執行 adk web 伺服器
    adk web contributing/samples/
    ```
 
-### Example Interactions
+### 互動範例
 
-Once both services are running, you can interact with the root agent:
+當兩個服務都執行後，您可以與根代理進行互動：
 
-**YouTube Search (No Authentication Required):**
+**YouTube 搜尋 (不需驗證)：**
 ```
-User: Search for 3 Taylor Swift music videos
-Agent: I'll help you search for Taylor Swift music videos on YouTube.
-[Agent delegates to YouTube Search Agent]
-Agent: I found 3 Taylor Swift music videos:
-1. "Anti-Hero" - Official Music Video
-2. "Shake It Off" - Official Music Video
-3. "Blank Space" - Official Music Video
-```
-
-**BigQuery Operations (OAuth Required):**
-```
-User: List my BigQuery datasets
-Agent: I'll help you access your BigQuery datasets. This requires authentication with your Google account.
-[Agent delegates to BigQuery Agent]
-Agent: To access your BigQuery data, please complete the OAuth authentication.
-[OAuth flow initiated - user redirected to Google authentication]
-User: [Completes OAuth flow in browser]
-Agent: Authentication successful! Here are your BigQuery datasets:
-- dataset_1: Customer Analytics
-- dataset_2: Sales Data
-- dataset_3: Marketing Metrics
+User: 搜尋 3 部泰勒絲的音樂影片
+Agent: 我將協助您在 YouTube 上搜尋泰勒絲的音樂影片。
+[代理將任務委派給 YouTube 搜尋代理]
+Agent: 我找到了 3 部泰勒絲的音樂影片：
+1. "Anti-Hero" - 官方音樂影片
+2. "Shake It Off" - 官方音樂影片
+3. "Blank Space" - 官方音樂影片
 ```
 
-**Dataset Management:**
+**BigQuery 操作 (需要 OAuth)：**
 ```
-User: Show me details for my Customer Analytics dataset
-Agent: I'll get the details for your Customer Analytics dataset.
-[Using existing OAuth token]
-Agent: Customer Analytics Dataset Details:
-- Created: 2024-01-15
-- Location: US
-- Tables: 5
-- Description: Customer behavior and analytics data
+User: 列出我的 BigQuery 資料集
+Agent: 我將協助您存取 BigQuery 資料集。這需要透過您的 Google 帳戶進行驗證。
+[代理將任務委派給 BigQuery 代理]
+Agent: 若要存取您的 BigQuery 資料，請完成 OAuth 驗證。
+[啟動 OAuth 流程 - 使用者被重新導向至 Google 驗證頁面]
+User: [在瀏覽器中完成 OAuth 流程]
+Agent: 驗證成功！這是您的 BigQuery 資料集：
+- dataset_1: 客戶分析
+- dataset_2: 銷售資料
+- dataset_3: 行銷指標
 ```
 
-## Code Structure
+**資料集管理：**
+```
+User: 顯示我的「客戶分析」資料集的詳細資訊
+Agent: 我將為您取得「客戶分析」資料集的詳細資訊。
+[使用現有的 OAuth 權杖]
+Agent: 「客戶分析」資料集詳細資訊：
+- 建立日期：2024-01-15
+- 位置：美國
+- 資料表數量：5
+- 描述：客戶行為與分析資料
+```
 
-### Main Agent (`agent.py`)
+## 程式碼結構
 
-- **`youtube_search_agent`**: Local agent with LangChain YouTube search tool
-- **`bigquery_agent`**: Remote A2A agent configuration for BigQuery operations
-- **`root_agent`**: Main orchestrator with task delegation logic
+### 主要代理 (`agent.py`)
 
-### Remote BigQuery Agent (`remote_a2a/bigquery_agent/`)
+- **`youtube_search_agent`**：具備 LangChain YouTube 搜尋工具的本地代理。
+- **`bigquery_agent`**：用於 BigQuery 操作的遠端 A2A 代理設定。
+- **`root_agent`**：具備任務委派邏輯的主要協調者。
 
-- **`agent.py`**: Implementation of the BigQuery agent with OAuth toolset
-- **`agent.json`**: Agent card of the A2A agent
-- **`BigQueryToolset`**: OAuth-enabled tools for BigQuery dataset and table management
+### 遠端 BigQuery 代理 (`remote_a2a/bigquery_agent/`)
 
-## OAuth Authentication Workflow
+- **`agent.py`**：具備 OAuth 工具集的 BigQuery 代理實作。
+- **`agent.json`**：A2A 代理的代理卡 (Agent Card)。
+- **`BigQueryToolset`**：支援 OAuth 的 BigQuery 資料集與資料表管理工具。
 
-The OAuth authentication process follows this pattern:
+## OAuth 驗證工作流程
 
-1. **Initial Request**: User requests BigQuery operation through root agent
-2. **Delegation**: Root agent delegates to remote BigQuery agent
-3. **Auth Check**: BigQuery agent checks for valid OAuth token
-4. **Auth Request**: If no token, agent surfaces OAuth request to root agent
-5. **User OAuth**: Root agent guides user through Google OAuth flow
-6. **Token Exchange**: Root agent sends OAuth token to BigQuery agent
-7. **API Call**: BigQuery agent uses token to make authenticated API calls
-8. **Result Return**: BigQuery agent returns results through root agent to user
+OAuth 驗證流程遵循以下模式：
 
-## Supported BigQuery Operations
+1. **初始請求**：使用者透過根代理請求 BigQuery 操作。
+2. **委派**：根代理將任務委派給遠端 BigQuery 代理。
+3. **驗證檢查**：BigQuery 代理檢查是否有有效的 OAuth 權杖。
+4. **驗證請求**：若無權杖，代理向根代理提出 OAuth 請求。
+5. **使用者 OAuth**：根代理引導使用者完成 Google OAuth 流程。
+6. **權杖交換**：根代理將 OAuth 權杖傳送給 BigQuery 代理。
+7. **API 呼叫**：BigQuery 代理使用權杖進行驗證後的 API 呼叫。
+8. **回傳結果**：BigQuery 代理透過根代理將結果回傳給使用者。
 
-The BigQuery agent supports the following operations:
+## 支援的 BigQuery 操作
 
-### Dataset Operations:
-- **List Datasets**: `bigquery_datasets_list` - Get all user's datasets
-- **Get Dataset**: `bigquery_datasets_get` - Get specific dataset details
-- **Create Dataset**: `bigquery_datasets_insert` - Create new dataset
+BigQuery 代理支援以下操作：
 
-### Table Operations:
-- **List Tables**: `bigquery_tables_list` - Get tables in a dataset
-- **Get Table**: `bigquery_tables_get` - Get specific table details
-- **Create Table**: `bigquery_tables_insert` - Create new table in dataset
+### 資料集操作：
+- **列出資料集**：`bigquery_datasets_list` - 取得使用者所有的資料集。
+- **取得資料集**：`bigquery_datasets_get` - 取得特定資料集的詳細資訊。
+- **建立資料集**：`bigquery_datasets_insert` - 建立新的資料集。
 
-## Extending the Sample
+### 資料表操作：
+- **列出資料表**：`bigquery_tables_list` - 取得資料集中的資料表。
+- **取得資料表**：`bigquery_tables_get` - 取得特定資料表的詳細資訊。
+- **建立資料表**：`bigquery_tables_insert` - 在資料集中建立新的資料表。
 
-You can extend this sample by:
+## 擴充範例
 
-- Adding more Google Cloud services (Cloud Storage, Compute Engine, etc.)
-- Implementing token refresh and expiration handling
-- Adding role-based access control for different BigQuery operations
-- Creating OAuth flows for other providers (Microsoft, Facebook, etc.)
-- Adding audit logging for authentication events
-- Implementing multi-tenant OAuth token management
+您可以透過以下方式擴充此範例：
 
-## Deployment to Other Environments
+- 新增更多 Google Cloud 服務（如 Cloud Storage、Compute Engine 等）。
+- 實作權杖更新與過期處理。
+- 為不同的 BigQuery 操作新增基於角色的存取控制。
+- 為其他供應商（如 Microsoft、Facebook 等）建立 OAuth 流程。
+- 為驗證事件新增稽核日誌。
+- 實作多租戶 OAuth 權杖管理。
 
-When deploying the remote BigQuery A2A agent to different environments (e.g., Cloud Run, different hosts/ports), you **must** update the `url` field in the agent card JSON file:
+## 部署至其他環境
 
-### Local Development
+當將遠端 BigQuery A2A 代理部署到不同環境（例如 Cloud Run、不同的主機/連接埠）時，您 **必須** 更新代理卡 JSON 檔案中的 `url` 欄位：
+
+### 本地開發
 ```json
 {
   "url": "http://localhost:8001/a2a/bigquery_agent",
@@ -169,7 +169,7 @@ When deploying the remote BigQuery A2A agent to different environments (e.g., Cl
 }
 ```
 
-### Cloud Run Example
+### Cloud Run 範例
 ```json
 {
   "url": "https://your-bigquery-service-abc123-uc.a.run.app/a2a/bigquery_agent",
@@ -177,7 +177,7 @@ When deploying the remote BigQuery A2A agent to different environments (e.g., Cl
 }
 ```
 
-### Custom Host/Port Example
+### 自訂主機/連接埠範例
 ```json
 {
   "url": "https://your-domain.com:9000/a2a/bigquery_agent",
@@ -185,32 +185,31 @@ When deploying the remote BigQuery A2A agent to different environments (e.g., Cl
 }
 ```
 
-**Important:** The `url` field in `remote_a2a/bigquery_agent/agent.json` must point to the actual RPC endpoint where your remote BigQuery A2A agent is deployed and accessible.
+**重要事項：** `remote_a2a/bigquery_agent/agent.json` 中的 `url` 欄位必須指向您遠端 BigQuery A2A 代理實際部署且可存取的 RPC 端點。
 
-## Troubleshooting
+## 疑難排解
 
-**Connection Issues:**
-- Ensure the local ADK web server is running on port 8000
-- Ensure the remote A2A server is running on port 8001
-- Check that no firewall is blocking localhost connections
-- **Verify the `url` field in `remote_a2a/bigquery_agent/agent.json` matches the actual deployed location of your remote A2A server**
-- Verify the agent card URL passed to RemoteA2AAgent constructor matches the running A2A server
+**連線問題：**
+- 確保本地 ADK Web 伺服器在 8000 連接埠上執行。
+- 確保遠端 A2A 伺服器在 8001 連接埠上執行。
+- 檢查是否有防火牆阻擋 localhost 連線。
+- **確認 `remote_a2a/bigquery_agent/agent.json` 中的 `url` 欄位與您遠端 A2A 伺服器的實際部署位置相符。**
+- 確認傳遞給 `RemoteA2AAgent` 建構函式的代理卡 URL 與正在執行的 A2A 伺服器相符。
 
+**OAuth 問題：**
+- 確認 `.env` 檔案中的 OAuth 用戶端 ID 和密鑰已正確設定。
+- 確保在 Google Cloud Console 中已正確設定 OAuth 重新導向 URI。
+- 檢查 OAuth 範圍是否包含 BigQuery 存取權限。
+- 確認使用者有權存取 BigQuery 專案/資料集。
 
-**OAuth Issues:**
-- Verify OAuth client ID and secret are correctly set in .env file
-- Ensure OAuth redirect URIs are properly configured in Google Cloud Console
-- Check that the OAuth scopes include BigQuery access permissions
-- Verify the user has access to the BigQuery projects/datasets
+**BigQuery 存取問題：**
+- 確保已驗證的使用者具備 BigQuery 權限。
+- 檢查 Google Cloud 專案是否已啟用 BigQuery API。
+- 確認資料集與資料表名稱正確且可存取。
+- 檢查 BigQuery API 呼叫的配額限制。
 
-**BigQuery Access Issues:**
-- Ensure the authenticated user has BigQuery permissions
-- Check that the Google Cloud project has BigQuery API enabled
-- Verify dataset and table names are correct and accessible
-- Check for quota limits on BigQuery API calls
-
-**Agent Communication Issues:**
-- Check the logs for both the local ADK web server and remote A2A server
-- Verify OAuth tokens are properly passed between agents
-- Ensure agent instructions are clear about authentication requirements
-- **Double-check that the RPC URL in the agent.json file is correct and accessible**
+**代理通訊問題：**
+- 檢查本地 ADK Web 伺服器與遠端 A2A 伺服器的日誌。
+- 確認 OAuth 權杖在代理之間正確傳遞。
+- 確保代理的指令清楚說明驗證要求。
+- **再次檢查 `agent.json` 檔案中的 RPC URL 是否正確且可存取。**

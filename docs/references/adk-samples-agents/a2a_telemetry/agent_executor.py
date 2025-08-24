@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class QnAAgentExecutor(AgentExecutor):
-    """Agent executor that uses the ADK to answer questions."""
+    """使用 ADK 回答問題的代理執行器。"""
 
     def __init__(self):
         self.agent = None
@@ -32,8 +32,8 @@ class QnAAgentExecutor(AgentExecutor):
         self.agent = LlmAgent(
             model=LiteLlm(model=LITELLM_MODEL),
             name='question_answer_agent',
-            description='A helpful assistant agent that can answer questions.',
-            instruction="""Respond to the query using google search""",
+            description='一個可以回答問題的實用助理代理。',
+            instruction="""使用 google 搜尋回應查詢""",
             tools=[google_search_tool.google_search],
         )
         self.runner = self.runner = Runner(
@@ -54,7 +54,7 @@ class QnAAgentExecutor(AgentExecutor):
     ) -> None:
         if self.agent is None:
             self._init_agent()
-        logger.debug(f'Executing agent {self.agent.name}')
+        logger.debug(f'正在執行代理 {self.agent.name}')
 
         query = context.get_user_input()
 
@@ -79,7 +79,7 @@ class QnAAgentExecutor(AgentExecutor):
         async for event in self.runner.run_async(
             session_id=session.id, user_id='123', new_message=content
         ):
-            logger.debug(f'Event from ADK {event}')
+            logger.debug(f'來自 ADK 的事件 {event}')
             if event.is_final_response():
                 parts = event.content.parts
                 text_parts = [
@@ -92,13 +92,13 @@ class QnAAgentExecutor(AgentExecutor):
                 await updater.complete()
                 break
             await updater.update_status(
-                TaskState.working, message=new_agent_text_message('Working...')
+                TaskState.working, message=new_agent_text_message('工作中...')
             )
         else:
-            logger.debug('Agent failed to complete')
+            logger.debug('代理未能完成')
             await updater.update_status(
                 TaskState.failed,
                 message=new_agent_text_message(
-                    'Failed to generate a response.'
+                    '無法產生回應。'
                 ),
             )

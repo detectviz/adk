@@ -19,28 +19,28 @@ from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
 from google.adk.tools.langchain_tool import LangchainTool
 from langchain_community.tools.youtube.search import YouTubeSearchTool
 
-# Instantiate the tool
+# 實例化工具
 langchain_yt_tool = YouTubeSearchTool()
 
-# Wrap the tool in the LangchainTool class from ADK
+# 將工具包裝在 ADK 的 LangchainTool 類別中
 adk_yt_tool = LangchainTool(
     tool=langchain_yt_tool,
 )
 
 youtube_search_agent = Agent(
     name="youtube_search_agent",
-    model="gemini-2.0-flash",  # Replace with the actual model name
+    model="gemini-2.0-flash",  # 請替換為實際的模型名稱
     instruction="""
-    Ask customer to provide singer name, and the number of videos to search.
+    請要求客戶提供歌手姓名以及要搜尋的影片數量。
     """,
-    description="Help customer to search for a video on Youtube.",
+    description="協助客戶在 YouTube 上搜尋影片。",
     tools=[adk_yt_tool],
     output_key="youtube_search_output",
 )
 
 bigquery_agent = RemoteA2aAgent(
     name="bigquery_agent",
-    description="Help customer to manage notion workspace.",
+    description="協助客戶管理 Notion 工作區。",
     agent_card=(
         f"http://localhost:8001/a2a/bigquery_agent{AGENT_CARD_WELL_KNOWN_PATH}"
     ),
@@ -50,14 +50,13 @@ root_agent = Agent(
     model="gemini-2.0-flash",
     name="root_agent",
     instruction="""
-      You are a helpful assistant that can help search youtube videos, look up BigQuery datasets and tables.
-      You delegate youtube search tasks to the youtube_search_agent.
-      You delegate BigQuery tasks to the bigquery_agent.
-      Always clarify the results before proceeding.
+      您是一位樂於助人的助理，可以協助搜尋 YouTube 影片、查詢 BigQuery 資料集與資料表。
+      您會將 YouTube 搜尋任務委派給 youtube_search_agent。
+      您會將 BigQuery 任務委派給 bigquery_agent。
+      在繼續之前，請務必釐清結果。
     """,
     global_instruction=(
-        "You are a helpful assistant that can help search youtube videos, look"
-        " up BigQuery datasets and tables."
+        "您是一位樂於助人的助理，可以協助搜尋 YouTube 影片、查詢 BigQuery 資料集與資料表。"
     ),
     sub_agents=[youtube_search_agent, bigquery_agent],
 )

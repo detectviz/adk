@@ -21,7 +21,7 @@ from google.genai import types
 
 
 def reimburse(purpose: str, amount: float) -> str:
-  """Reimburse the amount of money to the employee."""
+  """將款項報銷給員工。"""
   return {
       'status': 'ok',
   }
@@ -30,7 +30,7 @@ def reimburse(purpose: str, amount: float) -> str:
 def ask_for_approval(
     purpose: str, amount: float, tool_context: ToolContext
 ) -> dict[str, Any]:
-  """Ask for approval for the reimbursement."""
+  """請求報銷批准。"""
   return {
       'status': 'pending',
       'amount': amount,
@@ -42,14 +42,12 @@ root_agent = Agent(
     model='gemini-2.0-flash',
     name='reimbursement_agent',
     instruction="""
-      You are an agent whose job is to handle the reimbursement process for
-      the employees. If the amount is less than $100, you will automatically
-      approve the reimbursement.
+      您是一個負責處理員工報銷流程的代理。
+      如果金額小於 100 美元，您將自動批准報銷。
 
-      If the amount is greater than $100, you will
-      ask for approval from the manager. If the manager approves, you will
-      call reimburse() to reimburse the amount to the employee. If the manager
-      rejects, you will inform the employee of the rejection.
+      如果金額大於 100 美元，您將向經理請求批准。
+      如果經理批准，您將呼叫 reimburse() 將款項報銷給員工。
+      如果經理拒絕，您將通知員工該拒絕。
 """,
     tools=[reimburse, LongRunningFunctionTool(func=ask_for_approval)],
     generate_content_config=types.GenerateContentConfig(temperature=0.1),

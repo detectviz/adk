@@ -18,16 +18,16 @@ from google.adk.agents.sequential_agent import SequentialAgent
 
 sub_agent_1 = Agent(
     name='sub_agent_1',
-    description='No.1 sub agent.',
+    description='第一號子代理 (sub agent)。',
     model='gemini-2.0-flash-001',
-    instruction='JUST SAY 1.',
+    instruction='只需要說 1。',
 )
 
 sub_agent_2 = Agent(
     name='sub_agent_2',
-    description='No.2 sub agent.',
+    description='第二號子代理 (sub agent)。',
     model='gemini-2.0-flash-001',
-    instruction='JUST SAY 2.',
+    instruction='只需要說 2。',
 )
 sequential_agent = SequentialAgent(
     name='sequential_agent',

@@ -1,7 +1,7 @@
-# Basic Confg-based Agent
+# 基本設定檔代理 (Agent)
 
-This sample only covers:
+此範例僅涵蓋：
 
-* name
-* description
-* model
+* name (名稱)
+* description (描述)
+* model (模型)

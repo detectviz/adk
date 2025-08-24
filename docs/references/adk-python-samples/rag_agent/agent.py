@@ -24,12 +24,11 @@ load_dotenv()
 ask_vertex_retrieval = VertexAiRagRetrieval(
     name="retrieve_rag_documentation",
     description=(
-        "Use this tool to retrieve documentation and reference materials for"
-        " the question from the RAG corpus,"
+        "使用此工具從 RAG 語料庫中擷取問題的文件和參考資料，"
     ),
     rag_resources=[
         rag.RagResource(
-            # please fill in your own rag corpus
+            # 請填寫您自己的 RAG 語料庫
             # e.g. projects/123/locations/us-central1/ragCorpora/456
             rag_corpus=os.environ.get("RAG_CORPUS"),
         )
@@ -42,10 +41,7 @@ root_agent = Agent(
     model="gemini-2.0-flash-001",
     name="root_agent",
     instruction=(
-        "You are an AI assistant with access to specialized corpus of"
-        " documents. Your role is to provide accurate and concise answers to"
-        " questions based on documents that are retrievable using"
-        " ask_vertex_retrieval."
+        "您是一個可以存取專門文件語料庫的人工智慧助理。您的角色是根據可使用 ask_vertex_retrieval 擷取的文件，為問題提供準確簡潔的答案。"
     ),
     tools=[ask_vertex_retrieval],
 )

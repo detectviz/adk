@@ -6,12 +6,12 @@ from google.genai import types
 
 
 def roll_die(sides: int) -> int:
-  """Roll a die and return the rolled result."""
+  """擲一個骰子並傳回擲出的結果。"""
   return random.randint(1, sides)
 
 
 def check_prime(nums: list[int]) -> str:
-  """Check if a given list of numbers are prime."""
+  """檢查給定的數字清單是否為質數。"""
   primes = set()
   for number in nums:
     number = int(number)
@@ -25,9 +25,9 @@ def check_prime(nums: list[int]) -> str:
     if is_prime:
       primes.add(number)
   return (
-      "No prime numbers found."
+      "找不到質數。"
       if not primes
-      else f"{', '.join(str(num) for num in primes)} are prime numbers."
+      else f"{', '.join(str(num) for num in primes)} 是質數。"
   )
 
 
@@ -35,21 +35,21 @@ example_tool = ExampleTool(
     examples=[
         Example(
             input=types.UserContent(
-                parts=[types.Part(text="Roll a 6-sided die.")]
+                parts=[types.Part(text="擲一個 6 面的骰子。")]
             ),
             output=[
                 types.ModelContent(
-                    parts=[types.Part(text="I rolled a 4 for you.")]
+                    parts=[types.Part(text="我為您擲出一個 4。")]
                 )
             ],
         ),
         Example(
             input=types.UserContent(
-                parts=[types.Part(text="Is 7 a prime number?")]
+                parts=[types.Part(text="7 是質數嗎？")]
             ),
             output=[
                 types.ModelContent(
-                    parts=[types.Part(text="Yes, 7 is a prime number.")]
+                    parts=[types.Part(text="是的，7 是質數。")]
                 )
             ],
         ),
@@ -57,16 +57,16 @@ example_tool = ExampleTool(
             input=types.UserContent(
                 parts=[
                     types.Part(
-                        text="Roll a 10-sided die and check if it's prime."
+                        text="擲一個 10 面的骰子並檢查它是否為質數。"
                     )
                 ]
             ),
             output=[
                 types.ModelContent(
-                    parts=[types.Part(text="I rolled an 8 for you.")]
+                    parts=[types.Part(text="我為您擲出一個 8。")]
                 ),
                 types.ModelContent(
-                    parts=[types.Part(text="8 is not a prime number.")]
+                    parts=[types.Part(text="8 不是質數。")]
                 ),
             ],
         ),

@@ -1,39 +1,37 @@
-# Application Integration Agent Sample
+# 應用程式整合代理 (Application Integration Agent) 範例
 
-## Introduction
+## 簡介
 
-This sample demonstrates how to use the `ApplicationIntegrationToolset` within an ADK agent to interact with external applications, specifically Jira in this case. The agent (`agent.py`) is configured to manage Jira issues using a pre-configured Application Integration connection.
+本範例展示如何在 ADK 代理 (Agent) 中使用 `ApplicationIntegrationToolset` 來與外部應用程式互動，此處以 Jira 為例。此代理 (`agent.py`) 被設定為使用預先配置的應用程式整合連線來管理 Jira 問題。
 
-## Prerequisites
+## 先決條件
 
-1.  **Set up Integration Connection:**
-    *   You need an existing [Integration connection](https://cloud.google.com/integration-connectors/docs/overview) configured to interact with your Jira instance. Follow the [documentation](https://google.github.io/adk-docs/tools/google-cloud-tools/#use-integration-connectors) to provision the Integration Connector in Google Cloud and then use this [documentation](https://cloud.google.com/integration-connectors/docs/connectors/jiracloud/configure) to create an JIRA connection. Note the `Connection Name`, `Project ID`, and `Location` of your connection.
-    * 
+1.  **設定整合連線 (Integration Connection)：**
+    *   您需要一個已設定好的[整合連線](https://cloud.google.com/integration-connectors/docs/overview)來與您的 Jira 實例互動。請遵循[此文件](https://google.github.io/adk-docs/tools/google-cloud-tools/#use-integration-connectors)在 Google Cloud 中配置整合連接器 (Integration Connector)，然後使用[此文件](https://cloud.google.com/integration-connectors/docs/connectors/jiracloud/configure)來建立一個 JIRA 連線。請記下您的連線的 `Connection Name`、`Project ID` 和 `Location`。
 
-2.  **Configure Environment Variables:**
-    *   Create a `.env` file in the same directory as `agent.py` (or add to your existing one).
-    *   Add the following variables to the `.env` file, replacing the placeholder values with your actual connection details:
+2.  **設定環境變數：**
+    *   在與 `agent.py` 相同的目錄中建立一個 `.env` 檔案（或加入您現有的檔案中）。
+    *   將以下變數加入 `.env` 檔案中，並將預留位置的值替換為您實際的連線詳細資訊：
 
       ```dotenv
-      CONNECTION_NAME=<YOUR_JIRA_CONNECTION_NAME>
-      CONNECTION_PROJECT=<YOUR_GOOGLE_CLOUD_PROJECT_ID>
-      CONNECTION_LOCATION=<YOUR_CONNECTION_LOCATION>
+      CONNECTION_NAME=<您的_JIRA_連線名稱>
+      CONNECTION_PROJECT=<您的_GOOGLE_CLOUD_專案_ID>
+      CONNECTION_LOCATION=<您的_連線_位置>
       ```
 
-## How to Use
+## 如何使用
 
-1.  **Install Dependencies:** Ensure you have the necessary libraries installed (e.g., `google-adk`, `python-dotenv`).
-2.  **Run the Agent:** Execute the agent script from your terminal:
+1.  **安裝依賴套件：** 確保您已安裝必要的函式庫（例如 `google-adk`、`python-dotenv`）。
+2.  **執行代理 (Agent)：** 從您的終端機執行代理 (Agent) 腳本：
     ```bash
     python agent.py
     ```
-3.  **Interact:** Once the agent starts, you can interact with it by typing prompts related to Jira issue management.
+3.  **互動：** 代理 (Agent) 啟動後，您可以透過輸入與 Jira 問題管理相關的提示來與之互動。
 
-## Sample Prompts
+## 範例提示
 
-Here are some examples of how you can interact with the agent:
+以下是一些您可以如何與代理 (Agent) 互動的範例：
 
-*   `Can you list me all the issues ?`
-*   `Can you list me all the projects ?`
-*   `Can you create an issue: "Bug in product XYZ" in project ABC ?`
-
+*   `你可以列出所有的問題嗎？`
+*   `你可以列出所有的專案嗎？`
+*   `你可以在 ABC 專案中建立一個問題：「產品 XYZ 中的錯誤」嗎？`

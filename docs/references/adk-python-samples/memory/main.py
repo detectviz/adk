@@ -40,7 +40,7 @@ async def main():
     content = types.Content(
         role='user', parts=[types.Part.from_text(text=new_message)]
     )
-    print('** User says:', content.model_dump(exclude_none=True))
+    print('** 使用者說：', content.model_dump(exclude_none=True))
     async for event in runner.run_async(
         user_id=user_id_1,
         session_id=session.id,
@@ -74,19 +74,19 @@ async def main():
       app_name=app_name, user_id=user_id_1
   )
 
-  print(f'----Session to create memory: {session_1.id} ----------------------')
-  session_1 = await run_prompt(session_1, 'Hi')
-  session_1 = await run_prompt(session_1, 'My name is Jack')
-  session_1 = await run_prompt(session_1, 'I like badminton.')
+  print(f'----建立記憶體的會話：{session_1.id} ----------------------')
+  session_1 = await run_prompt(session_1, '嗨')
+  session_1 = await run_prompt(session_1, '我叫傑克')
+  session_1 = await run_prompt(session_1, '我喜歡羽毛球。')
   session_1 = await run_prompt(
       session_1,
-      f'I ate a burger on {(datetime.now() - timedelta(days=1)).date()}.',
+      f'我在 {(datetime.now() - timedelta(days=1)).date()} 吃了一個漢堡。',
   )
   session_1 = await run_prompt(
       session_1,
-      f'I ate a banana on {(datetime.now() - timedelta(days=2)).date()}.',
+      f'我在 {(datetime.now() - timedelta(days=2)).date()} 吃了一根香蕉。',
   )
-  print('Saving session to memory service...')
+  print('正在將會話儲存到記憶體服務...')
   if runner.memory_service:
     await runner.memory_service.add_session_to_memory(session_1)
   print('-------------------------------------------------------------------')
@@ -94,14 +94,14 @@ async def main():
   session_2 = await runner.session_service.create_session(
       app_name=app_name, user_id=user_id_1
   )
-  print(f'----Session to use memory: {session_2.id} ----------------------')
-  session_2 = await run_prompt(session_2, 'Hi')
-  session_2 = await run_prompt(session_2, 'What do I like to do?')
-  # ** memory_agent: You like badminton.
-  session_2 = await run_prompt(session_2, 'When did I say that?')
-  # ** memory_agent: You said you liked badminton on ...
-  session_2 = await run_prompt(session_2, 'What did I eat yesterday?')
-  # ** memory_agent: You ate a burger yesterday...
+  print(f'----使用記憶體的會話：{session_2.id} ----------------------')
+  session_2 = await run_prompt(session_2, '嗨')
+  session_2 = await run_prompt(session_2, '我喜歡做什麼？')
+  # ** memory_agent: 你喜歡羽毛球。
+  session_2 = await run_prompt(session_2, '我什麼時候說的？')
+  # ** memory_agent: 你在...說你喜歡羽毛球。
+  session_2 = await run_prompt(session_2, '我昨天吃了什麼？')
+  # ** memory_agent: 你昨天吃了一個漢堡...
   print('-------------------------------------------------------------------')
 
 

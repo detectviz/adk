@@ -21,55 +21,54 @@ from langchain_core.utils.function_calling import convert_to_openai_function
 
 
 def roll_die(sides: int) -> int:
-  """Roll a die and return the rolled result.
+  """擲骰子並返回擲骰結果。
 
   Args:
-    sides: The integer number of sides the die has.
+    sides: 骰子的面數（整數）。
 
   Returns:
-    An integer of the result of rolling the die.
+    擲骰結果的整數。
   """
   return random.randint(1, sides)
 
 
 def check_prime(number: int) -> str:
-  """Check if a given number is prime.
+  """檢查給定的數字是否為質數。
 
   Args:
-    number: The input number to check.
+    number: 要檢查的輸入數字。
 
   Returns:
-    A str indicating the number is prime or not.
+    一個字串，指出該數字是否為質數。
   """
   if number <= 1:
-    return f"{number} is not prime."
+    return f"{number} 不是質數。"
   is_prime = True
   for i in range(2, int(number**0.5) + 1):
     if number % i == 0:
       is_prime = False
       break
   if is_prime:
-    return f"{number} is prime."
+    return f"{number} 是質數。"
   else:
-    return f"{number} is not prime."
+    return f"{number} 不是質數。"
 
 
 root_agent = Agent(
     model=LiteLlm(
         model="vertex_ai/meta/llama-4-maverick-17b-128e-instruct-maas",
-        # If the model is not trained with functions and you would like to
-        # enable function calling, you can add functions to the models, and the
-        # functions will be added to the prompts during inferences.
+        # 如果模型未經函式訓練，而您希望啟用函式呼叫，
+        # 您可以將函式新增至模型中，這些函式將在推論期間新增至提示中。
         functions=[
             convert_to_openai_function(roll_die),
             convert_to_openai_function(check_prime),
         ],
     ),
     name="data_processing_agent",
-    description="""You are a helpful assistant.""",
+    description="""您是一位樂於助人的助理。""",
     instruction="""
-      You are a helpful assistant, and call tools optionally.
-      If call tools, the tool format should be in json, and the tool arguments should be parsed from users inputs.
+      您是一位樂於助人的助理，可以選擇性地呼叫工具。
+      如果呼叫工具，工具格式應為 json，且工具引數應從使用者輸入中解析。
     """,
     tools=[
         roll_die,

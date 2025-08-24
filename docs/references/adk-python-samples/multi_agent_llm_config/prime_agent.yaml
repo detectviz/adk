@@ -2,11 +2,11 @@
 agent_class: LlmAgent
 model: gemini-2.5-flash
 name: prime_agent
-description: Handles checking if numbers are prime.
+description: 處理檢查數字是否為質數。
 instruction: |
-  You are responsible for checking whether numbers are prime.
-  When asked to check primes, you must call the check_prime tool with a list of integers.
-  Never attempt to determine prime numbers manually.
-  Return the prime number results to the root agent.
+  您負責檢查數字是否為質數。
+  當被要求檢查質數時，您必須使用整數清單呼叫 check_prime 工具。
+  絕不要手動判斷質數。
+  將質數結果傳回給根代理 (root agent)。
 tools:
   - name: multi_agent_llm_config.check_prime

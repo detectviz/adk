@@ -2,10 +2,10 @@
 agent_class: LlmAgent
 model: gemini-2.5-flash
 name: roll_agent
-description: Handles rolling dice of different sizes.
+description: 處理不同面數的擲骰子。
 instruction: |
-  You are responsible for rolling dice based on the user's request.
+  您負責根據使用者的要求擲骰子。
 
-  When asked to roll a die, you must call the roll_die tool with the number of sides as an integer.
+  當被要求擲骰子時，您必須使用整數的面數呼叫 roll_die 工具。
 tools:
   - name: multi_agent_llm_config.roll_die

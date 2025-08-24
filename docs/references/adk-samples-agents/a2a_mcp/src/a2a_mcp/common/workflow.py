@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class Status(Enum):
-    """Represents the status of a workflow and its associated node."""
+    """表示工作流程及其關聯節點的狀態。"""
 
     READY = 'READY'
     RUNNING = 'RUNNING'
@@ -37,11 +37,9 @@ class Status(Enum):
 
 
 class WorkflowNode:
-    """Represents a single node in a workflow graph.
+    """表示工作流程圖中的單一節點。
 
-    Each node encapsulates a specific task to be executed, such as finding an
-    agent or invoking an agent's capabilities. It manages its own state
-    (e.g., READY, RUNNING, COMPLETED, PAUSED) and can execute its assigned task.
+    每個節點都封裝了一個要執行的特定任務，例如尋找代理或呼叫代理的功能。它管理自己的狀態（例如，READY、RUNNING、COMPLETED、PAUSED）並且可以執行其分配的任務。
 
     """
 
@@ -59,7 +57,7 @@ class WorkflowNode:
         self.state = Status.READY
 
     async def get_planner_resource(self) -> AgentCard | None:
-        logger.info(f'Getting resource for node {self.id}')
+        logger.info(f'正在取得節點 {self.id} 的資源')
         config = get_mcp_server_config()
         async with client.init_session(
             config.host, config.port, config.transport
@@ -71,14 +69,14 @@ class WorkflowNode:
             return AgentCard(**data['agent_card'][0])
 
     async def find_agent_for_task(self) -> AgentCard | None:
-        logger.info(f'Find agent for task - {self.task}')
+        logger.info(f'正在為任務尋找代理 - {self.task}')
         config = get_mcp_server_config()
         async with client.init_session(
             config.host, config.port, config.transport
         ) as session:
             result = await client.find_agent(session, self.task)
             agent_card_json = json.loads(result.content[0].text)
-            logger.debug(f'Found agent {agent_card_json} for task {self.task}')
+            logger.debug(f'為任務 {self.task} 找到了代理 {agent_card_json}')
             return AgentCard(**agent_card_json)
 
     async def run_node(
@@ -87,7 +85,7 @@ class WorkflowNode:
         task_id: str,
         context_id: str,
     ) -> AsyncIterable[dict[str, any]]:
-        logger.info(f'Executing node {self.id}')
+        logger.info(f'正在執行節點 {self.id}')
         agent_card = None
         if self.node_key == 'planner':
             agent_card = await self.get_planner_resource()
@@ -110,7 +108,7 @@ class WorkflowNode:
             )
             response_stream = client.send_message_streaming(request)
             async for chunk in response_stream:
-                # Save the artifact as a result of the node
+                # 將產出儲存為節點的結果
                 if isinstance(
                     chunk.root, SendStreamingMessageSuccessResponse
                 ) and (isinstance(chunk.root.result, TaskArtifactUpdateEvent)):
@@ -120,7 +118,7 @@ class WorkflowNode:
 
 
 class WorkflowGraph:
-    """Represents a graph of workflow nodes."""
+    """表示工作流程節點的圖。"""
 
     def __init__(self) -> None:
         self.graph = nx.DiGraph()
@@ -131,21 +129,21 @@ class WorkflowGraph:
         self.paused_node_id = None
 
     def add_node(self, node) -> None:
-        logger.info(f'Adding node {node.id}')
+        logger.info(f'正在新增節點 {node.id}')
         self.graph.add_node(node.id, query=node.task)
         self.nodes[node.id] = node
         self.latest_node = node.id
 
     def add_edge(self, from_node_id: str, to_node_id: str) -> None:
         if from_node_id not in self.nodes or to_node_id not in self.nodes:
-            raise ValueError('Invalid node IDs')
+            raise ValueError('無效的節點 ID')
 
         self.graph.add_edge(from_node_id, to_node_id)
 
     async def run_workflow(
         self, start_node_id: str | None = None
     ) -> AsyncIterable[dict[str, any]]:
-        logger.info('Executing workflow graph')
+        logger.info('正在執行工作流程圖')
         if not start_node_id or start_node_id not in self.nodes:
             start_nodes = [n for n, d in self.graph.in_degree() if d == 0]
         else:
@@ -159,9 +157,9 @@ class WorkflowGraph:
 
         complete_graph = list(nx.topological_sort(self.graph))
         sub_graph = [n for n in complete_graph if n in applicable_graph]
-        logger.info(f'Sub graph {sub_graph} size {len(sub_graph)}')
+        logger.info(f'子圖 {sub_graph} 大小 {len(sub_graph)}')
         self.state = Status.RUNNING
-        # Alternative is to loop over all nodes, but we only need the connected nodes.
+        # 另一種方法是遍歷所有節點，但我們只需要連接的節點。
         for node_id in sub_graph:
             node = self.nodes[node_id]
             node.state = Status.RUNNING
@@ -169,8 +167,8 @@ class WorkflowGraph:
             task_id = self.graph.nodes[node_id].get('task_id')
             context_id = self.graph.nodes[node_id].get('context_id')
             async for chunk in node.run_node(query, task_id, context_id):
-                # When the workflow node is paused, do not yield any chunks
-                # but, let the loop complete.
+                # 當工作流程節點暫停時，不要產生任何區塊
+                # 而是讓循環完成。
                 if node.state != Status.PAUSED:
                     if isinstance(
                         chunk.root, SendStreamingMessageSuccessResponse

@@ -42,21 +42,21 @@ LABEL_TO_OWNER = {
 }
 
 APPROVAL_INSTRUCTION = (
-    "Do not ask for user approval for labeling! If you can't find appropriate"
-    " labels for the issue, do not label it."
+    "不要要求使用者批准標記！如果您找不到適合問題的"
+    "標籤，請不要標記它。"
 )
 if IS_INTERACTIVE:
-  APPROVAL_INSTRUCTION = "Only label them when the user approves the labeling!"
+  APPROVAL_INSTRUCTION = "只有在使用者批准標記時才標記它們！"
 
 
 def list_unlabeled_issues(issue_count: int) -> dict[str, Any]:
-  """List most recent `issue_count` numer of unlabeled issues in the repo.
+  """列出儲存庫中最近的 `issue_count` 個未標記問題。
 
   Args:
-    issue_count: number of issues to return
+    issue_count: 要傳回的問題數量
 
   Returns:
-    The status of this request, with a list of issues when successful.
+    此請求的狀態，成功時附帶問題列表。
   """
   url = f"{GITHUB_BASE_URL}/search/issues"
   query = f"repo:{OWNER}/{REPO} is:open is:issue no:label"
@@ -71,7 +71,7 @@ def list_unlabeled_issues(issue_count: int) -> dict[str, Any]:
   try:
     response = get_request(url, params)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
   issues = response.get("items", None)
 
   unlabeled_issues = []
@@ -84,20 +84,19 @@ def list_unlabeled_issues(issue_count: int) -> dict[str, Any]:
 def add_label_and_owner_to_issue(
     issue_number: int, label: str
 ) -> dict[str, Any]:
-  """Add the specified label and owner to the given issue number.
+  """將指定的標籤和擁有者新增至給定的問題編號。
 
   Args:
-    issue_number: issue number of the Github issue.
-    label: label to assign
+    issue_number: Github 問題的問題編號。
+    label: 要指派的標籤
 
   Returns:
-    The the status of this request, with the applied label and assigned owner
-    when successful.
+    此請求的狀態，成功時附帶已套用的標籤和指派的擁有者。
   """
-  print(f"Attempting to add label '{label}' to issue #{issue_number}")
+  print(f"正在嘗試將標籤 '{label}' 新增至問題 #{issue_number}")
   if label not in LABEL_TO_OWNER:
     return error_response(
-        f"Error: Label '{label}' is not an allowed label. Will not apply."
+        f"錯誤：標籤 '{label}' 不是允許的標籤。將不予套用。"
     )
 
   label_url = (
@@ -108,15 +107,15 @@ def add_label_and_owner_to_issue(
   try:
     response = post_request(label_url, label_payload)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
 
   owner = LABEL_TO_OWNER.get(label, None)
   if not owner:
     return {
         "status": "warning",
         "message": (
-            f"{response}\n\nLabel '{label}' does not have an owner. Will not"
-            " assign."
+            f"{response}\n\n標籤 '{label}' 沒有擁有者。將不"
+            "指派。"
         ),
         "applied_label": label,
     }
@@ -129,7 +128,7 @@ def add_label_and_owner_to_issue(
   try:
     response = post_request(assignee_url, assignee_payload)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
 
   return {
       "status": "success",
@@ -140,17 +139,17 @@ def add_label_and_owner_to_issue(
 
 
 def change_issue_type(issue_number: int, issue_type: str) -> dict[str, Any]:
-  """Change the issue type of the given issue number.
+  """變更給定問題編號的問題類型。
 
   Args:
-    issue_number: issue number of the Github issue, in string foramt.
-    issue_type: issue type to assign
+    issue_number: Github 問題的問題編號，字串格式。
+    issue_type: 要指派的問題類型
 
   Returns:
-    The the status of this request, with the applied issue type when successful.
+    此請求的狀態，成功時附帶已套用的問題類型。
   """
   print(
-      f"Attempting to change issue type '{issue_type}' to issue #{issue_number}"
+      f"正在嘗試將問題類型 '{issue_type}' 變更為問題 #{issue_number}"
   )
   url = f"{GITHUB_BASE_URL}/repos/{OWNER}/{REPO}/issues/{issue_number}"
   payload = {"type": issue_type}
@@ -158,7 +157,7 @@ def change_issue_type(issue_number: int, issue_type: str) -> dict[str, Any]:
   try:
     response = patch_request(url, payload)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
 
   return {"status": "success", "message": response, "issue_type": issue_type}
 
@@ -166,37 +165,37 @@ def change_issue_type(issue_number: int, issue_type: str) -> dict[str, Any]:
 root_agent = Agent(
     model="gemini-2.5-pro",
     name="adk_triaging_assistant",
-    description="Triage ADK issues.",
+    description="對 ADK 問題進行分類。",
     instruction=f"""
-      You are a triaging bot for the Github {REPO} repo with the owner {OWNER}. You will help get issues, and recommend a label.
-      IMPORTANT: {APPROVAL_INSTRUCTION}
+      您是 Github {REPO} 儲存庫（擁有者為 {OWNER}）的分類機器人。您將協助取得問題並建議標籤。
+      重要事項：{APPROVAL_INSTRUCTION}
 
-      Here are the rules for labeling:
-      - If the user is asking about documentation-related questions, label it with "documentation".
-      - If it's about session, memory services, label it with "services"
-      - If it's about UI/web, label it with "web"
-      - If the user is asking about a question, label it with "question"
-      - If it's related to tools, label it with "tools"
-      - If it's about agent evalaution, then label it with "eval".
-      - If it's about streaming/live, label it with "live".
-      - If it's about model support(non-Gemini, like Litellm, Ollama, OpenAI models), label it with "models".
-      - If it's about tracing, label it with "tracing".
-      - If it's agent orchestration, agent definition, label it with "core".
-      - If it's about agent engine, label it with "agent engine".
-      - If it's about Model Context Protocol (e.g. MCP tool, MCP toolset, MCP session management etc.), label it with "mcp".
-      - If you can't find a appropriate labels for the issue, follow the previous instruction that starts with "IMPORTANT:".
+      以下是標記規則：
+      - 如果使用者詢問與文件相關的問題，請標記為 "documentation"。
+      - 如果與 session、memory 服務有關，請標記為 "services"
+      - 如果與 UI/web 有關，請標記為 "web"
+      - 如果使用者提出問題，請標記為 "question"
+      - 如果與工具有關，請標記為 "tools"
+      - 如果與代理評估有關，則標記為 "eval"。
+      - 如果與串流/即時有關，請標記為 "live"。
+      - 如果與模型支援（非 Gemini，如 Litellm、Ollama、OpenAI 模型）有關，請標記為 "models"。
+      - 如果與追蹤有關，請標記為 "tracing"。
+      - 如果是代理協調、代理定義，請標記為 "core"。
+      - 如果與代理引擎有關，請標記為 "agent engine"。
+      - 如果與模型內容協定（例如 MCP 工具、MCP 工具集、MCP 會話管理等）有關，請標記為 "mcp"。
+      - 如果您找不到適合問題的標籤，請遵循以「重要事項：」開頭的先前指示。
 
-      Call the `add_label_and_owner_to_issue` tool to label the issue, which will also assign the issue to the owner of the label.
+      呼叫 `add_label_and_owner_to_issue` 工具為問題加上標籤，這也會將問題指派給標籤的擁有者。
 
-      After you label the issue, call the `change_issue_type` tool to change the issue type:
-      - If the issue is a bug report, change the issue type to "Bug".
-      - If the issue is a feature request, change the issue type to "Feature".
-      - Otherwise, **do not change the issue type**.
+      為問題加上標籤後，呼叫 `change_issue_type` 工具以變更問題類型：
+      - 如果問題是錯誤報告，請將問題類型變更為「錯誤」。
+      - 如果問題是功能請求，請將問題類型變更為「功能」。
+      - 否則，**請勿變更問題類型**。
 
-      Present the followings in an easy to read format highlighting issue number and your label.
-      - the issue summary in a few sentence
-      - your label recommendation and justification
-      - the owner of the label if you assign the issue to an owner
+      以易於閱讀的格式呈現以下內容，並突顯問題編號和您的標籤。
+      - 幾句話的問題摘要
+      - 您的標籤建議和理由
+      - 如果您將問題指派給擁有者，則為標籤的擁有者
     """,
     tools=[
         list_unlabeled_issues,

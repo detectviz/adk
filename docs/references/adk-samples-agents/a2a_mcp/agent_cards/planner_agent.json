@@ -1,6 +1,6 @@
 {
-    "name": "Langraph Planner Agent",
-    "description": "Helps breakdown a request in to actionable tasks",
+    "name": "Langraph 規劃器代理",
+    "description": "協助將請求分解為可執行的任務",
     "url": "http://localhost:10102/",
     "version": "1.0.0",
     "capabilities": {
@@ -19,13 +19,13 @@
     "skills": [
         {
             "id": "planner",
-            "name": "Task Planner",
-            "description": "Helps breakdown a request in to actionable tasks",
+            "name": "任務規劃器",
+            "description": "協助將請求分解為可執行的任務",
             "tags": [
                 "planner"
             ],
             "examples": [
-                "Plan my business trip from San Francisco to London, submit an expense report"
+                "規劃我從舊金山到倫敦的商務旅行，提交一份費用報告"
             ]
         }
     ]

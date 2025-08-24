@@ -1,51 +1,32 @@
-# ADK Agent with Plugin
+# 帶有外掛程式 (Plugin) 的 ADK 代理
 
-### What is ADK Plugin?
+### 什麼是 ADK 外掛程式 (Plugin)？
 
-At its core, ADK extensibility is built on
-[**callbacks**](https://google.github.io/adk-docs/callbacks/): functions you
-write that ADK automatically executes at key stages of an agent's lifecycle.
-**A Plugin is simply a class that packages these individual callback functions
-together for a broader purpose.**
+ADK 的擴充性核心建立在 [**回呼 (callbacks)**](https://google.github.io/adk-docs/callbacks/) 的基礎上：您編寫的函式會在代理生命週期的關鍵階段由 ADK 自動執行。**外掛程式 (Plugin) 只是一個將這些獨立的回呼函式打包在一起以實現更廣泛目的的類別。**
 
-While a standard Agent Callback is configured on a *single agent, a single tool*
-for a *specific task*, a Plugin is registered *once* on the `Runner` and its
-callbacks apply *globally* to every agent, tool, and LLM call managed by that
-runner. This makes Plugins the ideal solution for implementing horizontal
-features that cut across your entire application.
+標準的代理回呼 (Agent Callback) 是針對*特定任務*在*單一代理、單一工具*上設定的，而外掛程式 (Plugin) 則是在 `Runner` 上*註冊一次*，其回呼會*全域*套用至該執行器管理的所有代理、工具和 LLM 呼叫。這使得外掛程式 (Plugin) 成為實作橫跨整個應用程式的水平功能的理想解決方案。
 
-### What can plugins do?
+### 外掛程式 (Plugin) 可以做什麼？
 
-Plugins are incredibly versatile. By implementing different callback methods, you
-can achieve a wide range of functionalities.
+外掛程式 (Plugin) 的功能非常多樣。透過實作不同的回呼方法，您可以實現各種功能。
 
-*   **Logging & Tracing**: Create detailed logs of agent, tool, and LLM activity
-    for debugging and performance analysis.
-*   **Policy Enforcement**: Implement security guardrails. For example, a
-    before\_tool\_callback can check if a user is authorized to use a specific
-    tool and prevent its execution by returning a value.
-*   **Monitoring & Metrics**: Collect and export metrics on token usage,
-    execution times, and invocation counts to monitoring systems like Prometheus
-    or Stackdriver.
-*   **Caching**: In before\_model\_callback or before\_tool\_callback, you can
-    check if a request has been made before. If so, you can return a cached
-    response, skipping the expensive LLM or tool call entirely.
-*   **Request/Response Modification**: Dynamically add information to LLM prompts
-    (e.g., in before\_model\_callback) or standardize tool outputs (e.g., in
-    after\_tool\_callback).
+*   **日誌記錄與追蹤 (Logging & Tracing)**：建立代理、工具和 LLM 活動的詳細日誌，用於偵錯和效能分析。
+*   **策略強制執行 (Policy Enforcement)**：實作安全護欄。例如，`before_tool_callback` 可以檢查使用者是否有權限使用特定工具，並透過傳回一個值來防止其執行。
+*   **監控與指標 (Monitoring & Metrics)**：收集並匯出關於權杖使用量、執行時間和呼叫次數的指標到像 Prometheus 或 Stackdriver 這樣的監控系統。
+*   **快取 (Caching)**：在 `before_model_callback` 或 `before_tool_callback` 中，您可以檢查請求是否曾經被發出過。如果是，您可以傳回快取的回應，完全跳過昂貴的 LLM 或工具呼叫。
+*   **請求/回應修改 (Request/Response Modification)**：動態地將資訊新增至 LLM 提示 (例如，在 `before_model_callback` 中) 或標準化工具輸出 (例如，在 `after_tool_callback` 中)。
 
-### Run the agent
+### 執行代理
 
-**Note: Plugin is NOT supported in `adk web`yet.**
+**注意：`adk web` 尚不支援外掛程式 (Plugin)。**
 
-Use following command to run the main.py
+使用以下指令執行 main.py
 
 ```bash
 python3 -m contributing.samples.plugin_basic.main
 ```
 
-It should output the following content. Note that the outputs from plugin are
-printed.
+它應該會輸出以下內容。請注意，來自外掛程式 (plugin) 的輸出會被印出。
 
 ```bash
 [Plugin] Agent run count: 1

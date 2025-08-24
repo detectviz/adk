@@ -25,15 +25,15 @@ from google.genai import types
 
 
 def get_weather(location: str, tool_context: ToolContext) -> Dict[str, Any]:
-  """Get weather information for a location.
-  Args:
-    location: The city or location to get weather for.
-  Returns:
-    A dictionary containing weather information.
+  """取得某個地點的天氣資訊。
+  參數：
+    location：要取得天氣資訊的城市或地點。
+  傳回：
+    包含天氣資訊的字典。
   """
-  # Simulate weather data
+  # 模擬天氣資料
   temperatures = [-10, -5, 0, 5, 10, 15, 20, 25, 30, 35]
-  conditions = ["sunny", "cloudy", "rainy", "snowy", "windy"]
+  conditions = ["晴天", "多雲", "雨天", "下雪", "有風"]
 
   return {
       "location": location,
@@ -45,15 +45,15 @@ def get_weather(location: str, tool_context: ToolContext) -> Dict[str, Any]:
 
 
 async def calculate_async(operation: str, x: float, y: float) -> Dict[str, Any]:
-  """Perform async mathematical calculations.
-  Args:
-    operation: The operation to perform (add, subtract, multiply, divide).
-    x: First number.
-    y: Second number.
-  Returns:
-    A dictionary containing the calculation result.
+  """以非同步方式執行數學計算。
+  參數：
+    operation：要執行的運算（加、減、乘、除）。
+    x：第一個數字。
+    y：第二個數字。
+  傳回：
+    包含計算結果的字典。
   """
-  # Simulate some async work
+  # 模擬一些非同步工作
   await asyncio.sleep(0.1)
 
   operations = {
@@ -63,7 +63,7 @@ async def calculate_async(operation: str, x: float, y: float) -> Dict[str, Any]:
       "divide": x / y if y != 0 else float("inf"),
   }
 
-  result = operations.get(operation.lower(), "Unknown operation")
+  result = operations.get(operation.lower(), "未知的運算")
 
   return {
       "operation": operation,
@@ -75,11 +75,11 @@ async def calculate_async(operation: str, x: float, y: float) -> Dict[str, Any]:
 
 
 def log_activity(message: str, tool_context: ToolContext) -> Dict[str, str]:
-  """Log an activity message with timestamp.
-  Args:
-    message: The message to log.
-  Returns:
-    A dictionary confirming the log entry.
+  """記錄帶有時間戳記的活動訊息。
+  參數：
+    message：要記錄的訊息。
+  傳回：
+    確認記錄項目的字典。
   """
   if "activity_log" not in tool_context.state:
     tool_context.state["activity_log"] = []
@@ -94,14 +94,14 @@ def log_activity(message: str, tool_context: ToolContext) -> Dict[str, str]:
   }
 
 
-# Before tool callbacks
+# 工具前回呼
 def before_tool_audit_callback(
     tool, args: Dict[str, Any], tool_context: ToolContext
 ) -> Optional[Dict[str, Any]]:
-  """Audit callback that logs all tool calls before execution."""
-  print(f"🔍 AUDIT: About to call tool '{tool.name}' with args: {args}")
+  """稽核回呼，在執行前記錄所有工具呼叫。"""
+  print(f"🔍 AUDIT: 即將使用參數呼叫工具 '{tool.name}'：{args}")
 
-  # Add audit info to tool context state
+  # 將稽核資訊新增至工具內容狀態
   if "audit_log" not in tool_context.state:
     tool_context.state["audit_log"] = []
 
@@ -112,51 +112,51 @@ def before_tool_audit_callback(
       "timestamp": datetime.now().isoformat(),
   })
 
-  # Return None to allow normal tool execution
+  # 傳回 None 以允許正常工具執行
   return None
 
 
 def before_tool_security_callback(
     tool, args: Dict[str, Any], tool_context: ToolContext
 ) -> Optional[Dict[str, Any]]:
-  """Security callback that can block certain tool calls."""
-  # Example: Block weather requests for restricted locations
+  """安全性回呼，可封鎖某些工具呼叫。"""
+  # 範例：封鎖限制地點的天氣要求
   if tool.name == "get_weather" and args.get("location", "").lower() in [
       "classified",
       "secret",
   ]:
     print(
-        "🚫 SECURITY: Blocked weather request for restricted location:"
+        "🚫 SECURITY: 已封鎖限制地點的天氣要求："
         f" {args.get('location')}"
     )
     return {
-        "error": "Access denied",
-        "reason": "Location access is restricted",
+        "error": "存取遭拒",
+        "reason": "地點存取受到限制",
         "requested_location": args.get("location"),
     }
 
-  # Allow other calls to proceed
+  # 允許其他呼叫繼續
   return None
 
 
 async def before_tool_async_callback(
     tool, args: Dict[str, Any], tool_context: ToolContext
 ) -> Optional[Dict[str, Any]]:
-  """Async before callback that can add preprocessing."""
-  print(f"⚡ ASYNC BEFORE: Processing tool '{tool.name}' asynchronously")
+  """非同步前回呼，可新增前置處理。"""
+  print(f"⚡ ASYNC BEFORE: 以非同步方式處理工具 '{tool.name}'")
 
-  # Simulate some async preprocessing
+  # 模擬一些非同步前置處理
   await asyncio.sleep(0.05)
 
-  # For calculation tool, we could add validation
+  # 對於計算工具，我們可以新增驗證
   if (
       tool.name == "calculate_async"
       and args.get("operation") == "divide"
       and args.get("y") == 0
   ):
-    print("🚫 VALIDATION: Prevented division by zero")
+    print("🚫 VALIDATION: 已防止除以零")
     return {
-        "error": "Division by zero",
+        "error": "除以零",
         "operation": args.get("operation"),
         "x": args.get("x"),
         "y": args.get("y"),
@@ -165,17 +165,17 @@ async def before_tool_async_callback(
   return None
 
 
-# After tool callbacks
+# 工具後回呼
 def after_tool_enhancement_callback(
     tool,
     args: Dict[str, Any],
     tool_context: ToolContext,
     tool_response: Dict[str, Any],
 ) -> Optional[Dict[str, Any]]:
-  """Enhance tool responses with additional metadata."""
-  print(f"✨ ENHANCE: Adding metadata to response from '{tool.name}'")
+  """使用其他中繼資料增強工具回應。"""
+  print(f"✨ ENHANCE: 正在將中繼資料新增至 '{tool.name}' 的回應")
 
-  # Add enhancement metadata
+  # 新增增強中繼資料
   enhanced_response = tool_response.copy()
   enhanced_response.update({
       "enhanced": True,
@@ -193,16 +193,15 @@ async def after_tool_async_callback(
     tool_context: ToolContext,
     tool_response: Dict[str, Any],
 ) -> Optional[Dict[str, Any]]:
-  """Async after callback for post-processing."""
+  """用於後處理的非同步後回呼。"""
   print(
-      f"🔄 ASYNC AFTER: Post-processing response from '{tool.name}'"
-      " asynchronously"
+      f"🔄 ASYNC AFTER: 以非同步方式後處理來自 '{tool.name}' 的回應"
   )
 
-  # Simulate async post-processing
+  # 模擬非同步後處理
   await asyncio.sleep(0.05)
 
-  # Add async processing metadata
+  # 新增非同步處理中繼資料
   processed_response = tool_response.copy()
   processed_response.update({
       "async_processed": True,
@@ -215,46 +214,46 @@ async def after_tool_async_callback(
 
 import asyncio
 
-# Create the agent with tool callbacks
+# 使用工具回呼建立代理 (agent)
 root_agent = Agent(
-    # find supported models here: https://google.github.io/adk-docs/get-started/streaming/quickstart-streaming/
-    model="gemini-2.0-flash-live-preview-04-09",  # for Vertex project
-    # model="gemini-live-2.5-flash-preview",  # for AI studio key
+    # 在此處尋找支援的模型：https://google.github.io/adk-docs/get-started/streaming/quickstart-streaming/
+    model="gemini-2.0-flash-live-preview-04-09",  # 適用於 Vertex 專案
+    # model="gemini-live-2.5-flash-preview",  # 適用於 AI studio 金鑰
     name="tool_callbacks_agent",
     description=(
-        "Live streaming agent that demonstrates tool callbacks functionality. "
-        "It can get weather, perform calculations, and log activities while "
-        "showing how before and after tool callbacks work in live mode."
+        "展示工具回呼功能的即時串流代理 (agent)。"
+        "它可以取得天氣、執行計算和記錄活動，同時"
+        "展示工具前回呼和工具後回呼在即時模式下的運作方式。"
     ),
     instruction="""
-      You are a helpful assistant that can:
-      1. Get weather information for any location using the get_weather tool
-      2. Perform mathematical calculations using the calculate_async tool
-      3. Log activities using the log_activity tool
+      您是一位樂於助人的助理，可以：
+      1. 使用 get_weather 工具取得任何地點的天氣資訊
+      2. 使用 calculate_async 工具執行數學計算
+      3. 使用 log_activity 工具記錄活動
 
-      Important behavioral notes:
-      - You have several callbacks that will be triggered before and after tool calls
-      - Before callbacks can audit, validate, or even block tool calls
-      - After callbacks can enhance or modify tool responses
-      - Some locations like "classified" or "secret" are restricted for weather requests
-      - Division by zero will be prevented by validation callbacks
-      - All your tool responses will be enhanced with additional metadata
+      重要的行為注意事項：
+      - 您有數個回呼，會在工具呼叫前後觸發
+      - 工具前回呼可以稽核、驗證甚至封鎖工具呼叫
+      - 工具後回呼可以增強或修改工具回應
+      - 某些地點（如「classified」或「secret」）的天氣要求受到限制
+      - 驗證回呼將防止除以零
+      - 您所有的工具回應都將使用其他中繼資料進行增強
 
-      When users ask you to test callbacks, explain what's happening with the callback system.
-      Be conversational and explain the callback behavior you observe.
+      當使用者要求您測試回呼時，請說明回呼系統的運作方式。
+      請以對話方式並說明您觀察到的回呼行為。
     """,
     tools=[
         get_weather,
         calculate_async,
         log_activity,
     ],
-    # Multiple before tool callbacks (will be processed in order until one returns a response)
+    # 多個工具前回呼（將按順序處理，直到其中一個傳回回應）
     before_tool_callback=[
         before_tool_audit_callback,
         before_tool_security_callback,
         before_tool_async_callback,
     ],
-    # Multiple after tool callbacks (will be processed in order until one returns a response)
+    # 多個工具後回呼（將按順序處理，直到其中一個傳回回應）
     after_tool_callback=[
         after_tool_enhancement_callback,
         after_tool_async_callback,

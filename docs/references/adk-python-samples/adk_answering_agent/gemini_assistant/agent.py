@@ -27,14 +27,14 @@ from google.oauth2 import service_account
 
 
 def search_gemini_api_docs(queries: List[str]) -> Dict[str, Any]:
-  """Searches Gemini API docs using Vertex AI Search.
+  """使用 Vertex AI Search 搜尋 Gemini API 文件。
 
   Args:
-    queries: The list of queries to search.
+    queries: 要搜尋的查詢列表。
 
   Returns:
-    A dictionary containing the status of the request and the list of search
-    results, which contains the title, url and snippets.
+    一個包含請求狀態和搜尋結果列表的字典，
+    其中包含標題、網址和摘要。
   """
   try:
     adk_gcp_sa_key_info = json.loads(ADK_GCP_SA_KEY)
@@ -44,7 +44,7 @@ def search_gemini_api_docs(queries: List[str]) -> Dict[str, Any]:
         )
     )
   except (TypeError, ValueError) as e:
-    return error_response(f"Error creating Vertex AI Search client: {e}")
+    return error_response(f"建立 Vertex AI Search 用戶端時發生錯誤：{e}")
 
   serving_config = f"{GEMINI_API_DATASTORE_ID}/servingConfigs/default_config"
   results = []
@@ -67,28 +67,27 @@ def search_gemini_api_docs(queries: List[str]) -> Dict[str, Any]:
             "snippets": snippets,
         })
   except GoogleAPICallError as e:
-    return error_response(f"Error from Vertex AI Search: {e}")
+    return error_response(f"Vertex AI Search 發生錯誤：{e}")
   return {"status": "success", "results": results}
 
 
 root_agent = Agent(
     model="gemini-2.5-pro",
     name="gemini_assistant",
-    description="Answer questions about Gemini API.",
+    description="回答有關 Gemini API 的問題。",
     instruction="""
-    You are a helpful assistant that responds to questions about Gemini API based on information
-    found in the document store. You can access the document store using the `search_gemini_api_docs` tool.
+    您是一位樂於助人的助理，根據在文件儲存中找到的有關 Gemini API 的資訊來回答問題。
+    您可以使用 `search_gemini_api_docs` 工具存取文件儲存。
 
-    When user asks a question, here are the steps:
-    1. Use the `search_gemini_api_docs` tool to find relevant information before answering.
-      * You can call the tool with multiple queries to find all the relevant information.
-    2. Provide a response based on the information you found in the document store. Reference the source document in the response.
+    當使用者提出問題時，請遵循以下步驟：
+    1. 在回答之前，使用 `search_gemini_api_docs` 工具尋找相關資訊。
+      * 您可以使用多個查詢呼叫該工具以尋找所有相關資訊。
+    2. 根據您在文件儲存中找到的資訊提供回應。在回應中引用來源文件。
 
-    IMPORTANT:
-      * Your response should be based on the information you found in the document store. Do not invent
-        information that is not in the document store. Do not invent citations which are not in the document store.
-      * If you can't find the answer or information in the document store, just respond with "I can't find the answer or information in the document store".
-      * If you uses citation from the document store, please always provide a footnote referencing the source document format it as: "[1] URL of the document".
+    重要事項：
+      * 您的回應應基於您在文件儲存中找到的資訊。請勿虛構不在文件儲存中的資訊。請勿虛構不在文件儲存中的引文。
+      * 如果您在文件儲存中找不到答案或資訊，請僅回應「我無法在文件儲存中找到答案或資訊」。
+      * 如果您使用來自文件儲存的引文，請務必提供一個註腳，引用來源文件，格式如下：「[1] 文件的 URL」。
     """,
     tools=[search_gemini_api_docs],
 )

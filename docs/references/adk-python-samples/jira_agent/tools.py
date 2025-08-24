@@ -15,9 +15,9 @@
 from google.adk.tools.application_integration_tool.application_integration_toolset import ApplicationIntegrationToolset
 
 jira_tool = ApplicationIntegrationToolset(
-    project="your-gcp-project-id",  # replace with your GCP project ID
-    location="your-regions",  # replace your regions
-    connection="your-integration-connection-name",  # replace with your connection name
+    project="your-gcp-project-id",  # 取代為您的 GCP 專案 ID
+    location="your-regions",  # 取代為您的區域
+    connection="your-integration-connection-name",  # 取代為您的連線名稱
     entity_operations={
         "Issues": ["GET", "LIST"],
     },
@@ -27,7 +27,7 @@ jira_tool = ApplicationIntegrationToolset(
     tool_name="jira_conversation_tool",
     tool_instructions="""
     
-    This tool is to call an integration to search for issues in JIRA
+    此工具用於呼叫整合以在 JIRA 中搜尋問題
     
     """,
 )

@@ -1,19 +1,19 @@
- This is only supported in streaming(live) agents/api.
+這僅在串流（即時）代理 (agent)/API 中受支援。
 
-Streaming tools allows tools(functions) to stream intermediate results back to agents and agents can respond to those intermediate results. 
-For example, we can use streaming tools to monitor the changes of the stock price and have the agent react to it. Another example is we can have the agent monitor the video stream, and when there is changes in video stream, the agent can report the changes.
+串流工具允許工具（函式）將中繼結果串流回代理 (agent)，代理 (agent) 可以對這些中繼結果做出回應。
+例如，我們可以使用串流工具來監控股票價格的變化，並讓代理 (agent) 對其做出反應。另一個例子是，我們可以讓代理 (agent) 監控視訊串流，當視訊串流發生變化時，代理 (agent) 可以報告變化。
 
-To define a streaming tool, you must adhere to the following:
+若要定義串流工具，您必須遵守以下規定：
 
-1.  **Asynchronous Function:** The tool must be an `async` Python function.
-2.  **AsyncGenerator Return Type:** The function must be typed to return an `AsyncGenerator`. The first type parameter to `AsyncGenerator` is the type of the data you `yield` (e.g., `str` for text messages, or a custom object for structured data). The second type parameter is typically `None` if the generator doesn't receive values via `send()`.
-
-
-We support two types of streaming tools:
-- Simple type. This is a one type of streaming tools that only take non video/audio streams(the streams that you feed to adk web or adk runner) as input.
-- Video streaming tools. This only works in video streaming and the video stream(the streams that you feed to adk web or adk runner) will be passed into this function.
+1.  **非同步函式：** 工具必須是 `async` Python 函式。
+2.  **AsyncGenerator 回傳類型：** 函式必須被類型化為回傳 `AsyncGenerator`。 `AsyncGenerator` 的第一個類型參數是您 `yield` 的資料類型（例如，文字訊息為 `str`，或結構化資料的自訂物件）。如果產生器不透過 `send()` 接收值，則第二個類型參數通常為 `None`。
 
 
-Here are some sample queries to test:
-- Help me monitor the stock price for $XYZ stock.
-- Help me monitor how many people are there in the video stream.
+我們支援兩種類型的串流工具：
+- 簡單類型。這是一種串流工具，僅接受非視訊/音訊串流（您饋送到 adk web 或 adk runner 的串流）作為輸入。
+- 視訊串流工具。這僅適用於視訊串流，視訊串流（您饋送到 adk web 或 adk runner 的串流）將被傳遞到此函式中。
+
+
+以下是一些可供測試的範例查詢：
+- 幫我監控 XYZ 股票的股價。
+- 幫我監控視訊串流中有多少人。

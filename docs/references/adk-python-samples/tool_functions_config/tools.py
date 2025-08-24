@@ -18,13 +18,13 @@ from google.adk.tools.tool_context import ToolContext
 
 
 def roll_die(sides: int, tool_context: ToolContext) -> int:
-  """Roll a die and return the rolled result.
+  """擲一個骰子並傳回擲出的結果。
 
   Args:
-    sides: The integer number of sides the die has.
+    sides: 骰子擁有的整數面數。
 
   Returns:
-    An integer of the result of rolling the die.
+    擲骰子結果的整數。
   """
   result = random.randint(1, sides)
   if not 'rolls' in tool_context.state:
@@ -35,13 +35,13 @@ def roll_die(sides: int, tool_context: ToolContext) -> int:
 
 
 async def check_prime(nums: list[int]) -> str:
-  """Check if a given list of numbers are prime.
+  """檢查給定的數字清單是否為質數。
 
   Args:
-    nums: The list of numbers to check.
+    nums: 要檢查的數字清單。
 
   Returns:
-    A str indicating which number is prime.
+    一個字串，指出哪個數字是質數。
   """
   primes = set()
   for number in nums:
@@ -56,7 +56,7 @@ async def check_prime(nums: list[int]) -> str:
     if is_prime:
       primes.add(number)
   return (
-      'No prime numbers found.'
+      '找不到質數。'
       if not primes
-      else f"{', '.join(str(num) for num in primes)} are prime numbers."
+      else f"{', '.join(str(num) for num in primes)} 是質數。"
   )

@@ -1,109 +1,87 @@
-# Spanner Tools Sample
+# Spanner 工具範例
 
-## Introduction
+## 簡介
 
-This sample agent demonstrates the Spanner first-party tools in ADK,
-distributed via the `google.adk.tools.spanner` module. These tools include:
+此範例代理程式展示了 ADK 中的 Spanner 第一方工具，這些工具透過 `google.adk.tools.spanner` 模組分發。這些工具包括：
 
 1. `list_table_names`
 
-  Fetches Spanner table names present in a GCP Spanner database.
+  擷取 GCP Spanner 資料庫中存在的 Spanner 資料表名稱。
 
 1. `list_table_indexes`
 
-  Fetches Spanner table indexes present in a GCP Spanner database.
+  擷取 GCP Spanner 資料庫中存在的 Spanner 資料表索引。
 
 1. `list_table_index_columns`
 
-  Fetches Spanner table index columns present in a GCP Spanner database.
+  擷取 GCP Spanner 資料庫中存在的 Spanner 資料表索引欄位。
 
 1. `list_named_schemas`
 
-  Fetches named schema for a Spanner database.
+  擷取 Spanner 資料庫的具名結構。
 
 1. `get_table_schema`
 
-  Fetches Spanner database table schema and metadata information.
+  擷取 Spanner 資料庫資料表結構和中繼資料資訊。
 
 1. `execute_sql`
 
-  Runs a SQL query in Spanner database.
+  在 Spanner 資料庫中執行 SQL 查詢。
 
-## How to use
+## 如何使用
 
-Set up environment variables in your `.env` file for using
-[Google AI Studio](https://google.github.io/adk-docs/get-started/quickstart/#gemini---google-ai-studio)
-or
-[Google Cloud Vertex AI](https://google.github.io/adk-docs/get-started/quickstart/#gemini---google-cloud-vertex-ai)
-for the LLM service for your agent. For example, for using Google AI Studio you
-would set:
+在您的 `.env` 檔案中設定環境變數，以便為您的代理程式使用 [Google AI Studio](https://google.github.io/adk-docs/get-started/quickstart/#gemini---google-ai-studio) 或 [Google Cloud Vertex AI](https://google.github.io/adk-docs/get-started/quickstart/#gemini---google-cloud-vertex-ai) 的 LLM 服務。例如，若要使用 Google AI Studio，您需要設定：
 
 * GOOGLE_GENAI_USE_VERTEXAI=FALSE
 * GOOGLE_API_KEY={your api key}
 
-### With Application Default Credentials
+### 使用應用程式預設憑證
 
-This mode is useful for quick development when the agent builder is the only
-user interacting with the agent. The tools are run with these credentials.
+當代理程式建構者是與代理程式互動的唯一使用者時，此模式對於快速開發很有用。工具會使用這些憑證執行。
 
-1. Create application default credentials on the machine where the agent would
-be running by following https://cloud.google.com/docs/authentication/provide-credentials-adc.
+1. 按照 https://cloud.google.com/docs/authentication/provide-credentials-adc 的說明，在將執行代理程式的機器上建立應用程式預設憑證。
 
-1. Set `CREDENTIALS_TYPE=None` in `agent.py`
+1. 在 `agent.py` 中設定 `CREDENTIALS_TYPE=None`
 
-1. Run the agent
+1. 執行代理程式
 
-### With Service Account Keys
+### 使用服務帳戶金鑰
 
-This mode is useful for quick development when the agent builder wants to run
-the agent with service account credentials. The tools are run with these
-credentials.
+當代理程式建構者想要使用服務帳戶憑證執行代理程式時，此模式對於快速開發很有用。工具會使用這些憑證執行。
 
-1. Create service account key by following https://cloud.google.com/iam/docs/service-account-creds#user-managed-keys.
+1. 按照 https://cloud.google.com/iam/docs/service-account-creds#user-managed-keys 的說明建立服務帳戶金鑰。
 
-1. Set `CREDENTIALS_TYPE=AuthCredentialTypes.SERVICE_ACCOUNT` in `agent.py`
+1. 在 `agent.py` 中設定 `CREDENTIALS_TYPE=AuthCredentialTypes.SERVICE_ACCOUNT`
 
-1. Download the key file and replace `"service_account_key.json"` with the path
+1. 下載金鑰檔案並將 `"service_account_key.json"` 替換為路徑
 
-1. Run the agent
+1. 執行代理程式
 
-### With Interactive OAuth
+### 使用互動式 OAuth
 
-1. Follow
-https://developers.google.com/identity/protocols/oauth2#1.-obtain-oauth-2.0-credentials-from-the-dynamic_data.setvar.console_name.
-to get your client id and client secret. Be sure to choose "web" as your client
-type.
+1. 按照 https://developers.google.com/identity/protocols/oauth2#1.-obtain-oauth-2.0-credentials-from-the-dynamic_data.setvar.console_name. 的說明取得您的用戶端 ID 和用戶端密碼。請務必選擇「Web」作為您的用戶端類型。
 
-1.  Follow https://developers.google.com/workspace/guides/configure-oauth-consent
-    to add scope "https://www.googleapis.com/auth/spanner.data" and
-    "https://www.googleapis.com/auth/spanner.admin" as declaration, this is used
-    for review purpose.
+1.  按照 https://developers.google.com/workspace/guides/configure-oauth-consent 的說明，將範圍 "https://www.googleapis.com/auth/spanner.data" 和 "https://www.googleapis.com/auth/spanner.admin" 新增為宣告，這用於審查目的。
 
-1.  Follow
-    https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred
-    to add http://localhost/dev-ui/ to "Authorized redirect URIs".
+1.  按照 https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred 的說明，將 http://localhost/dev-ui/ 新增至「已授權的重新導向 URI」。
 
-    Note: localhost here is just a hostname that you use to access the dev ui,
-    replace it with the actual hostname you use to access the dev ui.
+    注意：此處的 localhost 只是您用來存取開發 UI 的主機名稱，請將其替換為您用來存取開發 UI 的實際主機名稱。
 
-1.  For 1st run, allow popup for localhost in Chrome.
+1.  首次執行時，請在 Chrome 中允許 localhost 的彈出式視窗。
 
-1.  Configure your `.env` file to add two more variables before running the
-    agent:
+1.  在執行代理程式之前，設定您的 `.env` 檔案以新增兩個變數：
 
     *   OAUTH_CLIENT_ID={your client id}
     *   OAUTH_CLIENT_SECRET={your client secret}
 
-    Note: don't create a separate .env, instead put it to the same .env file that
-    stores your Vertex AI or Dev ML credentials
+    注意：請勿建立獨立的 .env，而是將其放入儲存您的 Vertex AI 或 Dev ML 憑證的同一個 .env 檔案中
 
-1.  Set `CREDENTIALS_TYPE=AuthCredentialTypes.OAUTH2` in `agent.py` and run the
-    agent
+1.  在 `agent.py` 中設定 `CREDENTIALS_TYPE=AuthCredentialTypes.OAUTH2` 並執行代理程式
 
-## Sample prompts
+## 範例提示
 
-* Show me all tables in the product_db Spanner database.
-* Describe the schema of the product_table table.
-* List all indexes on the product_table table.
-* Show me the first 10 rows of data from the product_table table.
-* Write a query to find the most popular product by joining the product_table and sales_table tables.
+* 顯示 product_db Spanner 資料庫中的所有資料表。
+* 描述 product_table 資料表的結構。
+* 列出 product_table 資料表上的所有索引。
+* 顯示 product_table 資料表中的前 10 列資料。
+* 撰寫一個查詢，透過聯結 product_table 和 sales_table 資料表來尋找最受歡迎的產品。

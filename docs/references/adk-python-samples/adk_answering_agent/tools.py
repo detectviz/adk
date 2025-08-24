@@ -25,15 +25,15 @@ import requests
 
 
 def get_discussion_and_comments(discussion_number: int) -> dict[str, Any]:
-  """Fetches a discussion and its comments using the GitHub GraphQL API.
+  """使用 GitHub GraphQL API 取得討論及其留言。
 
   Args:
-      discussion_number: The number of the GitHub discussion.
+      discussion_number: GitHub 討論的編號。
 
   Returns:
-      A dictionary with the request status and the discussion details.
+      一個包含請求狀態和討論詳細資訊的字典。
   """
-  print(f"Attempting to get discussion #{discussion_number} and its comments")
+  print(f"正在嘗試取得討論 #{discussion_number} 及其留言")
   query = """
         query($owner: String!, $repo: String!, $discussionNumber: Int!) {
           repository(owner: $owner, name: $repo) {
@@ -46,14 +46,14 @@ def get_discussion_and_comments(discussion_number: int) -> dict[str, Any]:
               author {
                 login
               }
-              # For each discussion, fetch the latest 20 labels.
+              # 對於每個討論，取得最新的 20 個標籤。
               labels(last: 20) {
                 nodes {
                   id
                   name
                 }
               }
-              # For each discussion, fetch the latest 100 comments.
+              # 對於每個討論，取得最新的 100 則留言。
               comments(last: 100) {
                 nodes {
                   id
@@ -62,7 +62,7 @@ def get_discussion_and_comments(discussion_number: int) -> dict[str, Any]:
                   author {
                     login
                   }
-                  # For each discussion, fetch the latest 50 replies
+                  # 對於每個討論，取得最新的 50 則回覆
                   replies(last: 50) {
                     nodes {
                       id
@@ -92,7 +92,7 @@ def get_discussion_and_comments(discussion_number: int) -> dict[str, Any]:
         response.get("data", {}).get("repository", {}).get("discussion")
     )
     if not discussion_data:
-      return error_response(f"Discussion #{discussion_number} not found.")
+      return error_response(f"找不到討論 #{discussion_number}。")
     return {"status": "success", "discussion": discussion_data}
   except requests.exceptions.RequestException as e:
     return error_response(str(e))
@@ -101,16 +101,16 @@ def get_discussion_and_comments(discussion_number: int) -> dict[str, Any]:
 def add_comment_to_discussion(
     discussion_id: str, comment_body: str
 ) -> dict[str, Any]:
-  """Adds a comment to a specific discussion.
+  """將留言新增至特定討論。
 
   Args:
-      discussion_id: The GraphQL node ID of the discussion.
-      comment_body: The content of the comment in Markdown.
+      discussion_id: 討論的 GraphQL 節點 ID。
+      comment_body: 留言的 Markdown 內容。
 
   Returns:
-      The status of the request and the new comment's details.
+      請求的狀態和新留言的詳細資訊。
   """
-  print(f"Adding comment to discussion {discussion_id}")
+  print(f"正在將留言新增至討論 {discussion_id}")
   query = """
         mutation($discussionId: ID!, $body: String!) {
           addDiscussionComment(input: {discussionId: $discussionId, body: $body}) {
@@ -125,10 +125,9 @@ def add_comment_to_discussion(
           }
         }
     """
-  if not comment_body.startswith("**Response from ADK Answering Agent"):
+  if not comment_body.startswith("**來自 ADK 問答代理的回應"):
     comment_body = (
-        "**Response from ADK Answering Agent (experimental, answer may be"
-        " inaccurate)**\n\n"
+        "**來自 ADK 問答代理的回應 (實驗性，答案可能不準確)**\n\n"
         + comment_body
     )
 
@@ -146,8 +145,8 @@ def add_comment_to_discussion(
 
 
 def get_label_id(label_name: str) -> str | None:
-  """Helper function to find the GraphQL node ID for a given label name."""
-  print(f"Finding ID for label '{label_name}'...")
+  """輔助函式，用於尋找給定標籤名稱的 GraphQL 節點 ID。"""
+  print(f"正在尋找標籤 '{label_name}' 的 ID...")
   query = """
     query($owner: String!, $repo: String!, $labelName: String!) {
       repository(owner: $owner, name: $repo) {
@@ -163,41 +162,41 @@ def get_label_id(label_name: str) -> str | None:
     response = run_graphql_query(query, variables)
     if "errors" in response:
       print(
-          f"[Warning] Error from GitHub API response for label '{label_name}':"
+          f"[警告] 來自 GitHub API 對於標籤 '{label_name}' 的回應錯誤："
           f" {response['errors']}"
       )
       return None
     label_info = response["data"].get("repository", {}).get("label")
     if label_info:
       return label_info.get("id")
-    print(f"[Warning] Label information for '{label_name}' not found.")
+    print(f"[警告] 找不到標籤 '{label_name}' 的資訊。")
     return None
   except requests.exceptions.RequestException as e:
-    print(f"[Warning] Error from GitHub API: {e}")
+    print(f"[警告] 來自 GitHub API 的錯誤：{e}")
     return None
 
 
 def add_label_to_discussion(
     discussion_id: str, label_name: str
 ) -> dict[str, Any]:
-  """Adds a label to a specific discussion.
+  """將標籤新增至特定討論。
 
   Args:
-      discussion_id: The GraphQL node ID of the discussion.
-      label_name: The name of the label to add (e.g., "bug").
+      discussion_id: 討論的 GraphQL 節點 ID。
+      label_name: 要新增的標籤名稱（例如 "bug"）。
 
   Returns:
-      The status of the request and the label details.
+      請求的狀態和標籤詳細資訊。
   """
   print(
-      f"Attempting to add label '{label_name}' to discussion {discussion_id}..."
+      f"正在嘗試將標籤 '{label_name}' 新增至討論 {discussion_id}..."
   )
-  # First, get the GraphQL ID of the label by its name
+  # 首先，透過其名稱取得標籤的 GraphQL ID
   label_id = get_label_id(label_name)
   if not label_id:
-    return error_response(f"Label '{label_name}' not found.")
+    return error_response(f"找不到標籤 '{label_name}'。")
 
-  # Then, perform the mutation to add the label to the discussion
+  # 然後，執行突變以將標籤新增至討論
   mutation = """
     mutation AddLabel($discussionId: ID!, $labelId: ID!) {
       addLabelsToLabelable(input: {labelableId: $discussionId, labelIds: [$labelId]}) {
@@ -216,15 +215,15 @@ def add_label_to_discussion(
 
 
 def convert_gcs_links_to_https(gcs_uris: list[str]) -> Dict[str, Optional[str]]:
-  """Converts GCS files link into publicly accessible HTTPS links.
+  """將 GCS 檔案連結轉換為可公開存取的 HTTPS 連結。
 
   Args:
-      gcs_uris: A list of GCS files links, in the format
-        'gs://bucket_name/prefix/relative_path'.
+      gcs_uris: GCS 檔案連結列表，格式為
+        'gs://bucket_name/prefix/relative_path'。
 
   Returns:
-      A dictionary mapping the original GCS files links to the converted HTTPS
-      links. If a GCS link is invalid, the corresponding value in the dictionary
-      will be None.
+      一個將原始 GCS 檔案連結對應到轉換後的 HTTPS
+      連結的字典。如果 GCS 連結無效，字典中對應的值
+      將為 None。
   """
   return {gcs_uri: convert_gcs_to_https(gcs_uri) for gcs_uri in gcs_uris}

@@ -18,8 +18,8 @@ from google.adk.tools.google_search_tool import google_search
 root_agent = Agent(
     model='gemini-2.0-flash-001',
     name='root_agent',
-    description="""an agent whose job it is to perform Google search queries and answer questions about the results.""",
-    instruction="""You are an agent whose job is to perform Google search queries and answer questions about the results.
+    description="""一個負責執行 Google 搜尋查詢並回答相關問題的代理 (Agent)。""",
+    instruction="""您是一個負責執行 Google 搜尋查詢並回答相關問題的代理 (Agent)。
 """,
     tools=[google_search],
 )

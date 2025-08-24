@@ -20,23 +20,23 @@ from google.adk.tools.example_tool import ExampleTool
 from google.genai import types
 
 
-# --- Roll Die Sub-Agent ---
+# --- 擲骰子子代理 (Sub-Agent) ---
 def roll_die(sides: int) -> int:
-  """Roll a die and return the rolled result."""
+  """擲骰子並返回擲骰結果。"""
   return random.randint(1, sides)
 
 
 roll_agent = Agent(
     name="roll_agent",
-    description="Handles rolling dice of different sizes.",
+    description="處理不同大小的擲骰子。",
     instruction="""
-      You are responsible for rolling dice based on the user's request.
-      When asked to roll a die, you must call the roll_die tool with the number of sides as an integer.
+      您負責根據使用者的要求擲骰子。
+      當被要求擲骰子時，您必須使用骰子面數（整數）呼叫 roll_die 工具。
     """,
     tools=[roll_die],
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),
@@ -45,9 +45,9 @@ roll_agent = Agent(
 )
 
 
-# --- Prime Check Sub-Agent ---
+# --- 質數檢查子代理 (Sub-Agent) ---
 def check_prime(nums: list[int]) -> str:
-  """Check if a given list of numbers are prime."""
+  """檢查給定的數字列表是否為質數。"""
   primes = set()
   for number in nums:
     number = int(number)
@@ -61,9 +61,9 @@ def check_prime(nums: list[int]) -> str:
     if is_prime:
       primes.add(number)
   return (
-      "No prime numbers found."
+      "找不到質數。"
       if not primes
-      else f"{', '.join(str(num) for num in primes)} are prime numbers."
+      else f"{', '.join(str(num) for num in primes)} 是質數。"
   )
 
 
@@ -71,21 +71,21 @@ example_tool = ExampleTool(
     examples=[
         Example(
             input=types.UserContent(
-                parts=[types.Part(text="Roll a 6-sided die.")]
+                parts=[types.Part(text="擲一個 6 面骰。")]
             ),
             output=[
                 types.ModelContent(
-                    parts=[types.Part(text="I rolled a 4 for you.")]
+                    parts=[types.Part(text="我為您擲出了一個 4。")]
                 )
             ],
         ),
         Example(
             input=types.UserContent(
-                parts=[types.Part(text="Is 7 a prime number?")]
+                parts=[types.Part(text="7 是質數嗎？")]
             ),
             output=[
                 types.ModelContent(
-                    parts=[types.Part(text="Yes, 7 is a prime number.")]
+                    parts=[types.Part(text="是的，7 是質數。")]
                 )
             ],
         ),
@@ -93,16 +93,16 @@ example_tool = ExampleTool(
             input=types.UserContent(
                 parts=[
                     types.Part(
-                        text="Roll a 10-sided die and check if it's prime."
+                        text="擲一個 10 面骰，並檢查它是否為質數。"
                     )
                 ]
             ),
             output=[
                 types.ModelContent(
-                    parts=[types.Part(text="I rolled an 8 for you.")]
+                    parts=[types.Part(text="我為您擲出了一個 8。")]
                 ),
                 types.ModelContent(
-                    parts=[types.Part(text="8 is not a prime number.")]
+                    parts=[types.Part(text="8 不是質數。")]
                 ),
             ],
         ),
@@ -111,17 +111,17 @@ example_tool = ExampleTool(
 
 prime_agent = Agent(
     name="prime_agent",
-    description="Handles checking if numbers are prime.",
+    description="處理檢查數字是否為質數。",
     instruction="""
-      You are responsible for checking whether numbers are prime.
-      When asked to check primes, you must call the check_prime tool with a list of integers.
-      Never attempt to determine prime numbers manually.
-      Return the prime number results to the root agent.
+      您負責檢查數字是否為質數。
+      當被要求檢查質數時，您必須使用一個整數列表呼叫 check_prime 工具。
+      切勿手動嘗試確定質數。
+      將質數結果返回給根代理 (root agent)。
     """,
     tools=[check_prime],
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),
@@ -134,22 +134,22 @@ root_agent = Agent(
     model="gemini-2.5-flash",
     name="root_agent",
     instruction="""
-      You are a helpful assistant that can roll dice and check if numbers are prime.
-      You delegate rolling dice tasks to the roll_agent and prime checking tasks to the prime_agent.
-      Follow these steps:
-      1. If the user asks to roll a die, delegate to the roll_agent.
-      2. If the user asks to check primes, delegate to the prime_agent.
-      3. If the user asks to roll a die and then check if the result is prime, call roll_agent first, then pass the result to prime_agent.
-      Always clarify the results before proceeding.
+      您是一個樂於助人的助理，可以擲骰子並檢查數字是否為質數。
+      您將擲骰子任務委派給 roll_agent，並將質數檢查任務委派給 prime_agent。
+      請遵循以下步驟：
+      1. 如果使用者要求擲骰子，則委派給 roll_agent。
+      2. 如果使用者要求檢查質數，則委派給 prime_agent。
+      3. 如果使用者要求擲骰子然後檢查結果是否為質數，請先呼叫 roll_agent，然後將結果傳遞給 prime_agent。
+      在繼續之前，請務必澄清結果。
     """,
     global_instruction=(
-        "You are DicePrimeBot, ready to roll dice and check prime numbers."
+        "您是 DicePrimeBot，準備好擲骰子和檢查質數。"
     ),
     sub_agents=[roll_agent, prime_agent],
     tools=[example_tool],
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),

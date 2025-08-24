@@ -1,123 +1,123 @@
-# A2A Root Sample Agent
+# A2A 根代理範例
 
-This sample demonstrates how to use a **remote Agent-to-Agent (A2A) agent as the root agent** in the Agent Development Kit (ADK). This is a simplified approach where the main agent is actually a remote A2A service, also showcasing how to run remote agents using uvicorn command.
+此範例展示如何在代理開發套件 (Agent Development Kit, ADK) 中使用**遠端代理對代理 (Agent-to-Agent, A2A) 代理作為根代理**。這是一種簡化的方法，其中主要代理實際上是一個遠端 A2A 服務，同時也展示如何使用 uvicorn 命令執行遠端代理。
 
-## Overview
+## 總覽
 
-The A2A Root sample consists of:
+A2A 根代理範例包含：
 
-- **Root Agent** (`agent.py`): A remote A2A agent proxy as root agent that talks to a remote a2a agent running on a separate server
-- **Remote Hello World Agent** (`remote_a2a/hello_world/agent.py`): The actual agent implementation that handles dice rolling and prime number checking running on remote server
+- **根代理 (Root Agent)** (`agent.py`)：一個遠端 A2A 代理的代理 (proxy)，作為與在獨立伺服器上執行的遠端 a2a 代理通訊的根代理。
+- **遠端 Hello World 代理 (Remote Hello World Agent)** (`remote_a2a/hello_world/agent.py`)：在遠端伺服器上執行的實際代理實作，負責處理擲骰子和質數檢查。
 
-## Architecture
+## 架構
 
 ```
 ┌─────────────────┐    ┌────────────────────┐
-│   Root Agent    │───▶│   Remote Hello     │
-│ (RemoteA2aAgent)│    │   World Agent      │
+│   根代理        │───▶│   遠端 Hello       │
+│ (RemoteA2aAgent)│    │   World 代理       │
 │ (localhost:8000)│    │  (localhost:8001)  │
 └─────────────────┘    └────────────────────┘
 ```
 
-## Key Features
+## 主要功能
 
-### 1. **Remote A2A as Root Agent**
-- The `root_agent` is a `RemoteA2aAgent` that connects to a remote A2A service
-- Demonstrates how to use remote agents as the primary agent instead of local agents
-- Shows the flexibility of the A2A architecture for distributed agent deployment
+### 1. **遠端 A2A 作為根代理**
+- `root_agent` 是一個 `RemoteA2aAgent`，連接到遠端 A2A 服務。
+- 展示如何使用遠端代理作為主要代理，而非本地代理。
+- 顯示 A2A 架構在分散式代理部署中的靈活性。
 
-### 2. **Uvicorn Server Deployment**
-- The remote agent is served using uvicorn, a lightweight ASGI server
-- Demonstrates a simple way to deploy A2A agents without using the ADK CLI
-- Shows how to expose A2A agents as standalone web services
+### 2. **Uvicorn 伺服器部署**
+- 遠端代理使用輕量級的 ASGI 伺服器 uvicorn 提供服務。
+- 展示一種不使用 ADK CLI 部署 A2A 代理的簡單方法。
+- 說明如何將 A2A 代理公開為獨立的 Web 服務。
 
-### 3. **Agent Functionality**
-- **Dice Rolling**: Can roll dice with configurable number of sides
-- **Prime Number Checking**: Can check if numbers are prime
-- **State Management**: Maintains roll history in tool context
-- **Parallel Tool Execution**: Can use multiple tools in parallel
+### 3. **代理功能**
+- **擲骰子**：可以擲可設定面數的骰子。
+- **質數檢查**：可以檢查數字是否為質數。
+- **狀態管理**：在工具上下文中維護擲骰歷史。
+- **平行工具執行**：可以平行使用多個工具。
 
-### 4. **Simple Deployment Pattern**
-- Uses the `to_a2a()` utility to convert a standard ADK agent to an A2A service
-- Minimal configuration required for remote agent deployment
+### 4. **簡單的部署模式**
+- 使用 `to_a2a()` 工具將標準 ADK 代理轉換為 A2A 服務。
+- 遠端代理部署所需的設定極少。
 
-## Setup and Usage
+## 設定與使用
 
-### Prerequisites
+### 前提條件
 
-1. **Start the Remote A2A Agent server**:
+1. **啟動遠端 A2A 代理伺服器**：
    ```bash
-   # Start the remote agent using uvicorn
+   # 使用 uvicorn 啟動遠端代理
    uvicorn contributing.samples.a2a_root.remote_a2a.hello_world.agent:a2a_app --host localhost --port 8001
    ```
 
-2. **Run the Main Agent**:
+2. **執行主要代理**：
    ```bash
-   # In a separate terminal, run the adk web server
+   # 在另一個終端機中，執行 adk web 伺服器
    adk web contributing/samples/
    ```
 
-### Example Interactions
+### 互動範例
 
-Once both services are running, you can interact with the root agent:
+當兩個服務都執行後，您可以與根代理進行互動：
 
-**Simple Dice Rolling:**
+**簡單的擲骰子：**
 ```
-User: Roll a 6-sided die
-Bot: I rolled a 4 for you.
-```
-
-**Prime Number Checking:**
-```
-User: Is 7 a prime number?
-Bot: Yes, 7 is a prime number.
+User: 擲一個 6 面骰
+Bot: 我為您擲出了一個 4。
 ```
 
-**Combined Operations:**
+**檢查質數：**
 ```
-User: Roll a 10-sided die and check if it's prime
-Bot: I rolled an 8 for you.
-Bot: 8 is not a prime number.
-```
-
-**Multiple Rolls with Prime Checking:**
-```
-User: Roll a die 3 times and check which results are prime
-Bot: I rolled a 3 for you.
-Bot: I rolled a 7 for you.
-Bot: I rolled a 4 for you.
-Bot: 3, 7 are prime numbers.
+User: 7 是質數嗎？
+Bot: 是的，7 是質數。
 ```
 
-## Code Structure
+**組合操作：**
+```
+User: 擲一個 10 面骰並檢查它是否為質數
+Bot: 我為您擲出了一個 8。
+Bot: 8 不是質數。
+```
 
-### Root Agent (`agent.py`)
+**多次擲骰與質數檢查：**
+```
+User: 擲一個骰子 3 次並檢查哪些結果是質數
+Bot: 我為您擲出了一個 3。
+Bot: 我為您擲出了一個 7。
+Bot: 我為您擲出了一個 4。
+Bot: 3, 7 是質數。
+```
 
-- **`root_agent`**: A `RemoteA2aAgent` that connects to the remote A2A service
-- **Agent Card URL**: Points to the well-known agent card endpoint on the remote server
+## 程式碼結構
 
-### Remote Hello World Agent (`remote_a2a/hello_world/agent.py`)
+### 根代理 (`agent.py`)
 
-- **`roll_die(sides: int)`**: Function tool for rolling dice with state management
-- **`check_prime(nums: list[int])`**: Async function for prime number checking
-- **`root_agent`**: The main agent with comprehensive instructions
-- **`a2a_app`**: The A2A application created using `to_a2a()` utility
+- **`root_agent`**：一個 `RemoteA2aAgent`，連接到遠端 A2A 服務。
+- **代理卡 URL (Agent Card URL)**：指向遠端伺服器上眾所周知的代理卡端點。
+
+### 遠端 Hello World 代理 (`remote_a2a/hello_world/agent.py`)
+
+- **`roll_die(sides: int)`**：用於擲骰子並具備狀態管理的函式工具。
+- **`check_prime(nums: list[int])`**：用於質數檢查的非同步函式。
+- **`root_agent`**：具有完整說明的主要代理。
+- **`a2a_app`**：使用 `to_a2a()` 工具建立的 A2A 應用程式。
 
 
 
-## Troubleshooting
+## 疑難排解
 
-**Connection Issues:**
-- Ensure the uvicorn server is running on port 8001
-- Check that no firewall is blocking localhost connections
-- Verify the agent card URL in the root agent configuration
-- Check uvicorn logs for any startup errors
+**連線問題：**
+- 確保 uvicorn 伺服器在 8001 連接埠上執行。
+- 檢查是否有防火牆阻擋 localhost 連線。
+- 確認根代理設定中的代理卡 URL。
+- 檢查 uvicorn 日誌是否有任何啟動錯誤。
 
-**Agent Not Responding:**
-- Check the uvicorn server logs for errors
-- Verify the agent instructions are clear and unambiguous
-- Ensure the A2A app is properly configured with the correct port
+**代理無回應：**
+- 檢查 uvicorn 伺服器日誌是否有錯誤。
+- 確認代理的指令清晰明確。
+- 確保 A2A 應用程式已使用正確的連接埠正確設定。
 
-**Uvicorn Issues:**
-- Make sure the module path is correct: `contributing.samples.a2a_root.remote_a2a.hello_world.agent:a2a_app`
-- Check that all dependencies are installed
+**Uvicorn 問題：**
+- 確保模組路徑正確：`contributing.samples.a2a_root.remote_a2a.hello_world.agent:a2a_app`
+- 檢查所有相依性是否已安裝。

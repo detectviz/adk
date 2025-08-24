@@ -16,9 +16,8 @@ from google.adk.agents import LlmAgent
 
 agent = LlmAgent(
     name="life_agent",
-    description="Life agent",
+    description="生活代理",
     instruction=(
-        "You are a life agent. You are responsible for answering"
-        " questions about life."
+        "你是一個生活代理。你負責回答有關生活的問題。"
     ),
 )

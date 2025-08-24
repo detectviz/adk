@@ -1,6 +1,6 @@
 {
-    "name": "Air Ticketing Agent",
-    "description": "Helps book air tickets given a criteria",
+    "name": "機票預訂代理",
+    "description": "根據給定條件協助預訂機票",
     "url": "http://localhost:10103/",
     "version": "1.0.0",
     "capabilities": {
@@ -19,13 +19,13 @@
     "skills": [
         {
             "id": "book_air_tickets",
-            "name": "Book Air Tickets",
-            "description": "Helps with booking air tickets given a criteria",
+            "name": "預訂機票",
+            "description": "根據給定條件協助預訂機票",
             "tags": [
-                "Book air tickets"
+                "預訂機票"
             ],
             "examples": [
-                "Book return tickets from SFO to LHR, starting June 24 2025 and returning 30th June 2025"
+                "預訂從 SFO 到 LHR 的來回機票，出發日期為 2025 年 6 月 24 日，返回日期為 2025 年 6 月 30 日"
             ]
         }
     ]

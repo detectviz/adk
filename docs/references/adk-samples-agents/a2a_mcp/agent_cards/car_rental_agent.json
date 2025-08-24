@@ -1,6 +1,6 @@
 {
-    "name": "Car Rental Agent",
-    "description": "Helps book car rental",
+    "name": "租車代理",
+    "description": "協助預訂租車",
     "url": "http://localhost:10105/",
     "version": "1.0.0",
     "capabilities": {
@@ -19,13 +19,13 @@
     "skills": [
         {
             "id": "book_cars",
-            "name": "Book Car Rental",
-            "description": "Helps with booking car rental given a criteria",
+            "name": "預訂租車",
+            "description": "根據給定條件協助預訂租車",
             "tags": [
-                "Book cars"
+                "預訂汽車"
             ],
             "examples": [
-                "Book a rental car in London, starting on June 20, 2025, and ending on July 10, 2025"
+                "在倫敦預訂一輛租賃汽車，從 2025 年 6 月 20 日開始，到 2025 年 7 月 10 日結束"
             ]
         }
     ]

@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class GenericAgentExecutor(AgentExecutor):
-    """AgentExecutor used by the tragel agents."""
+    """旅行代理使用的 AgentExecutor。"""
 
     def __init__(self, agent: BaseAgent):
         self.agent = agent
@@ -33,7 +33,7 @@ class GenericAgentExecutor(AgentExecutor):
         context: RequestContext,
         event_queue: EventQueue,
     ) -> None:
-        logger.info(f'Executing agent {self.agent.agent_name}')
+        logger.info(f'正在執行代理 {self.agent.agent_name}')
         error = self._validate_request(context)
         if error:
             raise ServerError(error=InvalidParamsError())
@@ -49,8 +49,8 @@ class GenericAgentExecutor(AgentExecutor):
         updater = TaskUpdater(event_queue, task.id, task.context_id)
 
         async for item in self.agent.stream(query, task.context_id, task.id):
-            # Agent to Agent call will return events,
-            # Update the relevant ids to proxy back.
+            # 代理對代理的呼叫將返回事件，
+            # 更新相關 ID 以便代理回來。
             if hasattr(item, 'root') and isinstance(
                 item.root, SendStreamingMessageSuccessResponse
             ):

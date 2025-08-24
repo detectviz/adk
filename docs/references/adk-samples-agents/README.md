@@ -1,4 +1,4 @@
-# 範例代理 (Sample Agents)
+# ADK Sample Agents
 
 此資料夾包含 [Python 代理開發套件 (Python Agent Development Kit)](https://github.com/google/adk-python) (Python ADK) 的範例代理。
 
@@ -54,6 +54,7 @@
 | [財務顧問 (Financial Advisor)](financial-advisor) | 透過提供金融和投資相關主題的教育內容來協助人類財務顧問。 | `Risk Analysis`, `Strategy Generation`, `Summarization`, `Report Generation` | 工作流程 (Workflow) | 簡單 (Easy) | 多代理 (Multi Agent) | 金融服務 (Financial Services) |
 | [聯邦公開市場委員會研究代理 (FOMC Research Agent)](fomc-research) | 市場事件分析。 | `Summarization`, `Report Generation` | 工作流程 (Workflow) | 進階 (Advanced) | 多代理 (Multi Agent) | 金融服務 (Financial Services) |
 | [Gemini 全端 (Gemini Fullstack)](gemini-fullstack) | 一個使用 Gemini 建構複雜全端研究代理的藍圖。 | `Multi-agent`, `Function calling`, `Web search`, `React`, `FastAPI`, `Human-in-the-Loop` | 工作流程 (Workflow) | 進階 (Advanced) | 多代理 (Multi Agent) | 通用 (Horizontal) |
+| [Google ADK 工作流程 (Google ADK Workflows)](google-adk-workflows) | 一個多代理工作流程，展示使用 Google ADK 的各種協調模式（簡單、分派器、並行、自我批判），以規劃複雜的旅行任務。 | `Multi-agent`, `Orchestration`, `Workflow`, `ADK`, `Sequential`, `Parallel`, `Self-critic` | 對話式 (Conversational) | 進階 (Advanced) | 多代理 (Multi Agent) | 旅遊 (Travel) |
 | [無頭代理程式的驗證 (Headless Agent Auth)](headless_agent_auth) | 展示無頭代理程式如何利用 Auth0 的客戶端發起後通道驗證 (CIBA) 流程，透過推播通知請求使用者授權，以取得存取外部 API 的權杖。 | `Authentication`, `Auth0`, `CIBA`, `OAuth`, `Security`, `Headless`, `A2A` | 程式化 / API 呼叫 (Programmatic / API calls) | 專家級 (Expert) | 單一代理程式 (Single Agent) | 安全性 / 企業應用 (Security / Enterprise Applications) |
 | [Hello World 代理程式 (Hello World Agent)](helloworld) | 一個只會回傳訊息事件的「Hello World」範例代理程式，作為新開發人員的起點。 | `Beginner`, `Starter`, `Example`, `A2A`, `Container` | 請求/回應 (Request/Response) | 非常簡單 (Trivial) | 單一代理程式 (Single Agent) | 開發人員工具 / SDK 範例 (Developer Tools / SDK Sample) |
 | [圖片評分 (Image Scoring)](image-scoring) | 根據政策生成圖片並對生成的圖片進行評分以衡量政策遵循度的圖片評分代理。 | `Python`, `Agent Tool`, `Imagen`, `Loop Agent` | 對話式 (Conversational) | 簡單 (Easy) | 多代理 (Multi Agent) | 通用 (Horizontal) |

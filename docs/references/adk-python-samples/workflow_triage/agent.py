@@ -22,33 +22,33 @@ from . import execution_agent
 def update_execution_plan(
     execution_agents: list[str], tool_context: ToolContext
 ) -> str:
-  """Updates the execution plan for the agents to run."""
+  """更新要執行的代理程式的執行計畫。"""
 
   tool_context.state["execution_agents"] = execution_agents
-  return "execution_agents updated."
+  return "執行代理程式已更新。"
 
 
 root_agent = Agent(
     model="gemini-2.5-flash",
     name="execution_manager_agent",
     instruction="""\
-You are the Execution Manager Agent, responsible for setting up execution plan and delegate to plan_execution_agent for the actual plan execution.
+您是執行管理員代理，負責設定執行計畫並委派給 plan_execution_agent 進行實際的計畫執行。
 
-You ONLY have the following worker agents: `code_agent`, `math_agent`.
+您只有以下工作代理程式：`code_agent`、`math_agent`。
 
-You should do the following:
+您應該執行以下操作：
 
-1. Analyze the user input and decide any worker agents that are relevant;
-2. If none of the worker agents are relevant, you should explain to user that no relevant agents are available and ask for something else;
-2. Update the execution plan with the relevant worker agents using `update_execution_plan` tool.
-3. Transfer control to the plan_execution_agent for the actual plan execution.
+1. 分析使用者輸入並決定任何相關的工作代理程式；
+2. 如果沒有相關的工作代理程式，您應該向使用者解釋沒有可用的相關代理程式，並要求他們提供其他內容；
+2. 使用 `update_execution_plan` 工具以相關的工作代理程式更新執行計畫。
+3. 將控制權轉移給 plan_execution_agent 進行實際的計畫執行。
 
-When calling the `update_execution_plan` tool, you should pass the list of worker agents that are relevant to user's input.
+呼叫 `update_execution_plan` 工具時，您應該傳遞與使用者輸入相關的工作代理程式清單。
 
-NOTE:
+注意：
 
-* If you are not clear about user's intent, you should ask for clarification first;
-* Only after you're clear about user's intent, you can proceed to step #2.
+* 如果您不清楚使用者的意圖，您應該先要求澄清；
+* 只有在您清楚使用者的意圖後，才能繼續執行步驟 #2。
 """,
     sub_agents=[
         execution_agent.plan_execution_agent,

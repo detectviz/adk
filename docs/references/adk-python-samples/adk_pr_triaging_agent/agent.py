@@ -46,25 +46,25 @@ CONTRIBUTING_MD = read_file(
 )
 
 APPROVAL_INSTRUCTION = (
-    "Do not ask for user approval for labeling or commenting! If you can't find"
-    " appropriate labels for the PR, do not label it."
+    "不要要求使用者批准標記或評論！如果您找不到"
+    "適合 PR 的標籤，請不要標記它。"
 )
 if IS_INTERACTIVE:
   APPROVAL_INSTRUCTION = (
-      "Only label or comment when the user approves the labeling or commenting!"
+      "只有在使用者批准標記或評論時才進行標記或評論！"
   )
 
 
 def get_pull_request_details(pr_number: int) -> str:
-  """Get the details of the specified pull request.
+  """取得指定拉取請求的詳細資訊。
 
   Args:
-    pr_number: number of the Github pull request.
+    pr_number: Github 拉取請求的編號。
 
   Returns:
-    The status of this request, with the details when successful.
+    此請求的狀態，成功時附帶詳細資訊。
   """
-  print(f"Fetching details for PR #{pr_number} from {OWNER}/{REPO}")
+  print(f"正在從 {OWNER}/{REPO} 取得 PR #{pr_number} 的詳細資訊")
   query = """
     query($owner: String!, $repo: String!, $prNumber: Int!) {
       repository(owner: $owner, name: $repo) {
@@ -135,9 +135,9 @@ def get_pull_request_details(pr_number: int) -> str:
 
     pr = response.get("data", {}).get("repository", {}).get("pullRequest")
     if not pr:
-      return error_response(f"Pull Request #{pr_number} not found.")
+      return error_response(f"找不到拉取請求 #{pr_number}。")
 
-    # Filter out main merge commits.
+    # 過濾掉主要的合併提交。
     original_commits = pr.get("commits", {}).get("nodes", {})
     if original_commits:
       filtered_commits = [
@@ -149,7 +149,7 @@ def get_pull_request_details(pr_number: int) -> str:
       ]
       pr["commits"]["nodes"] = filtered_commits
 
-    # Get diff of the PR and truncate it to avoid exceeding the maximum tokens.
+    # 取得 PR 的差異並截斷它以避免超過最大權杖數。
     pr["diff"] = get_diff(url)[:10000]
 
     return {"status": "success", "pull_request": pr}
@@ -158,23 +158,23 @@ def get_pull_request_details(pr_number: int) -> str:
 
 
 def add_label_and_reviewer_to_pr(pr_number: int, label: str) -> dict[str, Any]:
-  """Adds a specified label and requests a review from a mapped reviewer on a PR.
+  """在 PR 上新增指定的標籤並向對應的審核者請求審核。
 
   Args:
-      pr_number: the number of the Github pull request
-      label: the label to add
+      pr_number: Github 拉取請求的編號
+      label: 要新增的標籤
 
   Returns:
-      The the status of this request, with the applied label and assigned
-      reviewer when successful.
+      此請求的狀態，成功時附帶已套用的標籤和指派的
+      審核者。
   """
-  print(f"Attempting to add label '{label}' and a reviewer to PR #{pr_number}")
+  print(f"正在嘗試將標籤 '{label}' 和審核者新增至 PR #{pr_number}")
   if label not in LABEL_TO_OWNER:
     return error_response(
-        f"Error: Label '{label}' is not an allowed label. Will not apply."
+        f"錯誤：標籤 '{label}' 不是允許的標籤。將不予套用。"
     )
 
-  # Pull Request is a special issue in Github, so we can use issue url for PR.
+  # 拉取請求在 Github 中是一個特殊的問題，所以我們可以使用問題的 url 來處理 PR。
   label_url = (
       f"{GITHUB_BASE_URL}/repos/{OWNER}/{REPO}/issues/{pr_number}/labels"
   )
@@ -183,15 +183,15 @@ def add_label_and_reviewer_to_pr(pr_number: int, label: str) -> dict[str, Any]:
   try:
     response = post_request(label_url, label_payload)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
 
   owner = LABEL_TO_OWNER.get(label, None)
   if not owner:
     return {
         "status": "warning",
         "message": (
-            f"{response}\n\nLabel '{label}' does not have an owner. Will not"
-            " assign."
+            f"{response}\n\n標籤 '{label}' 沒有擁有者。將不"
+            "指派。"
         ),
         "applied_label": label,
     }
@@ -202,7 +202,7 @@ def add_label_and_reviewer_to_pr(pr_number: int, label: str) -> dict[str, Any]:
   except requests.exceptions.RequestException as e:
     return {
         "status": "warning",
-        "message": f"Reviewer not assigned: {e}",
+        "message": f"未指派審核者：{e}",
         "applied_label": label,
     }
 
@@ -214,25 +214,25 @@ def add_label_and_reviewer_to_pr(pr_number: int, label: str) -> dict[str, Any]:
 
 
 def add_comment_to_pr(pr_number: int, comment: str) -> dict[str, Any]:
-  """Add the specified comment to the given PR number.
+  """將指定的留言新增至給定的 PR 編號。
 
   Args:
-    pr_number: the number of the Github pull request
-    comment: the comment to add
+    pr_number: Github 拉取請求的編號
+    comment: 要新增的留言
 
   Returns:
-    The the status of this request, with the applied comment when successful.
+    此請求的狀態，成功時附帶已套用的留言。
   """
-  print(f"Attempting to add comment '{comment}' to issue #{pr_number}")
+  print(f"正在嘗試將留言 '{comment}' 新增至問題 #{pr_number}")
 
-  # Pull Request is a special issue in Github, so we can use issue url for PR.
+  # 拉取請求在 Github 中是一個特殊的問題，所以我們可以使用問題的 url 來處理 PR。
   url = f"{GITHUB_BASE_URL}/repos/{OWNER}/{REPO}/issues/{pr_number}/comments"
   payload = {"body": comment}
 
   try:
     post_request(url, payload)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
   return {
       "status": "success",
       "added_comment": comment,
@@ -242,74 +242,74 @@ def add_comment_to_pr(pr_number: int, comment: str) -> dict[str, Any]:
 root_agent = Agent(
     model="gemini-2.5-pro",
     name="adk_pr_triaging_assistant",
-    description="Triage ADK pull requests.",
+    description="對 ADK 拉取請求進行分類。",
     instruction=f"""
-      # 1. Identity
-      You are a Pull Request (PR) triaging bot for the Github {REPO} repo with the owner {OWNER}.
+      # 1. 身分
+      您是 Github {REPO} 儲存庫（擁有者為 {OWNER}）的拉取請求 (PR) 分類機器人。
 
-      # 2. Responsibilities
-      Your core responsibility includes:
-      - Get the pull request details.
-      - Add a label to the pull request.
-      - Assign a reviewer to the pull request.
-      - Check if the pull request is following the contribution guidelines.
-      - Add a comment to the pull request if it's not following the guidelines.
+      # 2. 職責
+      您的核心職責包括：
+      - 取得拉取請求的詳細資訊。
+      - 為拉取請求新增標籤。
+      - 為拉取請求指派審核者。
+      - 檢查拉取請求是否遵循貢獻指南。
+      - 如果拉取請求未遵循指南，則新增留言。
 
-      **IMPORTANT: {APPROVAL_INSTRUCTION}**
+      **重要事項：{APPROVAL_INSTRUCTION}**
 
-      # 3. Guidelines & Rules
-      Here are the rules for labeling:
-      - If the PR is about documentations, label it with "documentation".
-      - If it's about session, memory, artifacts services, label it with "services"
-      - If it's about UI/web, label it with "web"
-      - If it's related to tools, label it with "tools"
-      - If it's about agent evalaution, then label it with "eval".
-      - If it's about streaming/live, label it with "live".
-      - If it's about model support(non-Gemini, like Litellm, Ollama, OpenAI models), label it with "models".
-      - If it's about tracing, label it with "tracing".
-      - If it's agent orchestration, agent definition, label it with "core".
-      - If it's about Model Context Protocol (e.g. MCP tool, MCP toolset, MCP session management etc.), label it with "mcp".
-      - If you can't find a appropriate labels for the PR, follow the previous instruction that starts with "IMPORTANT:".
+      # 3. 指南與規則
+      以下是標記規則：
+      - 如果 PR 與文件有關，請標記為 "documentation"。
+      - 如果與 session、memory、artifacts 服務有關，請標記為 "services"
+      - 如果與 UI/web 有關，請標記為 "web"
+      - 如果與工具有關，請標記為 "tools"
+      - 如果與代理評估有關，則標記為 "eval"。
+      - 如果與串流/即時有關，請標記為 "live"。
+      - 如果與模型支援（非 Gemini，如 Litellm、Ollama、OpenAI 模型）有關，請標記為 "models"。
+      - 如果與追蹤有關，請標記為 "tracing"。
+      - 如果是代理協調、代理定義，請標記為 "core"。
+      - 如果與模型內容協定（例如 MCP 工具、MCP 工具集、MCP 會話管理等）有關，請標記為 "mcp"。
+      - 如果您找不到適合 PR 的標籤，請遵循以「重要事項：」開頭的先前指示。
 
-      Here is the contribution guidelines:
+      以下是貢獻指南：
       `{CONTRIBUTING_MD}`
 
-      Here are the guidelines for checking if the PR is following the guidelines:
-      - The "statusCheckRollup" in the pull request details may help you to identify if the PR is following some of the guidelines (e.g. CLA compliance).
+      以下是檢查 PR 是否遵循指南的準則：
+      - 拉取請求詳細資訊中的 "statusCheckRollup" 可協助您判斷 PR 是否遵循某些指南（例如 CLA 合規性）。
 
-      Here are the guidelines for the comment:
-      - **Be Polite and Helpful:** Start with a friendly tone.
-      - **Be Specific:** Clearly list only the sections from the contribution guidelines that are still missing.
-      - **Address the Author:** Mention the PR author by their username (e.g., `@username`).
-      - **Provide Context:** Explain *why* the information or action is needed.
-      - **Do not be repetitive:** If you have already commented on an PR asking for information, do not comment again unless new information has been added and it's still incomplete.
-      - **Identify yourself:** Include a bolded note (e.g. "Response from ADK Triaging Agent") in your comment to indicate this comment was added by an ADK Answering Agent.
+      以下是留言的指南：
+      - **保持禮貌和樂於助人：** 以友善的語氣開始。
+      - **具體說明：** 清楚地只列出貢獻指南中仍然缺少的章節。
+      - **稱呼作者：** 使用 PR 作者的使用者名稱提及他們（例如 `@username`）。
+      - **提供情境：** 解釋*為什麼*需要這些資訊或操作。
+      - **不要重複：** 如果您已經在 PR 上留言要求提供資訊，除非新增了新資訊但仍不完整，否則不要再次留言。
+      - **表明身分：** 在您的留言中包含一個粗體註記（例如「來自 ADK 分類代理的回應」），以表明此留言是由 ADK 問答代理新增的。
 
-      **Example Comment for a PR:**
-      > **Response from ADK Triaging Agent**
+      **PR 的留言範例：**
+      > **來自 ADK 分類代理的回應**
       >
-      > Hello @[pr-author-username], thank you for creating this PR!
+      > 您好 @[pr-author-username]，感謝您建立此 PR！
       >
-      > This PR is a bug fix, could you please associate the github issue with this PR? If there is no existing issue, could you please create one?
+      > 此 PR 是一個錯誤修復，您能否將 github 問題與此 PR 關聯？如果沒有現有問題，您能否建立一個？
       >
-      > In addition, could you please provide logs or screenshot after the fix is applied?
+      > 此外，您能否在套用修復後提供日誌或螢幕截圖？
       >
-      > This information will help reviewers to review your PR more efficiently. Thanks!
+      > 這些資訊將有助於審核者更有效地審核您的 PR。謝謝！
 
-      # 4. Steps
-      When you are given a PR, here are the steps you should take:
-      - Call the `get_pull_request_details` tool to get the details of the PR.
-      - Skip the PR (i.e. do not label or comment) if the PR is closed or is labeled with "{BOT_LABEL}" or "google-contributior".
-      - Check if the PR is following the contribution guidelines.
-        - If it's not following the guidelines, recommend or add a comment to the PR that points to the contribution guidelines (https://github.com/google/adk-python/blob/main/CONTRIBUTING.md).
-        - If it's following the guidelines, recommend or add a label to the PR.
+      # 4. 步驟
+      當您收到一個 PR 時，應採取以下步驟：
+      - 呼叫 `get_pull_request_details` 工具以取得 PR 的詳細資訊。
+      - 如果 PR 已關閉或標有「{BOT_LABEL}」或「google-contributior」，請略過該 PR（即不標記或評論）。
+      - 檢查 PR 是否遵循貢獻指南。
+        - 如果未遵循指南，請建議或在 PR 中新增一則留言，指向貢獻指南 (https://github.com/google/adk-python/blob/main/CONTRIBUTING.md)。
+        - 如果遵循指南，請建議或為 PR 新增標籤。
 
-      # 5. Output
-      Present the followings in an easy to read format highlighting PR number and your label.
-      - The PR summary in a few sentence
-      - The label you recommended or added with the justification
-      - The owner of the label if you assigned a reviewer to the PR
-      - The comment you recommended or added to the PR with the justification
+      # 5. 輸出
+      以易於閱讀的格式呈現以下內容，並突顯 PR 編號和您的標籤。
+      - 幾句話的 PR 摘要
+      - 您建議或新增的標籤及其理由
+      - 如果您為 PR 指派了審核者，則為標籤的擁有者
+      - 您建議或新增至 PR 的留言及其理由
     """,
     tools=[
         get_pull_request_details,

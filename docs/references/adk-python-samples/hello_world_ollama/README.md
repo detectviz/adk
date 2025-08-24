@@ -1,12 +1,12 @@
-# Using ollama models with ADK
+# 將 ollama 模型與 ADK 搭配使用
 
-## Model choice
+## 模型選擇
 
-If your agent is relying on tools, please make sure that you select a model with tool support from [ollama website](https://ollama.com/search?c=tools).
+如果您的代理 (agent) 依賴工具，請確保您從 [ollama 網站](https://ollama.com/search?c=tools) 中選擇支援工具的模型。
 
-For reliable results, we recommend using a decent size model with tool support.
+為獲得可靠的結果，我們建議使用具有工具支援且大小適中的模型。
 
-The tool support for the model can be checked with the following command:
+可以使用以下指令檢查模型是否支援工具：
 
 ```bash
 ollama show mistral-small3.1
@@ -23,34 +23,33 @@ ollama show mistral-small3.1
     tools
 ```
 
-You are supposed to see `tools` listed under capabilities.
+您應該會在 capabilities 下看到 `tools`。
 
-You can also look at the template the model is using and tweak it based on your needs.
+您還可以查看模型正在使用的範本，並根據您的需求進行調整。
 
 ```bash
 ollama show --modelfile llama3.1 > model_file_to_modify
 ```
 
-Then you can create a model with the following command:
+然後您可以使用以下指令建立模型：
 
 ```bash
 ollama create llama3.1-modified -f model_file_to_modify
 ```
 
-## Using ollama_chat provider
+## 使用 ollama_chat 提供者
 
-Our LiteLlm wrapper can be used to create agents with ollama models.
+我們的 LiteLlm 包裝函式可用於建立具有 ollama 模型的代理 (agent)。
 
 ```py
 root_agent = Agent(
     model=LiteLlm(model="ollama_chat/mistral-small3.1"),
     name="dice_agent",
     description=(
-        "hello world agent that can roll a dice of 8 sides and check prime"
-        " numbers."
+        "一個可以擲八面骰並檢查質數的 hello world 代理 (agent)。"
     ),
     instruction="""
-      You roll dice and answer questions about the outcome of the dice rolls.
+      您擲骰子並回答有關擲骰結果的問題。
     """,
     tools=[
         roll_die,
@@ -59,29 +58,28 @@ root_agent = Agent(
 )
 ```
 
-**It is important to set the provider `ollama_chat` instead of `ollama`. Using `ollama` will result in unexpected behaviors such as infinite tool call loops and ignoring previous context.**
+**重要的是將提供者設定為 `ollama_chat` 而非 `ollama`。使用 `ollama` 會導致非預期的行為，例如無限的工具呼叫迴圈和忽略先前的上下文 (context)。**
 
-While `api_base` can be provided inside litellm for generation, litellm library is calling other APIs relying on the env variable instead as of v1.65.5 after completion. So at this time, we recommend setting the env variable `OLLAMA_API_BASE` to point to the ollama server.
+雖然可以在 litellm 內部提供 `api_base` 進行生成，但 litellm 函式庫在 v1.65.5 版之後的完成後，會呼叫其他依賴環境變數的 API。因此，目前我們建議設定環境變數 `OLLAMA_API_BASE` 以指向 ollama 伺服器。
 
 ```bash
 export OLLAMA_API_BASE="http://localhost:11434"
 adk web
 ```
 
-## Using openai provider
+## 使用 openai 提供者
 
-Alternatively, `openai` can be used as the provider name. But this will also require setting the  `OPENAI_API_BASE=http://localhost:11434/v1` and `OPENAI_API_KEY=anything` env variables instead of `OLLAMA_API_BASE`. **Please notice that api base now has `/v1` at the end.**
+或者，可以使用 `openai` 作為提供者名稱。但這也需要設定 `OPENAI_API_BASE=http://localhost:11434/v1` 和 `OPENAI_API_KEY=anything` 環境變數，而不是 `OLLAMA_API_BASE`。**請注意，api base 現在結尾有 `/v1`。**
 
 ```py
 root_agent = Agent(
     model=LiteLlm(model="openai/mistral-small3.1"),
     name="dice_agent",
     description=(
-        "hello world agent that can roll a dice of 8 sides and check prime"
-        " numbers."
+        "一個可以擲八面骰並檢查質數的 hello world 代理 (agent)。"
     ),
     instruction="""
-      You roll dice and answer questions about the outcome of the dice rolls.
+      您擲骰子並回答有關擲骰結果的問題。
     """,
     tools=[
         roll_die,
@@ -96,16 +94,16 @@ export OPENAI_API_KEY=anything
 adk web
 ```
 
-## Debugging
+## 偵錯
 
-You can see the request sent to the ollama server by adding the following in your agent code just after imports.
+您可以在代理 (agent) 程式碼中緊接在匯入之後新增以下內容，以查看傳送到 ollama 伺服器的請求。
 
 ```py
 import litellm
 litellm._turn_on_debug()
 ```
 
-Look for a line like the following:
+尋找類似下面的一行：
 
 ```bash
 quest Sent from LiteLLM:

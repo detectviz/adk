@@ -1,103 +1,103 @@
-# Parallel Function Test Agent
+# 平行函式測試代理
 
-This agent demonstrates parallel function calling functionality in ADK. It includes multiple tools with different processing times to showcase how parallel execution improves performance compared to sequential execution.
+此代理程式展示了 ADK 中的平行函式呼叫功能。它包含多個具有不同處理時間的工具，以展示平行執行與循序執行相比如何提高效能。
 
-## Features
+## 功能
 
-- **Multiple async tool types**: All functions use proper async patterns for true parallelism
-- **Thread safety testing**: Tools modify shared state to verify thread-safe operations
-- **Performance demonstration**: Clear time differences between parallel and sequential execution
-- **GIL-aware design**: Uses `await asyncio.sleep()` instead of `time.sleep()` to avoid blocking
+- **多種非同步工具類型**：所有函式都使用適當的非同步模式來實現真正的平行化
+- **執行緒安全測試**：工具會修改共享狀態以驗證執行緒安全的作業
+- **效能示範**：平行執行和循序執行之間有明顯的時間差異
+- **GIL 感知設計**：使用 `await asyncio.sleep()` 而非 `time.sleep()` 以避免阻塞
 
-## Tools
+## 工具
 
-1. **get_weather(city)** - Async function, 2-second delay
-2. **get_currency_rate(from_currency, to_currency)** - Async function, 1.5-second delay
-3. **calculate_distance(city1, city2)** - Async function, 1-second delay
-4. **get_population(cities)** - Async function, 0.5 seconds per city
+1. **get_weather(city)** - 非同步函式，延遲 2 秒
+2. **get_currency_rate(from_currency, to_currency)** - 非同步函式，延遲 1.5 秒
+3. **calculate_distance(city1, city2)** - 非同步函式，延遲 1 秒
+4. **get_population(cities)** - 非同步函式，每個城市延遲 0.5 秒
 
-**Important**: All functions use `await asyncio.sleep()` instead of `time.sleep()` to ensure true parallel execution. Using `time.sleep()` would block Python's GIL and force sequential execution despite asyncio parallelism.
+**重要**：所有函式都使用 `await asyncio.sleep()` 而非 `time.sleep()` 以確保真正的平行執行。使用 `time.sleep()` 會阻塞 Python 的 GIL，並在 asyncio 平行化下強制循序執行。
 
-## Testing Parallel Function Calling
+## 測試平行函式呼叫
 
-### Basic Parallel Test
+### 基本平行測試
 ```
-Get the weather for New York, London, and Tokyo
+取得紐約、倫敦和東京的天氣
 ```
-Expected: 3 parallel get_weather calls (~2 seconds total instead of ~6 seconds sequential)
+預期：3 個平行的 get_weather 呼叫（總共約 2 秒，而不是循序的約 6 秒）
 
-### Mixed Function Types Test
+### 混合函式類型測試
 ```
-Get the weather in Paris, the USD to EUR exchange rate, and the distance between New York and London
+取得巴黎的天氣、美元兌歐元的匯率，以及紐約和倫敦之間的距離
 ```
-Expected: 3 parallel async calls with different functions (~2 seconds total)
+預期：3 個使用不同函式的平行非同步呼叫（總共約 2 秒）
 
-### Complex Parallel Test
+### 複雜平行測試
 ```
-Compare New York and London by getting weather, population, and distance between them
+透過取得天氣、人口和它們之間的距離來比較紐約和倫敦
 ```
-Expected: Multiple parallel calls combining different data types
+預期：結合不同資料類型的多個平行呼叫
 
-### Performance Comparison Test
-You can test the timing difference by asking for the same information in different ways:
+### 效能比較測試
+您可以透過以不同方式詢問相同資訊來測試時間差異：
 
-**Sequential-style request:**
+**循序式請求：**
 ```
-First get the weather in New York, then get the weather in London, then get the weather in Tokyo
+先取得紐約的天氣，然後取得倫敦的天氣，再取得東京的天氣
 ```
-*Expected time: ~6 seconds (2s + 2s + 2s)*
+*預期時間：約 6 秒 (2s + 2s + 2s)*
 
-**Parallel-style request:**
+**平行式請求：**
 ```
-Get the weather in New York, London, and Tokyo
+取得紐約、倫敦和東京的天氣
 ```
-*Expected time: ~2 seconds (max of parallel 2s delays)*
+*預期時間：約 2 秒（平行 2 秒延遲的最大值）*
 
-The parallel version should be **3x faster** due to concurrent execution.
+由於並行執行，平行版本應該**快 3 倍**。
 
-## Thread Safety Testing
+## 執行緒安全測試
 
-All tools modify the agent's state (`tool_context.state`) with request logs including timestamps. This helps verify that:
-- Multiple tools can safely modify state concurrently
-- No race conditions occur during parallel execution
-- State modifications are preserved correctly
+所有工具都會使用包含時間戳記的請求日誌來修改代理程式的狀態 (`tool_context.state`)。這有助於驗證：
+- 多個工具可以安全地同時修改狀態
+- 平行執行期間不會發生競爭條件
+- 狀態修改被正確保留
 
-## Running the Agent
+## 執行代理程式
 
 ```bash
-# Start the agent in interactive mode
+# 以互動模式啟動代理程式
 adk run contributing/samples/parallel_functions
 
-# Or use the web interface
+# 或使用 Web 介面
 adk web
 ```
 
-## Example Queries
+## 範例查詢
 
-- "Get weather for New York, London, Tokyo, and Paris" *(4 parallel calls, ~2s total)*
-- "What's the USD to EUR rate and GBP to USD rate?" *(2 parallel calls, ~1.5s total)*
-- "Compare New York and San Francisco: weather, population, and distance" *(3 parallel calls, ~2s total)*
-- "Get population data for Tokyo, London, Paris, and Sydney" *(1 call with 4 cities, ~2s total)*
-- "What's the weather in Paris and the distance from Paris to London?" *(2 parallel calls, ~2s total)*
+- "取得紐約、倫敦、東京和巴黎的天氣" *(4 個平行呼叫，總共約 2 秒)*
+- "美元兌歐元和英鎊兌美元的匯率是多少？" *(2 個平行呼叫，總共約 1.5 秒)*
+- "比較紐約和舊金山：天氣、人口和距離" *(3 個平行呼叫，總共約 2 秒)*
+- "取得東京、倫敦、巴黎和雪梨的人口資料" *(1 個呼叫，包含 4 個城市，總共約 2 秒)*
+- "巴黎的天氣如何？巴黎到倫敦的距離是多少？" *(2 個平行呼叫，總共約 2 秒)*
 
-## Common Issues and Solutions
+## 常見問題與解決方案
 
-### ❌ Problem: Functions still execute sequentially (6+ seconds for 3 weather calls)
+### ❌ 問題：函式仍循序執行（3 個天氣呼叫需要 6 秒以上）
 
-**Root Cause**: Using blocking operations like `time.sleep()` in function implementations.
+**根本原因**：在函式實作中使用像 `time.sleep()` 這樣的阻塞操作。
 
-**Solution**: Always use async patterns:
+**解決方案**：一律使用非同步模式：
 ```python
-# ❌ Wrong - blocks the GIL, forces sequential execution
+# ❌ 錯誤 - 阻塞 GIL，強制循序執行
 def my_tool():
     time.sleep(2)  # Blocks entire event loop
 
-# ✅ Correct - allows true parallelism
+# ✅ 正確 - 允許真正的平行化
 async def my_tool():
     await asyncio.sleep(2)  # Non-blocking, parallel-friendly
 ```
 
-### ✅ Verification: Check execution timing
-- Parallel execution: ~2 seconds for 3 weather calls
-- Sequential execution: ~6 seconds for 3 weather calls
-- If you see 6+ seconds, your functions are blocking the GIL
+### ✅ 驗證：檢查執行時間
+- 平行執行：3 個天氣呼叫約 2 秒
+- 循序執行：3 個天氣呼叫約 6 秒
+- 如果您看到 6 秒以上，表示您的函式正在阻塞 GIL

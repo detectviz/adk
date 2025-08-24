@@ -18,27 +18,27 @@ from google.adk.tools.tool_context import ToolContext
 from google.genai import Client
 from google.genai import types
 
-# Only Vertex AI supports image generation for now.
+# 目前只有 Vertex AI 支援圖片生成。
 client = Client()
 
 
 async def generate_image(prompt: str, tool_context: 'ToolContext'):
-  """Generates an image based on the prompt."""
+  """根據提示生成圖片。"""
   response = client.models.generate_images(
       model='imagen-3.0-generate-002',
       prompt=prompt,
       config={'number_of_images': 1},
   )
   if not response.generated_images:
-    return {'status': 'failed'}
+    return {'status': '失敗'}
   image_bytes = response.generated_images[0].image.image_bytes
   await tool_context.save_artifact(
       'image.png',
       types.Part.from_bytes(data=image_bytes, mime_type='image/png'),
   )
   return {
-      'status': 'success',
-      'detail': 'Image generated successfully and stored in artifacts.',
+      'status': '成功',
+      'detail': '圖片已成功生成並儲存於產物中。',
       'filename': 'image.png',
   }
 
@@ -46,8 +46,8 @@ async def generate_image(prompt: str, tool_context: 'ToolContext'):
 root_agent = Agent(
     model='gemini-2.0-flash-001',
     name='root_agent',
-    description="""An agent that generates images and answer questions about the images.""",
-    instruction="""You are an agent whose job is to generate or edit an image based on the user's prompt.
+    description="""一個能生成圖片並回答相關問題的代理 (Agent)。""",
+    instruction="""您是一個根據使用者提示生成或編輯圖片的代理 (Agent)。
 """,
     tools=[generate_image, load_artifacts],
 )

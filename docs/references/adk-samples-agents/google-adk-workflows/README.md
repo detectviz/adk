@@ -1,261 +1,257 @@
-# Multi-Agent Trip Planning System
+# 多代理旅程規劃系統
 
-A sophisticated multi-agent workflow built with Google's Agent Development Kit (ADK) that demonstrates the power of specialized AI agents working together to solve complex travel planning tasks.
+一個使用 Google 代理開發套件 (ADK) 建置的精密多代理工作流程，展示了專業化 AI 代理協同解決複雜旅程規劃任務的能力。
 
-## 🏗️ Architecture
+## 🏗️ 架構
 
-Instead of building one monolithic "super agent," this system employs a team of specialized AI agents, each expert in their domain:
+這個系統並非建置一個龐大的「超級代理」，而是採用一個由專業化 AI 代理組成的團隊，每個代理都是其領域的專家：
 
-### Core Agents
+### 核心代理
 
-All basic agents are consolidated in `subagent.py`:
+所有基礎代理都整合在 `subagent.py` 中：
 
-1. **FlightAgent** - Flight booking specialist
-   - Handles flight searches and bookings
-   - Returns structured JSON with flight details
-   - Makes reasonable assumptions when details are missing
+1.  **FlightAgent (航班代理)** - 航班預訂專家
+    -   處理航班搜尋與預訂
+    -   以結構化的 JSON 格式回傳航班詳細資訊
+    -   在缺少細節時做出合理的假設
 
-2. **HotelAgent** - Hotel booking specialist  
-   - Manages hotel searches and reservations
-   - Provides accommodation details in JSON format
-   - Handles various room types and booking preferences
+2.  **HotelAgent (飯店代理)** - 飯店預訂專家
+    -   管理飯店搜尋與預訂
+    -   以 JSON 格式提供住宿詳細資訊
+    -   處理各種房型與預訂偏好
 
-3. **SightseeingAgent** - Tourism specialist
-   - Recommends top 2 attractions per destination
-   - Provides timing and relevant details
-   - Focuses on must-see locations
+3.  **SightseeingAgent (景點代理)** - 旅遊專家
+    -   為每個目的地推薦前 2 名的景點
+    -   提供時間安排與相關細節
+    -   專注於必看景點
 
-4. **TripSummaryAgent** - Summary compilation specialist
-   - Compiles trip details into comprehensive itinerary
-   - Creates structured travel summaries
-   - Formats information for easy reading
+4.  **TripSummaryAgent (旅程摘要代理)** - 摘要編譯專家
+    -   將旅程詳細資訊彙編成全面的行程
+    -   建立結構化的旅遊摘要
+    -   將資訊格式化以便於閱讀
 
-### Orchestration Agents
+### 協調代理
 
-Each orchestration agent has its own folder with a dedicated `agent.py`:
+每個協調代理都有自己的資料夾和專屬的 `agent.py`：
 
-5. **SimpleAgent** (`simple/`) - Basic trip coordinator
-   - Simple sub-agent coordination pattern
-   - Direct management of flight, hotel, and sightseeing agents
-   - Perfect for straightforward trip planning
+5.  **SimpleAgent (簡單代理)** (`simple/`) - 基本旅程協調員
+    -   簡單的子代理協調模式
+    -   直接管理航班、飯店和景點代理
+    -   適合直接了當的旅程規劃
 
-6. **DispatcherAgent** (`dispatcher/`) - Intelligent request router
-   - Analyzes requests and routes to appropriate specialists
-   - Uses agent tools for flexible coordination
-   - Handles simple to complex multi-step requests
+6.  **DispatcherAgent (分派代理)** (`dispatcher/`) - 智慧型請求路由器
+    -   分析請求並將其路由至適當的專家
+    -   使用代理工具進行靈活的協調
+    -   處理從簡單到複雜的多步驟請求
 
-7. **ParallelAgent** (`parallel/`) - Efficiency optimizer  
-   - Runs flight and hotel agents in parallel for speed
-   - Sequential execution: sightseeing → parallel(flight+hotel) → summary
-   - Maximizes efficiency for independent flight and hotel tasks
+7.  **ParallelAgent (並行代理)** (`parallel/`) - 效率最佳化工具
+    -   並行執行航班和飯店代理以提高速度
+    -   循序執行：景點 → 並行(航班+飯店) → 摘要
+    -   最大化獨立航班和飯店任務的效率
 
-8. **SelfCriticAgent** (`self_critic/`) - Quality assurance specialist
-   - Same parallel execution as ParallelAgent (flight+hotel in parallel)
-   - Adds quality control: trip summary reviewer and validator
-   - Ensures output meets quality standards before delivery
+8.  **SelfCriticAgent (自我批判代理)** (`self_critic/`) - 品質保證專家
+    -   與並行代理相同的執行方式 (航班+飯店並行)
+    -   增加品質控制：旅程摘要審查員與驗證員
+    -   確保輸出在交付前符合品質標準
 
-### Workflow Patterns
+### 工作流程模式
 
-- **Parallel Execution**: Flight and hotel bookings run concurrently for efficiency
-- **Sequential Orchestration**: Dependent tasks execute in logical order  
-- **Feedback Loops**: Built-in quality assurance and validation
-- **State Management**: Agents communicate through shared session state
+-   **並行執行**：航班和飯店預訂同時進行以提高效率
+-   **循序協調**：相依的任務按邏輯順序執行
+-   **回饋循環**：內建的品質保證與驗證
+-   **狀態管理**：代理透過共享的會話狀態進行溝通
 
-## 🚀 Quick Start
+## 🚀 快速入門
 
-### Prerequisites
+### 先決條件
 
-- Python 3.8+
-- Google API Key for Gemini models
+-   Python 3.8+
+-   用於 Gemini 模型的 Google API 金鑰
 
-### Installation
+### 安裝
 
-1. **Clone and navigate to the project**:
-   ```bash
-   git clone <repository-url>
-   cd adk_workflows
-   ```
+1.  **複製並導覽至專案**：
+    ```bash
+    git clone <repository-url>
+    cd adk_workflows
+    ```
 
-2. **Create and activate virtual environment**:
-   ```bash
-   # Create virtual environment
-   python -m venv venv
-   
-   # Activate virtual environment
-   # On macOS/Linux:
-   source venv/bin/activate
-   
-   # On Windows:
-   # venv\Scripts\activate
-   ```
+2.  **建立並啟用虛擬環境**：
+    ```bash
+    # 建立虛擬環境
+    python -m venv venv
 
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+    # 啟用虛擬環境
+    # 在 macOS/Linux 上：
+    source venv/bin/activate
 
-4. **Set up environment**:
-   ```bash
-   # Copy environment template
-   cp env.example .env
-   
-   # Edit .env and add your Google API key
-   # Get your key from: https://aistudio.google.com/app/apikey
-   ```
+    # 在 Windows 上：
+    # venv\Scripts\activate
+    ```
 
-5. **Launch the web interface**:
-   ```bash
-   adk web
-   ```
-   This will open a web interface where you can choose and test any of the available agents.
+3.  **安裝依賴項**：
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## 📋 Configuration
+4.  **設定環境**：
+    ```bash
+    # 複製環境範本
+    cp env.example .env
 
-### Environment Variables (.env)
+    # 編輯 .env 並新增您的 Google API 金鑰
+    # 從以下網址取得您的金鑰：https://aistudio.google.com/app/apikey
+    ```
+
+5.  **啟動網頁介面**：
+    ```bash
+    adk web
+    ```
+    這將會開啟一個網頁介面，您可以在其中選擇並測試任何可用的代理。
+
+## 📋 設定
+
+### 環境變數 (.env)
 
 ```env
-# Required
+# 必要
 GOOGLE_API_KEY=your_google_api_key_here
 MODEL_NAME=gemini-2.0-flash
 
-# Optional
+# 可選
 ENVIRONMENT=development
 LOG_LEVEL=INFO
 ```
 
-## 🏃‍♂️ Usage
+## 🏃‍♂️ 使用方式
 
-Once you've completed the installation steps, simply run:
+完成安裝步驟後，只需執行：
 
 ```bash
 adk web
 ```
 
-This opens a web interface where you can:
-- Select any of the 4 orchestration agents (Simple, Dispatcher, Parallel, Self-Critic)
-- Test different types of trip planning requests
-- See how each agent handles various scenarios
+這會開啟一個網頁介面，您可以在其中：
+-   選擇 4 個協調代理中的任何一個 (簡單、分派、並行、自我批判)
+-   測試不同類型的旅程規劃請求
+-   觀察每個代理如何處理各種情境
 
-### Example Requests You Can Test
+### 您可以測試的範例請求
 
-- **Simple**: "Find me a flight to Paris"
-- **Complex**: "Book a flight to Paris and find a hotel near the Eiffel Tower"  
-- **Comprehensive**: "Plan a 3-day trip to Tokyo with flights, accommodation, and sightseeing"
+-   **簡單**：「幫我找一班去巴黎的班機」
+-   **複雜**：「預訂一班去巴黎的班機，並在艾菲爾鐵塔附近找一間飯店」
+-   **全面**：「規劃一個為期三天的東京之旅，包含航班、住宿和觀光景點」
 
-## 🎯 Agent Details
+## 🎯 代理詳細資訊
 
-### FlightAgent
-- **Purpose**: Specialized flight booking and information
-- **Input**: Flight preferences, dates, destinations
-- **Output**: JSON with flight details, prices, booking status
-- **Features**: Intelligent assumptions for missing details
+### FlightAgent (航班代理)
+-   **目的**：專門處理航班預訂與資訊
+-   **輸入**：航班偏好、日期、目的地
+-   **輸出**：包含航班詳細資訊、價格、預訂狀態的 JSON
+-   **特色**：對缺少的細節進行智慧假設
 
-### HotelAgent  
-- **Purpose**: Hotel booking and accommodation management
-- **Input**: Location, dates, room preferences
-- **Output**: JSON with hotel details, pricing, availability
-- **Features**: Room type optimization, location-based suggestions
+### HotelAgent (飯店代理)
+-   **目的**：飯店預訂與住宿管理
+-   **輸入**：地點、日期、房型偏好
+-   **輸出**：包含飯店詳細資訊、價格、空房情況的 JSON
+-   **特色**：房型最佳化、基於地點的建議
 
-### SightseeingAgent
-- **Purpose**: Tourism recommendations and itinerary planning
-- **Input**: Destination, interests, duration
-- **Output**: JSON with top 2 attractions, timings, details
-- **Features**: Curated recommendations, practical timing info
+### SightseeingAgent (景點代理)
+-   **目的**：旅遊推薦與行程規劃
+-   **輸入**：目的地、興趣、停留時間
+-   **輸出**：包含前 2 名景點、時間、詳細資訊的 JSON
+-   **特色**：精選推薦、實用的時間資訊
 
-### TripSummaryAgent
-- **Purpose**: Quality assurance and trip compilation
-- **Components**:
-  - **TripSummaryAgent**: Compiles comprehensive itinerary
-  - **TripSummaryReviewer**: Quality check and validation
-  - **ValidateTripSummary**: Final approval and feedback
-- **Output**: Validated, complete travel itinerary
+### TripSummaryAgent (旅程摘要代理)
+-   **目的**：品質保證與旅程彙編
+-   **元件**：
+    -   **TripSummaryAgent**：彙編全面的行程
+    -   **TripSummaryReviewer**：品質檢查與驗證
+    -   **ValidateTripSummary**：最終核准與回饋
+-   **輸出**：經過驗證的完整旅遊行程
 
-## 🔄 Workflow Options
+## 🔄 工作流程選項
 
-### Simple Workflow
+### 簡單工作流程
 ```
-TripPlanner (root_agent) → Coordinates FlightAgent + HotelAgent + SightseeingAgent
-```
-
-### Dispatcher Workflow  
-```
-DispatcherAgent → Analyzes request → Routes to appropriate tools → Compiles response
+TripPlanner (root_agent) → 協調 FlightAgent + HotelAgent + SightseeingAgent
 ```
 
-### Parallel Workflow
+### 分派工作流程
 ```
-SightseeingAgent → FlightAgent + HotelAgent (parallel) → TripSummaryAgent
-```
-
-### Self-Critic Workflow
-```
-SightseeingAgent → FlightAgent + HotelAgent (parallel) → TripSummaryAgent → Reviewer → Validator
+DispatcherAgent → 分析請求 → 路由至適當的工具 → 彙編回應
 ```
 
-## 🧪 Development
+### 並行工作流程
+```
+SightseeingAgent → FlightAgent + HotelAgent (並行) → TripSummaryAgent
+```
 
-### Project Structure
+### 自我批判工作流程
+```
+SightseeingAgent → FlightAgent + HotelAgent (並行) → TripSummaryAgent → Reviewer → Validator
+```
+
+## 🧪 開發
+
+### 專案結構
 
 ```
 adk_workflows/
-├── subagent.py            # All core agents (flight, hotel, sightseeing, trip_summary)
+├── subagent.py            # 所有核心代理 (航班、飯店、景點、旅程摘要)
 ├── simple/
-│   └── agent.py           # Basic trip coordinator
+│   └── agent.py           # 基本旅程協調員
 ├── dispatcher/
-│   └── agent.py           # Intelligent request router
+│   └── agent.py           # 智慧型請求路由器
 ├── parallel/
-│   └── agent.py           # Parallel execution optimizer
+│   └── agent.py           # 並行執行最佳化工具
 ├── self_critic/
-│   └── agent.py           # Quality assurance workflow
-├── requirements.txt       # Dependencies
-├── env.example           # Environment template
-├── README.md             # Documentation
-└── SETUP_INSTRUCTIONS.md # Setup guide
+│   └── agent.py           # 品質保證工作流程
+├── requirements.txt       # 依賴項
+├── env.example           # 環境範本
+├── README.md             # 文件
+└── SETUP_INSTRUCTIONS.md # 設定指南
 ```
 
-### Adding New Agents
+### 新增代理
 
-**Core Agents:**
-1. Add your new core agent to `subagent.py`
-2. Import and use in orchestration agents as needed
+**核心代理：**
+1.  將您的新核心代理新增至 `subagent.py`
+2.  視需要在協調代理中匯入並使用
 
-**Orchestration Agents:**
-1. Create a new folder: `new_orchestrator/`
-2. Add `agent.py` with your orchestration logic
-3. Import core agents from `subagent.py`
+**協調代理：**
+1.  建立一個新資料夾：`new_orchestrator/`
+2.  新增包含您的協調邏輯的 `agent.py`
+3.  從 `subagent.py` 匯入核心代理
 
+## 🎯 多代理架構的優點
 
+1.  **專業化**：每個代理都在其特定領域表現出色
+2.  **可擴展性**：易於新增或修改現有代理
+3.  **可維護性**：明確的關注點分離
+4.  **效率**：對獨立任務進行並行執行
+5.  **品質**：內建的審查與驗證流程
+6.  **靈活性**：模組化設計便於客製化
 
+## 🤝 貢獻
 
+1.  Fork 儲存庫
+2.  建立一個功能分支
+3.  新增您的專業代理或增強功能
+4.  更新文件
+5.  提交拉取請求
 
-## 🎯 Benefits of Multi-Agent Architecture
+## 📜 授權
 
-1. **Specialization**: Each agent excels in its specific domain
-2. **Scalability**: Easy to add new agents or modify existing ones
-3. **Maintainability**: Clear separation of concerns
-4. **Efficiency**: Parallel execution for independent tasks
-5. **Quality**: Built-in review and validation processes
-6. **Flexibility**: Modular design allows easy customization
+[在此處新增您的授權資訊]
 
-## 🤝 Contributing
+## 🆘 支援
 
-1. Fork the repository
-2. Create a feature branch
-3. Add your specialized agent or enhancement
-4. Update documentation
-5. Submit a pull request
-
-## 📜 License
-
-[Add your license information here]
-
-## 🆘 Support
-
-For issues and questions:
-- Open an issue in the repository
-- Check the [Google ADK documentation](https://ai.google.dev/adk)
-- Review the agent implementation examples
+若有問題與疑問：
+-   在儲存庫中開啟一個 issue
+-   查看 [Google ADK 文件](https://ai.google.dev/adk)
+-   檢閱代理實作範例
 
 ---
 
-**Built with Google Agent Development Kit (ADK)** - Empowering intelligent multi-agent workflows with Gemini. 
+**使用 Google 代理開發套件 (ADK) 建置** - 透過 Gemini 賦能智慧型多代理工作流程。

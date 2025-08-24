@@ -26,13 +26,13 @@ from google.genai import types
 
 
 def roll_die(sides: int, tool_context: ToolContext) -> int:
-  """Roll a die and return the rolled result.
+  """擲一個骰子並傳回擲出的結果。
 
   Args:
-    sides: The integer number of sides the die has.
+    sides: 骰子擁有的整數面數。
 
   Returns:
-    An integer of the result of rolling the die.
+    擲骰子結果的整數。
   """
   result = random.randint(1, sides)
   if 'rolls' not in tool_context.state:
@@ -44,44 +44,44 @@ def roll_die(sides: int, tool_context: ToolContext) -> int:
 
 roll_agent_with_openai = LlmAgent(
     model=LiteLlm(model='openai/gpt-4o'),
-    description='Handles rolling dice of different sizes.',
+    description='處理不同大小的擲骰。',
     name='roll_agent_with_openai',
     instruction="""
-      You are responsible for rolling dice based on the user's request.
-      When asked to roll a die, you must call the roll_die tool with the number of sides as an integer.
+      您負責根據使用者的要求擲骰子。
+      當被要求擲骰子時，您必須使用骰子面數作為整數呼叫 roll_die 工具。
     """,
     tools=[roll_die],
 )
 
 roll_agent_with_claude = LlmAgent(
     model=Claude(model='claude-3-7-sonnet@20250219'),
-    description='Handles rolling dice of different sizes.',
+    description='處理不同大小的擲骰。',
     name='roll_agent_with_claude',
     instruction="""
-      You are responsible for rolling dice based on the user's request.
-      When asked to roll a die, you must call the roll_die tool with the number of sides as an integer.
+      您負責根據使用者的要求擲骰子。
+      當被要求擲骰子時，您必須使用骰子面數作為整數呼叫 roll_die 工具。
     """,
     tools=[roll_die],
 )
 
 roll_agent_with_litellm_claude = LlmAgent(
     model=LiteLlm(model='vertex_ai/claude-3-7-sonnet'),
-    description='Handles rolling dice of different sizes.',
+    description='處理不同大小的擲骰。',
     name='roll_agent_with_litellm_claude',
     instruction="""
-      You are responsible for rolling dice based on the user's request.
-      When asked to roll a die, you must call the roll_die tool with the number of sides as an integer.
+      您負責根據使用者的要求擲骰子。
+      當被要求擲骰子時，您必須使用骰子面數作為整數呼叫 roll_die 工具。
     """,
     tools=[roll_die],
 )
 
 roll_agent_with_gemini = LlmAgent(
     model='gemini-2.0-flash',
-    description='Handles rolling dice of different sizes.',
+    description='處理不同大小的擲骰。',
     name='roll_agent_with_gemini',
     instruction="""
-      You are responsible for rolling dice based on the user's request.
-      When asked to roll a die, you must call the roll_die tool with the number of sides as an integer.
+      您負責根據使用者的要求擲骰子。
+      當被要求擲骰子時，您必須使用骰子面數作為整數呼叫 roll_die 工具。
     """,
     tools=[roll_die],
 )

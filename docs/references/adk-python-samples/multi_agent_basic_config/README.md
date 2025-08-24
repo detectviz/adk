@@ -1,35 +1,35 @@
-# Config-based Agent Sample - Learning Assistant
+# 基於設定檔的代理 (Agent) 範例 - 學習助理
 
-This sample demonstrates a minimal multi-agent setup with a learning assistant that delegates to specialized tutoring agents.
+此範例示範了一個最小化的多代理 (multi-agent) 設定，其中包含一個學習助理，可將問題委派給專門的家教代理 (agent)。
 
-## Structure
+## 結構
 
-- `root_agent.yaml` - Main learning assistant agent that routes questions to appropriate tutors
-- `code_tutor_agent.yaml` - Specialized agent for programming and coding questions
-- `math_tutor_agent.yaml` - Specialized agent for mathematical concepts and problems
+- `root_agent.yaml` - 主要的學習助理代理 (agent)，可將問題路由到適當的家教
+- `code_tutor_agent.yaml` - 專門處理程式設計和編碼問題的代理 (agent)
+- `math_tutor_agent.yaml` - 專門處理數學概念和問題的代理 (agent)
 
-## Usage
+## 使用方式
 
-The root agent will automatically delegate:
-- Coding/programming questions → `code_tutor_agent`
-- Math questions → `math_tutor_agent`
+根代理 (root agent) 將自動委派：
+- 編碼/程式設計問題 → `code_tutor_agent`
+- 數學問題 → `math_tutor_agent`
 
-This example shows how to create a simple multi-agent system without tools, focusing on clear delegation and specialized expertise.
+此範例展示如何建立一個不含工具的簡單多代理 (multi-agent) 系統，著重於明確的委派和專業知識。
 
-## Sample Queries
+## 範例查詢
 
-### Coding Questions
-
-```
-"How do I create a for loop in Python?"
-"Can you help me debug this function?"
-"What are the best practices for variable naming?"
-```
-
-### Math Questions
+### 編碼問題
 
 ```
-"Can you explain the quadratic formula?"
-"How do I solve this algebra problem: 2x + 5 = 15?"
-"What's the difference between mean and median?"
+「如何在 Python 中建立 for 迴圈？」
+「你能幫我偵錯這個函式嗎？」
+「變數命名的最佳實踐是什麼？」
+```
+
+### 數學問題
+
+```
+「你能解釋一下二次公式嗎？」
+「如何解這個代數問題：2x + 5 = 15？」
+「平均數和中位數有什麼區別？」
 ```

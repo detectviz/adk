@@ -52,8 +52,8 @@ async def main():
   async def call_agent(query: str):
     content = types.Content(role="user", parts=[types.Part(text=query)])
 
-    print(f'>>> User Query: "{query}"')
-    print("--- Running agent's initial turn ---")
+    print(f'>>> 使用者查詢："{query}"')
+    print("--- 正在執行代理 (agent) 的初始輪次 ---")
 
     events_async = runner.run_async(
         session_id=session.id, user_id=USER_ID, new_message=content
@@ -67,10 +67,10 @@ async def main():
       if event.content and event.content.parts:
         for i, part in enumerate(event.content.parts):
           if part.text:
-            print(f"    Part {i} [Text]: {part.text.strip()}")
+            print(f"    部分 {i} [文字]: {part.text.strip()}")
           if part.function_call:
             print(
-                f"    Part {i} [FunctionCall]:"
+                f"    部分 {i} [函式呼叫]:"
                 f" {part.function_call.name}({part.function_call.args}) ID:"
                 f" {part.function_call.id}"
             )
@@ -79,14 +79,14 @@ async def main():
             ):
               long_running_function_call = part.function_call
               print(
-                  "      (Captured as long_running_function_call for"
-                  f" '{part.function_call.name}')"
+                  "      （擷取為 long_running_function_call，用於"
+                  f" '{part.function_call.name}'）"
               )
           if part.function_response:
             print(
-                f"    Part {i} [FunctionResponse]: For"
+                f"    部分 {i} [函式回應]: 用於"
                 f" '{part.function_response.name}', ID:"
-                f" {part.function_response.id}, Response:"
+                f" {part.function_response.id}, 回應:"
                 f" {part.function_response.response}"
             )
             if (
@@ -97,25 +97,25 @@ async def main():
               if initial_tool_response.response:
                 ticket_id = initial_tool_response.response.get("ticketId")
               print(
-                  "      (Captured as initial_tool_response for"
-                  f" '{part.function_response.name}', Ticket ID: {ticket_id})"
+                  "      （擷取為 initial_tool_response，用於"
+                  f" '{part.function_response.name}', 工單 ID: {ticket_id}）"
               )
 
-    print("--- End of agent's initial turn ---\n")
+    print("--- 代理 (agent) 的初始輪次結束 ---\n")
 
     if (
         long_running_function_call
         and initial_tool_response
         and initial_tool_response.response.get("status") == "pending"
     ):
-      print(f"--- Simulating external approval for ticket: {ticket_id} ---\n")
+      print(f"--- 正在模擬工單的外部核准：{ticket_id} ---\n")
 
       updated_tool_output_data = {
           "status": "approved",
           "ticketId": ticket_id,
-          "approver_feedback": "Approved by manager at " + str(
+          "approver_feedback": "由經理於 " + str(
               asyncio.get_event_loop().time()
-          ),
+          ) + " 核准",
       }
 
       updated_function_response_part = types.Part(
@@ -127,10 +127,10 @@ async def main():
       )
 
       print(
-          "--- Sending updated tool result to agent for call ID"
+          "--- 正在將更新的工具結果傳送給代理 (agent)，呼叫 ID"
           f" {long_running_function_call.id}: {updated_tool_output_data} ---"
       )
-      print("--- Running agent's turn AFTER receiving updated tool result ---")
+      print("--- 正在接收更新的工具結果後執行代理 (agent) 的輪次 ---")
 
       async for event in runner.run_async(
           session_id=session.id,
@@ -142,36 +142,35 @@ async def main():
         if event.content and event.content.parts:
           for i, part in enumerate(event.content.parts):
             if part.text:
-              print(f"    Part {i} [Text]: {part.text.strip()}")
+              print(f"    部分 {i} [文字]: {part.text.strip()}")
             if part.function_call:
               print(
-                  f"    Part {i} [FunctionCall]:"
+                  f"    部分 {i} [函式呼叫]:"
                   f" {part.function_call.name}({part.function_call.args}) ID:"
                   f" {part.function_call.id}"
               )
             if part.function_response:
               print(
-                  f"    Part {i} [FunctionResponse]: For"
+                  f"    部分 {i} [函式回應]: 用於"
                   f" '{part.function_response.name}', ID:"
-                  f" {part.function_response.id}, Response:"
+                  f" {part.function_response.id}, 回應:"
                   f" {part.function_response.response}"
               )
-      print("--- End of agent's turn AFTER receiving updated tool result ---")
+      print("--- 在接收更新的工具結果後，代理 (agent) 的輪次結束 ---")
 
     elif long_running_function_call and not initial_tool_response:
       print(
-          f"--- Long running function '{long_running_function_call.name}' was"
-          " called, but its initial response was not captured. ---"
+          f"--- 長時間執行的函式 '{long_running_function_call.name}' 已被呼叫，"
+          "但其初始回應未被擷取。 ---"
       )
     elif not long_running_function_call:
       print(
-          "--- No long running function call was detected in the initial"
-          " turn. ---"
+          "--- 在初始輪次中未偵測到長時間執行的函式呼叫。 ---"
       )
 
-  await call_agent("Please reimburse $50 for meals")
+  await call_agent("請報銷 50 美元的餐費")
   print("=" * 70)
-  await call_agent("Please reimburse $200 for conference travel")
+  await call_agent("請報銷 200 美元的會議差旅費")
 
 
 if __name__ == "__main__":

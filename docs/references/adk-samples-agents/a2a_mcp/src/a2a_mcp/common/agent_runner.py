@@ -12,11 +12,9 @@ from google.genai import types
 
 
 class AgentRunner:
-    """Manages the execution of an ADK (Agent Development Kit) Agent.
+    """管理 ADK (代理開發套件) 代理的執行。
 
-    This class encapsulates the logic for running an agent, handling session
-    management (creation and retrieval), and streaming responses back to the
-    caller. It uses an in-memory session service.
+    此類別封裝了運行代理、處理會話管理（建立和檢索）以及將回應串流回呼叫者的邏輯。它使用記憶體內會話服務。
     """
 
     def __init__(
@@ -80,7 +78,7 @@ class AgentRunner:
                         for p in event.content.parts
                     )
                 else:
-                    response = f'Error in running agent: {agent.name}'
+                    response = f'執行代理時出錯：{agent.name}'
                 yield {
                     'type': 'final_result',
                     'response': response,
@@ -89,5 +87,5 @@ class AgentRunner:
                 yield {
                     'is_task_complete': False,
                     'require_user_input': False,
-                    'content': f'{agent.name}: Processing request...',
+                    'content': f'{agent.name}: 正在處理請求...',
                 }

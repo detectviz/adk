@@ -48,7 +48,7 @@ async def main():
     content = types.Content(
         role='user', parts=[types.Part.from_text(text=new_message)]
     )
-    print('** User says:', content.model_dump(exclude_none=True))
+    print('** 使用者說：', content.model_dump(exclude_none=True))
     async for event in runner.run_async(
         user_id=user_id_1,
         session_id=session.id,
@@ -59,22 +59,22 @@ async def main():
         if part.text:
           print(f'** {event.author}: {part.text}')
         if part.function_call:
-          print(f'** {event.author} calls tool: {part.function_call}')
+          print(f'** {event.author} 呼叫工具： {part.function_call}')
         if part.function_response:
           print(
-              f'** {event.author} gets tool response: {part.function_response}'
+              f'** {event.author} 取得工具回應： {part.function_response}'
           )
 
   start_time = time.time()
-  print('Start time:', start_time)
+  print('開始時間：', start_time)
   print('------------------------------------')
-  await run_prompt(session_11, 'Hi, introduce yourself.')
-  await run_prompt(session_11, 'Roll a die with 100 sides.')
-  await run_prompt(session_11, 'Check if it is prime.')
+  await run_prompt(session_11, '你好，請介紹一下你自己。')
+  await run_prompt(session_11, '擲一個 100 面的骰子。')
+  await run_prompt(session_11, '檢查它是否為質數。')
   end_time = time.time()
   print('------------------------------------')
-  print('End time:', end_time)
-  print('Total time:', end_time - start_time)
+  print('結束時間：', end_time)
+  print('總時間：', end_time - start_time)
 
 
 if __name__ == '__main__':

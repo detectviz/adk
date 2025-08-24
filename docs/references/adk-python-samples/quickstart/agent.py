@@ -16,37 +16,37 @@ from google.adk.agents.llm_agent import Agent
 
 
 def get_weather(city: str) -> dict:
-  """Retrieves the current weather report for a specified city.
+  """擷取指定城市的目前天氣報告。
 
   Args:
-      city (str): The name of the city for which to retrieve the weather report.
+      city (str): 要擷取天氣報告的城市名稱。
 
   Returns:
-      dict: status and result or error msg.
+      dict: 狀態和結果或錯誤訊息。
   """
   if city.lower() == "new york":
     return {
         "status": "success",
         "report": (
-            "The weather in New York is sunny with a temperature of 25 degrees"
-            " Celsius (77 degrees Fahrenheit)."
+            "紐約的天氣是晴天，溫度為攝氏 25 度"
+            " (華氏 77 度)。"
         ),
     }
   else:
     return {
         "status": "error",
-        "error_message": f"Weather information for '{city}' is not available.",
+        "error_message": f"'{city}' 的天氣資訊不可用。",
     }
 
 
 def get_current_time(city: str) -> dict:
-  """Returns the current time in a specified city.
+  """傳回指定城市的目前時間。
 
   Args:
-      city (str): The name of the city for which to retrieve the current time.
+      city (str): 要擷取目前時間的城市名稱。
 
   Returns:
-      dict: status and result or error msg.
+      dict: 狀態和結果或錯誤訊息。
   """
   import datetime
   from zoneinfo import ZoneInfo
@@ -57,14 +57,14 @@ def get_current_time(city: str) -> dict:
     return {
         "status": "error",
         "error_message": (
-            f"Sorry, I don't have timezone information for {city}."
+            f"抱歉，我沒有 {city} 的時區資訊。"
         ),
     }
 
   tz = ZoneInfo(tz_identifier)
   now = datetime.datetime.now(tz)
   report = (
-      f'The current time in {city} is {now.strftime("%Y-%m-%d %H:%M:%S %Z%z")}'
+      f'{city} 的目前時間是 {now.strftime("%Y-%m-%d %H:%M:%S %Z%z")}'
   )
   return {"status": "success", "report": report}
 
@@ -73,10 +73,10 @@ root_agent = Agent(
     name="weather_time_agent",
     model="gemini-2.0-flash",
     description=(
-        "Agent to answer questions about the time and weather in a city."
+        "用於回答有關城市時間和天氣問題的代理。"
     ),
     instruction=(
-        "I can answer your questions about the time and weather in a city."
+        "我可以回答您有關城市時間和天氣的問題。"
     ),
     tools=[get_weather, get_current_time],
 )

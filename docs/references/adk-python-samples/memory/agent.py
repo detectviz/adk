@@ -28,12 +28,12 @@ def update_current_time(callback_context: CallbackContext):
 root_agent = Agent(
     model='gemini-2.0-flash-001',
     name='memory_agent',
-    description='agent that have access to memory tools.',
+    description='可以存取記憶體工具的代理 (agent)。',
     before_agent_callback=update_current_time,
     instruction="""\
-You are an agent that help user answer questions.
+您是一個協助使用者回答問題的代理 (agent)。
 
-Current time: {_time}
+目前時間：{_time}
 """,
     tools=[
         load_memory_tool,

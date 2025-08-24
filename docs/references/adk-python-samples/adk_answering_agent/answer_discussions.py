@@ -30,17 +30,16 @@ USER_ID = "adk_discussion_answering_assistant"
 
 
 async def list_most_recent_discussions(count: int = 1) -> list[int] | None:
-  """Fetches a specified number of the most recently updated discussions.
+  """取得指定數量的最近更新的討論。
 
   Args:
-      count: The number of discussions to retrieve. Defaults to 1.
+      count: 要檢索的討論數量。預設為 1。
 
   Returns:
-      A list of discussion numbers.
+      一個包含討論編號的列表。
   """
   print(
-      f"Attempting to fetch the {count} most recently updated discussions from"
-      f" {OWNER}/{REPO}..."
+      f"正在嘗試從 {OWNER}/{REPO} 取得 {count} 個最近更新的討論..."
   )
 
   query = """
@@ -68,7 +67,7 @@ async def list_most_recent_discussions(count: int = 1) -> list[int] | None:
     response = run_graphql_query(query, variables)
 
     if "errors" in response:
-      print(f"Error from GitHub API: {response['errors']}", file=sys.stderr)
+      print(f"GitHub API 錯誤：{response['errors']}", file=sys.stderr)
       return None
 
     discussions = (
@@ -80,16 +79,16 @@ async def list_most_recent_discussions(count: int = 1) -> list[int] | None:
     return [d["number"] for d in discussions]
 
   except requests.exceptions.RequestException as e:
-    print(f"Request failed: {e}", file=sys.stderr)
+    print(f"請求失敗：{e}", file=sys.stderr)
     return None
 
 
 def process_arguments():
-  """Parses command-line arguments."""
+  """解析命令列參數。"""
   parser = argparse.ArgumentParser(
-      description="A script that answer questions for Github discussions.",
+      description="一個為 Github 討論回答問題的腳本。",
       epilog=(
-          "Example usage: \n"
+          "使用範例：\n"
           "\tpython -m adk_answering_agent.answer_discussions --recent 10\n"
           "\tpython -m adk_answering_agent.answer_discussions --numbers 21 31\n"
       ),
@@ -102,7 +101,7 @@ def process_arguments():
       "--recent",
       type=int,
       metavar="COUNT",
-      help="Answer the N most recently updated discussion numbers.",
+      help="回答 N 個最近更新的討論編號。",
   )
 
   group.add_argument(
@@ -110,7 +109,7 @@ def process_arguments():
       type=int,
       nargs="+",
       metavar="NUM",
-      help="Answer a specific list of discussion numbers.",
+      help="回答指定的討論編號列表。",
   )
 
   if len(sys.argv) == 1:
@@ -130,10 +129,10 @@ async def main():
     discussion_numbers = args.numbers
 
   if not discussion_numbers:
-    print("No discussions specified. Exiting...", file=sys.stderr)
+    print("未指定討論。正在結束...", file=sys.stderr)
     sys.exit(1)
 
-  print(f"Will try to answer discussions: {discussion_numbers}...")
+  print(f"將嘗試回答以下討論：{discussion_numbers}...")
 
   runner = InMemoryRunner(
       agent=agent.root_agent,
@@ -142,23 +141,22 @@ async def main():
 
   for discussion_number in discussion_numbers:
     print("#" * 80)
-    print(f"Starting to process discussion #{discussion_number}...")
-    # Create a new session for each discussion to avoid interference.
+    print(f"開始處理討論 #{discussion_number}...")
+    # 為每個討論建立一個新會話以避免干擾。
     session = await runner.session_service.create_session(
         app_name=APP_NAME, user_id=USER_ID
     )
     prompt = (
-        f"Please check discussion #{discussion_number} see if you can help"
-        " answer the question or provide some information!"
+        f"請檢查討論 #{discussion_number}，看看您是否可以協助回答問題或提供一些資訊！"
     )
     response = await call_agent_async(runner, USER_ID, session.id, prompt)
-    print(f"<<<< Agent Final Output: {response}\n")
+    print(f"<<<< 代理最終輸出：{response}\n")
 
 
 if __name__ == "__main__":
   start_time = time.time()
   print(
-      f"Start answering discussions for {OWNER}/{REPO} at"
+      f"開始為 {OWNER}/{REPO} 的討論回答問題，開始時間："
       f" {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(start_time))}"
   )
   print("-" * 80)
@@ -166,7 +164,7 @@ if __name__ == "__main__":
   print("-" * 80)
   end_time = time.time()
   print(
-      "Discussion answering finished at"
+      "討論回答完成於"
       f" {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(end_time))}",
   )
-  print("Total script execution time:", f"{end_time - start_time:.2f} seconds")
+  print("腳本總執行時間：", f"{end_time - start_time:.2f} 秒")

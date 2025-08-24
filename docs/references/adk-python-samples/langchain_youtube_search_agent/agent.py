@@ -16,21 +16,21 @@ from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools.langchain_tool import LangchainTool
 from langchain_community.tools.youtube.search import YouTubeSearchTool
 
-# Instantiate the tool
+# 實例化工具
 langchain_yt_tool = YouTubeSearchTool()
 
-# Wrap the tool in the LangchainTool class from ADK
+# 將工具包裝在 ADK 的 LangchainTool 類別中
 adk_yt_tool = LangchainTool(
     tool=langchain_yt_tool,
 )
 
 root_agent = LlmAgent(
     name="youtube_search_agent",
-    model="gemini-2.0-flash",  # Replace with the actual model name
+    model="gemini-2.0-flash",  # 請替換為實際的模型名稱
     instruction="""
-    Ask customer to provide singer name, and the number of videos to search.
+    請使用者提供歌手姓名以及要搜尋的影片數量。
     """,
-    description="Help customer to search for a video on Youtube.",
+    description="幫助使用者在 YouTube 上搜尋影片。",
     tools=[adk_yt_tool],
     output_key="youtube_search_output",
 )

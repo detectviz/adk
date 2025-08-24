@@ -20,7 +20,7 @@ from google.genai import types
 
 
 def reimburse(purpose: str, amount: float) -> str:
-  """Reimburse the amount of money to the employee."""
+  """將款項報銷給員工。"""
   return {
       'status': 'ok',
   }
@@ -28,7 +28,7 @@ def reimburse(purpose: str, amount: float) -> str:
 
 approval_agent = RemoteA2aAgent(
     name='approval_agent',
-    description='Help approve the reimburse if the amount is greater than 100.',
+    description='如果金額大於 100，則協助批准報銷。',
     agent_card=(
         f'http://localhost:8001/a2a/human_in_loop{AGENT_CARD_WELL_KNOWN_PATH}'
     ),
@@ -39,12 +39,10 @@ root_agent = Agent(
     model='gemini-2.0-flash',
     name='reimbursement_agent',
     instruction="""
-      You are an agent whose job is to handle the reimbursement process for
-      the employees. If the amount is less than $100, you will automatically
-      approve the reimbursement. And call reimburse() to reimburse the amount to the employee.
+      您是一個負責處理員工報銷流程的代理。
+      如果金額小於 100 美元，您將自動批准報銷，並呼叫 reimburse() 將款項報銷給員工。
 
-      If the amount is greater than $100. You will hand over the request to
-      approval_agent to handle the reimburse.
+      如果金額大於 100 美元，您會將請求交給 approval_agent 處理報銷。
 """,
     tools=[reimburse],
     sub_agents=[approval_agent],

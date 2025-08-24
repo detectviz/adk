@@ -39,19 +39,19 @@ async def main():
   pr_number = parse_number_string(PULL_REQUEST_NUMBER)
   if not pr_number:
     print(
-        f"Error: Invalid pull request number received: {PULL_REQUEST_NUMBER}."
+        f"錯誤：收到的拉取請求編號無效：{PULL_REQUEST_NUMBER}。"
     )
     return
 
-  prompt = f"Please triage pull request #{pr_number}!"
+  prompt = f"請分類拉取請求 #{pr_number}！"
   response = await call_agent_async(runner, USER_ID, session.id, prompt)
-  print(f"<<<< Agent Final Output: {response}\n")
+  print(f"<<<< 代理程式最終輸出：{response}\n")
 
 
 if __name__ == "__main__":
   start_time = time.time()
   print(
-      f"Start triaging {OWNER}/{REPO} pull request #{PULL_REQUEST_NUMBER} at"
+      f"開始分類 {OWNER}/{REPO} 的拉取請求 #{PULL_REQUEST_NUMBER}，時間："
       f" {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(start_time))}"
   )
   print("-" * 80)
@@ -59,7 +59,7 @@ if __name__ == "__main__":
   print("-" * 80)
   end_time = time.time()
   print(
-      "Triaging finished at"
+      "分類完成於"
       f" {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(end_time))}",
   )
-  print("Total script execution time:", f"{end_time - start_time:.2f} seconds")
+  print("腳本總執行時間：", f"{end_time - start_time:.2f} 秒")

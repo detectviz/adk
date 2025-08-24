@@ -1,16 +1,16 @@
-# Config-based Agent Sample - Sequential and Loop Workflow
+# 基於設定檔的代理 (Agent) 範例 - 循序和迴圈工作流程
 
-A multi-agent setup with a sequential and loop workflow.
+一個具有循序和迴圈工作流程的多代理 (multi-agent) 設定。
 
-The whole process is:
+整個過程是：
 
-1. An initial writing agent will author a 1-2 sentence as starting point.
-2. A critic agent will review and provide feedback.
-3. A refiner agent will revise based on critic agent's feedback.
-4. Loop back to #2 until critic agent says "No major issues found."
+1. 一個初始寫作代理 (agent) 將撰寫 1-2 個句子作為起點。
+2. 一個評論代理 (agent) 將審查並提供回饋。
+3. 一個精煉代理 (agent) 將根據評論代理 (agent) 的回饋進行修改。
+4. 迴圈回到第 2 步，直到評論代理 (agent) 說「未發現重大問題」。
 
-Sample queries:
+範例查詢：
 
-> initial topic: badminton
+> 初始主題：羽球
 
-> initial topic: AI hurts human
+> 初始主題：人工智慧傷害人類

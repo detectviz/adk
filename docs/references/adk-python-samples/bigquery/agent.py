@@ -22,34 +22,32 @@ from google.adk.tools.bigquery.config import BigQueryToolConfig
 from google.adk.tools.bigquery.config import WriteMode
 import google.auth
 
-# Define an appropriate credential type
+# 定義適當的憑證類型
 CREDENTIALS_TYPE = AuthCredentialTypes.OAUTH2
 
 
-# Define BigQuery tool config with write mode set to allowed. Note that this is
-# only to demonstrate the full capability of the BigQuery tools. In production
-# you may want to change to BLOCKED (default write mode, effectively makes the
-# tool read-only) or PROTECTED (only allows writes in the anonymous dataset of a
-# BigQuery session) write mode.
+# 將 BigQuery 工具設定的寫入模式設為允許。請注意，這僅是為了
+# 展示 BigQuery 工具的全部功能。在生產環境中，您可能需要
+# 將寫入模式更改為 BLOCKED（預設寫入模式，有效地使工具唯讀）
+# 或 PROTECTED（僅允許在 BigQuery 會話的匿名資料集中寫入）。
 tool_config = BigQueryToolConfig(write_mode=WriteMode.ALLOWED)
 
 if CREDENTIALS_TYPE == AuthCredentialTypes.OAUTH2:
-  # Initiaze the tools to do interactive OAuth
-  # The environment variables OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET
-  # must be set
+  # 初始化工具以進行互動式 OAuth
+  # 必須設定環境變數 OAUTH_CLIENT_ID 和 OAUTH_CLIENT_SECRET
   credentials_config = BigQueryCredentialsConfig(
       client_id=os.getenv("OAUTH_CLIENT_ID"),
       client_secret=os.getenv("OAUTH_CLIENT_SECRET"),
   )
 elif CREDENTIALS_TYPE == AuthCredentialTypes.SERVICE_ACCOUNT:
-  # Initialize the tools to use the credentials in the service account key.
-  # If this flow is enabled, make sure to replace the file path with your own
-  # service account key file
+  # 初始化工具以使用服務帳戶金鑰中的憑證。
+  # 如果啟用此流程，請務必將檔案路徑替換為您自己的
+  # 服務帳戶金鑰檔案
   # https://cloud.google.com/iam/docs/service-account-creds#user-managed-keys
   creds, _ = google.auth.load_credentials_from_file("service_account_key.json")
   credentials_config = BigQueryCredentialsConfig(credentials=creds)
 else:
-  # Initialize the tools to use the application default credentials.
+  # 初始化工具以使用應用程式預設憑證。
   # https://cloud.google.com/docs/authentication/provide-credentials-adc
   application_default_credentials, _ = google.auth.default()
   credentials_config = BigQueryCredentialsConfig(
@@ -60,18 +58,16 @@ bigquery_toolset = BigQueryToolset(
     credentials_config=credentials_config, bigquery_tool_config=tool_config
 )
 
-# The variable name `root_agent` determines what your root agent is for the
-# debug CLI
+# `root_agent` 變數名稱決定了偵錯 CLI 的根代理 (Agent)
 root_agent = LlmAgent(
     model="gemini-2.0-flash",
     name="bigquery_agent",
     description=(
-        "Agent to answer questions about BigQuery data and models and execute"
-        " SQL queries."
+        "此代理 (Agent) 可回答有關 BigQuery 資料和模型的問題，並執行 SQL 查詢。"
     ),
     instruction="""\
-        You are a data science agent with access to several BigQuery tools.
-        Make use of those tools to answer the user's questions.
+        您是一個可以存取多個 BigQuery 工具的資料科學代理 (Agent)。
+        請利用這些工具來回答使用者的問題。
     """,
     tools=[bigquery_toolset],
 )

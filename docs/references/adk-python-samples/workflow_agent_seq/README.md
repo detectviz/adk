@@ -1,12 +1,12 @@
-# Workflow Agent Sample - SequentialAgent
+# 工作流程代理範例 - SequentialAgent
 
-Sample query:
+範例查詢：
 
-* Write a quicksort method in python.
-* Write a python function to do bubble sort.
+* 用 python 寫一個快速排序法。
+* 寫一個 python 函式來做氣泡排序。
 
-To run in cli (after installing `google-adk`):
+在 cli 中執行（安裝 `google-adk` 後）：
 
-* `uv run main.py` (or `python main.py`)
+* `uv run main.py` (或 `python main.py`)
 
-Check sample output in `sample.output` file in this folder.
+在此資料夾的 `sample.output` 檔案中檢查範例輸出。

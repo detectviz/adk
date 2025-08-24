@@ -21,23 +21,23 @@ from google.adk.tools.example_tool import ExampleTool
 from google.genai import types
 
 
-# --- Roll Die Sub-Agent ---
+# --- 擲骰子子代理 ---
 def roll_die(sides: int) -> int:
-  """Roll a die and return the rolled result."""
+  """擲一個骰子並回傳擲骰結果。"""
   return random.randint(1, sides)
 
 
 roll_agent = Agent(
     name="roll_agent",
-    description="Handles rolling dice of different sizes.",
+    description="處理不同大小的擲骰子。",
     instruction="""
-      You are responsible for rolling dice based on the user's request.
-      When asked to roll a die, you must call the roll_die tool with the number of sides as an integer.
+      您負責根據使用者的要求擲骰子。
+      當被要求擲骰子時，您必須使用骰子的面數作為整數呼叫 roll_die 工具。
     """,
     tools=[roll_die],
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),
@@ -50,35 +50,35 @@ example_tool = ExampleTool([
     {
         "input": {
             "role": "user",
-            "parts": [{"text": "Roll a 6-sided die."}],
+            "parts": [{"text": "擲一個 6 面骰。"}],
         },
         "output": [
-            {"role": "model", "parts": [{"text": "I rolled a 4 for you."}]}
+            {"role": "model", "parts": [{"text": "我為您擲出了一個 4。"}]}
         ],
     },
     {
         "input": {
             "role": "user",
-            "parts": [{"text": "Is 7 a prime number?"}],
+            "parts": [{"text": "7 是質數嗎？"}],
         },
         "output": [{
             "role": "model",
-            "parts": [{"text": "Yes, 7 is a prime number."}],
+            "parts": [{"text": "是的，7 是質數。"}],
         }],
     },
     {
         "input": {
             "role": "user",
-            "parts": [{"text": "Roll a 10-sided die and check if it's prime."}],
+            "parts": [{"text": "擲一個 10 面骰並檢查它是否為質數。"}],
         },
         "output": [
             {
                 "role": "model",
-                "parts": [{"text": "I rolled an 8 for you."}],
+                "parts": [{"text": "我為您擲出了一個 8。"}],
             },
             {
                 "role": "model",
-                "parts": [{"text": "8 is not a prime number."}],
+                "parts": [{"text": "8 不是質數。"}],
             },
         ],
     },
@@ -86,7 +86,7 @@ example_tool = ExampleTool([
 
 prime_agent = RemoteA2aAgent(
     name="prime_agent",
-    description="Agent that handles checking if numbers are prime.",
+    description="處理檢查數字是否為質數的代理。",
     agent_card=(
         f"http://localhost:8001/a2a/check_prime_agent{AGENT_CARD_WELL_KNOWN_PATH}"
     ),
@@ -97,22 +97,22 @@ root_agent = Agent(
     model="gemini-2.0-flash",
     name="root_agent",
     instruction="""
-      You are a helpful assistant that can roll dice and check if numbers are prime.
-      You delegate rolling dice tasks to the roll_agent and prime checking tasks to the prime_agent.
-      Follow these steps:
-      1. If the user asks to roll a die, delegate to the roll_agent.
-      2. If the user asks to check primes, delegate to the prime_agent.
-      3. If the user asks to roll a die and then check if the result is prime, call roll_agent first, then pass the result to prime_agent.
-      Always clarify the results before proceeding.
+      您是一個樂於助人的助理，可以擲骰子並檢查數字是否為質數。
+      您將擲骰子任務委派給 roll_agent，將質數檢查任務委派給 prime_agent。
+      請遵循以下步驟：
+      1. 如果使用者要求擲骰子，則委派給 roll_agent。
+      2. 如果使用者要求檢查質數，則委派給 prime_agent。
+      3. 如果使用者要求擲骰子然後檢查結果是否為質數，請先呼叫 roll_agent，然後將結果傳遞給 prime_agent。
+      在繼續之前，請務必釐清結果。
     """,
     global_instruction=(
-        "You are DicePrimeBot, ready to roll dice and check prime numbers."
+        "您是 DicePrimeBot，準備好擲骰子和檢查質數。"
     ),
     sub_agents=[roll_agent, prime_agent],
     tools=[example_tool],
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),

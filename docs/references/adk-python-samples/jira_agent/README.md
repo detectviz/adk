@@ -1,25 +1,25 @@
-This agent connects to the Jira Cloud using Google Application Integration workflow and Integrations Connector
+此代理 (agent) 使用 Google Application Integration 工作流程和 Integrations Connector 連接到 Jira Cloud。
 
-**Instructions to connect to an agent:**
+**連接到代理 (agent) 的說明：**
 
-**Use Integration Connectors**
+**使用 Integration Connectors**
 
-Connect your agent to enterprise applications using [Integration Connectors](https://cloud.google.com/integration-connectors/docs/overview).
+使用 [Integration Connectors](https://cloud.google.com/integration-connectors/docs/overview) 將您的代理 (agent) 連接到企業應用程式。
 
-**Steps:**
+**步驟：**
 
-1. To use a connector from Integration Connectors, you need to [provision](https://console.cloud.google.com/) Application Integration in the same region as your connection by clicking on "QUICK SETUP" button.
+1. 若要使用 Integration Connectors 中的連接器，您需要透過點擊「QUICK SETUP」按鈕，在與您的連線相同的區域中[佈建](https://console.cloud.google.com/) Application Integration。
 Google Cloud Tools
 ![image_alt](https://github.com/karthidec/adk-python/blob/adk-samples-jira-agent/contributing/samples/jira_agent/image-application-integration.png?raw=true)
 
-2. Go to [Connection Tool]((https://console.cloud.google.com/)) template from the template library and click on "USE TEMPLATE" button.
+2. 從範本庫中前往 [Connection Tool]((https://console.cloud.google.com/)) 範本，然後點擊「USE TEMPLATE」按鈕。
 ![image_alt](https://github.com/karthidec/adk-python/blob/adk-samples-jira-agent/contributing/samples/jira_agent/image-connection-tool.png?raw=true)
 
-3. Fill the Integration Name as **ExecuteConnection** (It is mandatory to use this integration name only) and select the region same as the connection region. Click on "CREATE".
+3. 將 Integration Name 填寫為 **ExecuteConnection** (強制僅使用此整合名稱)，並選擇與連線區域相同的區域。點擊「CREATE」。
 
-4. Publish the integration by using the "PUBLISH" button on the Application Integration Editor.
+4. 在 Application Integration Editor 中使用「PUBLISH」按鈕發佈整合。
 ![image_alt](https://github.com/karthidec/adk-python/blob/adk-samples-jira-agent/contributing/samples/jira_agent/image-app-intg-editor.png?raw=true)
 
-**References:**
+**參考資料：**
 
 https://google.github.io/adk-docs/tools/google-cloud-tools/#application-integration-tools

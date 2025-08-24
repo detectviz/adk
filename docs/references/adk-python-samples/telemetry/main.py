@@ -45,9 +45,8 @@ async def main():
     content = types.Content(
         role='user', parts=[types.Part.from_text(text=new_message)]
     )
-    print('** User says:', content.model_dump(exclude_none=True))
-    # TODO - migrate try...finally to contextlib.aclosing after Python 3.9 is
-    # no longer supported.
+    print('** 使用者說：', content.model_dump(exclude_none=True))
+    # TODO - 在不再支援 Python 3.9 後，將 try...finally 遷移到 contextlib.aclosing。
     agen = runner.run_async(
         user_id=user_id_1,
         session_id=session.id,
@@ -69,9 +68,8 @@ async def main():
             )
         ],
     )
-    print('** User says:', content.model_dump(exclude_none=True))
-    # TODO - migrate try...finally to contextlib.aclosing after Python 3.9 is
-    # no longer supported.
+    print('** 使用者說：', content.model_dump(exclude_none=True))
+    # TODO - 在不再支援 Python 3.9 後，將 try...finally 遷移到 contextlib.aclosing。
     agen = runner.run_async(
         user_id=user_id_1,
         session_id=session.id,
@@ -86,13 +84,13 @@ async def main():
       await agen.aclose()
 
   start_time = time.time()
-  print('Start time:', start_time)
+  print('開始時間：', start_time)
   print('------------------------------------')
-  await run_prompt(session_11, 'Hi')
-  await run_prompt(session_11, 'Roll a die with 100 sides')
-  await run_prompt(session_11, 'Roll a die again with 100 sides.')
-  await run_prompt(session_11, 'What numbers did I got?')
-  await run_prompt_bytes(session_11, 'Hi bytes')
+  await run_prompt(session_11, '嗨')
+  await run_prompt(session_11, '擲一個 100 面的骰子')
+  await run_prompt(session_11, '再擲一個 100 面的骰子。')
+  await run_prompt(session_11, '我得到了哪些數字？')
+  await run_prompt_bytes(session_11, '嗨 位元組')
   print(
       await runner.artifact_service.list_artifact_keys(
           app_name=app_name, user_id=user_id_1, session_id=session_11.id
@@ -100,8 +98,8 @@ async def main():
   )
   end_time = time.time()
   print('------------------------------------')
-  print('End time:', end_time)
-  print('Total time:', end_time - start_time)
+  print('結束時間：', end_time)
+  print('總時間：', end_time - start_time)
 
 
 if __name__ == '__main__':
@@ -109,8 +107,8 @@ if __name__ == '__main__':
   provider = TracerProvider()
   project_id = os.environ.get('GOOGLE_CLOUD_PROJECT')
   if not project_id:
-    raise ValueError('GOOGLE_CLOUD_PROJECT environment variable is not set.')
-  print('Tracing to project', project_id)
+    raise ValueError('未設定 GOOGLE_CLOUD_PROJECT 環境變數。')
+  print('正在追蹤到專案', project_id)
   processor = export.BatchSpanProcessor(
       CloudTraceSpanExporter(project_id=project_id)
   )
@@ -120,4 +118,4 @@ if __name__ == '__main__':
   asyncio.run(main())
 
   provider.force_flush()
-  print('Done tracing to project', project_id)
+  print('完成追蹤到專案', project_id)

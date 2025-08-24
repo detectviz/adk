@@ -21,28 +21,28 @@ logger = logging.getLogger(__name__)
 
 
 class ResponseFormat(BaseModel):
-    """Respond to the user in this format."""
+    """以這種格式回應使用者。"""
 
     status: Literal['input_required', 'completed', 'error'] = 'input_required'
     question: str = Field(
-        description='Input needed from the user to generate the plan'
+        description='產生計畫所需的使用者輸入'
     )
     content: TaskList = Field(
-        description='List of tasks when the plan is generated'
+        description='計畫產生後的任務列表'
     )
 
 
 class LangGraphPlannerAgent(BaseAgent):
-    """Planner Agent backed by LangGraph."""
+    """由 LangGraph 支援的規劃器代理。"""
 
     def __init__(self):
         init_api_key()
 
-        logger.info('Initializing LanggraphPlannerAgent')
+        logger.info('正在初始化 LanggraphPlannerAgent')
 
         super().__init__(
             agent_name='PlannerAgent',
-            description='Breakdown the user request into executable tasks',
+            description='將使用者請求分解為可執行的任務',
             content_types=['text', 'text/plain'],
         )
 
@@ -71,7 +71,7 @@ class LangGraphPlannerAgent(BaseAgent):
         config = {'configurable': {'thread_id': sessionId}}
 
         logger.info(
-            f'Running LanggraphPlannerAgent stream for session {sessionId} {task_id} with input {query}'
+            f'正在為會話 {sessionId} {task_id} 運行 LanggraphPlannerAgent 串流，輸入為 {query}'
         )
 
         for item in self.graph.stream(inputs, config, stream_mode='values'):
@@ -118,5 +118,5 @@ class LangGraphPlannerAgent(BaseAgent):
         return {
             'is_task_complete': False,
             'require_user_input': True,
-            'content': 'We are unable to process your request at the moment. Please try again.',
+            'content': '我們目前無法處理您的請求。請再試一次。',
         }

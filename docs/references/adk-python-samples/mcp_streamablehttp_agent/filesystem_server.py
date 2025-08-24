@@ -19,63 +19,63 @@ import sys
 
 from mcp.server.fastmcp import FastMCP
 
-# Create an MCP server with a name
+# 建立一個名為 MCP 伺服器
 mcp = FastMCP("Filesystem Server", host="localhost", port=3000)
 
 
-# Add a tool to read file contents
-@mcp.tool(description="Read contents of a file")
+# 新增一個讀取檔案內容的工具
+@mcp.tool(description="讀取檔案內容")
 def read_file(filepath: str) -> str:
-  """Read and return the contents of a file."""
+  """讀取並傳回檔案內容。"""
   with open(filepath, "r") as f:
     return f.read()
 
 
-# Add a tool to list directory contents
-@mcp.tool(description="List contents of a directory")
+# 新增一個列出目錄內容的工具
+@mcp.tool(description="列出目錄內容")
 def list_directory(dirpath: str) -> list:
-  """List all files and directories in the given directory."""
+  """列出指定目錄中的所有檔案和目錄。"""
   return os.listdir(dirpath)
 
 
-# Add a tool to get current working directory
-@mcp.tool(description="Get current working directory")
+# 新增一個取得目前工作目錄的工具
+@mcp.tool(description="取得目前工作目錄")
 def get_cwd() -> str:
-  """Return the current working directory."""
+  """傳回目前工作目錄。"""
   return str(Path.cwd())
 
 
-# Graceful shutdown handler
+# 優雅關機處理常式
 async def shutdown(signal, loop):
-  """Cleanup tasks tied to the service's shutdown."""
-  print(f"\nReceived exit signal {signal.name}...")
+  """與服務關機相關的清理工作。"""
+  print(f"\n收到結束訊號 {signal.name}...")
 
-  # Get all running tasks
+  # 取得所有執行中的工作
   tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
-  # Cancel all tasks
+  # 取消所有工作
   for task in tasks:
     task.cancel()
 
-  print(f"Cancelling {len(tasks)} outstanding tasks")
+  print(f"正在取消 {len(tasks)} 個未完成的工作")
   await asyncio.gather(*tasks, return_exceptions=True)
 
-  # Stop the loop
+  # 停止迴圈
   loop.stop()
-  print("Shutdown complete!")
+  print("關機完成！")
 
 
-# Main entry point with graceful shutdown handling
+# 帶有優雅關機處理的主要進入點
 if __name__ == "__main__":
   try:
-    # The MCP run function ultimately uses asyncio.run() internally
+    # MCP 執行函式最終會在內部使用 asyncio.run()
     mcp.run(transport="streamable-http")
   except KeyboardInterrupt:
-    print("\nServer shutting down gracefully...")
-    # The asyncio event loop has already been stopped by the KeyboardInterrupt
-    print("Server has been shut down.")
+    print("\n伺服器正在優雅關機...")
+    # asyncio 事件迴圈已被 KeyboardInterrupt 停止
+    print("伺服器已關機。")
   except Exception as e:
-    print(f"Unexpected error: {e}")
+    print(f"非預期的錯誤：{e}")
     sys.exit(1)
   finally:
-    print("Thank you for using the Filesystem MCP Server!")
+    print("感謝您使用檔案系統 MCP 伺服器！")

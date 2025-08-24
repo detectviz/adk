@@ -57,7 +57,7 @@ async def main():
     content = types.Content(
         role='user', parts=[types.Part.from_text(text=new_message)]
     )
-    print('** User says:', content.model_dump(exclude_none=True))
+    print('** 使用者說：', content.model_dump(exclude_none=True))
     async for event in runner.run_async(
         user_id=user_id_1,
         session_id=session.id,
@@ -72,21 +72,21 @@ async def main():
         )
         total_tokens += event.usage_metadata.total_token_count or 0
         print(
-            'Turn tokens:'
-            f' {event.usage_metadata.total_token_count} (prompt={event.usage_metadata.prompt_token_count},'
-            f' candidates={event.usage_metadata.candidates_token_count})'
+            '回合權杖：'
+            f' {event.usage_metadata.total_token_count} (提示={event.usage_metadata.prompt_token_count},'
+            f' 候選={event.usage_metadata.candidates_token_count})'
         )
 
     print(
-        f'Session tokens: {total_tokens} (prompt={total_prompt_tokens},'
-        f' candidates={total_candidate_tokens})'
+        f'會話權杖：{total_tokens} (提示={total_prompt_tokens},'
+        f' 候選={total_candidate_tokens})'
     )
 
   start_time = time.time()
-  print('Start time:', start_time)
+  print('開始時間：', start_time)
   print('------------------------------------')
-  await run_prompt(session_11, 'Hi')
-  await run_prompt(session_11, 'Roll a die with 100 sides')
+  await run_prompt(session_11, '嗨')
+  await run_prompt(session_11, '擲一個 100 面的骰子')
   print(
       await artifact_service.list_artifact_keys(
           app_name=app_name, user_id=user_id_1, session_id=session_11.id
@@ -94,8 +94,8 @@ async def main():
   )
   end_time = time.time()
   print('------------------------------------')
-  print('End time:', end_time)
-  print('Total time:', end_time - start_time)
+  print('結束時間：', end_time)
+  print('總時間：', end_time - start_time)
 
 
 if __name__ == '__main__':

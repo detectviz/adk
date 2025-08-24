@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The agent to demo the session state lifecycle.
+"""用於展示會話狀態生命週期的代理。
 
-This agent illustrate how session state will be cached in context and persisted
-in session state.
+此代理說明會話狀態將如何快取在上下文中並持續儲存在會話狀態中。
 """
 
 
@@ -51,14 +50,14 @@ async def assert_session_values(
 
   print(f'===================== {title} ==============================')
   print(
-      f'** Asserting keys are cached in context: {keys_in_ctx_session}', end=' '
+      f'** 正在斷言金鑰已快取在上下文中：{keys_in_ctx_session}', end=' '
   )
   for key in keys_in_ctx_session or []:
     assert key in session_in_ctx.state
   print('\033[92mpass ✅\033[0m')
 
   print(
-      '** Asserting keys are already persisted in session:'
+      '** 正在斷言金鑰已持續儲存在會話中：'
       f' {keys_in_service_session}',
       end=' ',
   )
@@ -67,7 +66,7 @@ async def assert_session_values(
   print('\033[92mpass ✅\033[0m')
 
   print(
-      '** Asserting keys are not persisted in session yet:'
+      '** 正在斷言金鑰尚未持續儲存在會話中：'
       f' {keys_not_in_service_session}',
       end=' ',
   )
@@ -81,7 +80,7 @@ async def before_agent_callback(
     callback_context: CallbackContext,
 ) -> Optional[types.Content]:
   if 'before_agent_callback_state_key' in callback_context.state:
-    return types.ModelContent('Sorry, I can only reply once.')
+    return types.ModelContent('抱歉，我只能回覆一次。')
 
   callback_context.state['before_agent_callback_state_key'] = (
       'before_agent_callback_state_value'
@@ -167,10 +166,9 @@ async def after_agent_callback(callback_context: CallbackContext):
 
 root_agent = Agent(
     name='root_agent',
-    description='a verification agent.',
+    description='一個驗證代理。',
     instruction=(
-        'Log all users query with `log_query` tool. Must always remind user you'
-        ' cannot answer second query because your setup.'
+        '使用 `log_query` 工具記錄所有使用者查詢。必須始終提醒使用者，由於您的設定，您無法回答第二個查詢。'
     ),
     model='gemini-2.0-flash-001',
     before_agent_callback=before_agent_callback,

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Sample agent for testing parallel function calling."""
+"""用於測試平行函式呼叫的範例代理。"""
 
 import asyncio
 import time
@@ -23,18 +23,18 @@ from google.adk.tools.tool_context import ToolContext
 
 
 async def get_weather(city: str, tool_context: ToolContext) -> dict:
-  """Get the current weather for a city.
+  """取得城市的目前天氣。
 
   Args:
-    city: The name of the city to get weather for.
+    city: 要取得天氣的城市名稱。
 
   Returns:
-    A dictionary with weather information.
+    包含天氣資訊的字典。
   """
-  # Simulate some async processing time (non-blocking)
+  # 模擬一些非同步處理時間（非阻塞）
   await asyncio.sleep(2)
 
-  # Mock weather data
+  # 模擬天氣資料
   weather_data = {
       'New York': {'temp': 72, 'condition': 'sunny', 'humidity': 45},
       'London': {'temp': 60, 'condition': 'cloudy', 'humidity': 80},
@@ -51,12 +51,12 @@ async def get_weather(city: str, tool_context: ToolContext) -> dict:
           'condition': 'unknown',
           'humidity': 50,
           'note': (
-              f'Weather data not available for {city}, showing default values'
+          f'沒有 {city} 的天氣資料，顯示預設值'
           ),
       },
   )
 
-  # Store in context for testing thread safety
+# 儲存於上下文中以測試執行緒安全
   if 'weather_requests' not in tool_context.state:
     tool_context.state['weather_requests'] = []
   tool_context.state['weather_requests'].append(
@@ -75,19 +75,19 @@ async def get_weather(city: str, tool_context: ToolContext) -> dict:
 async def get_currency_rate(
     from_currency: str, to_currency: str, tool_context: ToolContext
 ) -> dict:
-  """Get the exchange rate between two currencies.
+  """取得兩種貨幣之間的匯率。
 
   Args:
-    from_currency: The source currency code (e.g., 'USD').
-    to_currency: The target currency code (e.g., 'EUR').
+    from_currency: 來源貨幣代碼（例如 'USD'）。
+    to_currency: 目標貨幣代碼（例如 'EUR'）。
 
   Returns:
-    A dictionary with exchange rate information.
+    包含匯率資訊的字典。
   """
-  # Simulate async processing time
+  # 模擬非同步處理時間
   await asyncio.sleep(1.5)
 
-  # Mock exchange rates
+  # 模擬匯率
   rates = {
       ('USD', 'EUR'): 0.85,
       ('USD', 'GBP'): 0.75,
@@ -101,7 +101,7 @@ async def get_currency_rate(
 
   rate = rates.get((from_currency, to_currency), 1.0)
 
-  # Store in context for testing thread safety
+  # 儲存於上下文中以測試執行緒安全
   if 'currency_requests' not in tool_context.state:
     tool_context.state['currency_requests'] = []
   tool_context.state['currency_requests'].append({
@@ -122,19 +122,19 @@ async def get_currency_rate(
 async def calculate_distance(
     city1: str, city2: str, tool_context: ToolContext
 ) -> dict:
-  """Calculate the distance between two cities.
+  """計算兩個城市之間的距離。
 
   Args:
-    city1: The first city.
-    city2: The second city.
+    city1: 第一個城市。
+    city2: 第二個城市。
 
   Returns:
-    A dictionary with distance information.
+    包含距離資訊的字典。
   """
-  # Simulate async processing time (non-blocking)
+  # 模擬非同步處理時間（非阻塞）
   await asyncio.sleep(1)
 
-  # Mock distances (in kilometers)
+  # 模擬距離（公里）
   city_coords = {
       'New York': (40.7128, -74.0060),
       'London': (51.5074, -0.1278),
@@ -144,19 +144,19 @@ async def calculate_distance(
       'Sydney': (-33.8688, 151.2093),
   }
 
-  # Simple distance calculation (mock)
+  # 簡單距離計算（模擬）
   if city1 in city_coords and city2 in city_coords:
     coord1 = city_coords[city1]
     coord2 = city_coords[city2]
-    # Simplified distance calculation
+    # 簡化距離計算
     distance = int(
         ((coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2) ** 0.5
         * 111
-    )  # rough km conversion
+    )  # 大約公里轉換
   else:
-    distance = 5000  # default distance
+    distance = 5000  # 預設距離
 
-  # Store in context for testing thread safety
+  # 儲存於上下文中以測試執行緒安全
   if 'distance_requests' not in tool_context.state:
     tool_context.state['distance_requests'] = []
   tool_context.state['distance_requests'].append({
@@ -175,18 +175,18 @@ async def calculate_distance(
 
 
 async def get_population(cities: List[str], tool_context: ToolContext) -> dict:
-  """Get population information for multiple cities.
+  """取得多個城市的人口資訊。
 
   Args:
-    cities: A list of city names.
+    cities: 城市名稱清單。
 
   Returns:
-    A dictionary with population data for each city.
+    包含每個城市人口資料的字典。
   """
-  # Simulate async processing time proportional to number of cities (non-blocking)
+  # 模擬與城市數量成正比的非同步處理時間（非阻塞）
   await asyncio.sleep(len(cities) * 0.5)
 
-  # Mock population data
+  # 模擬人口資料
   populations = {
       'New York': 8336817,
       'London': 9648110,
@@ -198,9 +198,9 @@ async def get_population(cities: List[str], tool_context: ToolContext) -> dict:
 
   results = {}
   for city in cities:
-    results[city] = populations.get(city, 1000000)  # default 1M if not found
+    results[city] = populations.get(city, 1000000)  # 如果找不到，預設為 100 萬
 
-  # Store in context for testing thread safety
+  # 儲存於上下文中以測試執行緒安全
   if 'population_requests' not in tool_context.state:
     tool_context.state['population_requests'] = []
   tool_context.state['population_requests'].append(
@@ -218,24 +218,21 @@ root_agent = Agent(
     model='gemini-2.0-flash',
     name='parallel_function_test_agent',
     description=(
-        'Agent for testing parallel function calling performance and thread'
-        ' safety.'
+        '用於測試平行函式呼叫效能和執行緒'
+        '安全的代理。'
     ),
     instruction="""
-    You are a helpful assistant that can provide information about weather, currency rates, 
-    distances between cities, and population data. You have access to multiple tools and 
-    should use them efficiently.
+    您是一位樂於助人的助理，可以提供有關天氣、匯率、城市間距離和人口資料的資訊。您可以存取多個工具，並應有效率地使用它們。
     
-    When users ask for information about multiple cities or multiple types of data, 
-    you should call multiple functions in parallel to provide faster responses.
+    當使用者詢問有關多個城市或多種類型資料的資訊時，您應該平行呼叫多個函式以提供更快的​​回應。
     
-    For example:
-    - If asked about weather in multiple cities, call get_weather for each city in parallel
-    - If asked about weather and currency rates, call both functions in parallel
-    - If asked to compare cities, you might need weather, population, and distance data in parallel
+    例如：
+    - 如果被問及多個城市的天氣，請平行呼叫每個城市的 get_weather
+    - 如果被問及天氣和匯率，請平行呼叫這兩個函式
+    - 如果被要求比較城市，您可能需要平行取得天氣、人口和距離資料
     
-    Always aim to be efficient and call multiple functions simultaneously when possible.
-    Be informative and provide clear, well-structured responses.
+    務必力求高效率，並在可能的情況下同時呼叫多個函式。
+    提供資訊豐富、清晰、結構良好的回應。
   """,
     tools=[
         get_weather,

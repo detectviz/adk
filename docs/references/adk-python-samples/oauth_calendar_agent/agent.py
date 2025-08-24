@@ -31,10 +31,10 @@ from google.adk.tools.tool_context import ToolContext
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-# Load environment variables from .env file
+# 從 .env 檔案載入環境變數
 load_dotenv()
 
-# Access the variable
+# 存取變數
 oauth_client_id = os.getenv("OAUTH_CLIENT_ID")
 oauth_client_secret = os.getenv("OAUTH_CLIENT_SECRET")
 
@@ -42,8 +42,8 @@ oauth_client_secret = os.getenv("OAUTH_CLIENT_SECRET")
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 calendar_toolset = CalendarToolset(
-    # you can also replace below customized `list_calendar_events` with build-in
-    # google calendar tool by adding `calendar_events_list` in the filter list
+    # 您也可以將下面的自訂 `list_calendar_events` 取代為內建的
+    # Google 日曆工具，方法是將 `calendar_events_list` 新增至篩選清單中
     client_id=oauth_client_id,
     client_secret=oauth_client_secret,
     tool_filter=["calendar_events_get", "calendar_events_update"],
@@ -58,9 +58,9 @@ def list_calendar_events(
     tool_context: ToolContext,
     credential: AuthCredential,
 ) -> list[dict]:
-  """Search for calendar events.
+  """搜尋日曆活動。
 
-  Example:
+  範例：
 
       flights = get_calendar_events(
           calendar_id='joedoe@gmail.com',
@@ -68,18 +68,17 @@ def list_calendar_events(
           end_time='2024-09-17T12:00:00',
           limit=10
       )
-      # Returns up to 10 calendar events between 6:00 AM and 12:00 PM on
-      September 17, 2024.
+      # 傳回 2024 年 9 月 17 日上午 6:00 至中午 12:00 之間最多 10 個日曆活動。
 
-  Args:
-      calendar_id (str): the calendar ID to search for events.
-      start_time (str): The start of the time range (format is
-        YYYY-MM-DDTHH:MM:SS).
-      end_time (str): The end of the time range (format is YYYY-MM-DDTHH:MM:SS).
-      limit (int): The maximum number of results to return.
+  參數：
+      calendar_id (str): 要搜尋活動的日曆 ID。
+      start_time (str): 時間範圍的開始時間 (格式為
+        YYYY-MM-DDTHH:MM:SS)。
+      end_time (str): 時間範圍的結束時間 (格式為 YYYY-MM-DDTHH:MM:SS)。
+      limit (int): 要傳回的結果數上限。
 
-  Returns:
-      list[dict]: A list of events that match the search criteria.
+  傳回：
+      list[dict]: 符合搜尋條件的活動清單。
   """
 
   creds = Credentials(
@@ -105,7 +104,7 @@ def list_calendar_events(
 
 
 def update_time(callback_context: CallbackContext):
-  # get current date time
+  # 取得目前日期時間
   now = datetime.now()
   formatted_time = now.strftime("%Y-%m-%d %H:%M:%S")
   callback_context.state["_time"] = formatted_time
@@ -115,26 +114,26 @@ root_agent = Agent(
     model="gemini-2.0-flash",
     name="calendar_agent",
     instruction="""
-      You are a helpful personal calendar assistant.
-      Use the provided tools to search for calendar events (use 10 as limit if user does't specify), and update them.
-      Use "primary" as the calendarId if users don't specify.
+      您是一位樂於助人的個人日曆助理。
+      使用提供的工具搜尋日曆活動 (如果使用者未指定，則使用 10 作為限制)，並更新它們。
+      如果使用者未指定，請使用 "primary" 作為 calendarId。
 
-      Scenario1:
-      The user want to query the calendar events.
-      Use list_calendar_events to search for calendar events.
-
-
-      Scenario2:
-      User want to know the details of one of the listed calendar events.
-      Use google_calendar_events_get to get the details of a calendar event.
+      情境1：
+      使用者想要查詢日曆活動。
+      使用 list_calendar_events 搜尋日曆活動。
 
 
-      Current user:
+      情境2：
+      使用者想知道其中一個列出的日曆活動的詳細資訊。
+      使用 google_calendar_events_get 取得日曆活動的詳細資訊。
+
+
+      目前使用者：
       <User>
       {userInfo?}
       </User>
 
-      Currnet time: {_time}
+      目前時間：{_time}
 """,
     tools=[
         AuthenticatedFunctionTool(

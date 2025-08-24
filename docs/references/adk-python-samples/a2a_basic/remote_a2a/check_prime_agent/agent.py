@@ -20,13 +20,13 @@ from google.genai import types
 
 
 async def check_prime(nums: list[int]) -> str:
-  """Check if a given list of numbers are prime.
+  """檢查給定的數字列表是否為質數。
 
   Args:
-    nums: The list of numbers to check.
+    nums: 要檢查的數字列表。
 
   Returns:
-    A str indicating which number is prime.
+    一個字串，指出哪個數字是質數。
   """
   primes = set()
   for number in nums:
@@ -41,20 +41,20 @@ async def check_prime(nums: list[int]) -> str:
     if is_prime:
       primes.add(number)
   return (
-      'No prime numbers found.'
+      '找不到質數。'
       if not primes
-      else f"{', '.join(str(num) for num in primes)} are prime numbers."
+      else f"{', '.join(str(num) for num in primes)} 是質數。"
   )
 
 
 root_agent = Agent(
     model='gemini-2.0-flash',
     name='check_prime_agent',
-    description='check prime agent that can check whether numbers are prime.',
+    description='可以檢查數字是否為質數的代理。',
     instruction="""
-      You check whether numbers are prime.
-      When checking prime numbers, call the check_prime tool with a list of integers. Be sure to pass in a list of integers. You should never pass in a string.
-      You should not rely on the previous history on prime results.
+      您負責檢查數字是否為質數。
+      檢查質數時，請使用整數列表呼叫 check_prime 工具。請務必傳入整數列表，絕不應傳入字串。
+      您不應依賴先前的質數結果歷史紀錄。
     """,
     tools=[
         check_prime,
@@ -66,7 +66,7 @@ root_agent = Agent(
     # ),
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),

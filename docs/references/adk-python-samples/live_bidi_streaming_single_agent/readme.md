@@ -1,37 +1,30 @@
-# Simplistic Live (Bidi-Streaming) Agent
-This project provides a basic example of a live, bidirectional streaming agent 
-designed for testing and experimentation.
+# 簡易即時（雙向串流）代理 (Agent)
+這個專案提供了一個基本的即時、雙向串流代理 (agent) 範例，專為測試和實驗而設計。
 
-You can see full documentation [here](https://google.github.io/adk-docs/streaming/).
+您可以在[這裡](https://google.github.io/adk-docs/streaming/)查看完整的文件。
 
-## Getting Started
+## 入門指南
 
-Follow these steps to get the agent up and running:
+請依照以下步驟啟動並執行代理 (agent)：
 
-1.  **Start the ADK Web Server**
-    Open your terminal, navigate to the root directory that contains the 
-    `live_bidi_streaming_agent` folder, and execute the following command:
+1.  **啟動 ADK 網頁伺服器**
+    開啟您的終端機，導覽至包含 `live_bidi_streaming_agent` 資料夾的根目錄，然後執行以下指令：
     ```bash
     adk web
     ```
 
-2.  **Access the ADK Web UI**
-    Once the server is running, open your web browser and navigate to the URL 
-    provided in the terminal (it will typically be `http://localhost:8000`).
+2.  **存取 ADK 網頁使用者介面**
+    伺服器執行後，開啟您的網頁瀏覽器並導覽至終端機中提供的 URL（通常是 `http://localhost:8000`）。
 
-3.  **Select the Agent**
-    In the top-left corner of the ADK Web UI, use the dropdown menu to select 
-    this agent.
+3.  **選擇代理 (Agent)**
+    在 ADK 網頁使用者介面的左上角，使用下拉式選單選擇此代理 (agent)。
 
-4.  **Start Streaming**
-    Click on either the **Audio** or **Video** icon located near the chat input 
-    box to begin the streaming session.
+4.  **開始串流**
+    點擊聊天輸入框附近的 **音訊 (Audio)** 或 **視訊 (Video)** 圖示以開始串流工作階段。
 
-5.  **Interact with the Agent**
-    You can now begin talking to the agent, and it will respond in real-time.
+5.  **與代理 (Agent) 互動**
+    您現在可以開始與代理 (agent) 對話，它會即時回應。
 
-## Usage Notes
+## 使用注意事項
 
-* You only need to click the **Audio** or **Video** button once to initiate the
- stream. The current version does not support stopping and restarting the stream
-  by clicking the button again during a session.
+* 您只需點擊 **音訊 (Audio)** 或 **視訊 (Video)** 按鈕一次即可啟動串流。目前版本不支援在工作階段中再次點擊按鈕來停止和重新啟動串流。

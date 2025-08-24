@@ -27,17 +27,16 @@ from google.genai import types
 def before_agent_callback_check_relevance(
     agent_name: str,
 ) -> BeforeAgentCallback:
-  """Callback to check if the state is relevant before executing the agent."""
+  """在執行代理程式之前檢查狀態是否相關的回呼。"""
 
   def callback(callback_context: CallbackContext) -> Optional[types.Content]:
-    """Check if the state is relevant."""
+    """檢查狀態是否相關。"""
     if agent_name not in callback_context.state["execution_agents"]:
       return types.Content(
           parts=[
               types.Part(
                   text=(
-                      f"Skipping execution agent {agent_name} as it is not"
-                      " relevant to the current state."
+                      f"跳過執行代理程式 {agent_name}，因為它與目前狀態無關。"
                   )
               )
           ]
@@ -50,9 +49,9 @@ code_agent = Agent(
     model="gemini-2.5-flash",
     name="code_agent",
     instruction="""\
-You are the Code Agent, responsible for generating code.
+您是程式碼代理，負責產生程式碼。
 
-NOTE: You should only generate code and ignore other askings from the user.
+注意：您應該只產生程式碼，並忽略使用者的其他要求。
 """,
     before_agent_callback=before_agent_callback_check_relevance("code_agent"),
     output_key="code_agent_output",
@@ -62,9 +61,9 @@ math_agent = Agent(
     model="gemini-2.5-flash",
     name="math_agent",
     instruction="""\
-You are the Math Agent, responsible for performing mathematical calculations.
+您是數學代理，負責執行數學計算。
 
-NOTE: You should only perform mathematical calculations and ignore other askings from the user.
+注意：您應該只執行數學計算，並忽略使用者的其他要求。
 """,
     before_agent_callback=before_agent_callback_check_relevance("math_agent"),
     output_key="math_agent_output",
@@ -83,22 +82,21 @@ worker_parallel_agent = ParallelAgent(
 def instruction_provider_for_execution_summary_agent(
     readonly_context: ReadonlyContext,
 ) -> str:
-  """Provides the instruction for the execution agent."""
+  """為執行代理程式提供指令。"""
   activated_agents = readonly_context.state["execution_agents"]
   prompt = f"""\
-You are the Execution Summary Agent, responsible for summarizing the execution of the plan in the current invocation.
+您是執行摘要代理，負責摘要目前呼叫中計畫的執行情況。
 
-In this invocation, the following agents were involved: {', '.join(activated_agents)}.
+在此呼叫中，涉及以下代理程式：{', '.join(activated_agents)}。
 
-Below are their outputs:
+以下是它們的輸出：
 """
   for agent_name in activated_agents:
     output = readonly_context.state.get(f"{agent_name}_output", "")
-    prompt += f"\n\n{agent_name} output:\n{output}"
+    prompt += f"\n\n{agent_name} 輸出：\n{output}"
 
   prompt += (
-      "\n\nPlease summarize the execution of the plan based on the above"
-      " outputs."
+      "\n\n請根據以上輸出摘要計畫的執行情況。"
   )
   return prompt.strip()
 

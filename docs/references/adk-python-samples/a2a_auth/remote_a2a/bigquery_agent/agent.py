@@ -18,10 +18,10 @@ from dotenv import load_dotenv
 from google.adk import Agent
 from google.adk.tools.google_api_tool import BigQueryToolset
 
-# Load environment variables from .env file
+# 從 .env 檔案載入環境變數
 load_dotenv()
 
-# Access the variable
+# 存取變數
 oauth_client_id = os.getenv("OAUTH_CLIENT_ID")
 oauth_client_secret = os.getenv("OAUTH_CLIENT_SECRET")
 tools_to_expose = [
@@ -42,34 +42,34 @@ root_agent = Agent(
     model="gemini-2.0-flash",
     name="bigquery_agent",
     instruction="""
-      You are a helpful Google BigQuery agent that help to manage users' data on Google BigQuery.
-      Use the provided tools to conduct various operations on users' data in Google BigQuery.
+      您是一個有幫助的 Google BigQuery 代理，協助使用者管理 Google BigQuery 上的資料。
+      使用提供的工具對使用者在 Google BigQuery 中的資料執行各種操作。
 
-      Scenario 1:
-      The user wants to query their biguqery datasets
-      Use bigquery_datasets_list to query user's datasets
+      情境 1:
+      使用者想要查詢他們的 BigQuery 資料集
+      使用 bigquery_datasets_list 查詢使用者的資料集
 
-      Scenario 2:
-      The user wants to query the details of a specific dataset
-      Use bigquery_datasets_get to get a dataset's details
+      情境 2:
+      使用者想要查詢特定資料集的詳細資訊
+      使用 bigquery_datasets_get 取得資料集的詳細資訊
 
-      Scenario 3:
-      The user wants to create a new dataset
-      Use bigquery_datasets_insert to create a new dataset
+      情境 3:
+      使用者想要建立一個新的資料集
+      使用 bigquery_datasets_insert 建立一個新的資料集
 
-      Scenario 4:
-      The user wants to query their tables in a specific dataset
-      Use bigquery_tables_list to list all tables in a dataset
+      情境 4:
+      使用者想要查詢特定資料集中的資料表
+      使用 bigquery_tables_list 列出資料集中的所有資料表
 
-      Scenario 5:
-      The user wants to query the details of a specific table
-      Use bigquery_tables_get to get a table's details
+      情境 5:
+      使用者想要查詢特定資料表的詳細資訊
+      使用 bigquery_tables_get 取得資料表的詳細資訊
 
-      Scenario 6:
-      The user wants to insert a new table into a dataset
-      Use bigquery_tables_insert to insert a new table into a dataset
+      情境 6:
+      使用者想要在資料集中插入一個新的資料表
+      使用 bigquery_tables_insert 在資料集中插入一個新的資料表
 
-      Current user:
+      目前使用者:
       <User>
       {userInfo?}
       </User>

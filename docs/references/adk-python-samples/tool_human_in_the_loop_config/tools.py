@@ -18,7 +18,7 @@ from google.adk.tools.tool_context import ToolContext
 
 
 def reimburse(purpose: str, amount: float) -> str:
-  """Reimburse the amount of money to the employee."""
+  """向員工報銷金額。"""
   return {
       'status': 'ok',
   }
@@ -27,7 +27,7 @@ def reimburse(purpose: str, amount: float) -> str:
 def ask_for_approval(
     purpose: str, amount: float, tool_context: ToolContext
 ) -> dict[str, Any]:
-  """Ask for approval for the reimbursement."""
+  """請求批准報銷。"""
   return {
       'status': 'pending',
       'amount': amount,

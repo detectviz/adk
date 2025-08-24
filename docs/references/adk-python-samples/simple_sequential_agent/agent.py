@@ -19,24 +19,24 @@ from google.adk.agents.sequential_agent import SequentialAgent
 from google.genai import types
 
 
-# --- Roll Die Sub-Agent ---
+# --- 擲骰子子代理 ---
 def roll_die(sides: int) -> int:
-  """Roll a die and return the rolled result."""
+  """擲一個骰子並傳回擲出的結果。"""
   return random.randint(1, sides)
 
 
 roll_agent = LlmAgent(
     name="roll_agent",
-    description="Handles rolling dice of different sizes.",
+    description="處理不同大小的骰子擲骰。",
     model="gemini-2.0-flash",
     instruction="""
-      You are responsible for rolling dice based on the user's request.
-      When asked to roll a die, you must call the roll_die tool with the number of sides as an integer.
+      您負責根據使用者的要求擲骰子。
+      當被要求擲骰子時，您必須使用骰子面數作為整數呼叫 roll_die 工具。
     """,
     tools=[roll_die],
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),
@@ -46,7 +46,7 @@ roll_agent = LlmAgent(
 
 
 def check_prime(nums: list[int]) -> str:
-  """Check if a given list of numbers are prime."""
+  """檢查給定的數字清單是否為質數。"""
   primes = set()
   for number in nums:
     number = int(number)
@@ -60,26 +60,26 @@ def check_prime(nums: list[int]) -> str:
     if is_prime:
       primes.add(number)
   return (
-      "No prime numbers found."
+      "找不到質數。"
       if not primes
-      else f"{', '.join(str(num) for num in primes)} are prime numbers."
+      else f"{', '.join(str(num) for num in primes)} 是質數。"
   )
 
 
 prime_agent = LlmAgent(
     name="prime_agent",
-    description="Handles checking if numbers are prime.",
+    description="處理檢查數字是否為質數。",
     model="gemini-2.0-flash",
     instruction="""
-      You are responsible for checking whether numbers are prime.
-      When asked to check primes, you must call the check_prime tool with a list of integers.
-      Never attempt to determine prime numbers manually.
-      Return the prime number results to the root agent.
+      您負責檢查數字是否為質數。
+      當被要求檢查質數時，您必須使用整數清單呼叫 check_prime 工具。
+      切勿嘗試手動確定質數。
+      將質數結果傳回給根代理。
     """,
     tools=[check_prime],
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),
@@ -90,5 +90,5 @@ prime_agent = LlmAgent(
 root_agent = SequentialAgent(
     name="simple_sequential_agent",
     sub_agents=[roll_agent, prime_agent],
-    # The agents will run in the order provided: roll_agent -> prime_agent
+    # 代理將按照提供的順序執行：roll_agent -> prime_agent
 )

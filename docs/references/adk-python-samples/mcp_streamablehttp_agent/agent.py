@@ -25,17 +25,17 @@ root_agent = LlmAgent(
     model='gemini-2.0-flash',
     name='enterprise_assistant',
     instruction=f"""\
-Help user accessing their file systems.
+協助使用者存取其檔案系統。
 
-Allowed directory: {_allowed_path}
+允許的目錄：{_allowed_path}
     """,
     tools=[
         MCPToolset(
             connection_params=StreamableHTTPServerParams(
                 url='http://localhost:3000/mcp',
             ),
-            # don't want agent to do write operation
-            # you can also do below
+            # 不希望代理 (agent) 執行寫入操作
+            # 您也可以執行以下操作
             # tool_filter=lambda tool, ctx=None: tool.name
             # not in [
             #     'write_file',

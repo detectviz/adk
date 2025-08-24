@@ -39,7 +39,7 @@ async def main():
     content = types.Content(
         role='user', parts=[types.Part.from_text(text=new_message)]
     )
-    print('** User says:', content.model_dump(exclude_none=True))
+    print('** 使用者說：', content.model_dump(exclude_none=True))
     async for event in runner.run_async(
         user_id=user_id_1,
         session_id=session.id,
@@ -73,12 +73,12 @@ async def main():
       app_name=app_name, user_id=user_id_1
   )
 
-  print(f'----Session to create memory: {session_1.id} ----------------------')
+  print(f'----用於建立記憶體的會話：{session_1.id} ----------------------')
   session_1 = await run_prompt(
-      session_1, 'Write a python function to do quicksort.'
+      session_1, '寫一個 python 函式來執行快速排序。'
   )
   session_1 = await run_prompt(
-      session_1, 'Write another python function to do bubble sort.'
+      session_1, '再寫一個 python 函式來執行氣泡排序。'
   )
   print('-------------------------------------------------------------------')
 

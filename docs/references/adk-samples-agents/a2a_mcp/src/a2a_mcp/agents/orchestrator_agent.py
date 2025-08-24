@@ -20,13 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 class OrchestratorAgent(BaseAgent):
-    """Orchestrator Agent."""
+    """協調者代理。"""
 
     def __init__(self):
         init_api_key()
         super().__init__(
             agent_name='Orchestrator Agent',
-            description='Facilitate inter agent communication',
+            description='促進代理間的通訊',
             content_types=['text', 'text/plain'],
         )
         self.graph = None
@@ -63,8 +63,8 @@ class OrchestratorAgent(BaseAgent):
             )
             return response.text
         except Exception as e:
-            logger.info(f'Error answering user question: {e}')
-        return '{"can_answer": "no", "answer": "Cannot answer based on provided context"}'
+            logger.info(f'回答使用者問題時出錯：{e}')
+        return '{"can_answer": "no", "answer": "無法根據提供的上下文回答"}'
 
     def set_node_attributes(
         self, node_id, task_id=None, context_id=None, query=None
@@ -88,7 +88,7 @@ class OrchestratorAgent(BaseAgent):
         node_key: str = None,
         node_label: str = None,
     ) -> WorkflowNode:
-        """Add a node to the graph."""
+        """將節點新增至圖中。"""
         node = WorkflowNode(
             task=query, node_key=node_key, node_label=node_label
         )
@@ -107,20 +107,20 @@ class OrchestratorAgent(BaseAgent):
     async def stream(
         self, query, context_id, task_id
     ) -> AsyncIterable[dict[str, any]]:
-        """Execute and stream response."""
+        """執行並串流回應。"""
         logger.info(
-            f'Running {self.agent_name} stream for session {context_id}, task {task_id} - {query}'
+            f'正在為會話 {context_id}，任務 {task_id} - {query} 運行 {self.agent_name} 串流'
         )
         if not query:
-            raise ValueError('Query cannot be empty')
+            raise ValueError('查詢不能為空')
         if self.context_id != context_id:
-            # Clear state when the context changes
+            # 當上下文變更時清除狀態
             self.clear_state()
             self.context_id = context_id
 
         self.query_history.append(query)
         start_node_id = None
-        # Graph does not exist, start a new graph with planner node.
+        # 圖不存在，使用規劃器節點啟動新圖。
         if not self.graph:
             self.graph = WorkflowGraph()
             planner_node = self.add_graph_node(
@@ -131,30 +131,30 @@ class OrchestratorAgent(BaseAgent):
                 node_label='Planner',
             )
             start_node_id = planner_node.id
-        # Paused state is when the agent might need more information.
+        # 暫停狀態是指代理可能需要更多資訊。
         elif self.graph.state == Status.PAUSED:
             start_node_id = self.graph.paused_node_id
             self.set_node_attributes(node_id=start_node_id, query=query)
 
-        # This loop can be avoided if the workflow graph is dynamic or
-        # is built from the results of the planner when the planner
-        # iself is not a part of the graph.
-        # TODO: Make the graph dynamically iterable over edges
+        # 如果工作流程圖是動態的，或者
+        # 是根據規劃器的結果建立的，而規劃器
+        # 本身不是圖的一部分，則可以避免此循環。
+        # TODO: 使圖可沿邊動態迭代
         while True:
-            # Set attributes on the node so we propagate task and context
+            # 在節點上設定屬性，以便我們傳播任務和上下文
             self.set_node_attributes(
                 node_id=start_node_id,
                 task_id=task_id,
                 context_id=context_id,
             )
-            # Resume workflow, used when the workflow nodes are updated.
+            # 恢復工作流程，當工作流程節點更新時使用。
             should_resume_workflow = False
             async for chunk in self.graph.run_workflow(
                 start_node_id=start_node_id
             ):
                 if isinstance(chunk.root, SendStreamingMessageSuccessResponse):
-                    # The graph node retured TaskStatusUpdateEvent
-                    # Check if the node is complete and continue to the next node
+                    # 圖節點返回 TaskStatusUpdateEvent
+                    # 檢查節點是否完成並繼續到下一個節點
                     if isinstance(chunk.root.result, TaskStatusUpdateEvent):
                         task_status_event = chunk.root.result
                         context_id = task_status_event.context_id
@@ -177,10 +177,10 @@ class OrchestratorAgent(BaseAgent):
                                 answer = json.loads(
                                     self.answer_user_question(question)
                                 )
-                                logger.info(f'Agent Answer {answer}')
+                                logger.info(f'代理回答 {answer}')
                                 if answer['can_answer'] == 'yes':
-                                    # Orchestrator can answer on behalf of the user set the query
-                                    # Resume workflow from paused state.
+                                    # 協調者可以代表使用者設定查詢
+                                    # 從暫停狀態恢復工作流程。
                                     query = answer['answer']
                                     start_node_id = self.graph.paused_node_id
                                     self.set_node_attributes(
@@ -188,22 +188,22 @@ class OrchestratorAgent(BaseAgent):
                                     )
                                     should_resume_workflow = True
                             except Exception:
-                                logger.info('Cannot convert answer data')
+                                logger.info('無法轉換回答資料')
 
-                    # The graph node retured TaskArtifactUpdateEvent
-                    # Store the node and continue.
+                    # 圖節點返回 TaskArtifactUpdateEvent
+                    # 儲存節點並繼續。
                     if isinstance(chunk.root.result, TaskArtifactUpdateEvent):
                         artifact = chunk.root.result.artifact
                         self.results.append(artifact)
                         if artifact.name == 'PlannerAgent-result':
-                            # Planning agent returned data, update graph.
+                            # 規劃代理返回資料，更新圖。
                             artifact_data = artifact.parts[0].root.data
                             if 'trip_info' in artifact_data:
                                 self.travel_context = artifact_data['trip_info']
                             logger.info(
-                                f'Updating workflow with {len(artifact_data["tasks"])} task nodes'
+                                f'正在使用 {len(artifact_data["tasks"])} 個任務節點更新工作流程'
                             )
-                            # Define the edges
+                            # 定義邊
                             current_node_id = start_node_id
                             for idx, task_data in enumerate(
                                 artifact_data['tasks']
@@ -215,37 +215,37 @@ class OrchestratorAgent(BaseAgent):
                                     node_id=current_node_id,
                                 )
                                 current_node_id = node.id
-                                # Restart graph from the newly inserted subgraph state
-                                # Start from the new node just created.
+                                # 從新插入的子圖狀態重新啟動圖
+                                # 從剛建立的新節點開始。
                                 if idx == 0:
                                     should_resume_workflow = True
                                     start_node_id = node.id
                         else:
-                            # Not planner but artifacts from other tasks,
-                            # continue to the next node in the workflow.
-                            # client does not get the artifact,
-                            # a summary is shown at the end of the workflow.
+                            # 不是規劃器，而是來自其他任務的產物，
+                            # 繼續工作流程中的下一個節點。
+                            # 客戶端不會取得產物，
+                            # 工作流程結束時會顯示摘要。
                             continue
-                # When the workflow needs to be resumed, do not yield partial.
+                # 當工作流程需要恢復時，不要產生部分結果。
                 if not should_resume_workflow:
-                    logger.info('No workflow resume detected, yielding chunk')
-                    # Yield partial execution
+                    logger.info('未偵測到工作流程恢復，正在產生區塊')
+                    # 產生部分執行結果
                     yield chunk
-            # The graph is complete and no updates, so okay to break from the loop.
+            # 圖已完成且無更新，因此可以跳出循環。
             if not should_resume_workflow:
                 logger.info(
-                    'Workflow iteration complete and no restart requested. Exiting main loop.'
+                    '工作流程迭代完成且未請求重新啟動。正在退出主循環。'
                 )
                 break
             else:
-                # Readable logs
-                logger.info('Restarting workflow loop.')
+                # 可讀日誌
+                logger.info('正在重新啟動工作流程循環。')
         if self.graph.state == Status.COMPLETED:
-            # All individual actions complete, now generate the summary
-            logger.info(f'Generating summary for {len(self.results)} results')
+            # 所有個別操作均已完成，現在產生摘要
+            logger.info(f'正在為 {len(self.results)} 個結果產生摘要')
             summary = await self.generate_summary()
             self.clear_state()
-            logger.info(f'Summary: {summary}')
+            logger.info(f'摘要：{summary}')
             yield {
                 'response_type': 'text',
                 'is_task_complete': True,

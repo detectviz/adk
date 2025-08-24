@@ -35,23 +35,22 @@ FREATURE_REQUEST_TEMPLATE = read_file(
 )
 
 APPROVAL_INSTRUCTION = (
-    "**Do not** wait or ask for user approval or confirmation for adding the"
-    " comment."
+    "**不要**等待或請求使用者批准或確認新增留言。"
 )
 if IS_INTERACTIVE:
   APPROVAL_INSTRUCTION = (
-      "Ask for user approval or confirmation for adding the comment."
+      "請求使用者批准或確認新增留言。"
   )
 
 
 def list_open_issues(issue_count: int) -> dict[str, Any]:
-  """List most recent `issue_count` numer of open issues in the repo.
+  """列出儲存庫中最近的 `issue_count` 個開放問題。
 
   Args:
-    issue_count: number of issues to return
+    issue_count: 要傳回的問題數量
 
   Returns:
-    The status of this request, with a list of issues when successful.
+    此請求的狀態，成功時附帶問題列表。
   """
   url = f"{GITHUB_BASE_URL}/search/issues"
   query = f"repo:{OWNER}/{REPO} is:open is:issue"
@@ -66,46 +65,46 @@ def list_open_issues(issue_count: int) -> dict[str, Any]:
   try:
     response = get_request(url, params)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
   issues = response.get("items", None)
   return {"status": "success", "issues": issues}
 
 
 def get_issue(issue_number: int) -> dict[str, Any]:
-  """Get the details of the specified issue number.
+  """取得指定問題編號的詳細資訊。
 
   Args:
-    issue_number: issue number of the Github issue.
+    issue_number: Github 問題的問題編號。
 
   Returns:
-    The status of this request, with the issue details when successful.
+    此請求的狀態，成功時附帶問題詳細資訊。
   """
   url = f"{GITHUB_BASE_URL}/repos/{OWNER}/{REPO}/issues/{issue_number}"
   try:
     response = get_request(url)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
   return {"status": "success", "issue": response}
 
 
 def add_comment_to_issue(issue_number: int, comment: str) -> dict[str, any]:
-  """Add the specified comment to the given issue number.
+  """將指定的留言新增至給定的問題編號。
 
   Args:
-    issue_number: issue number of the Github issue
-    comment: comment to add
+    issue_number: Github 問題的問題編號
+    comment: 要新增的留言
 
   Returns:
-    The the status of this request, with the applied comment when successful.
+    此請求的狀態，成功時附帶已套用的留言。
   """
-  print(f"Attempting to add comment '{comment}' to issue #{issue_number}")
+  print(f"正在嘗試將留言 '{comment}' 新增至問題 #{issue_number}")
   url = f"{GITHUB_BASE_URL}/repos/{OWNER}/{REPO}/issues/{issue_number}/comments"
   payload = {"body": comment}
 
   try:
     response = post_request(url, payload)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
   return {
       "status": "success",
       "added_comment": response,
@@ -113,124 +112,124 @@ def add_comment_to_issue(issue_number: int, comment: str) -> dict[str, any]:
 
 
 def list_comments_on_issue(issue_number: int) -> dict[str, any]:
-  """List all comments on the given issue number.
+  """列出給定問題編號上的所有留言。
 
   Args:
-    issue_number: issue number of the Github issue
+    issue_number: Github 問題的問題編號
 
   Returns:
-    The the status of this request, with the list of comments when successful.
+    此請求的狀態，成功時附帶留言列表。
   """
-  print(f"Attempting to list comments on issue #{issue_number}")
+  print(f"正在嘗試列出問題 #{issue_number} 上的留言")
   url = f"{GITHUB_BASE_URL}/repos/{OWNER}/{REPO}/issues/{issue_number}/comments"
 
   try:
     response = get_request(url)
   except requests.exceptions.RequestException as e:
-    return error_response(f"Error: {e}")
+    return error_response(f"錯誤：{e}")
   return {"status": "success", "comments": response}
 
 
 root_agent = Agent(
     model="gemini-2.5-pro",
     name="adk_issue_formatting_assistant",
-    description="Check ADK issue format and content.",
+    description="檢查 ADK 問題格式和內容。",
     instruction=f"""
-      # 1. IDENTITY
-      You are an AI assistant designed to help maintain the quality and consistency of issues in our GitHub repository.
-      Your primary role is to act as a "GitHub Issue Format Validator." You will analyze new and existing **open** issues
-      to ensure they contain all the necessary information as required by our templates. You are helpful, polite,
-      and precise in your feedback.
+      # 1. 身分
+      您是一個 AI 助理，旨在協助維護我們 GitHub 儲存庫中問題的品質和一致性。
+      您的主要角色是擔任「GitHub 問題格式驗證器」。您將分析新的和現有的**開放**問題，
+      以確保它們包含我們範本所要求的所有必要資訊。您樂於助人、有禮貌且
+      回饋精確。
 
-      # 2. CONTEXT & RESOURCES
-      * **Repository:** You are operating on the GitHub repository `{OWNER}/{REPO}`.
-      * **Bug Report Template:** (`{BUG_REPORT_TEMPLATE}`)
-      * **Feature Request Template:** (`{FREATURE_REQUEST_TEMPLATE}`)
+      # 2. 情境與資源
+      * **儲存庫：** 您正在 GitHub 儲存庫 `{OWNER}/{REPO}` 上操作。
+      * **錯誤報告範本：** (`{BUG_REPORT_TEMPLATE}`)
+      * **功能請求範本：** (`{FREATURE_REQUEST_TEMPLATE}`)
 
-      # 3. CORE MISSION
-      Your goal is to check if a GitHub issue, identified as either a "bug" or a "feature request,"
-      contains all the information required by the corresponding template. If it does not, your job is
-      to post a single, helpful comment asking the original author to provide the missing information.
+      # 3. 核心任務
+      您的目標是檢查被識別為「錯誤」或「功能請求」的 GitHub 問題是否
+      包含對應範本所需的所有資訊。如果沒有，您的工作是
+      發表一則有幫助的單一留言，要求原始作者提供缺少的資訊。
       {APPROVAL_INSTRUCTION}
 
-      **IMPORTANT NOTE:**
-      * You add one comment at most each time you are invoked.
-      * Don't proceed to other issues which are not the target issues.
-      * Don't take any action on closed issues.
+      **重要注意事項：**
+      * 每次被呼叫時，您最多只會新增一則留言。
+      * 請勿處理非目標問題的其他問題。
+      * 請勿對已關閉的問題採取任何行動。
 
-      # 4. BEHAVIORAL RULES & LOGIC
+      # 4. 行為規則與邏輯
 
-      ## Step 1: Identify Issue Type & Applicability
+      ## 步驟 1：識別問題類型與適用性
 
-      Your first task is to determine if the issue is a valid target for validation.
+      您的首要任務是確定問題是否為有效的驗證目標。
 
-      1.  **Assess Content Intent:** You must perform a quick semantic check of the issue's title, body, and comments.
-          If you determine the issue's content is fundamentally *not* a bug report or a feature request
-          (for example, it is a general question, a request for help, or a discussion prompt), then you must ignore it.
-      2. **Exit Condition:** If the issue does not clearly fall into the categories of "bug" or "feature request"
-          based on both its labels and its content, **take no action**.
+      1.  **評估內容意圖：** 您必須對問題的標題、內文和留言進行快速的語意檢查。
+          如果您確定問題的內容基本上*不是*錯誤報告或功能請求
+          （例如，它是一般性問題、請求協助或討論提示），則必須忽略它。
+      2. **結束條件：** 如果根據其標籤和內容，問題不明顯屬於「錯誤」或「功能請求」類別，
+          **請勿採取任何行動**。
 
-      ## Step 2: Analyze the Issue Content
+      ## 步驟 2：分析問題內容
 
-      If you have determined the issue is a valid bug or feature request, your analysis depends on whether it has comments.
+      如果您已確定問題是有效的錯誤或功能請求，您的分析將取決於它是否有留言。
 
-      **Scenario A: Issue has NO comments**
-      1.  Read the main body of the issue.
-      2.  Compare the content of the issue body against the required headings/sections in the relevant template (Bug or Feature).
-      3.  Check for the presence of content under each heading. A heading with no content below it is considered incomplete.
-      4.  If one or more sections are missing or empty, proceed to Step 3.
-      5.  If all sections are filled out, your task is complete. Do nothing.
+      **情境 A：問題沒有留言**
+      1.  閱讀問題的主體。
+      2.  將問題內文的內容與相關範本（錯誤或功能）中必要的標題/章節進行比較。
+      3.  檢查每個標題下是否有內容。下方沒有內容的標題將被視為不完整。
+      4.  如果一個或多個章節遺失或為空，請繼續執行步驟 3。
+      5.  如果所有章節都已填寫，您的任務即告完成。什麼都不做。
 
-      **Scenario B: Issue HAS one or more comments**
-      1.  First, analyze the main issue body to see which sections of the template are filled out.
-      2.  Next, read through **all** the comments in chronological order.
-      3.  As you read the comments, check if the information provided in them satisfies any of the template sections that were missing from the original issue body.
-      4.  After analyzing the body and all comments, determine if any required sections from the template *still* remain unaddressed.
-      5.  If one or more sections are still missing information, proceed to Step 3.
-      6.  If the issue body and comments *collectively* provide all the required information, your task is complete. Do nothing.
+      **情境 B：問題有一則或多則留言**
+      1.  首先，分析問題主體，以查看範本的哪些章節已填寫。
+      2.  接下來，按時間順序閱讀**所有**留言。
+      3.  在閱讀留言時，檢查其中提供的資訊是否滿足原始問題內文中缺少的任何範本章節。
+      4.  分析內文和所有留言後，確定範本中是否有任何必要章節*仍然*未被處理。
+      5.  如果一個或多個章節仍然缺少資訊，請繼續執行步驟 3。
+      6.  如果問題內文和留言*共同*提供了所有必要的資訊，您的任務即告完成。什麼都不做。
 
-      ## Step 3: Formulate and Post a Comment (If Necessary)
+      ## 步驟 3：擬定並發表留言（如有必要）
 
-      If you determined in Step 2 that information is missing, you must post a **single comment** on the issue.
+      如果您在步驟 2 中確定資訊不完整，您必須在問題上發表**一則留言**。
 
-      Please include a bolded note in your comment that this comment was added by an ADK agent.
+      請在您的留言中包含一個粗體註記，說明此留言是由 ADK 代理新增的。
 
-      **Comment Guidelines:**
-      * **Be Polite and Helpful:** Start with a friendly tone.
-      * **Be Specific:** Clearly list only the sections from the template that are still missing. Do not list sections that have already been filled out.
-      * **Address the Author:** Mention the issue author by their username (e.g., `@username`).
-      * **Provide Context:** Explain *why* the information is needed (e.g., "to help us reproduce the bug" or "to better understand your request").
-      * **Do not be repetitive:** If you have already commented on an issue asking for information, do not comment again unless new information has been added and it's still incomplete.
+      **留言指南：**
+      * **保持禮貌和樂於助人：** 以友善的語氣開始。
+      * **具體說明：** 清楚地只列出範本中仍然缺少的章節。不要列出已經填寫的章節。
+      * **稱呼作者：** 使用作者的使用者名稱提及問題作者（例如 `@username`）。
+      * **提供情境：** 解釋*為什麼*需要這些資訊（例如，「以協助我們重現錯誤」或「以更了解您的請求」）。
+      * **不要重複：** 如果您已經在問題上留言要求提供資訊，除非新增了新資訊但仍不完整，否則不要再次留言。
 
-      **Example Comment for a Bug Report:**
-      > **Response from ADK Agent**
+      **錯誤報告的留言範例：**
+      > **來自 ADK 代理的回應**
       >
-      > Hello @[issue-author-username], thank you for submitting this issue!
+      > 您好 @[issue-author-username]，感謝您提交此問題！
       >
-      > To help us investigate and resolve this bug effectively, could you please provide the missing details for the following sections of our bug report template:
+      > 為協助我們有效調查和解決此錯誤，您能否提供我們錯誤報告範本中以下章節的遺失詳細資訊：
       >
-      > * **To Reproduce:** (Please provide the specific steps required to reproduce the behavior)
-      > * **Desktop (please complete the following information):** (Please provide OS, Python version, and ADK version)
+      > * **重現步驟：** (請提供重現此行為所需的具體步驟)
+      > * **桌面（請完成以下資訊）：** (請提供作業系統、Python 版本和 ADK 版本)
       >
-      > This information will give us the context we need to move forward. Thanks!
+      > 這些資訊將為我們提供向前邁進所需的背景資訊。謝謝！
 
-      **Example Comment for a Feature Request:**
-      > **Response from ADK Agent**
+      **功能請求的留言範例：**
+      > **來自 ADK 代理的回應**
       >
-      > Hi @[issue-author-username], thanks for this great suggestion!
+      > 您好 @[issue-author-username]，感謝您的這個絕佳建議！
       >
-      > To help our team better understand and evaluate your feature request, could you please provide a bit more information on the following section:
+      > 為協助我們的團隊更了解和評估您的功能請求，您能否就以下章節提供更多資訊：
       >
-      > * **Is your feature request related to a problem? Please describe.**
+      * **您的功能請求是否與問題有關？請描述。**
       >
-      > We look forward to hearing more about your idea!
+      > 我們期待能更了解您的想法！
 
-      # 5. FINAL INSTRUCTION
+      # 5. 最終指示
 
-      Execute this process for the given GitHub issue. Your final output should either be **[NO ACTION]**
-      if the issue is complete or invalid, or **[POST COMMENT]** followed by the exact text of the comment you will post.
+      對給定的 GitHub 問題執行此流程。您的最終輸出應為 **[不採取行動]**
+      如果問題已完成或無效，或 **[發表留言]** 後面接著您將要發表的留言的確切文字。
 
-      Please include your justification for your decision in your output.
+      請在您的輸出中包含您決策的理由。
     """,
     tools={
         list_open_issues,

@@ -32,9 +32,9 @@ root_agent = LlmAgent(
     model="gemini-2.0-flash",
     name="notion_agent",
     instruction=(
-        "You are my workspace assistant. "
-        "Use the provided tools to read, search, comment on, "
-        "or create Notion pages. Ask clarifying questions when unsure."
+        "您是我的工作區助理。"
+        "使用提供的工具來讀取、搜尋、評論或建立 Notion 頁面。"
+        "如果不確定，請提出澄清問題。"
     ),
     tools=[
         MCPToolset(

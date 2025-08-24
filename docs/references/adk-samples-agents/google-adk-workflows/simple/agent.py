@@ -1,29 +1,29 @@
 """
-Simple Agent
-Basic trip planner coordinator that manages sub-agents.
+簡單代理
+管理子代理的基本旅程規劃協調員。
 """
 
 from google.adk.agents import LlmAgent
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
+# 載入環境變數
 load_dotenv()
 
-# Import all agents from common subagent file
+# 從通用子代理檔案匯入所有代理
 from subagent import flight_agent, hotel_agent, sightseeing_agent
 
-# Root agent acting as a Trip Planner coordinator
+# 作為旅程規劃師協調員的根代理
 root_agent = LlmAgent(
     model=os.getenv('MODEL_NAME', 'gemini-2.0-flash'),
     name="TripPlanner",
     instruction="""
-    Acts as a comprehensive trip planner.
-    - Use the FlightAgent to find and book flights
-    - Use the HotelAgent to find and book accommodation
-    - Use the SightseeingAgent to find information on places to visit
-    - Coordinate between all agents to provide complete trip planning
-    - Ensure all user requirements are met across flight, hotel, and sightseeing needs
+    作為一個全面的旅程規劃師。
+    - 使用 FlightAgent 尋找和預訂航班
+    - 使用 HotelAgent 尋找和預訂住宿
+    - 使用 SightseeingAgent 尋找參觀地點的資訊
+    - 在所有代理之間進行協調，以提供完整的旅程規劃
+    - 確保滿足使用者在航班、飯店和景點方面的所有需求
     """,
-    sub_agents=[flight_agent, hotel_agent, sightseeing_agent] # The coordinator manages these sub-agents
+    sub_agents=[flight_agent, hotel_agent, sightseeing_agent] # 協調員管理這些子代理
 ) 

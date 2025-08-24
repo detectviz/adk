@@ -18,8 +18,8 @@ from google.adk.tools.toolbox_toolset import ToolboxToolset
 root_agent = Agent(
     model="gemini-2.0-flash",
     name="root_agent",
-    instruction="You are a helpful assistant",
-    # Add Toolbox tools to ADK agent
+    instruction="您是一位樂於助人的助理",
+    # 將工具箱工具新增至 ADK 代理
     tools=[
         ToolboxToolset(
             server_url="http://127.0.0.1:5000", toolset_name="my-toolset"

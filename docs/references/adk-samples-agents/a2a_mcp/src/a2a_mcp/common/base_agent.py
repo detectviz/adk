@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class BaseAgent(BaseModel, ABC):
-    """Base class for agents."""
+    """代理的基礎類別。"""
 
     model_config = {
         'arbitrary_types_allowed': True,
@@ -13,11 +13,11 @@ class BaseAgent(BaseModel, ABC):
     }
 
     agent_name: str = Field(
-        description='The name of the agent.',
+        description='代理的名稱。',
     )
 
     description: str = Field(
-        description="A brief description of the agent's purpose.",
+        description="代理用途的簡要說明。",
     )
 
-    content_types: list[str] = Field(description='Supported content types.')
+    content_types: list[str] = Field(description='支援的內容類型。')

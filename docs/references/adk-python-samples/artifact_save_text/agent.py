@@ -19,7 +19,7 @@ from google.genai import types
 
 
 async def log_query(tool_context: ToolContext, query: str):
-  """Saves the provided query string as a 'text/plain' artifact named 'query'."""
+  """將提供的查詢字串儲存為名為 'query' 的 'text/plain' 產物。"""
   query_bytes = query.encode('utf-8')
   artifact_part = types.Part(
       inline_data=types.Blob(mime_type='text/plain', data=query_bytes)
@@ -30,13 +30,13 @@ async def log_query(tool_context: ToolContext, query: str):
 root_agent = Agent(
     model='gemini-2.0-flash',
     name='log_agent',
-    description='Log user query.',
-    instruction="""Always log the user query and reply "kk, I've logged."
+    description='記錄使用者查詢。',
+    instruction="""務必記錄使用者查詢並回覆「好的，我已經記錄下來了。」
     """,
     tools=[log_query],
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),

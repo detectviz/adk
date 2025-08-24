@@ -1,20 +1,20 @@
-# Notion MCP Agent
+# Notion MCP 代理 (Agent)
 
-This is an agent that is using Notion MCP tool to call Notion API. And it demonstrate how to pass in the Notion API key.
+這是一個使用 Notion MCP 工具呼叫 Notion API 的代理 (agent)。它示範了如何傳入 Notion API 金鑰。
 
-Follow below instruction to use it:
+請依照以下說明使用：
 
-* Follow the installation instruction in below page to get an API key for Notion API:
+* 依照以下頁面中的安裝說明取得 Notion API 的 API 金鑰：
 https://www.npmjs.com/package/@notionhq/notion-mcp-server
 
-* Set the environment variable `NOTION_API_KEY` to the API key you obtained in the previous step.
+* 將環境變數 `NOTION_API_KEY` 設定為您在上一步中取得的 API 金鑰。
 
 ```bash
-export NOTION_API_KEY=<your_notion_api_key>
+export NOTION_API_KEY=<您的_notion_api_金鑰>
 ```
 
-* Run the agent in ADK Web UI
+* 在 ADK Web UI 中執行代理 (agent)
 
-* Send below queries:
-  * What can you do for me ?
-  * Seach `XXXX` in my pages.
+* 傳送以下查詢：
+  * 你能為我做什麼？
+  * 在我的頁面中搜尋 `XXXX`。

@@ -48,7 +48,7 @@ async def main():
     content = types.Content(
         role='user', parts=[types.Part.from_text(text=new_message)]
     )
-    print('** User says:', content.model_dump(exclude_none=True))
+    print('** 使用者說：', content.model_dump(exclude_none=True))
     async for event in runner.run_async(
         user_id=user_id_1,
         session_id=session.id,
@@ -58,18 +58,17 @@ async def main():
         print(f'** {event.author}: {event.content.parts[0].text}')
 
   start_time = time.time()
-  print('Start time:', start_time)
+  print('開始時間：', start_time)
   print('------------------------------------')
-  await run_prompt(session_11, 'Hi, introduce yourself.')
+  await run_prompt(session_11, '你好，請介紹一下你自己。')
   await run_prompt(
       session_11,
-      'Run the following request 10 times: roll a die with 100 sides and check'
-      ' if it is prime',
+      '執行以下請求 10 次：擲一個 100 面的骰子並檢查它是否是質數',
   )
   end_time = time.time()
   print('------------------------------------')
-  print('End time:', end_time)
-  print('Total time:', end_time - start_time)
+  print('結束時間：', end_time)
+  print('總時間：', end_time - start_time)
 
 
 if __name__ == '__main__':

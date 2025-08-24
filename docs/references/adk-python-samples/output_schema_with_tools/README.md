@@ -1,22 +1,22 @@
-# Output Schema with Tools Sample Agent
+# 帶有工具的輸出結構 (Output Schema) 範例代理
 
-This sample demonstrates how to use structured output (`output_schema`) alongside other tools in an ADK agent. Previously, this combination was not allowed, but now it's supported through a special processor that handles the interaction.
+此範例示範如何在 ADK 代理中將結構化輸出 (`output_schema`) 與其他工具一起使用。以前不允許這種組合，但現在透過處理互動的特殊處理器支援這種組合。
 
-## How it Works
+## 運作方式
 
-The agent combines:
-- **Tools**: `search_wikipedia` and `get_current_year` for gathering information
-- **Structured Output**: `PersonInfo` schema to ensure consistent response format
+代理結合了：
+- **工具**：用於收集資訊的 `search_wikipedia` 和 `get_current_year`
+- **結構化輸出 (Structured Output)**：`PersonInfo` 結構 (schema) 以確保一致的回應格式
 
-When both `output_schema` and `tools` are specified:
-1. ADK automatically adds a special `set_model_response` tool
-2. The model can use the regular tools for information gathering
-3. For the final response, the model uses `set_model_response` with structured data
-4. ADK extracts and validates the structured response
+當同時指定 `output_schema` 和 `tools` 時：
+1. ADK 會自動新增一個特殊的 `set_model_response` 工具
+2. 模型可以使用常規工具進行資訊收集
+3. 對於最終回應，模型會使用帶有結構化資料的 `set_model_response`
+4. ADK 會擷取並驗證結構化回應
 
-## Expected Response Format
+## 預期回應格式
 
-The agent will return information in this structured format for user query "Tell me about Albert Einstein":
+對於使用者查詢「告訴我關於愛因斯坦的資訊」，代理將以此結構化格式傳回資訊：
 
 ```json
 {
@@ -28,9 +28,9 @@ The agent will return information in this structured format for user query "Tell
 }
 ```
 
-## Key Features Demonstrated
+## 主要功能展示
 
-1. **Tool Usage**: Agent can search Wikipedia and get current year
-2. **Structured Output**: Response follows strict PersonInfo schema
-3. **Validation**: ADK validates the response matches the schema
-4. **Flexibility**: Works with any combination of tools and output schemas
+1. **工具使用**：代理可以搜尋維基百科並取得目前年份
+2. **結構化輸出 (Structured Output)**：回應遵循嚴格的 PersonInfo 結構 (schema)
+3. **驗證**：ADK 會驗證回應是否符合結構 (schema)
+4. **靈活性**：適用於任何工具和輸出結構 (schema) 的組合

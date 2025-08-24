@@ -1,25 +1,24 @@
-# Sample Agent to demo session state persistence.
+# 用於展示會話狀態持續性的範例代理。
 
-## Lifecycle of session state
+## 會話狀態的生命週期
 
-After assigning a state using the context object (e.g.
-`tool_context.state['log_query_var'] = 'log_query_var_value'`):
+在使用上下文物件指派狀態後（例如
+`tool_context.state['log_query_var'] = 'log_query_var_value'`）：
 
-* The state is available for use in a later callback.
-* Once the resulting event is processed by the runner and appneded in the
-  session, the state will be also persisted in the session.
+* 該狀態可在稍後的回呼中使用。
+* 一旦產生的事件由執行器處理並附加到會話中，該狀態也將被持續儲存在會話中。
 
-This sample agent is for demonstrating the aforementioned behavior.
+此範例代理旨在展示前述行為。
 
-## Run the agent
+## 執行代理
 
-Run below command:
+執行以下指令：
 
 ```bash
 $ adk run contributing/samples/session_state_agent --replay contributing/samples/session_state_agent/input.json
 ```
 
-And you should see below output:
+您應該會看到以下輸出：
 
 ```bash
 [user]: hello world!
@@ -47,20 +46,17 @@ And you should see below output:
 ============================================================
 ```
 
-## Detailed Explanation
+## 詳細說明
 
-As rule of thumb, to read and write session state, user should assume the
-state is available after writing via the context object
-(`tool_context`, `callback_context` or `readonly_context`).
+根據經驗，要讀取和寫入會話狀態，使用者應假設狀態在透過上下文物件（`tool_context`、`callback_context` 或 `readonly_context`）寫入後即可用。
 
-### Current Behavior
+### 目前行為
 
-The current behavior of pesisting states are:
+目前持續儲存狀態的行為是：
 
-* for `before_agent_callback`: state delta will be persisted after all callbacks are processed.
-* for `before_model_callback`: state delta will be persisted with the final LlmResponse,
-  aka. after `after_model_callback` is processed.
-* for `after_model_callback`: state delta will be persisted together with the event of LlmResponse.
-* for `after_agent_callback`: state delta will be persisted after all callbacks are processed.
+* 對於 `before_agent_callback`：狀態差異將在所有回呼處理完畢後持續儲存。
+* 對於 `before_model_callback`：狀態差異將與最終的 LlmResponse 一起持續儲存，即在 `after_model_callback` 處理完畢後。
+* 對於 `after_model_callback`：狀態差異將與 LlmResponse 的事件一起持續儲存。
+* 對於 `after_agent_callback`：狀態差異將在所有回呼處理完畢後持續儲存。
 
-**NOTE**: the current behavior is considered implementation detail and may be changed later. **DO NOT** rely on it.
+**注意**：目前的行為被視為實作細節，日後可能會變更。**請勿**依賴它。

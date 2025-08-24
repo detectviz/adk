@@ -1,13 +1,13 @@
-# Config-based Agent Sample - Sequential Workflow
+# 基於設定檔的代理 (Agent) 範例 - 循序工作流程
 
-A multi-agent setup with a sequential workflow.
+一個具有循序工作流程的多代理 (multi-agent) 設定。
 
-The whole process is:
+整個過程是：
 
-1. An agent backed by a cheap and fast model to write initial version.
-2. An agent backed by a smarter and a little more expenstive to review the code.
-3. An final agent backed by the smartest and slowest model to write the final revision.
+1. 一個由便宜且快速的模型支援的代理 (agent)，用於撰寫初始版本。
+2. 一個由更聰明且稍微昂貴的模型支援的代理 (agent)，用於審查程式碼。
+3. 一個由最聰明且最慢的模型支援的最終代理 (agent)，用於撰寫最終修訂版。
 
-Sample queries:
+範例查詢：
 
-> Write a quicksort method in python
+> 用 python 寫一個快速排序法

@@ -1,126 +1,126 @@
-# A2A Human-in-the-Loop Sample Agent
+# A2A 人工介入範例代理
 
-This sample demonstrates the **Agent-to-Agent (A2A)** architecture with **Human-in-the-Loop** workflows in the Agent Development Kit (ADK). The sample implements a reimbursement processing agent that automatically handles small expenses while requiring remote agent to process for larger amounts. The remote agent will require a human approval for large amounts, thus surface this request to local agent and human interacting with local agent can approve the request.
+此範例展示了代理開發套件 (Agent Development Kit, ADK) 中的 **代理對代理 (Agent-to-Agent, A2A)** 架構與 **人工介入 (Human-in-the-Loop)** 工作流程。此範例實作了一個報銷處理代理，該代理會自動處理小額費用，但對於較大金額則需要遠端代理進行處理。遠端代理將需要人工批准大額款項，因此會將此請求提交給本地代理，與本地代理互動的人員可以批准該請求。
 
-## Overview
+## 總覽
 
-The A2A Human-in-the-Loop sample consists of:
+A2A 人工介入範例包含：
 
-- **Root Agent** (`root_agent`): The main reimbursement agent that handles expense requests and delegates approval to remote Approval Agent for large amounts
-- **Approval Agent** (`approval_agent`): A remote A2A agent that handles the human approval process via  long-running tools (which implements asynchronous approval workflows that can pause execution and wait for human input), this agent is running on a separate A2A server
+- **根代理 (Root Agent)** (`root_agent`)：處理費用請求並將大額款項的批准委派給遠端批准代理的主要報銷代理。
+- **批准代理 (Approval Agent)** (`approval_agent`)：一個遠端的 A2A 代理，透過長時間執行的工具 (long-running tools) 處理人工批准流程（該工具實作了可以暫停執行並等待人工輸入的非同步批准工作流程），此代理在一個獨立的 A2A 伺服器上執行。
 
 
-## Architecture
+## 架構
 
 ```
 ┌─────────────────┐    ┌────────────────────┐    ┌──────────────────┐
-│   Human Manager │───▶│   Root Agent       │───▶│   Approval Agent │
-│   (External)    │    │    (Local)         │    │  (Remote A2A)    │
+│   人工經理      │───▶│   根代理           │───▶│   批准代理       │
+│   (外部)        │    │    (本地)          │    │  (遠端 A2A)      │
 │                 │    │                    │    │ (localhost:8001) │
-│   Approval UI   │◀───│                    │◀───│                  │
+│   批准 UI       │◀───│                    │◀───│                  │
 └─────────────────┘    └────────────────────┘    └──────────────────┘
 ```
 
-## Key Features
+## 主要功能
 
-### 1. **Automated Decision Making**
-- Automatically approves reimbursements under $100
-- Uses business logic to determine when human intervention is required
-- Provides immediate responses for simple cases
+### 1. **自動化決策**
+- 自動批准 100 美元以下的報銷。
+- 使用業務邏輯來決定何時需要人工介入。
+- 為簡單案例提供即時回應。
 
-### 2. **Human-in-the-Loop Workflow**
-- Seamlessly escalates high-value requests (>$100) to remote approval agent
-- Remote approval agent uses long-running tools to surface approval requests back to the root agent
-- Human managers interact directly with the root agent to approve/reject requests
+### 2. **人工介入工作流程**
+- 無縫地將高價值請求（超過 100 美元）上報給遠端批准代理。
+- 遠端批准代理使用長時間執行的工具將批准請求提交回根代理。
+- 人工經理直接與根代理互動以批准/拒絕請求。
 
-### 3. **Long-Running Tool Integration**
-- Demonstrates `LongRunningFunctionTool` for asynchronous operations
-- Shows how to handle pending states and external updates
-- Implements proper tool response handling for delayed approvals
+### 3. **長時間執行工具整合**
+- 展示了用於非同步操作的 `LongRunningFunctionTool`。
+- 說明如何處理待處理狀態和外部更新。
+- 實作了對延遲批准的正確工具回應處理。
 
-### 4. **Remote A2A Agent Communication**
-- The approval agent runs as a separate service that processes approval workflows
-- Communicates via HTTP at `http://localhost:8001/a2a/human_in_loop`
-- Surfaces approval requests back to the root agent for human interaction
+### 4. **遠端 A2A 代理通訊**
+- 批准代理作為一個獨立的服務執行，處理批准工作流程。
+- 透過 HTTP 在 `http://localhost:8001/a2a/human_in_loop` 進行通訊。
+- 將批准請求提交回根代理以進行人工互動。
 
-## Setup and Usage
+## 設定與使用
 
-### Prerequisites
+### 前提條件
 
-1. **Start the Remote Approval Agent server**:
+1. **啟動遠端批准代理伺服器**：
    ```bash
-   # Start the remote a2a server that serves the human-in-the-loop approval agent on port 8001
+   # 啟動遠端 a2a 伺服器，該伺вер在 8001 連接埠上提供人工介入批准代理服務
    adk api_server --a2a --port 8001 contributing/samples/a2a_human_in_loop/remote_a2a
    ```
 
-2. **Run the Main Agent**:
+2. **執行主要代理**：
    ```bash
-   # In a separate terminal, run the adk web server
+   # 在另一個終端機中，執行 adk web 伺服器
    adk web contributing/samples/
    ```
 
-### Example Interactions
+### 互動範例
 
-Once both services are running, you can interact with the root agent through the approval workflow:
+當兩個服務都執行後，您可以透過批准工作流程與根代理進行互動：
 
-**Automatic Approval (Under $100):**
+**自動批准 (100 美元以下)：**
 ```
-User: Please reimburse $50 for meals
-Agent: I'll process your reimbursement request for $50 for meals. Since this amount is under $100, I can approve it automatically.
-Agent: ✅ Reimbursement approved and processed: $50 for meals
-```
-
-**Human Approval Required (Over $100):**
-```
-User: Please reimburse $200 for conference travel
-Agent: I'll process your reimbursement request for $200 for conference travel. Since this amount exceeds $100, I need to get manager approval.
-Agent: 🔄 Request submitted for approval (Ticket: reimbursement-ticket-001). Please wait for manager review.
-[Human manager interacts with root agent to approve the request]
-Agent: ✅ Great news! Your reimbursement has been approved by the manager. Processing $200 for conference travel.
+User: 請報銷 50 美元的餐費
+Agent: 我將處理您 50 美元的餐費報銷請求。由於此金額低於 100 美元，我可以自動批准。
+Agent: ✅ 報銷已批准並處理：50 美元餐費
 ```
 
-## Code Structure
+**需要人工批准 (超過 100 美元)：**
+```
+User: 請報銷 200 美元的會議差旅費
+Agent: 我將處理您 200 美元的會議差旅費報銷請求。由於此金額超過 100 美元，我需要獲得經理批准。
+Agent: 🔄 請求已提交以供批准 (工單：reimbursement-ticket-001)。請等待經理審核。
+[人工經理與根代理互動以批准請求]
+Agent: ✅ 好消息！您的報銷已獲經理批准。正在處理 200 美元的會議差旅費。
+```
 
-### Main Agent (`agent.py`)
+## 程式碼結構
 
-- **`reimburse(purpose: str, amount: float)`**: Function tool for processing reimbursements
-- **`approval_agent`**: Remote A2A agent configuration for human approval workflows
-- **`root_agent`**: Main reimbursement agent with automatic/manual approval logic
+### 主要代理 (`agent.py`)
 
-### Remote Approval Agent (`remote_a2a/human_in_loop/`)
+- **`reimburse(purpose: str, amount: float)`**：用於處理報銷的函式工具。
+- **`approval_agent`**：用於人工批准工作流程的遠端 A2A 代理設定。
+- **`root_agent`**：具有自動/手動批准邏輯的主要報銷代理。
 
-- **`agent.py`**: Implementation of the approval agent with long-running tools
-- **`agent.json`**: Agent card of the A2A agent
+### 遠端批准代理 (`remote_a2a/human_in_loop/`)
 
-- **`ask_for_approval()`**: Long-running tool that handles approval requests
+- **`agent.py`**：具有長時間執行工具的批准代理的實作。
+- **`agent.json`**：A2A 代理的代理卡 (Agent Card)。
 
-## Long-Running Tool Workflow
+- **`ask_for_approval()`**：處理批准請求的長時間執行工具。
 
-The human-in-the-loop process follows this pattern:
+## 長時間執行工具工作流程
 
-1. **Initial Call**: Root agent delegates approval request to remote approval agent for amounts >$100
-2. **Pending Response**: Remote approval agent returns immediate response with `status: "pending"` and ticket ID and serface the approval request to root agent
-3. **Agent Acknowledgment**: Root agent informs user about pending approval status
-4. **Human Interaction**: Human manager interacts with root agent to review and approve/reject the request
-5. **Updated Response**: Root agent receives updated tool response with approval decision and send it to remote agent
-6. **Final Action**: Remote agent processes the approval and completes the reimbursement and send the result to root_agent
+人工介入流程遵循以下模式：
 
-## Extending the Sample
+1. **初始呼叫**：對於金額超過 100 美元的請求，根代理將批准請求委派給遠端批准代理。
+2. **待處理回應**：遠端批准代理返回狀態為 `status: "pending"` 的即時回應以及工單 ID，並將批准請求提交給根代理。
+3. **代理確認**：根代理通知使用者待批准狀態。
+4. **人工互動**：人工經理與根代理互動以審核並批准/拒絕請求。
+5. **更新後的回應**：根代理收到帶有批准決策的更新後工具回應，並將其傳送給遠端代理。
+6. **最終操作**：遠端代理處理批准並完成報銷，然後將結果傳送給 root_agent。
 
-You can extend this sample by:
+## 擴充範例
 
-- Adding more complex approval hierarchies (multiple approval levels)
-- Implementing different approval rules based on expense categories
-- Creating additional remote agent for budget checking or policy validation
-- Adding notification systems for approval status updates
-- Integrating with external approval systems or databases
-- Implementing approval timeouts and escalation procedures
+您可以透過以下方式擴充此範例：
 
-## Deployment to Other Environments
+- 新增更複雜的批准層級（多級批准）。
+- 根據費用類別實作不同的批准規則。
+- 建立額外的遠端代理以進行預算檢查或政策驗證。
+- 新增批准狀態更新的通知系統。
+- 與外部批准系統或資料庫整合。
+- 實作批准逾時和上報程序。
 
-When deploying the remote approval A2A agent to different environments (e.g., Cloud Run, different hosts/ports), you **must** update the `url` field in the agent card JSON file:
+## 部署至其他環境
 
-### Local Development
+當將遠端批准 A2A 代理部署到不同環境（例如 Cloud Run、不同的主機/連接埠）時，您 **必須** 更新代理卡 JSON 檔案中的 `url` 欄位：
+
+### 本地開發
 ```json
 {
   "url": "http://localhost:8001/a2a/human_in_loop",
@@ -128,7 +128,7 @@ When deploying the remote approval A2A agent to different environments (e.g., Cl
 }
 ```
 
-### Cloud Run Example
+### Cloud Run 範例
 ```json
 {
   "url": "https://your-approval-service-abc123-uc.a.run.app/a2a/human_in_loop",
@@ -136,7 +136,7 @@ When deploying the remote approval A2A agent to different environments (e.g., Cl
 }
 ```
 
-### Custom Host/Port Example
+### 自訂主機/連接埠範例
 ```json
 {
   "url": "https://your-domain.com:9000/a2a/human_in_loop",
@@ -144,24 +144,24 @@ When deploying the remote approval A2A agent to different environments (e.g., Cl
 }
 ```
 
-**Important:** The `url` field in `remote_a2a/human_in_loop/agent.json` must point to the actual RPC endpoint where your remote approval A2A agent is deployed and accessible.
+**重要事項：** `remote_a2a/human_in_loop/agent.json` 中的 `url` 欄位必須指向您遠端批准 A2A 代理實際部署且可存取的 RPC 端點。
 
-## Troubleshooting
+## 疑難排解
 
-**Connection Issues:**
-- Ensure the local ADK web server is running on port 8000
-- Ensure the remote A2A server is running on port 8001
-- Check that no firewall is blocking localhost connections
-- **Verify the `url` field in `remote_a2a/human_in_loop/agent.json` matches the actual deployed location of your remote A2A server**
-- Verify the agent card URL passed to RemoteA2AAgent constructor matches the running A2A server
+**連線問題：**
+- 確保本地 ADK Web 伺服器在 8000 連接埠上執行。
+- 確保遠端 A2A 伺б器在 8001 連接埠上執行。
+- 檢查是否有防火牆阻擋 localhost 連線。
+- **確認 `remote_a2a/human_in_loop/agent.json` 中的 `url` 欄位與您遠端 A2A 伺服器的實際部署位置相符。**
+- 確認傳遞給 `RemoteA2AAgent` 建構函式的代理卡 URL 與正在執行的 A2A 伺服器相符。
 
-**Agent Not Responding:**
-- Check the logs for both the local ADK web server on port 8000 and remote A2A server on port 8001
-- Verify the agent instructions are clear and unambiguous
-- Ensure long-running tool responses are properly formatted with matching IDs
-- **Double-check that the RPC URL in the agent.json file is correct and accessible**
+**代理無回應：**
+- 檢查 8000 連接埠上的本地 ADK Web 伺服器與 8001 連接埠上的遠端 A2A 伺服器的日誌。
+- 確認代理的指令清晰明確。
+- 確保長時間執行工具的回應格式正確且具有匹配的 ID。
+- **再次檢查 `agent.json` 檔案中的 RPC URL 是否正確且可存取。**
 
-**Approval Workflow Issues:**
-- Verify that updated tool responses use the same `id` and `name` as the original function call
-- Check that the approval status is correctly updated in the tool response
-- Ensure the human approval process is properly simulated or integrated
+**批准工作流程問題：**
+- 確認更新後的工具回應使用與原始函式呼叫相同的 `id` 和 `name`。
+- 檢查工具回應中的批准狀態是否正確更新。
+- 確保人工批准流程已正確模擬或整合。

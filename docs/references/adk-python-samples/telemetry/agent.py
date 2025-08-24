@@ -22,13 +22,13 @@ from google.genai import types
 
 
 def roll_die(sides: int, tool_context: ToolContext) -> int:
-  """Roll a die and return the rolled result.
+  """擲一個骰子並傳回擲出的結果。
 
   Args:
-    sides: The integer number of sides the die has.
+    sides: 骰子擁有的整數面數。
 
   Returns:
-    An integer of the result of rolling the die.
+    擲骰子結果的整數。
   """
   result = random.randint(1, sides)
   if not 'rolls' in tool_context.state:
@@ -39,13 +39,13 @@ def roll_die(sides: int, tool_context: ToolContext) -> int:
 
 
 async def check_prime(nums: list[int]) -> str:
-  """Check if a given list of numbers are prime.
+  """檢查給定的數字清單是否為質數。
 
   Args:
-    nums: The list of numbers to check.
+    nums: 要檢查的數字清單。
 
   Returns:
-    A str indicating which number is prime.
+    一個字串，指出哪個數字是質數。
   """
   primes = set()
   for number in nums:
@@ -60,9 +60,9 @@ async def check_prime(nums: list[int]) -> str:
     if is_prime:
       primes.add(number)
   return (
-      'No prime numbers found.'
+      '找不到質數。'
       if not primes
-      else f"{', '.join(str(num) for num in primes)} are prime numbers."
+      else f"{', '.join(str(num) for num in primes)} 是質數。"
   )
 
 
@@ -70,25 +70,24 @@ root_agent = Agent(
     model='gemini-2.0-flash',
     name='data_processing_agent',
     description=(
-        'hello world agent that can roll a dice of 8 sides and check prime'
-        ' numbers.'
+        '可以擲一個 8 面骰子並檢查質數的 hello world 代理。'
     ),
     instruction="""
-      You roll dice and answer questions about the outcome of the dice rolls.
-      You can roll dice of different sizes.
-      You can use multiple tools in parallel by calling functions in parallel(in one request and in one round).
-      It is ok to discuss previous dice roles, and comment on the dice rolls.
-      When you are asked to roll a die, you must call the roll_die tool with the number of sides. Be sure to pass in an integer. Do not pass in a string.
-      You should never roll a die on your own.
-      When checking prime numbers, call the check_prime tool with a list of integers. Be sure to pass in a list of integers. You should never pass in a string.
-      You should not check prime numbers before calling the tool.
-      When you are asked to roll a die and check prime numbers, you should always make the following two function calls:
-      1. You should first call the roll_die tool to get a roll. Wait for the function response before calling the check_prime tool.
-      2. After you get the function response from roll_die tool, you should call the check_prime tool with the roll_die result.
-        2.1 If user asks you to check primes based on previous rolls, make sure you include the previous rolls in the list.
-      3. When you respond, you must include the roll_die result from step 1.
-      You should always perform the previous 3 steps when asking for a roll and checking prime numbers.
-      You should not rely on the previous history on prime results.
+      您擲骰子並回答有關擲骰結果的問題。
+      您可以擲不同大小的骰子。
+      您可以透過平行呼叫函式（在一個請求和一個回合中）來平行使用多個工具。
+      可以討論先前的擲骰角色，並對擲骰發表評論。
+      當被要求擲骰子時，您必須使用面數呼叫 roll_die 工具。請務必傳入一個整數。請勿傳入字串。
+      您絕不應該自己擲骰子。
+      檢查質數時，請使用整數清單呼叫 check_prime 工具。請務必傳入一個整數清單。您絕不應該傳入字串。
+      在呼叫工具之前，您不應該檢查質數。
+      當被要求擲骰子並檢查質數時，您應該始終進行以下兩個函式呼叫：
+      1. 您應該先呼叫 roll_die 工具來擲骰子。在呼叫 check_prime 工具之前，請等待函式回應。
+      2. 從 roll_die 工具取得函式回應後，您應該使用 roll_die 結果呼叫 check_prime 工具。
+        2.1 如果使用者要求您根據先前的擲骰結果檢查質數，請務必將先前的擲骰結果包含在清單中。
+      3. 當您回應時，您必須包含步驟 1 中的 roll_die 結果。
+      當要求擲骰子和檢查質數時，您應該始終執行前面的 3 個步驟。
+      您不應該依賴先前的質數結果歷史記錄。
     """,
     tools=[
         roll_die,
@@ -101,7 +100,7 @@ root_agent = Agent(
     # ),
     generate_content_config=types.GenerateContentConfig(
         safety_settings=[
-            types.SafetySetting(  # avoid false alarm about rolling dice.
+            types.SafetySetting(  # 避免關於擲骰子的誤報。
                 category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 threshold=types.HarmBlockThreshold.OFF,
             ),

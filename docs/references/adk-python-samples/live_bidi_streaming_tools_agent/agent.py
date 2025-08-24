@@ -23,59 +23,58 @@ from google.genai import types as genai_types
 
 
 async def monitor_stock_price(stock_symbol: str) -> AsyncGenerator[str, None]:
-  """This function will monitor the price for the given stock_symbol in a continuous, streaming and asynchronously way."""
-  print(f"Start monitor stock price for {stock_symbol}!")
+  """此函式將以連續、串流和非同步的方式監控給定 stock_symbol 的價格。"""
+  print(f"開始監控 {stock_symbol} 的股價！")
 
-  # Let's mock stock price change.
+  # 讓我們模擬股價變化。
   await asyncio.sleep(4)
-  price_alert1 = f"the price for {stock_symbol} is 300"
+  price_alert1 = f"{stock_symbol} 的價格是 300"
   yield price_alert1
   print(price_alert1)
 
   await asyncio.sleep(4)
-  price_alert1 = f"the price for {stock_symbol} is 400"
+  price_alert1 = f"{stock_symbol} 的價格是 400"
   yield price_alert1
   print(price_alert1)
 
   await asyncio.sleep(20)
-  price_alert1 = f"the price for {stock_symbol} is 900"
+  price_alert1 = f"{stock_symbol} 的價格是 900"
   yield price_alert1
   print(price_alert1)
 
   await asyncio.sleep(20)
-  price_alert1 = f"the price for {stock_symbol} is 500"
+  price_alert1 = f"{stock_symbol} 的價格是 500"
   yield price_alert1
   print(price_alert1)
 
 
-# for video streaming, `input_stream: LiveRequestQueue` is required and reserved key parameter for ADK to pass the video streams in.
+# 對於視訊串流，`input_stream: LiveRequestQueue` 是 ADK 傳入視訊串流所需的保留關鍵字參數。
 async def monitor_video_stream(
     input_stream: LiveRequestQueue,
 ) -> AsyncGenerator[str, None]:
-  """Monitor how many people are in the video streams."""
-  print("start monitor_video_stream!")
+  """監控視訊串流中有多少人。"""
+  print("開始 monitor_video_stream！")
   client = Client(vertexai=False)
   prompt_text = (
-      "Count the number of people in this image. Just respond with a numeric"
-      " number."
+      "計算此影像中的人數。僅回應一個數值。"
   )
   last_count = None
   while True:
     last_valid_req = None
-    print("Start monitoring loop")
+    print("開始監控迴圈")
 
-    # use this loop to pull the latest images and discard the old ones
+    # 使用此迴圈來提取最新影像並捨棄舊影像
     while input_stream._queue.qsize() != 0:
       live_req = await input_stream.get()
 
       if live_req.blob is not None and live_req.blob.mime_type == "image/jpeg":
         last_valid_req = live_req
 
-    # If we found a valid image, process it
+    # 如果我們找到有效的影像，就處理它
     if last_valid_req is not None:
-      print("Processing the most recent frame from the queue")
+      print("正在處理佇列中最新的影格")
 
-      # Create an image part using the blob's data and mime type
+      # 使用 blob 的資料和 mime 類型建立影像部分
       image_part = genai_types.Part.from_bytes(
           data=last_valid_req.blob.data, mime_type=last_valid_req.blob.mime_type
       )
@@ -85,15 +84,13 @@ async def monitor_video_stream(
           parts=[image_part, genai_types.Part.from_text(text=prompt_text)],
       )
 
-      # Call the model to generate content based on the provided image and prompt
+      # 呼叫模型以根據提供的影像和提示產生內容
       response = client.models.generate_content(
           model="gemini-2.0-flash-exp",
           contents=contents,
           config=genai_types.GenerateContentConfig(
               system_instruction=(
-                  "You are a helpful video analysis assistant. You can count"
-                  " the number of people in this image or video. Just respond"
-                  " with a numeric number."
+                  "您是一位樂於助人的視訊分析助理。您可以計算此影像或視訊中的人數。僅回應一個數值。"
               )
           ),
       )
@@ -102,37 +99,36 @@ async def monitor_video_stream(
       elif last_count != response.candidates[0].content.parts[0].text:
         last_count = response.candidates[0].content.parts[0].text
         yield response
-        print("response:", response)
+        print("回應:", response)
 
-    # Wait before checking for new images
+    # 等待一下再檢查新影像
     await asyncio.sleep(0.5)
 
 
-# Use this exact function to help ADK stop your streaming tools when requested.
-# for example, if we want to stop `monitor_stock_price`, then the agent will
-# invoke this function with stop_streaming(function_name=monitor_stock_price).
+# 使用此確切函式來協助 ADK 在收到請求時停止您的串流工具。
+# 例如，如果我們想要停止 `monitor_stock_price`，那麼代理 (agent) 將
+# 使用 stop_streaming(function_name=monitor_stock_price) 叫用此函式。
 def stop_streaming(function_name: str):
-  """Stop the streaming
+  """停止串流
 
-  Args:
-    function_name: The name of the streaming function to stop.
+  參數：
+    function_name：要停止的串流函式的名稱。
   """
   pass
 
 
 root_agent = Agent(
-    # find supported models here: https://google.github.io/adk-docs/get-started/streaming/quickstart-streaming/
-    model="gemini-2.0-flash-live-preview-04-09",  # for Vertex project
-    # model="gemini-live-2.5-flash-preview",  # for AI studio key
+    # 在此處尋找支援的模型：https://google.github.io/adk-docs/get-started/streaming/quickstart-streaming/
+    model="gemini-2.0-flash-live-preview-04-09",  # 適用於 Vertex 專案
+    # model="gemini-live-2.5-flash-preview",  # 適用於 AI studio 金鑰
     name="video_streaming_agent",
     instruction="""
-      You are a monitoring agent. You can do video monitoring and stock price monitoring
-      using the provided tools/functions.
-      When users want to monitor a video stream,
-      You can use monitor_video_stream function to do that. When monitor_video_stream
-      returns the alert, you should tell the users.
-      When users want to monitor a stock price, you can use monitor_stock_price.
-      Don't ask too many questions. Don't be too talkative.
+      您是一個監控代理 (agent)。您可以使用提供的工具/函式進行視訊監控和股價監控。
+      當使用者想要監控視訊串流時，
+      您可以使用 monitor_video_stream 函式來執行此操作。當 monitor_video_stream
+      傳回警示時，您應該告知使用者。
+      當使用者想要監控股價時，您可以使用 monitor_stock_price。
+      不要問太多問題。不要太健談。
     """,
     tools=[
         monitor_video_stream,

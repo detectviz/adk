@@ -23,7 +23,7 @@ from google.adk.tools.application_integration_tool.application_integration_tools
 from google.adk.tools.openapi_tool.auth.auth_helpers import dict_to_auth_scheme
 from google.genai import types
 
-# Load environment variables from .env file
+# 從 .env 檔案載入環境變數
 load_dotenv()
 
 connection_name = os.getenv("CONNECTION_NAME")
@@ -41,11 +41,10 @@ oauth2_data_google_cloud = {
             "tokenUrl": "https://oauth2.googleapis.com/token",
             "scopes": {
                 "https://www.googleapis.com/auth/cloud-platform": (
-                    "View and manage your data across Google Cloud Platform"
-                    " services"
+                    "查看和管理您在 Google Cloud Platform 服務中的資料"
                 ),
                 "https://www.googleapis.com/auth/calendar.readonly": (
-                    "View your calendars"
+                    "查看您的日曆"
                 ),
             },
         }
@@ -69,8 +68,8 @@ calendar_tool = ApplicationIntegrationToolset(
     connection=connection_name,
     actions=["GET_calendars/%7BcalendarId%7D/events"],
     tool_instructions="""
-  Use this tool to list events in a calendar. Get calendarId from the user and use it in tool as following example:
-  connectorInputPayload: { "Path parameters": { "calendarId": "primary" } }. Follow the schema correctly. Note its "Path parameters" and not "Path_parameters".
+  使用此工具列出日曆中的活動。從使用者處取得 calendarId，並在工具中依照以下範例使用：
+  connectorInputPayload: { "Path parameters": { "calendarId": "primary" } }。請正確遵循結構描述。請注意是 "Path parameters" 而非 "Path_parameters"。
     """,
     auth_scheme=oauth2_scheme,
     auth_credential=auth_credential,
@@ -79,9 +78,9 @@ calendar_tool = ApplicationIntegrationToolset(
 root_agent = Agent(
     model="gemini-2.0-flash",
     name="data_processing_agent",
-    description="Agent that can list events in a calendar.",
+    description="可以列出日曆中活動的代理 (agent)。",
     instruction="""
-      Helps you with calendar related tasks.
+      協助您處理與日曆相關的任務。
     """,
     tools=calendar_tool.get_tools(),
     generate_content_config=types.GenerateContentConfig(
