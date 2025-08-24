@@ -5,14 +5,9 @@
 from typing import Optional, Dict, Any, Tuple
 import asyncio
 from google.adk.tools import agent_tool
-from google.adk.agents import (
-    SequentialAgent,
-    LlmAgent,
-    ParallelAgent,
-    BaseAgent,
-    InvocationContext,
-    LoopAgent,
-)
+from google.adk.agents.base_agent import BaseAgent
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.agents import SequentialAgent, LlmAgent, ParallelAgent, LoopAgent
 
 # --- 導入認證管理器 ---
 # 說明：導入 AuthManager 單例，用於處理所有認證和授權。
@@ -27,12 +22,13 @@ except ImportError:
 
 
 # --- 導入子代理 ---
-# 說明：從 sub_agents 模組中導入所有專家代理。
+# 說明：從 sub_agents 模듈中導入所有專家代理。
 # DiagnosticAgent 是已實作的代理，其餘為預留位置。
 from .sub_agents.diagnostic.agent import DiagnosticAgent
 from .sub_agents.remediation.agent import RemediationAgent
 from .sub_agents.postmortem.agent import PostmortemAgent
 from .sub_agents.config.agent import ConfigAgent
+from .citation_manager import SRECitationFormatter
 
 
 # --- 新增的佔位代理 (New Placeholder Agents) ---
@@ -120,11 +116,68 @@ class IterativeOptimization(LoopAgent):
         self.termination_condition=lambda ctx: ctx.state.get("slo_met", False)
 
 
-# --- 主協調器 ---
+# --- 帶引用的診斷階段 ---
 
-class SRECoordinator(SequentialAgent):
+from google.adk.agents import ParallelAgent
+
+class CitingParallelDiagnosticsAgent(BaseAgent):
     """
-    主協調器：實現一個基於工作流程的 SRE 自動化過程。
+    一個包裝代理，它運行並行的診斷流程，然後從所有子代理的工具調用
+    歷史中統一收集和格式化引用。
+    """
+    # 聲明類別屬性以符合 Pydantic 模型的要求
+    parallel_diagnostics: ParallelAgent
+    citation_formatter: SRECitationFormatter
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None, **kwargs):
+        agent_config = config or {}
+
+        # 在呼叫 super().__init__ 之前準備好欄位值
+        # 並將它們添加到 kwargs 中，以滿足 Pydantic 的驗證
+        if 'citation_formatter' not in kwargs:
+            kwargs['citation_formatter'] = SRECitationFormatter()
+
+        if 'parallel_diagnostics' not in kwargs:
+            kwargs['parallel_diagnostics'] = ParallelAgent(
+                name="ParallelDiagnostics",
+                sub_agents=[
+                    DiagnosticAgent.create_metrics_analyzer(config=agent_config),
+                    DiagnosticAgent.create_log_analyzer(config=agent_config),
+                    DiagnosticAgent.create_trace_analyzer(config=agent_config)
+                ]
+            )
+
+        super().__init__(**kwargs)
+
+    async def _run_async_impl(self, context: InvocationContext) -> None:
+        """
+        運行並行診斷，收集所有引用，並格式化最終輸出。
+        """
+        # 運行並行診斷，ADK 框架會處理事件的產生
+        final_event = await self.parallel_diagnostics.run_async(context)
+
+        if final_event is None:
+            return
+
+        citations = []
+        # 從整個對話歷史中收集引用
+        for turn in context.history:
+            if turn.role == "tool":
+                # 工具輸出是 (result, citation_info)
+                tool_output = turn.content
+                if isinstance(tool_output, tuple) and len(tool_output) == 2:
+                    citations.append(tool_output[1])
+
+        if citations:
+            formatted_citations = self.citation_formatter.format_citations(citations)
+            original_content = final_event.content or ""
+            final_event.content = f"{original_content}\n\n{formatted_citations}"
+
+# --- 主工作流程 ---
+
+class SREWorkflow(SequentialAgent):
+    """
+    主工作流程：實現一個基於工作流程的 SRE 自動化過程。
     此版本採用了更先進的架構，包括並行診斷和條件化修復調度。
     """
     # --- Pydantic 欄位宣告 ---
@@ -149,17 +202,9 @@ class SRECoordinator(SequentialAgent):
         # And the class must be configured to accept extra fields.
         # Let's try the simpler way first: declare it as a field, and call super() at the end.
 
-        # --- 階段 1: 並行診斷 ---
-        # 說明：此階段並行運行多個診斷代理，以快速收集全面的故障資訊。
-        # 這種方法大大縮短了問題分析所需的時間。
-        diagnostic_phase = ParallelAgent(
-            name="ParallelDiagnostics",
-            sub_agents=[
-                DiagnosticAgent.create_metrics_analyzer(config=agent_config),
-                DiagnosticAgent.create_log_analyzer(config=agent_config),
-                DiagnosticAgent.create_trace_analyzer(config=agent_config)
-            ]
-        )
+        # --- 階段 1: 並行診斷 (帶引用) ---
+        # 說明：此階段使用一個包裝代理來運行並行診斷，並在結束後自動收集和格式化所有引用。
+        diagnostic_phase = CitingParallelDiagnosticsAgent(name="CitingParallelDiagnostics", config=agent_config)
 
         # --- 階段 2: 條件化修復 ---
         # 說明：用新實作的 ConditionalRemediation Agent 取代了舊的基於 LLM 的調度器。
@@ -239,10 +284,10 @@ class SRECoordinator(SequentialAgent):
         return await self.run_async(ctx)
 
 
-def create_agent(config: Optional[Dict[str, Any]] = None) -> SRECoordinator:
+def create_workflow(config: Optional[Dict[str, Any]] = None) -> SREWorkflow:
     """
-    Agent 工廠函數。
-    參考 ADK 最佳實踐，提供一個標準的 Agent 實例化入口。
-    這使得 Agent 的創建和配置與其使用分離，提高了代碼的模組化程度。
+    Workflow 工廠函數。
+    參考 ADK 最佳實踐，提供一個標準的 Workflow 實例化入口。
+    這使得 Workflow 的創建和配置與其使用分離，提高了代碼的模組化程度。
     """
-    return SRECoordinator(config)
+    return SREWorkflow(config)

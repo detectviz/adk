@@ -5,6 +5,9 @@
 # 和 tools.py 中定義的工具，以執行結構化的診斷工作流程。
 
 from google.adk.agents import LlmAgent
+from google.adk.agents.base_agent import BaseAgent
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.events.event import Event
 from .tools import (
     promql_query,
     log_search,
@@ -12,6 +15,8 @@ from .tools import (
     anomaly_detection
 )
 from .prompts import DIAGNOSTIC_PROMPT
+from ...citation_manager import SRECitationFormatter
+from typing import List, Dict, Any, AsyncGenerator
 
 class DiagnosticAgent(LlmAgent):
     """
@@ -94,3 +99,43 @@ class DiagnosticAgent(LlmAgent):
             instruction=DIAGNOSTIC_PROMPT.base, # 暫時使用基礎提示
             tools=trace_tools
         )
+
+class CitingDiagnosticAgent(BaseAgent):
+    """
+    一個包裝代理，它運行一個診斷代理，然後從工具調用歷史中提取引用資訊，
+    並將格式化後的引用附加到最終的診斷報告中。
+    """
+    def __init__(self, diagnostic_agent: DiagnosticAgent, **kwargs):
+        super().__init__(**kwargs)
+        self.diagnostic_agent = diagnostic_agent
+        self.citation_formatter = SRECitationFormatter()
+
+    async def _run_async_impl(self, context: InvocationContext) -> AsyncGenerator[Event, None]:
+        """
+        運行內部診斷代理，收集引用，並格式化最終輸出。
+        """
+        final_event = None
+        # 運行內部代理並收集所有事件
+        async for event in self.diagnostic_agent.run_async(context):
+            yield event
+            if event.type == "result":
+                final_event = event
+
+        if final_event is None:
+            # 如果沒有結果事件，則不執行任何操作
+            return
+
+        citations = []
+        for turn in context.history:
+            if turn.role == "tool":
+                # 假設工具輸出是一個元組 (result, citation_info)
+                tool_output = turn.content
+                if isinstance(tool_output, tuple) and len(tool_output) == 2:
+                    # 第二個元素是引用字典
+                    citations.append(tool_output[1])
+
+        if citations:
+            formatted_citations = self.citation_formatter.format_citations(citations)
+            # 將引用附加到最終結果的內容中
+            original_content = final_event.content or ""
+            final_event.content = f"{original_content}\n\n{formatted_citations}"
