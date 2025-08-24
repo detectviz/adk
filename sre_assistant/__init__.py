@@ -23,8 +23,11 @@ from pydantic import BaseModel
 # from a2a_sdk.exceptions import ServerError, UnsupportedOperationError, ValueError
 
 # 專案內部導入
-from .agent import SRECoordinator
+from .workflow import SREWorkflow
 from .a2a.protocol import StreamingChunk
+from .config.config_manager import config_manager, SessionBackend
+from .session.firestore_task_store import FirestoreTaskStore
+
 
 # --- 模擬 ADK/A2A SDK 元件 (因為實際 SDK 不可用) ---
 # 說明：由於我們無法訪問真實的 google.adk 或 a2a_sdk，
@@ -122,7 +125,7 @@ class StreamingHandler:
 
 class SREAssistantExecutor:
     """SRE Assistant 執行器，用於處理 A2A 請求"""
-    def __init__(self, agent: SRECoordinator):
+    def __init__(self, agent: SREWorkflow):
         self.agent = agent
 
     async def execute(self, context: MockA2AContext, event_queue: MockEventQueue):
@@ -187,15 +190,33 @@ def create_agent_card(host="0.0.0.0", port=8080) -> AgentCard:
 
 # --- 應用程式設置 ---
 
-# 實例化主協調器
-# 注意：SRECoordinator 可能需要配置，此處使用默認值
-sre_agent = SRECoordinator()
+def get_task_store():
+    """根據配置創建並返回對應的 TaskStore 實例。"""
+    if config_manager.config.session_backend == SessionBackend.FIRESTORE:
+        project_id = config_manager.config.firestore_project_id
+        if not project_id:
+            # 在 GCP 環境中，我們可以嘗試自動檢測 Project ID
+            project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+            if not project_id:
+                raise ValueError(
+                    "Firestore backend requires 'firestore_project_id' in config "
+                    "or GOOGLE_CLOUD_PROJECT environment variable."
+                )
+        return FirestoreTaskStore(
+            project_id=project_id,
+            collection=config_manager.config.firestore_collection
+        )
+    else: # 默認返回 InMemoryTaskStore
+        return InMemoryTaskStore()
+
+# 實例化主工作流程
+sre_agent = SREWorkflow(config=config_manager.config.model_dump())
 
 # 組合 A2A 服務
 executor = SREAssistantExecutor(agent=sre_agent)
 request_handler = DefaultRequestHandler(
     agent_executor=executor,
-    task_store=InMemoryTaskStore(),
+    task_store=get_task_store(),
 )
 server = MockA2AStarletteApplication(
     agent_card=create_agent_card(),

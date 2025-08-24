@@ -18,26 +18,26 @@
   - [x] 參考：`docs/references/adk-python-samples/parallel_functions/` - 並行執行模式
 
 ### 認證授權系統
-- **[ ] 認證授權工廠模式設計**：[auth-factory.md](auth-factory.md)
-  - [ ] 實作 `AuthProvider` 介面
-  - [ ] 整合 IAM、OAuth2、API Key 支援
-  - [ ] 實現速率限制和審計日誌
+- **[x] 認證授權工廠模式設計**：[auth-factory.md](auth-factory.md)
+  - [x] 實作 `AuthProvider` 介面
+  - [x] 整合 IAM、OAuth2、API Key 支援
+  - [x] 實現速率限制和審計日誌
   - [ ] 參考：`docs/references/adk-python-samples/a2a_auth/` - OAuth 認證流程
   - [ ] 參考：`docs/references/adk-python-samples/spanner/agent.py` - 多種認證方式實作
   - [ ] 參考：`docs/references/adk-python-samples/google_api/` - Google API OAuth 整合
 
 ### RAG 引用系統
-- **[ ] 標準化引用格式管理**
-  - [ ] 實作 `SRECitationFormatter` 類別
-  - [ ] 支援配置檔、事件、文檔等多種引用格式
-  - [ ] 整合到 `DiagnosticExpert` 輸出
+- **[x] 標準化引用格式管理**
+  - [x] 實作 `SRECitationFormatter` 類別
+  - [x] 支援配置檔、事件、文檔等多種引用格式
+  - [x] 整合到 `DiagnosticExpert` 輸出
   - [ ] 參考：`docs/references/adk-samples-agents/RAG/` - 標準引用實作
 
 ### Session/Memory 持久化
-- **[ ] Vertex AI 服務整合**
-  - [ ] 遷移到 `VertexAiSessionService`
-  - [ ] 實作 `VertexAiMemoryBankService`
-  - [ ] 確保會話狀態持久化
+- **[x] Vertex AI 服務整合**
+  - [x] 遷移到 `VertexAiSessionService` (已透過 FirestoreTaskStore 實現)
+  - [x] 實作 `VertexAiMemoryBankService` (已透過 VertexAIBackend 實現)
+  - [x] 確保會話狀態持久化
   - [ ] 參考：`docs/references/adk-python-samples/session_state_agent/` - Session 狀態管理
   - [ ] 參考：`docs/references/adk-python-samples/history_management/` - 歷史記錄管理
 

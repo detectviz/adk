@@ -140,14 +140,24 @@ class AuthConfig(BaseModel):
             raise ValueError("service_account_path required for Google IAM")
         return v
 
+class SessionBackend(str, Enum):
+    """會話後端選項"""
+    FIRESTORE = "firestore"
+    IN_MEMORY = "in_memory"
+
 class SREAssistantConfig(BaseModel):
     """完整配置"""
     deployment: DeploymentConfig
     memory: MemoryConfig
     auth: AuthConfig  # 新增認證配置
+    session_backend: SessionBackend = SessionBackend.IN_MEMORY
+
+    # Firestore 特定配置
+    firestore_project_id: Optional[str] = None
+    firestore_collection: str = "sre_assistant_sessions"
 
     # 額外配置
-    llm_model: str = "gemini-2.0-flash"
+    llm_model: str = "gemini-1.5-pro-latest"
     temperature: float = 0.2
     enable_hitl: bool = True
     enable_a2a: bool = True
