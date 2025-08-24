@@ -12,16 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Academic_newresearch_agent for finding new research lines"""
+"""用於尋找新研究方向的 Academic_newresearch_agent"""
 
+# 匯入必要的模組
 from google.adk import Agent
 
 from . import prompt
 
+# 定義要使用的語言模型
 MODEL = "gemini-2.5-pro"
 
+# 定義學術新研究代理
+# 這個代理的職責是根據開創性論文和相關近期論文，提出新的研究方向
 academic_newresearch_agent = Agent(
+    # 使用的語言模型
     model=MODEL,
+    # 代理的名稱
     name="academic_newresearch_agent",
+    # 代理的詳細指令
     instruction=prompt.ACADEMIC_NEWRESEARCH_PROMPT,
 )

@@ -1,10 +1,13 @@
-# Google SRE 書籍核心原則與實踐
+# Google SRE Book 核心原則與實踐
+
+- 內部完整文檔：[Google SRE Book](docs/references/google-sre-book/)
+- 原出處：[Google SRE Book](https://sre.google/sre-book/)
 
 本文檔旨在提煉 Google SRE 書籍的核心思想，為 Google Agent Development Kit (ADK) 中的 AI 代理提供站點可靠性工程（Site Reliability Engineering）的最佳實踐與知識基礎。
 
 ---
 
-### 1. SRE 量化指標
+### 1. [SRE 量化指標](docs/references/google-sre-book/Chapter-04-Service-Level-Objectives.md)
 
 SRE 依靠數據驅動決策，以下是其核心的量化指標：
 
@@ -21,7 +24,7 @@ SRE 依靠數據驅動決策，以下是其核心的量化指標：
 -   **服務水平協議 (SLA - Service Level Agreement)**
     -   **定義**：與用戶簽訂的正式合約，通常包含未達到 SLO 時的後果（如賠償）。SLA 是業務和法律層面的承諾。
 
--   **錯誤預算 (Error Budget)**
+-   [錯誤預算 (Error Budget)](docs/references/google-sre-book/Appendix-B-A-Collection-of-Best-Practices-for-Production.md)
     -   **定義**：`1 - SLO`。這是服務在不違反 SLO 的前提下，可以容忍的「不可靠」程度。
     -   **作用**：它是一個數據化的決策工具。只要錯誤預算未用盡，開發團隊就可以自由發布新功能；一旦預算耗盡，則凍結所有非緊急的變更，專注於提升系統穩定性。
 
@@ -33,16 +36,16 @@ SRE 依靠數據驅動決策，以下是其核心的量化指標：
 
 ### 2. 關鍵原則
 
--   **消除瑣事 (Eliminating Toil)**：瑣事（Toil）指那些手動的、重複的、可被自動化的、戰術性的、缺乏長期價值的工作。它是工程師時間的殺手，過多的瑣事會導致團隊停滯不前。SRE 的目標是透過工程手段將其消除。
+- [消除瑣事 (Eliminating Toil)](docs/references/google-sre-book/Chapter-05-Eliminating-Toil.md)：瑣事（Toil）指那些手動的、重複的、可被自動化的、戰術性的、缺乏長期價值的工作。它是工程師時間的殺手，過多的瑣事會導致團隊停滯不前。SRE 的目標是透過工程手段將其消除。
 -   **工程優先於手動操作**：SRE 的核心是自動化。任何重複的、無創造性的手動工作（Toil）都應被視為工程問題，並透過開發工具或重構系統來解決。
 -   **以錯誤預算平衡創新與穩定**：錯誤預算是一個數據驅動的決策框架，它消除了開發與運維之間的對立。它允許團隊在不犧牲用戶體驗的前提下，承擔經過計算的風險以加速創新。
--   **確保構建過程的密封性 (Hermetic Builds)**：構建過程必須是自包含且可重現的，不應依賴於主機環境中安裝的函式庫或工具。這確保了在任何地方、任何時間構建同一個原始碼版本，都會得到完全相同的結果。
+- [確保構建過程的密封性 (Hermetic Builds)](docs/references/google-sre-book/Chapter-08-Release-Engineering.md)：構建過程必須是自包含且可重現的，不應依賴於主機環境中安裝的函式庫或工具。這確保了在任何地方、任何時間構建同一個原始碼版本，都會得到完全相同的結果。
 
-### 3. 最佳實踐摘要
+### 3. 根本原因分析 (Postmortem & 5 Whys)
 
--   **無指責的事後檢討 (Blame-free Postmortem)**：
+-   [無指責的事後檢討 (Blame-free Postmortem)](docs/references/google-sre-book/Chapter-15-Postmortem-CultureLearning-from-Failure.md)：
     -   **目的**：從失敗中學習，而不是追究個人責任。焦點應放在改進系統、流程和工具上。
-    -   **「五個為什麼 (5 Whys)」根本原因分析模板**：
+    -   [五個為什麼 (5 Whys)」根本原因分析模板](docs/references/google-sre-book/Appendix-D-Example-Postmortem.md)：
         1.  **問題：** *[清晰、高層次地描述問題。例如：服務 X 的錯誤率在 Y 時間點超過了 SLO。]*
             -   **為什麼會發生？**
         2.  **第一個為什麼：** *[直接原因。例如：後端數據庫因請求過多而超時。]*
@@ -55,7 +58,9 @@ SRE 依靠數據驅動決策，以下是其核心的量化指標：
             -   **為什麼會這樣？**
         6.  **第五個為什麼 (根本原因)：** *[根本的、可預防的系統性問題。例如：我們缺乏一個標準化的性能測試流程來作為發布前的門禁。]*
 
--   **為人工介入 (Human-in-the-Loop, HITL) 審批流程建立測試**：
+### 4. 人工介入審批流程 (HITL)
+
+-   [為人工介入 (Human-in-the-Loop, HITL) 審批流程建立測試](docs/references/google-sre-book/Chapter-17-Testing-for-Reliability.md)：
     -   **核心思想**：不直接測試「人」，而是測試支撐「人」做出正確決策的系統和流程。
     -   **測試方法**：
         1.  **配置測試 (Configuration Tests)**：編寫自動化測試，持續驗證生產環境中的實時配置與版本控制系統中的預期配置是否一致，以捕捉未經授權或錯誤的手動變更。
@@ -63,29 +68,11 @@ SRE 依靠數據驅動決策，以下是其核心的量化指標：
         3.  **“打破玻璃”機制的測試**：緊急手動操作（Break-Glass）應被設計為一個“有噪音”的事件。該操作應自動觸發告警、記錄審計日誌、並創建一個高優先級的事後跟進工單。測試應確保這些後續動作被正確觸發。
         4.  **災難恢復演練 (Disaster Recovery Testing, DiRT)**：定期舉行大規模演習，在真實生產環境中測試整個應急響應流程，包括人的決策和溝通協作。
 
+### 5. 變更管理
+
 -   **自動化、漸進式的變更管理**：
     -   **發布流程**：所有變更都應被自動化管理。發布應從主幹（mainline）創建分支，修復則以 cherry-pick 的方式合入，確保發布內容的純淨。
     -   **漸進式部署 (Progressive Rollouts)**：絕不一次性將變更推向所有用戶。應分階段、分區域地進行部署（金絲雀發布），在每個階段密切監控系統指標。
     -   **自動回滾**：一旦發現異常，立即自動回滾，先恢復服務再進行問題診斷。
 
--   **解耦配置與二進制文件**：配置文件的變更和二進制文件的發布應作為獨立的單元進行管理和部署。這提供了更高的靈活性，允許在不重新構建整個服務的情況下快速修改配置。
-
----
-
-### 4. 參考來源 (References)
-
--   **SRE 量化指標 (SLI, SLO, SLA)**:
-    -   `docs/references/google-sre-book/Chapter 4 - Service Level Objectives.md`
--   **關鍵原則 - 消除瑣事**:
-    -   `docs/references/google-sre-book/Chapter 5 - Eliminating Toil.md`
--   **關鍵原則 - 密封性構建**:
-    -   `docs/references/google-sre-book/Chapter 8 - Release Engineering.md`
--   **最佳實踐 - 無指責的事後檢討 & 五個為什麼**:
-    -   `docs/references/google-sre-book/Appendix D - Example Postmortem.md`
-    -   `docs/references/google-sre-book/Chapter 15 - Postmortem CultureLearning from Failure.md`
--   **最佳實踐 - HITL 流程測試**:
-    -   `docs/references/google-sre-book/Chapter 17 - Testing for Reliability.md`
--   **最佳實踐 - 變更管理, 配置解耦**:
-    -   `docs/references/google-sre-book/Chapter 8 - Release Engineering.md`
--   **通用最佳實踐 (漸進式部署, 錯誤預算)**:
-    -   `docs/references/google-sre-book/Appendix B - A Collection of Best Practices for Production.md`
+-   [解耦配置與二進制文件](docs/references/google-sre-book/Chapter-08-Release-Engineering.md)：配置文件的變更和二進制文件的發布應作為獨立的單元進行管理和部署。這提供了更高的靈活性，允許在不重新構建整個服務的情況下快速修改配置。

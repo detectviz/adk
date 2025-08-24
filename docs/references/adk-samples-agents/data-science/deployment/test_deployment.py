@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test deployment of Data Science Agent to Agent Engine."""
+"""測試資料科學代理部署至 Agent Engine。"""
 
 import asyncio
 import os
@@ -25,15 +25,15 @@ from vertexai import agent_engines
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("project_id", None, "GCP project ID.")
-flags.DEFINE_string("location", None, "GCP location.")
-flags.DEFINE_string("bucket", None, "GCP bucket.")
+flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
+flags.DEFINE_string("location", None, "GCP 位置。")
+flags.DEFINE_string("bucket", None, "GCP 儲存桶。")
 flags.DEFINE_string(
     "resource_id",
     None,
-    "ReasoningEngine resource ID (returned after deploying the agent)",
+    "ReasoningEngine 資源 ID（部署代理後回傳）",
 )
-flags.DEFINE_string("user_id", None, "User ID (can be any string).")
+flags.DEFINE_string("user_id", None, "使用者 ID（可以是任何字串）。")
 flags.mark_flag_as_required("resource_id")
 flags.mark_flag_as_required("user_id")
 
@@ -61,14 +61,14 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
     bucket = os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET")
 
     if not project_id:
-        print("Missing required environment variable: GOOGLE_CLOUD_PROJECT")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_PROJECT")
         return
     elif not location:
-        print("Missing required environment variable: GOOGLE_CLOUD_LOCATION")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_LOCATION")
         return
     elif not bucket:
         print(
-            "Missing required environment variable: GOOGLE_CLOUD_STORAGE_BUCKET"
+            "缺少必要的環境變數：GOOGLE_CLOUD_STORAGE_BUCKET"
         )
         return
 
@@ -85,12 +85,12 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
     )
 
     agent = agent_engines.get(FLAGS.resource_id)
-    print(f"Found agent with resource ID: {FLAGS.resource_id}")
+    print(f"找到資源 ID 為 {FLAGS.resource_id} 的代理")
 
-    print(f"Created session for user ID: {FLAGS.user_id}")
-    print("Type 'quit' to exit.")
+    print(f"為使用者 ID {FLAGS.user_id} 建立工作階段")
+    print("輸入 'quit' 離開。")
     while True:
-        user_input = input("Input: ")
+        user_input = input("輸入：")
         if user_input == "quit":
             break
 
@@ -105,14 +105,14 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
                     for part in parts:
                         if "text" in part:
                             text_part = part["text"]
-                            print(f"Response: {text_part}")
+                            print(f"回應：{text_part}")
 
     asyncio.run(session_service.delete_session(
         app_name=FLAGS.resource_id,
         user_id=FLAGS.user_id,
         session_id=session.id
     ))
-    print(f"Deleted session for user ID: {FLAGS.user_id}")
+    print(f"已刪除使用者 ID {FLAGS.user_id} 的工作階段")
 
 
 if __name__ == "__main__":

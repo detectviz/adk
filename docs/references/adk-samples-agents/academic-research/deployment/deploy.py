@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Deployment script for Academic Research"""
+"""學術研究的部署腳本"""
 
 
 import os
@@ -24,25 +24,30 @@ from dotenv import load_dotenv
 from vertexai import agent_engines
 from vertexai.preview.reasoning_engines import AdkApp
 
+# 定義命令列旗標
 FLAGS = flags.FLAGS
-flags.DEFINE_string("project_id", None, "GCP project ID.")
-flags.DEFINE_string("location", None, "GCP location.")
-flags.DEFINE_string("bucket", None, "GCP bucket.")
-flags.DEFINE_string("resource_id", None, "ReasoningEngine resource ID.")
+flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
+flags.DEFINE_string("location", None, "GCP 位置。")
+flags.DEFINE_string("bucket", None, "GCP 儲存桶。")
+flags.DEFINE_string("resource_id", None, "ReasoningEngine 資源 ID。")
 
-flags.DEFINE_bool("list", False, "List all agents.")
-flags.DEFINE_bool("create", False, "Creates a new agent.")
-flags.DEFINE_bool("delete", False, "Deletes an existing agent.")
-flags.mark_bool_flags_as_mutual_exclusive(["create", "delete"])
+# 定義互斥的命令列旗標，用於指定操作
+flags.DEFINE_bool("list", False, "列出所有代理。")
+flags.DEFINE_bool("create", False, "建立一個新代理。")
+flags.DEFINE_bool("delete", False, "刪除一個現有代理。")
+flags.mark_bool_flags_as_mutual_exclusive(["create", "delete", "list"])
 
 
 def create() -> None:
-    """Creates an agent engine for Academic Research."""
+    """為學術研究建立一個代理引擎。"""
+    # 使用 AdkApp 包裝根代理
     adk_app = AdkApp(agent=root_agent, enable_tracing=True)
 
+    # 建立遠端代理
     remote_agent = agent_engines.create(
         adk_app,
         display_name=root_agent.name,
+        # 指定代理執行所需的 Python 套件
         requirements=[
             "google-adk (>=0.0.2)",
             "google-cloud-aiplatform[agent_engines] (>=1.91.0,!=1.92.0)",
@@ -52,32 +57,37 @@ def create() -> None:
         ],
         #        extra_packages=[""],
     )
-    print(f"Created remote agent: {remote_agent.resource_name}")
+    print(f"已建立遠端代理：{remote_agent.resource_name}")
 
 
 def delete(resource_id: str) -> None:
+    """刪除指定的代理引擎。"""
     remote_agent = agent_engines.get(resource_id)
     remote_agent.delete(force=True)
-    print(f"Deleted remote agent: {resource_id}")
+    print(f"已刪除遠端代理：{resource_id}")
 
 
 def list_agents() -> None:
+    """列出所有可用的代理引擎。"""
     remote_agents = agent_engines.list()
     template = """
 {agent.name} ("{agent.display_name}")
-- Create time: {agent.create_time}
-- Update time: {agent.update_time}
+- 建立時間：{agent.create_time}
+- 更新時間：{agent.update_time}
 """
     remote_agents_string = "\n".join(
         template.format(agent=agent) for agent in remote_agents
     )
-    print(f"All remote agents:\n{remote_agents_string}")
+    print(f"所有遠端代理：\n{remote_agents_string}")
 
 
 def main(argv: list[str]) -> None:
-    del argv  # unused
+    """腳本主函式。"""
+    del argv  # 未使用
+    # 從 .env 檔案載入環境變數
     load_dotenv()
 
+    # 從旗標或環境變數中獲取 GCP 設定
     project_id = (
         FLAGS.project_id
         if FLAGS.project_id
@@ -92,39 +102,42 @@ def main(argv: list[str]) -> None:
         else os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET")
     )
 
-    print(f"PROJECT: {project_id}")
-    print(f"LOCATION: {location}")
-    print(f"BUCKET: {bucket}")
+    print(f"專案：{project_id}")
+    print(f"位置：{location}")
+    print(f"儲存桶：{bucket}")
 
+    # 檢查是否已設定必要的環境變數
     if not project_id:
-        print("Missing required environment variable: GOOGLE_CLOUD_PROJECT")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_PROJECT")
         return
     elif not location:
-        print("Missing required environment variable: GOOGLE_CLOUD_LOCATION")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_LOCATION")
         return
     elif not bucket:
         print(
-            "Missing required environment variable: GOOGLE_CLOUD_STORAGE_BUCKET"
+            "缺少必要的環境變數：GOOGLE_CLOUD_STORAGE_BUCKET"
         )
         return
 
+    # 初始化 Vertex AI
     vertexai.init(
         project=project_id,
         location=location,
         staging_bucket=f"gs://{bucket}",
     )
 
+    # 根據命令列旗標執行相應的操作
     if FLAGS.list:
         list_agents()
     elif FLAGS.create:
         create()
     elif FLAGS.delete:
         if not FLAGS.resource_id:
-            print("resource_id is required for delete")
+            print("刪除需要 resource_id")
             return
         delete(FLAGS.resource_id)
     else:
-        print("Unknown command")
+        print("未知的指令，請使用 --list, --create, 或 --delete")
 
 
 if __name__ == "__main__":

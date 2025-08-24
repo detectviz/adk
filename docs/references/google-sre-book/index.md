@@ -1,93 +1,49 @@
-## Table of Contents
+## 目錄
 
 [https://sre.google/sre-book](https://sre.google/sre-book)
 
-- Part I - Introduction
-
-- 1. Introduction
-
-- 2. The Production Environment at Google, from the Viewpoint of an SRE
-
-- Part II - Principles
-
-- 3. Embracing Risk
-
-- 4. Service Level Objectives
-
-- 5. Eliminating Toil
-
-- 6. Monitoring Distributed Systems
-
-- 7. The Evolution of Automation at Google
-
-- 8. Release Engineering
-
-- 9. Simplicity
-
-- Part III - Practices
-
-- 10. Practical Alerting
-
-- 11. Being On-Call
-
-- 12. Effective Troubleshooting
-
-- 13. Emergency Response
-
-- 14. Managing Incidents
-
-- 15. Postmortem Culture: Learning from Failure
-
-- 16. Tracking Outages
-
-- 17. Testing for Reliability
-
-- 18. Software Engineering in SRE
-
-- 19. Load Balancing at the Frontend
-
-- 20. Load Balancing in the Datacenter
-
-- 21. Handling Overload
-
-- 22. Addressing Cascading Failures
-
-- 23. Managing Critical State: Distributed Consensus for Reliability
-
-- 24. Distributed Periodic Scheduling with Cron
-
-- 25. Data Processing Pipelines
-
-- 26. Data Integrity: What You Read Is What You Wrote
-
-- 27. Reliable Product Launches at Scale
-
-- Part IV - Management
-
-- 28. Accelerating SREs to On-Call and Beyond
-
-- 29. Dealing with Interrupts
-
-- 30. Embedding an SRE to Recover from Operational Overload
-
-- 31. Communication and Collaboration in SRE
-
-- 32. The Evolving SRE Engagement Model
-
-- Part V - Conclusions
-
-- 33. Lessons Learned from Other Industries
-
-- 34. Conclusion
-
-- Appendix A. Availability Table
-
-- Appendix B. A Collection of Best Practices for Production Services
-
-- Appendix C. Example Incident State Document
-
-- Appendix D. Example Postmortem
-
-- Appendix E. Launch Coordination Checklist
-
-- Appendix F. Example Production Meeting Minutes
+- [第一部分 - 前言](google-sre-book/Part-I-Introduction.md)
+- [1. 前言](google-sre-book/Chapter-01-Introduction.md)
+- [2. 從 SRE 的角度看 Google 的生產環境](google-sre-book/Chapter-02-The-Production-Environment-at-Googlefrom-the.md)
+- [第二部分 - 原則](google-sre-book/Part-II-Principles.md)
+- [3. 擁抱風險](google-sre-book/Chapter-03-Embracing-Risk.md)
+- [4. 服務水準目標 (Service Level Objectives)](google-sre-book/Chapter-04-Service-Level-Objectives.md)
+- [5. 消除瑣務 (Eliminating Toil)](google-sre-book/Chapter-05-Eliminating-Toil.md)
+- [6. 監控分散式系統](google-sre-book/Chapter-06-Monitoring-Distributed-Systems.md)
+- [7. Google 自動化的演進](google-sre-book/Chapter-07-The-Evolution-of-Automation-at-Google.md)
+- [8. 發布工程 (Release Engineering)](google-sre-book/Chapter-08-Release-Engineering.md)
+- [9. 簡潔性](google-sre-book/Chapter-09-Simplicity.md)
+- [第三部分 - 實踐](google-sre-book/Part-III-Practices.md)
+- [10. 實用警報](google-sre-book/Chapter-10-Practical-Alerting.md)
+- [11. 值班 (On-Call)](google-sre-book/Chapter-11-Being-On-Call.md)
+- [12. 高效的故障排除](google-sre-book/Chapter-12-Effective-Troubleshooting.md)
+- [13. 緊急應變](google-sre-book/Chapter-13-Emergency-Response.md)
+- [14. 事件管理](google-sre-book/Chapter-14-Managing-Incidents.md)
+- [15. 事後檢討文化：從失敗中學習](google-sre-book/Chapter-15-Postmortem-CultureLearning-from-Failure.md)
+- [16. 追蹤服務中斷](google-sre-book/Chapter-16-Tracking-Outages.md)
+- [17. 可靠性測試](google-sre-book/Chapter-17-Testing-for-Reliability.md)
+- [18. SRE 中的軟體工程](google-sre-book/Chapter-18-Software-Engineering-in-SRE.md)
+- [19. 前端負載平衡](google-sre-book/Chapter-19-Load-Balancing-at-the-Frontend.md)
+- [20. 資料中心的負載平衡](google-sre-book/Chapter-20-Load-Balancing-in-the-Datacenter.md)
+- [21. 處理過載](google-sre-book/Chapter-21-Handling-Overload.md)
+- [22. 解決連鎖故障](google-sre-book/Chapter-22-Addressing-Cascading-Failures.md)
+- [23. 管理關鍵狀態：為可靠性而生的分散式共識](google-sre-book/Chapter-23-Managing-Critical-StateDistributed-Consensu.md)
+- [24. 使用 Cron 進行分散式定期排程](google-sre-book/Chapter-24-Distributed-Periodic-Scheduling-with-Cron.md)
+- [25. 資料處理管線](google-sre-book/Chapter-25-Data-Processing-Pipelines.md)
+- [26. 資料完整性：所讀即所寫](google-sre-book/Chapter-26-Data-IntegrityWhat-You-Read-Is-What-You-Wro.md)
+- [27. 可靠的大規模產品發布](google-sre-book/Chapter-27-Reliable-Product-Launches-at-Scale.md)
+- [第四部分 - 管理](google-sre-book/Part-IV-Management.md)
+- [28. 加速 SRE 的值班與後續發展](google-sre-book/Chapter-28-Accelerating-SREs-to-On-Call-and-Beyond.md)
+- [29. 處理中斷](google-sre-book/Chapter-29-Dealing-with-Interrupts.md)
+- [30. 嵌入 SRE 以從運營過載中恢復](google-sre-book/Chapter-30-Embedding-an-SRE-to-Recover-from-Operational.md)
+- [31. SRE 中的溝通與協作](google-sre-book/Chapter-31-Communication-and-Collaboration-in-SRE.md)
+- [32. 不斷演進的 SRE 參與模型](google-sre-book/Chapter-32-The-Evolving-SRE-Engagement-Model.md)
+- [第五部分 - 結論](google-sre-book/Part-V-Conclusions.md)
+- [33. 從其他行業學到的教訓](google-sre-book/Chapter-33-Lessons-Learned-from-Other-Industries.md)
+- [34. 結論](google-sre-book/Chapter-34-Conclusion.md)
+- [附錄 A. 可用性表格](google-sre-book/Appendix-A-Availability-Table.md)
+- [附錄 B. 生產服務最佳實踐集合](google-sre-book/Appendix-B-A-Collection-of-Best-Practices-for-Production.md)
+- [附錄 C. 事件狀態文件範例](google-sre-book/Appendix-C-Example-Incident-State-Document.md)
+- [附錄 D. 事後檢討範例](google-sre-book/Appendix-D-Example-Postmortem.md)
+- [附錄 E. 發布協調清單](google-sre-book/Appendix-E-Launch-Coordination-Checklist.md)
+- [附錄 F. 生產會議記錄範例](google-sre-book/Appendix-F-Example-Production-Meeting-Minutes.md)

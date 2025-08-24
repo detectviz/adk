@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Summarize the content of the FOMC meeting transcript."""
+"""總結 FOMC 會議記錄的內容。"""
 
 from google.adk.agents import Agent
 
@@ -25,7 +25,7 @@ SummarizeMeetingAgent = Agent(
     name="summarize_meeting_agent",
     model=MODEL,
     description=(
-        "Summarize the content and sentiment of the latest FOMC meeting."
+        "總結最新 FOMC 會議的內容和情緒。"
     ),
     instruction=summarize_meeting_agent_prompt.PROMPT,
     tools=[

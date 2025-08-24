@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""'compare_statements' tool for FOMC Research sample agent."""
+"""FOMC 研究範例代理的 'compare_statements' 工具。"""
 
 import logging
 
@@ -25,13 +25,13 @@ logger = logging.getLogger(__name__)
 
 
 async def compare_statements_tool(tool_context: ToolContext) -> dict[str, str]:
-    """Compares requested and previous statements and generates HTML redline.
+    """比較要求的和先前的聲明並產生 HTML 紅線。
 
     Args:
-      tool_context: ToolContext object.
+      tool_context: ToolContext 物件。
 
     Returns:
-      A dict with "status" and (optional) "error_message" keys.
+      一個包含 "status" 和 (可選) "error_message" 鍵的字典。
     """
     fed_hostname = "https://www.federalreserve.gov"
 
@@ -46,7 +46,7 @@ async def compare_statements_tool(tool_context: ToolContext) -> dict[str, str]:
     if not prev_statement_url.startswith("https"):
         prev_statement_url = fed_hostname + prev_statement_url
 
-    # Download PDFs from URLs to artifacts
+    # 從 URL 下載 PDF 至成品 (artifacts)
     reqd_pdf_path = await file_utils.download_file_from_url(
         reqd_statement_url, "curr.pdf", tool_context
     )
@@ -54,11 +54,11 @@ async def compare_statements_tool(tool_context: ToolContext) -> dict[str, str]:
         prev_statement_url, "prev.pdf", tool_context
     )
 
-    if reqd_pdf_path is None or prev_pdf_path is None:
-        logger.error("Failed to download files, aborting")
+    if reqd_pdf_path is None or reqd_pdf_path is None:
+        logger.error("下載檔案失敗，中止")
         return {
             "status": "error",
-            "error_message": "Failed to download statement files",
+            "error_message": "下載聲明檔案失敗",
         }
 
     reqd_pdf_text = await file_utils.extract_text_from_pdf_artifact(
@@ -69,10 +69,10 @@ async def compare_statements_tool(tool_context: ToolContext) -> dict[str, str]:
     )
 
     if reqd_pdf_text is None or prev_pdf_text is None:
-        logger.error("Failed to extract text from PDFs, aborting")
+        logger.error("從 PDF 擷取文字失敗，中止")
         return {
             "status": "error",
-            "error_message": "Failed to extract text from PDFs",
+            "error_message": "從 PDF 擷取文字失敗",
         }
 
     await tool_context.save_artifact(

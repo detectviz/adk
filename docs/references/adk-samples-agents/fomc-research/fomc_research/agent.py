@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FOMC Research sample agent."""
+"""FOMC 研究範例代理。"""
 
 import logging
 import warnings
@@ -29,15 +29,15 @@ from .tools.store_state import store_state_tool
 warnings.filterwarnings("ignore", category=UserWarning, module=".*pydantic.*")
 
 logger = logging.getLogger(__name__)
-logger.debug("Using MODEL: %s", MODEL)
+logger.debug("正在使用模型：%s", MODEL)
 
 
 root_agent = Agent(
     model=MODEL,
     name="root_agent",
     description=(
-        "Use tools and other agents provided to generate an analysis report"
-        "about the most recent FOMC meeting."
+        "使用提供的工具和其他代理來產生關於"
+        "最近一次 FOMC 會議的分析報告。"
     ),
     instruction=root_agent_prompt.PROMPT,
     tools=[store_state_tool],

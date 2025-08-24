@@ -15,11 +15,7 @@ playground:
 	uv run adk web --port 8501
 
 lint:
-	uv sync --dev --extra lint
 	uv run codespell
 	uv run ruff check . --diff
 	uv run ruff format . --check --diff
 	uv run mypy .
-
-deploy-infra:
-	echo "Skipping: Infra not required"

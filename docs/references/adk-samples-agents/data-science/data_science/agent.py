@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Top level agent for data agent multi-agents.
+"""資料代理多代理系統的頂層代理。
 
--- it get data from database (e.g., BQ) using NL2SQL
--- then, it use NL2Py to do further data analysis as needed
+-- 它使用 NL2SQL 從資料庫（例如 BigQuery）取得資料
+-- 然後，它視需要使用 NL2Py 進行進一步的資料分析
 """
 import os
 from datetime import date
@@ -37,24 +37,24 @@ date_today = date.today()
 
 
 def setup_before_agent_call(callback_context: CallbackContext):
-    """Setup the agent."""
+    """設定代理。"""
 
-    # setting up database settings in session.state
+    # 在 session.state 中設定資料庫設定
     if "database_settings" not in callback_context.state:
         db_settings = dict()
         db_settings["use_database"] = "BigQuery"
         callback_context.state["all_db_settings"] = db_settings
 
-    # setting up schema in instruction
+    # 在指令中設定結構 (schema)
     if callback_context.state["all_db_settings"]["use_database"] == "BigQuery":
         callback_context.state["database_settings"] = get_bq_database_settings()
-        schema = callback_context.state["database_settings"]["bq_schema_and_samples"]
+        schema = callback_context.state["database_settings"]["bq_ddl_schema"]
 
         callback_context._invocation_context.agent.instruction = (
             return_instructions_root()
             + f"""
 
-    --------- The BigQuery schema of the relevant data with a few sample rows. ---------
+    --------- 相關資料的 BigQuery 結構 (schema) 及幾筆範例資料列。 ---------
     {schema}
 
     """
@@ -67,8 +67,8 @@ root_agent = Agent(
     instruction=return_instructions_root(),
     global_instruction=(
         f"""
-        You are a Data Science and Data Analytics Multi Agent System.
-        Todays date: {date_today}
+        您是一個資料科學與資料分析多代理 (Multi-Agent) 系統。
+        今天的日期：{date_today}
         """
     ),
     sub_agents=[bqml_agent],

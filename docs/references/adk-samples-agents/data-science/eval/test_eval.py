@@ -28,7 +28,7 @@ def load_env():
 
 @pytest.mark.asyncio
 async def test_eval_simple():
-    """Test the agent's basic ability via a session file."""
+    """透過會話檔案測試代理的基本能力。"""
     await AgentEvaluator.evaluate(
         "data_science",
         os.path.join(os.path.dirname(__file__), "eval_data/simple.test.json"),
