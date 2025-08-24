@@ -49,6 +49,7 @@ __pycache__/
 build/
 dist/
 .pytest_cache/
+.hypothesis/
 .coverage
 .coverage.*
 htmlcov/

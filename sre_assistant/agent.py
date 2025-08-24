@@ -4,39 +4,8 @@
 # 以完成一個完整的 SRE 事件處理工作流。
 from typing import Optional, Dict, Any
 import asyncio
-
-# --- 模擬 ADK SDK 元件 (因為真實 SDK 不可用) ---
-class SequentialAgent:
-    def __init__(self, name, sub_agents):
-        self.name = name
-        self.sub_agents = sub_agents
-    async def execute(self, message=None, **kwargs):
-        last_output = message
-        for agent in self.sub_agents:
-            last_output = await agent.execute(last_output, **kwargs)
-        return last_output
-
-class LlmAgent:
-    def __init__(self, name, model, tools, instruction, temperature=0.7):
-        self.name = name
-        self.model = model
-        self.tools = tools
-        self.instruction = instruction
-        self.temperature = temperature
-    async def execute(self, message=None, **kwargs):
-        return f"LLM response for {message}"
-
-class ParallelAgent:
-    def __init__(self, name, sub_agents):
-        self.name = name
-        self.sub_agents = sub_agents
-    async def execute(self, message=None, **kwargs):
-        tasks = [agent.execute(message, **kwargs) for agent in self.sub_agents]
-        results = await asyncio.gather(*tasks)
-        return results
-
-class AgentTool:
-    pass
+from google.adk.tools import agent_tool
+from google.adk.agents import SequentialAgent, LlmAgent, ParallelAgent
 
 # --- 導入子代理 ---
 # 說明：從 sub_agents 模組中導入所有專家代理。
@@ -61,50 +30,56 @@ class ResponseQualityTracker:
 
 class SRECoordinator(SequentialAgent):
     """
-    主協調器：實現標準 SRE 工作流。
-    此版本整合了已完成的 DiagnosticExpert，並為其他專家使用預留位置。
-    詳細的回呼、SRE 指標整合和錯誤處理將在後續步驟中添加。
+    主協調器：實現一個基於工作流程的 SRE 自動化過程。
+    此版本採用了更先進的架構，包括並行診斷和條件化修復調度。
     """
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         # 說明：初始化主協調器。
-        # 這裡定義了由各個子代理組成的 SRE 工作流。
-        # DiagnosticExpert 已被整合，其餘專家仍為預留位置。
-
-        # 將 config 作為局部變數，用於初始化子代理，而不是將其設為 SRECoordinator 的屬性，
-        # 以避免 Pydantic 的欄位驗證錯誤。
+        # 這個新架構旨在提高效率和靈活性。
         agent_config = config or {}
 
-        # 實例化預留位置管理器 (也是局部變數)
-        slo_manager = SREErrorBudgetManager()
-        response_quality_tracker = ResponseQualityTracker()
-
-        # --- 建立子代理 ---
-
-        # 診斷階段 - 並行檢查
-        # 說明：使用 ParallelAgent 讓三個不同專長的診斷代理並行執行，
-        # 這能更快地從指標、日誌和追蹤中收集資訊。
+        # --- 階段 1: 並行診斷 ---
+        # 說明：此階段並行運行多個診斷代理，以快速收集全面的故障資訊。
+        # 這種方法大大縮短了問題分析所需的時間。
         diagnostic_phase = ParallelAgent(
-            name="DiagnosticPhase",
+            name="ParallelDiagnostics",
             sub_agents=[
-                DiagnosticAgent.create_metrics_analyzer(),
-                DiagnosticAgent.create_log_analyzer(),
-                DiagnosticAgent.create_trace_analyzer()
+                DiagnosticAgent.create_metrics_analyzer(config=agent_config),
+                DiagnosticAgent.create_log_analyzer(config=agent_config),
+                DiagnosticAgent.create_trace_analyzer(config=agent_config)
             ]
         )
 
-        # 修復、覆盤和配置階段 (仍使用預留位置)
-        remediation_phase = RemediationAgent(config=agent_config)
+        # --- 階段 2: 條件化修復 (調度器) ---
+        # 說明：這是一個基於 LLM 的調度器，它會分析診斷階段的輸出，
+        # 並根據問題的性質和嚴重性，決定下一步要採取的修復措施。
+        # 這種設計使得修復流程更具彈性，為未來引入 HITL (人工介入) 或多種修復策略奠定了基礎。
+        remediation_dispatcher = LlmAgent(
+            name="RemediationDispatcher",
+            model="gemini-1.5-flash",  # 假設使用 Flash 模型進行快速決策
+            instruction="""
+            Analyze the diagnostic results provided. Your task is to determine the best course of action.
+            For now, your only option is to call the 'RemediationAgent'.
+            In the future, you will have more options, such as escalating to a human or triggering a rollback.
+            Based on the diagnostic data, call the appropriate tool.
+            """,
+            tools=[agent_tool.AgentTool(agent=RemediationAgent(config=agent_config))]
+        )
+
+        # --- 階段 3 & 4: 覆盤和配置 ---
+        # 說明：這些是標準的 SRE 流程，在事件解決後進行。
+        # 它們目前仍然是預留位置，將在後續開發中完善。
         postmortem_phase = PostmortemAgent(config=agent_config)
         config_phase = ConfigAgent(config=agent_config)
 
-        # 根據 ADK 的 API，SequentialAgent 的建構子需要 'name' 和 'sub_agents' 參數。
-        # 'instruction' 參數不適用於非 LLM 的 WorkflowAgent。
-        # WorkflowAgent 的 sub_agents 應該是 Agent 實例，而不是 AgentTool。
+        # --- 組裝工作流程 ---
+        # 說明：將所有階段組合成一個順序執行的工作流程。
+        # 這個結構清晰地定義了 SRE 事件處理的完整生命週期。
         super().__init__(
-            name="SRECoordinator",
+            name="SREWorkflowCoordinator",
             sub_agents=[
                 diagnostic_phase,
-                remediation_phase,
+                remediation_dispatcher,
                 postmortem_phase,
                 config_phase
             ]
