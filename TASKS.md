@@ -16,7 +16,7 @@
 
 所有開發任務應朝著以下目標目錄結構進行，此結構符合 ADK 最佳實踐並反映了我們的聯邦化架構。
 
-```
+```bash
 sre_assistant/
 ├── __init__.py                 # A2A 服務暴露與註冊
 ├── workflow.py                 # SREWorkflow - 主工作流程協調器

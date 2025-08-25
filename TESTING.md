@@ -15,7 +15,7 @@
 
 ```bash
 # 進入專案根目錄
-cd path/to/sre-assistant
+cd path/to/sre_assistant
 
 # 使用 Poetry 安裝相依套件
 poetry install
