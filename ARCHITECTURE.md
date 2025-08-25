@@ -171,6 +171,23 @@ graph TD
 
 這些目標將通過 Grafana 儀表板進行監控。
 
+## 10.1. 監控告警規則 (Monitoring and Alerting Rules)
+
+為了確保 SLO/SLI 被有效監控，我們定義以下告警規則範例。這些規則將在 Prometheus/Mimir 中實現。
+
+```yaml
+alerting_rules:
+  high_latency:
+    condition: p99_latency > 500ms
+    duration: 5m
+    severity: warning
+
+  service_down:
+    condition: availability < 99%
+    duration: 1m
+    severity: critical
+```
+
 ## 11. 數據一致性 (Data Consistency)
 
 在多個數據存儲之間保持一致性至關重要：

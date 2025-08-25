@@ -120,12 +120,24 @@ class BaseTool(Protocol):
 
 ## 5. 版本管理策略 (Versioning Strategy)
 
+### 5.1. 總體策略 (Overall Strategy)
 - **代理版本**: 遵循語義化版本（SemVer, `MAJOR.MINOR.PATCH`）。`MAJOR` 版本變更表示有破壞性 API 變更。
 - **工具版本**: 工具的版本應與其所屬的代理或共享庫的版本保持一致。
 - **相容性**:
     - `MINOR` 和 `PATCH` 版本的更新必須向後相容。
     - 協調器（Orchestrator）在調用專業化代理時，應檢查其 `MAJOR` 版本號是否相容。
 - **文檔**: 所有破壞性變更都必須在 `CHANGELOG.md` 中有清晰的記錄和遷移指南。
+
+### 5.2. API 版本控制策略 (API Versioning Strategy)
+
+為了確保 API 的穩定性和可預測性，我們採用以下版本控制策略：
+
+```yaml
+api_versioning:
+  strategy: URL_path  # /v1/tools, /v2/tools
+  deprecation_period: 6_months
+  backward_compatibility: 2_major_versions
+```
 
 ### 3.1 代理類別總覽 (Agent Categories)
 
