@@ -1,315 +1,234 @@
-# TASKS.md (待辦事項)
+# TASKS.md - SRE Assistant 開發路線圖
 
-本文件追蹤 SRE Assistant 專案的開發與優化任務，依優先級分類管理。
+本文件為 SRE Assistant 專案的權威任務清單，整合了架構分析、參考範例研究和多方建議後的最終版本。
 
-- 參考資源：[ARCHITECTURE.md](ARCHITECTURE.md#151-參考資源)
+- **架構基礎**: [ARCHITECTURE.md](ARCHITECTURE.md)
+- **參考資源**: [reference-list.md](reference-list.md)
+- **重構計畫**: [REFACTOR_PLAN.md](REFACTOR_PLAN.md)
 
-## P0 - 必須立即完成（影響系統核心運作）
+---
 
-### 🔄 工作流程架構重構（新增 - 最高優先級）
-- **[x] 從 SequentialAgent 遷移到 Workflow 模式** ： [workflows.md](workflows.md)
-  - [x] 重構 `SRECoordinator` 採用工作流程架構
-  - [x] 實作並行診斷 (`ParallelAgent`)
-  - [x] 實作條件修復流程 (`ConditionalAgent`)
-  - [x] 整合循環優化機制 (`LoopAgent`)
-  - 參考：[google-adk-workflows](docs/references/adk-agent-samples/google-adk-workflows)
-  - 參考：`docs/references/adk-examples/workflow_triage/` - 動態代理選擇模式
-  - 參考：`docs/references/adk-examples/multi_agent_loop_config/` - 循環工作流程
-  - 參考：`docs/references/adk-examples/parallel_functions/` - 並行執行模式
+## ✅ P0 - 核心基礎設施（已完成）
 
-### 認證授權系統
-- **[x] 認證授權工廠模式設計**：[auth-factory.md](auth-factory.md)
-  - [x] 實作 `AuthProvider` 介面
-  - [x] 整合 IAM、OAuth2、API Key 支援
-  - [x] 實現速率限制和審計日誌
-  - 參考：`docs/references/adk-examples/a2a_auth/` - OAuth 認證流程
-  - 參考：`docs/references/adk-examples/spanner/agent.py` - 多種認證方式實作
-  - 參考：`docs/references/adk-examples/google_api/` - Google API OAuth 整合
+SRE Assistant 的核心架構已全部完成並通過測試：
 
-### RAG 引用系統
-- **[x] 標準化引用格式管理**
-  - [x] 實作 `SRECitationFormatter` 類別
-  - [x] 支援配置檔、事件、文檔等多種引用格式
-  - [x] 整合到 `DiagnosticExpert` 輸出
-  - 參考：`docs/references/adk-agent-samples/RAG/` - 標準引用實作
+### 完成項目
+- ✅ **進階工作流程架構**: 成功從 `SequentialAgent` 遷移到混合式工作流程，整合 `ParallelAgent`、`ConditionalAgent`、`LoopAgent`
+- ✅ **統一認證系統**: `AuthFactory` 和 `AuthManager` 已實現，支援多種認證方式和 RBAC
+- ✅ **RAG 引用系統**: `SRECitationFormatter` 已整合到診斷流程
+- ✅ **持久化層**: Session (`FirestoreTaskStore`) 和 Memory (`VertexAIBackend`) 均已實現
 
-### Session/Memory 持久化
-- **[x] Vertex AI 服務整合**
-  - [x] 遷移到 `VertexAiSessionService` (已透過 FirestoreTaskStore 實現)
-  - [x] 實作 `VertexAiMemoryBankService` (已透過 VertexAIBackend 實現)
-  - [x] 確保會話狀態持久化
-  - 參考：`docs/references/adk-examples/session_state_agent/` - Session 狀態管理
-  - 參考：`docs/references/adk-examples/history_management/` - 歷史記錄管理
+**系統已準備好進入功能擴展階段**
 
-## P1 - 重要功能（P0 完成後執行）
+---
 
-### GitHub 整合
-- **[ ] 事件追蹤系統**
-  - [ ] 實作 `SREIncidentTracker` 類別
-  - [ ] GitHub Issues 自動創建和更新
-  - [ ] PR 與事件關聯機制
-  - 參考：`docs/references/adk-agent-samples/software-bug-assistant/` - GitHub 整合模式
+## 🔥 P1 - 核心功能升級（當前重點）
 
-### SRE 量化指標
-- **[ ] 完整 SLO 管理系統**
-  - [ ] 實作 Error Budget 計算
-  - [ ] SLO 違規自動告警
-  - [ ] 量化指標儀表板
-- **[ ] 五個為什麼 (5 Whys) 模板**
-  - 參考：[google-sre-book](docs/references/google-sre-book/README.md)
-  - [ ] 基於 [Google SRE Book Appendix D](docs/references/google-sre-book/Appendix%20D%20-%20Example%20Postmortem.md) 實作
-  - [ ] 自動化根因分析流程
+以下任務是即將進行的開發週期的主要焦點，按實施順序排列：
 
-### 迭代優化框架
-- **[ ] SLO 配置優化器**
-  - [ ] 實作 `SREIterativeOptimizer` 類別
-  - [ ] 支援多輪迭代改進
-  - [ ] 配置效果評估機制
-  - 參考：`docs/references/adk-agent-samples/machine-learning-engineering/` - 迭代優化模式
-  - 參考：`docs/references/adk-examples/multi_agent_loop_config/` - Loop Agent 實作
+### 1. 🧠 [P1-高] 智慧分診系統升級
+**目標**: 將現有的靜態 `ConditionalRemediation` 升級為 LLM 驅動的動態分診系統
 
-### MCP 工具箱整合
-- **[ ] 資料庫操作標準化**
-  - [ ] 整合 MCP Toolbox for Databases
-  - [ ] 實作 `SafeSQLQueryBuilder`
-  - [ ] 時序資料查詢優化
-  - 參考：`docs/references/adk-agent-samples/software-bug-assistant/tools/database_tools.py`
-  - 參考：`docs/references/adk-examples/spanner/` - Spanner 工具整合
-
-### 端到端測試
-- **[ ] HITL 審批流程測試**
-  - [ ] 完整的審批流程端到端測試
-  - [ ] 高風險操作模擬
-  - 參考：`docs/references/adk-examples/human_in_loop/` - HITL 完整實作
-  - 參考：`docs/references/adk-examples/tool_human_in_the_loop_config/` - HITL 配置
-  - 參考：`docs/references/adk-examples/a2a_human_in_loop/` - A2A HITL 模式
-- **[ ] API 端到端測試**
-  - [ ] 覆蓋所有 API 端點
-  - [ ] 錯誤處理測試
-
-## P2 - 增強功能（長期規劃）
-
-### A2A 協議實現
-- **[ ] 代理間通訊**
-  - [ ] 實現 `AgentCard` 服務發現
-  - [ ] 支援 `RemoteA2aAgent` 調用
-  - [ ] 雙向串流通訊支援
-  - 參考：`docs/references/adk-examples/a2a_auth/` - A2A 認證架構
-  - 參考：`docs/references/adk-examples/a2a_human_in_loop/` - A2A HITL 整合
-  - 參考：`docs/references/a2a-samples/` - A2A 協議範例
-
-### 多模態分析
-- **[ ] 視覺內容處理**
-  - [ ] 監控面板截圖分析
-  - [ ] 日誌圖表識別
-  - [ ] 影片內容分析（如操作錄影）
-  - 參考：`docs/references/adk-agent-samples/fomc-research/` - 多模態處理
-
-### 可觀測性增強
-- **[ ] OpenTelemetry 整合**
-  - [ ] 追蹤 (traces) 實現
-  - [ ] 自定義指標匯出
-  - [ ] 分散式追蹤跨服務
-  - 參考：`docs/references/adk-examples/callbacks/` - 回調機制
-  - 參考：`docs/references/adk-examples/token_usage/` - 使用量追蹤
-
-### 部署優化
-- **[ ] 進階部署策略**
-  - [ ] 金絲雀 (Canary) 部署
-  - [ ] 藍綠 (Blue-Green) 部署
-  - [ ] SLO 違規自動回滾
-
-### 基礎設施即程式碼
-- **[ ] Terraform 模組**
-  - [ ] Agent Engine 部署模組
-  - [ ] Cloud Run 部署模組
-  - [ ] 網路和安全配置
-
-### 容器化優化
-- **[ ] Docker 映像檔優化**
-  - [ ] 多階段建置
-  - [ ] 基礎映像最小化
-  - [ ] 安全掃描整合
-
-### 成本優化
-- **[ ] 成本分析系統**
-  - [ ] 實作 `CostOptimizationAdvisor`
-  - [ ] 資源使用分析
-  - [ ] 自動化成本節省建議
-
-### 性能基準測試
-- **[ ] 完整基準測試套件**
-  - [ ] 負載測試腳本
-  - [ ] 延遲基準測試
-  - [ ] 並發處理測試
-  - 參考：`docs/references/adk-examples/parallel_functions/` - 並行性能測試
-
-## 建議的實施順序
-
-### 第零階段（立即開始 - 1週）🔥
-1. **工作流程架構重構**
-   - 分析現有 SequentialAgent 結構
-   - 實作並行診斷 (ParallelAgent)
-   - 整合條件執行邏輯
-   - 測試新架構效能提升
-
-### 第一階段（1-2 週）
-1. 完成其他 P0 任務（認證、RAG、Session）
-2. 建立基礎測試框架
-3. 確保核心功能穩定
-
-### 第二階段（3-4 週）
-1. 實施 P1 中的 GitHub 整合
-2. 完成 SRE 量化指標系統
-3. 建立 HITL 測試
-
-### 第三階段（5-8 週）
-1. 實施迭代優化框架
-2. 整合 MCP 工具箱
-3. 完成所有 P1 測試
-
-### 第四階段（長期）
-1. 逐步實施 P2 功能
-2. 根據使用反饋調整優先級
-3. 持續優化和改進
-
-## 工作流程架構重構詳細計劃
-
-### 為何是最高優先級？
-1. **性能提升**：並行診斷可減少 70% 診斷時間
-2. **可維護性**：工作流程模式更清晰、易於調試
-3. **擴展性**：便於新增專家代理和條件邏輯
-4. **符合 ADK 最佳實踐**：Advanced Workflow Multi-Agent 模式
-
-### 重構路線圖
-
-#### Phase 0: 基礎架構遷移（Day 1-3）
+**實施計畫**:
 ```python
-# 從現有架構
-class SRECoordinator(SequentialAgent):
-    agents = [診斷, 修復, 覆盤, 配置]
-
-# 遷移到工作流程架構
-class SREWorkflow(SequentialAgent):
-    agents = [
-        ParallelDiagnostics(),  # 新增
-        ConditionalRemediation(),  # 新增
-        PostmortemExpert(),
-        IterativeOptimization()  # 新增
-    ]
+# 替換現有的條件邏輯
+class SREIntelligentDispatcher(BaseAgent):
+    """基於 LLM 的動態分診器"""
+    def __init__(self):
+        self.expert_registry = {
+            "k8s_diagnostic": KubernetesDiagnosticAgent(),
+            "db_diagnostic": DatabaseDiagnosticAgent(),
+            "network_diagnostic": NetworkDiagnosticAgent(),
+            "rollback_fix": RollbackRemediationAgent(),
+            "scaling_fix": AutoScalingAgent(),
+            "config_fix": ConfigurationFixAgent()
+        }
 ```
 
-#### Phase 1: 並行診斷實作（Day 4-5）
-```python
-class ParallelDiagnostics(ParallelAgent):
-    """並行執行多個診斷任務"""
-    sub_agents = [
-        PrometheusMetricsAgent(output_key="metrics_analysis"),
-        ElasticsearchLogAgent(output_key="logs_analysis"),
-        JaegerTraceAgent(output_key="traces_analysis"),
-        HistoricalIncidentMatcher(output_key="similar_incidents")
-    ]
+**參考**: `google-adk-workflows/dispatcher/agent.py`
+**預期效益**: 
+- 提升 30% 診斷準確率
+- 支援動態擴展新專家代理
+- 減少硬編碼邏輯
+
+---
+
+### 2. ✔️ [P1-高] 修復後驗證機制
+**目標**: 在修復操作後加入自動驗證步驟，確保修復成功且未引入新問題
+
+**實施計畫**:
+- 在工作流程中新增 `VerificationPhase`
+- 實現 `HealthCheckAgent` 重新執行關鍵診斷
+- 實現 `VerificationCriticAgent` 評估修復效果
+
+**參考**: `google-adk-workflows/self_critic/agent.py`
+**預期效益**:
+- 減少 50% 的修復失敗率
+- 自動檢測修復引起的副作用
+- 提供修復效果的量化評估
+
+---
+
+### 3. 🐙 [P1-中] GitHub 事件管理系統
+**目標**: 實現完整的事件生命週期追蹤
+
+**實施要點**:
+- 使用結構化 Markdown 模板創建 issue
+- 實現 P0/P1/P2 自動標籤系統
+- 建立 PR 與事件的自動關聯
+
+**參考**: `software-bug-assistant/tools/github_tools.py`
+**交付標準**:
+- [ ] 自動創建事件 issue
+- [ ] 狀態同步更新
+- [ ] 事後檢討報告自動附加
+
+---
+
+### 4. 📊 [P1-中] SLO 管理與五個為什麼
+**目標**: 建立數據驅動的可靠性管理系統
+
+**核心功能**:
+```yaml
+slo_manager:
+  error_budget:
+    calculation: automatic
+    alerting: multi-window
+  five_whys:
+    template: google-sre-book
+    automation: llm-assisted
 ```
 
-#### Phase 2: 條件修復流程（Day 6-7）
-```python
-class ConditionalRemediation(BaseAgent):
-    """基於風險等級的條件執行"""
-    def _run_async_impl(self, ctx):
-        severity = ctx.state['severity']
-        if severity == 'P0':
-            # 需要 HITL 審批
-            agent = HITLRemediationAgent()
-        elif severity == 'P1':
-            # 自動修復但記錄
-            agent = AutoRemediationWithLogging()
-        else:
-            # 計劃性修復
-            agent = ScheduledRemediation()
-        return agent.run_async(ctx)
-```
+**參考**: `machine-learning-engineering/optimization/`
+**關鍵指標**:
+- Error Budget 消耗率實時追蹤
+- 多窗口燃燒率警報
+- 自動化根因分析報告
 
-#### Phase 3: 循環優化機制（Day 7）
-```python
-class IterativeOptimization(LoopAgent):
-    """持續優化直到 SLO 達標"""
-    sub_agent = SLOTuningAgent()
-    max_iterations = 3
-    termination_condition = lambda ctx: ctx.state.get('slo_met', False)
-```
+---
 
-### 預期效益
+### 5. 🤝 [P1-中] HITL 審批工作流程
+**目標**: 為高風險操作建立人工審批機制
 
-| 指標 | 現狀 | 重構後 | 改善 |
-|------|------|--------|------|
-| 診斷時間 | 30秒 | 10秒 | -67% |
-| 修復準確率 | 85% | 95% | +10% |
-| 代碼可維護性 | 中 | 高 | ⬆️ |
-| 新功能開發速度 | 2週/功能 | 1週/功能 | -50% |
+**技術架構**:
+- 使用 `LongRunningFunctionTool` 模式
+- 整合通知系統 (Slack/PagerDuty)
+- 實現審批超時自動處理
 
-## 部署策略建議
+**參考**: `human_in_loop/agent.py`
+**風險矩陣**:
+| 操作 | 開發環境 | 測試環境 | 生產環境 |
+|------|---------|---------|---------|
+| Pod 重啟 | 自動 | 自動 | 需審批 |
+| 配置變更 | 自動 | 需審批 | 需審批 |
+| 資料庫故障轉移 | 需審批 | 需審批 | 需審批+確認 |
 
-### 開發環境
-- **配置**：Local + PostgreSQL
-- **用途**：功能開發和單元測試
-- **成本**：最低
+---
 
-### 測試環境
-- **配置**：Cloud Run + Weaviate
-- **用途**：整合測試和 UAT
-- **成本**：中等
+## 🔷 P2 - 長期架構演進
 
-### 生產環境
-- **配置**：Agent Engine + Weaviate（成本效益）或 Vertex AI（全託管）
-- **用途**：正式服務
-- **成本**：依使用量計費
+### 1. [P2] A2A 聯邦架構
+**願景**: 建立分散式 SRE 專家代理聯邦
+- 實現 `AgentCard` 服務發現
+- 建立安全的 A2A 通訊協議
+- 支援跨團隊代理協作
 
-## 監控和維護計劃
+### 2. [P2] 全面可觀測性
+**目標**: 使用 OpenTelemetry 實現端到端追蹤
+- 代理決策追蹤
+- Token 使用分析
+- 性能瓶頸識別
 
-### 日常監控
-- 使用 `SREErrorBudgetManager` 監控服務健康
-- 檢查 SLO 合規性
-- 審查錯誤日誌
+### 3. [P2] 宣告式配置
+**轉型**: 從程式碼到 YAML 配置
+- 工作流程 YAML 定義
+- 動態代理載入
+- 熱更新支援
 
-### 版本管理
-- 透過 `VersionedToolRegistry` 管理工具升級
-- 確保向後相容性
-- 記錄所有變更
+### 4. [P2] 智慧成本優化
+**功能**: 自動化成本管理
+- Token 使用優化建議
+- 資源配置優化
+- ROI 分析儀表板
 
-### 零停機部署
-- 利用配置系統實現熱更新
-- 使用金絲雀部署降低風險
-- 自動回滾機制
+---
 
-## 注意事項
+## 📈 關鍵成功指標
 
-1. **🔥 工作流程架構是基礎**：所有其他 P0 任務都應在新架構上實施
-2. **優先級調整**：可根據實際業務需求調整任務優先級，但工作流程架構重構應保持最高優先級
-3. **依賴關係**：某些 P1 任務可能依賴 P0 任務的完成
-4. **資源分配**：建議至少分配 2-3 名工程師專注於工作流程重構
-5. **文檔更新**：每完成一個任務都應更新相關文檔
-6. **測試覆蓋**：新的工作流程架構必須有完整的單元測試和整合測試
+### 技術指標
+| 指標 | 當前值 | P1 目標 | P2 目標 |
+|------|--------|---------|---------|
+| 診斷準確率 | 85% | > 95% | > 98% |
+| 平均診斷時間 | 30s | < 15s | < 10s |
+| MTTR | 30min | < 15min | < 10min |
+| 自動修復率 | 60% | > 80% | > 90% |
+| 錯誤預算效率 | 70% | > 85% | > 95% |
 
-## 📚 **P0 任務參考對照表**
+### 業務價值
+| 成果 | 衡量方式 | P1 目標 | P2 目標 |
+|------|----------|---------|---------|
+| 減少人工介入 | 自動化率 | 75% | 90% |
+| 提升可靠性 | SLO 達成率 | 99.9% | 99.95% |
+| 降低成本 | 營運成本節省 | 30% | 50% |
+| 團隊滿意度 | NPS 分數 | > 7 | > 8.5 |
 
-| 任務 | 主要參考範例 | 路徑 |
-|------|------------|------|
-| **工作流程架構** | workflow_triage, multi_agent_loop_config, parallel_functions | `adk-examples/workflow_triage/`等 |
-| **認證授權** | a2a_auth, spanner, google_api | `adk-examples/a2a_auth/`等 |
-| **Session/Memory** | session_state_agent, history_management | `adk-examples/session_state_agent/`等 |
+---
 
-## 📚 **P1 任務參考對照表**
+## 🗓️ 實施時間表
 
-| 任務 | 主要參考範例 | 路徑 |
-|------|------------|------|
-| **HITL 測試** | human_in_loop, tool_human_in_the_loop_config, a2a_human_in_loop | `adk-examples/human_in_loop/`等 |
-| **迭代優化** | multi_agent_loop_config | `adk-examples/multi_agent_loop_config/` |
-| **資料庫工具** | spanner | `adk-examples/spanner/` |
+### Sprint 1-2 (週 1-4)
+- 完成智慧分診系統
+- 實現修復後驗證機制
+- 開始 GitHub 整合開發
 
-## 📚 **P2 任務參考對照表**
+### Sprint 3-4 (週 5-8)
+- 完成 GitHub 事件管理
+- 實現 SLO 管理系統
+- 開發五個為什麼模板
 
-| 任務 | 主要參考範例 | 路徑 |
-|------|------------|------|
-| **A2A 協議** | a2a_auth, a2a_human_in_loop | `adk-examples/a2a_auth/`等 |
-| **可觀測性** | callbacks, token_usage | `adk-examples/callbacks/`等 |
-| **並行性能** | parallel_functions | `adk-examples/parallel_functions/` |
+### Sprint 5-6 (週 9-12)
+- 完成 HITL 審批流程
+- 全面測試 P1 功能
+- 準備生產環境部署
+
+### Q2+ (長期)
+- 逐步實施 P2 功能
+- 根據使用反饋迭代
+- 探索新的 AI 能力整合
+
+---
+
+## ⚠️ 風險與緩解
+
+| 風險 | 影響 | 機率 | 緩解策略 |
+|------|------|------|----------|
+| LLM 分診錯誤 | 高 | 中 | 實施雙重確認機制，保留人工覆核選項 |
+| HITL 延遲 | 中 | 高 | 設置合理超時，建立升級路徑 |
+| 整合複雜度 | 中 | 中 | 採用漸進式整合，每個系統獨立測試 |
+| 成本超支 | 低 | 中 | 實施 Token 預算管理，優化 prompt |
+
+---
+
+## 📝 關鍵決策記錄
+
+### ADR-001: 採用智慧分診替代靜態條件
+- **決策**: 使用 LLM 驅動的動態分診
+- **原因**: 提高靈活性，支援複雜場景
+- **權衡**: 增加延遲，但提升準確性
+
+### ADR-002: HITL 使用 LongRunningFunctionTool
+- **決策**: 採用異步審批模式
+- **原因**: 避免阻塞，支援並發處理
+- **權衡**: 實現複雜度增加
+
+### ADR-003: 優先實施驗證機制
+- **決策**: 在新功能前先完善驗證
+- **原因**: 確保系統可靠性
+- **權衡**: 延後新功能開發
+
+---
+
+**文檔維護者**: Google ADK 首席架構師
+**最後更新**: 2025-08-25
+**下次審查**: 2025-09-08
+**版本**: 3.0.0
