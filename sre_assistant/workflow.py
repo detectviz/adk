@@ -517,7 +517,7 @@ class SREWorkflow(SequentialAgent):
         initial_context: Optional[InvocationContext] = None
     ) -> InvocationContext:
         """
-        帶有認證和授權的執行入口。
+        帶有認證和授權的執行入口 (已更新為無狀態 AuthManager)。
         這是一個包裝器，用於在執行核心工作流程之前驗證用戶權限。
 
         Args:
@@ -535,25 +535,24 @@ class SREWorkflow(SequentialAgent):
         if not self.auth_manager:
             raise ImportError("AuthManager is not available.")
 
-        # 1. 認證
-        success, user_info = await self.auth_manager.authenticate(credentials)
+        ctx = initial_context or InvocationContext()
+
+        # 1. 認證 (傳入 ctx)
+        success, user_info = await self.auth_manager.authenticate(ctx, credentials)
         if not success:
             raise PermissionError("Authentication failed.")
 
-        print(f"Authentication successful for user: {user_info.get('email', user_info.get('user_id'))}")
+        logger.info(f"Authentication successful for user: {user_info.get('email', user_info.get('user_id'))}")
+        ctx.state["user_info"] = user_info # 將認證後的用戶資訊注入到上下文中
 
-        # 2. 授權
-        authorized = await self.auth_manager.authorize(user_info, resource, action)
+        # 2. 授權 (傳入 ctx)
+        authorized = await self.auth_manager.authorize(ctx, user_info, resource, action)
         if not authorized:
             raise PermissionError(f"User not authorized to perform '{action}' on '{resource}'.")
 
-        print(f"Authorization successful for action '{action}' on resource '{resource}'.")
+        logger.info(f"Authorization successful for action '{action}' on resource '{resource}'.")
 
         # 3. 執行工作流程
-        # 將認證後的用戶資訊注入到上下文中
-        ctx = initial_context or InvocationContext()
-        ctx.state["user_info"] = user_info
-
         return await self.run_async(ctx)
 
 
