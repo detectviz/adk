@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pydantic schemas for the Intent Extractor Agent."""
+"""意圖提取代理的 Pydantic 模型。"""
 
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
@@ -20,21 +20,21 @@ from typing import Optional, Literal
 class IntentExtractionResult(BaseModel):
     country: Optional[str] = Field(
         default=None,
-        description="Target country for lead generation. Examples: 'Thailand', 'Singapore', 'Malaysia'"
+        description="潛在客戶開發的目標國家。範例：'Thailand', 'Singapore', 'Malaysia'"
     )
     industry: Optional[str] = Field(
         default=None,
-        description="Target industry sector. Examples: 'fintech', 'healthcare', 'SaaS', 'e-commerce'"
+        description="目標產業領域。範例：'fintech', 'healthcare', 'SaaS', 'e-commerce'"
     )
     stage: Literal["pattern_discovery", "lead_generation", "follow_up", "chitchat"] = Field(
-        description="Current conversation stage determining next action"
+        description="目前的對話階段，用於決定下一步行動"
     )
     intent: Literal["find_leads", "find_patterns", "company_research", "general_chat"] = Field(
-        description="User's primary intent or goal"
+        description="使用者的主要意圖或目標"
     )
     confidence: float = Field(
-        description="Confidence score for the extraction (0.0 to 1.0)"
+        description="提取的信心分數 (0.0 到 1.0)"
     )
     reasoning: str = Field(
-        description="Brief explanation of the extraction decisions"
+        description="提取決策的簡要說明"
     )

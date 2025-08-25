@@ -14,12 +14,12 @@
 
 #!/bin/bash
 
-# Run the below script to publish the agent into your agentspace.
+# 執行以下腳本將代理發布到您的 agentspace。
 
-# Get the directory where the script is located
+# 獲取腳本所在的目錄
 SCRIPT_DIR=$(dirname "$0")
 
-# Source the environment variables from the .env file located in the parent directory of the script
+# 從位於腳本父目錄的 .env 檔案中載入環境變數
 if [ -f "${SCRIPT_DIR}/../.env" ]; then
   export $(grep -v '^#' "${SCRIPT_DIR}/../.env" | xargs)
 fi
@@ -29,18 +29,18 @@ export LOCATION="${GOOGLE_CLOUD_LOCATION}"
 export REASONING_ENGINE_ID="${REASONING_ENGINE_ID}"
 
 export PROJECT_ID=$(gcloud config get-value project)
-echo "Using Project ID: ${PROJECT_ID}" 
+echo "使用專案 ID: ${PROJECT_ID}"
 
 curl -X POST \
 -H "Authorization: Bearer $(gcloud auth print-access-token)" \
 -H "Content-Type: application/json" \
 -H "X-Goog-User-Project: ${PROJECT_ID}" \
 -d "{
-  \"displayName\": \"Lead Generation Agent\",
-  \"description\": \"This agent discovers investment patterns and finds new leads.\",
+  \"displayName\": \"潛在客戶開發代理\",
+  \"description\": \"此代理會發現投資模式並尋找新的潛在客戶。\",
   \"adk_agent_definition\": {
     \"tool_settings\": {
-      \"tool_description\": \"This agent discovers investment patterns and finds new leads.\"
+      \"tool_description\": \"此代理會發現投資模式並尋找新的潛在客戶。\"
     },
     \"provisioned_reasoning_engine\": {
       \"reasoning_engine\": \"projects/${PROJECT_ID}/locations/${LOCATION}/reasoningEngines/${REASONING_ENGINE_ID}\"

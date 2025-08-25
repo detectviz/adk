@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Lead Generation Orchestrator Agent and its sub-components.
+潛在客戶開發協調代理及其子元件。
 """
 
 import os
@@ -34,59 +34,58 @@ from .prompt import (
     REPORT_COMPILER_PROMPT,
 )
 from .schemas import LeadFinderOutput, LeadSignalAnalyzerOutput
-from ..pattern_discovery.agent import validator_agent_template # Reuse the validator
+from ..pattern_discovery.agent import validator_agent_template # 重用驗證器
 
-# Lead Finder Agent
+# 潛在客戶尋找代理
 lead_finder_agent = LlmAgent(
     name="LeadFinderAgent",
-    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-2.5-pro"),
+    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-1.5-pro"),
     instruction=LEAD_FINDER_PROMPT,
     tools=[google_search],
     output_key="lead_finder_output",
 )
 
-# Lead Formatter Agent (similar to the company formatter)
+# 潛在客戶格式化代理（類似於公司格式化代理）
 lead_formatter_agent = LlmAgent(
     name="LeadFormatterAgent",
-    model=os.getenv("GEN_FAST_MODEL", "gemini-2.0-flash"),
-    instruction="Format the unstructured text from the Lead Finder into the `LeadFinderOutput` JSON schema.",
+    model=os.getenv("GEN_FAST_MODEL", "gemini-1.5-flash"),
+    instruction="將來自潛在客戶尋找器的非結構化文本格式化為 `LeadFinderOutput` JSON 結構。",
     output_schema=LeadFinderOutput,
     output_key="leads_found_structured",
 )
 
-# Lead Signal Analyzer Agent Template (Researcher)
+# 潛在客戶信號分析器代理模板（研究員）
 lead_signal_analyzer_template = LlmAgent(
     name="LeadSignalAnalyzerAgent",
-    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-2.5-pro"),
+    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-1.5-pro"),
     instruction=LEAD_SIGNAL_ANALYZER_PROMPT,
     tools=[google_search],
-    output_key="lead_signal_analyzer_output", # Save unstructured output
+    output_key="lead_signal_analyzer_output", # 保存非結構化輸出
 )
 
-# Lead Signal Formatter Agent Template (Formatter)
+# 潛在客戶信號格式化代理模板（格式化器）
 lead_signal_formatter_template = LlmAgent(
     name="LeadSignalFormatterAgent",
-    model=os.getenv("GEN_FAST_MODEL", "gemini-2.0-flash"),
-    instruction="""Format the following unstructured text from the Lead Signal Analyzer into the `LeadSignalAnalyzerOutput` JSON schema.
+    model=os.getenv("GEN_FAST_MODEL", "gemini-1.5-flash"),
+    instruction="""將來自潛在客戶信號分析器的以下非結構化文本格式化為 `LeadSignalAnalyzerOutput` JSON 結構。
 
 {unstructured_text}
 """,
     output_schema=LeadSignalAnalyzerOutput,
-    output_key="lead_analysis_findings", # Save structured output
+    output_key="lead_analysis_findings", # 保存結構化輸出
 )
 
-# Report Compiler Agent
+# 報告編譯代理
 report_compiler_agent = LlmAgent(
     name="ReportCompilerAgent",
-    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-2.5-pro"),
+    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-1.5-pro"),
     instruction=REPORT_COMPILER_PROMPT,
 )
 
-# Report Orchestrator Agent
+# 報告協調代理
 class ReportOrchestratorAgent(BaseAgent):
     """
-    Gathers all the parallel lead research findings and formats them into a
-    single string for the ReportCompilerAgent.
+    收集所有並行的潛在客戶研究結果，並將它們格式化為單一字串，以供報告編譯代理使用。
     """
     async def _run_async_impl(
         self, ctx: InvocationContext
@@ -100,33 +99,32 @@ class ReportOrchestratorAgent(BaseAgent):
                 analysis_findings = ctx.session.state.get(f"lead_analysis_findings_{i}")
 
                 if validation_result and validation_result.get("is_valid"):
-                    finding_str = f"--- Lead: {lead_data.get('company_name')} ---\n"
+                    finding_str = f"--- 潛在客戶: {lead_data.get('company_name')} ---\n"
                     if analysis_findings:
-                        summary = analysis_findings.get('summary', 'No summary available.')
+                        summary = analysis_findings.get('summary', '沒有可用的摘要。')
                         sources = analysis_findings.get('sources', [])
-                        finding_str += f"Analysis Summary: {summary}\n"
-                        finding_str += "Sources:\n" + "\n".join(f"- {source}" for source in sources)
+                        finding_str += f"分析摘要: {summary}\n"
+                        finding_str += "來源:\n" + "\n".join(f"- {source}" for source in sources)
                     else:
-                        finding_str += "No analysis findings available.\n"
+                        finding_str += "沒有可用的分析結果。\n"
                     all_findings.append(finding_str)
         
         ctx.session.state["all_lead_findings"] = "\n\n".join(all_findings)
-        yield Event(author=self.name, content=Content(parts=[Part(text="Lead findings consolidated.")]))
+        yield Event(author=self.name, content=Content(parts=[Part(text="潛在客戶研究結果已整合。")]))
 
 report_orchestrator_agent = ReportOrchestratorAgent(name="ReportOrchestrator")
 
-# Lead Research Orchestrator Agent
+# 潛在客戶研究協調代理
 class LeadResearchOrchestratorAgent(BaseAgent):
     """
-    Dynamically creates and runs a parallel workflow to validate and analyze
-    a list of potential leads.
+    動態建立並執行一個並行工作流程，以驗證和分析潛在客戶列表。
     """
     async def _run_async_impl(
         self, ctx: InvocationContext
     ) -> AsyncGenerator[Event, None]:
         leads_found_structured = ctx.session.state.get("leads_found_structured")
         if not leads_found_structured:
-            yield Event(author=self.name, content=Content(parts=[Part(text="No leads to analyze.")]))
+            yield Event(author=self.name, content=Content(parts=[Part(text="沒有要分析的潛在客戶。")]))
             return
 
         leads_list = leads_found_structured.get("potential_leads", [])
@@ -177,7 +175,7 @@ class LeadResearchOrchestratorAgent(BaseAgent):
 
 lead_research_orchestrator_agent = LeadResearchOrchestratorAgent(name="LeadResearchOrchestrator")
 
-# Main Lead Generation Agent
+# 主要潛在客戶開發代理
 lead_generation_agent = SequentialAgent(
     name="LeadGenerationAgent",
     sub_agents=[
@@ -187,5 +185,5 @@ lead_generation_agent = SequentialAgent(
         report_orchestrator_agent,
         report_compiler_agent,
     ],
-    description="Orchestrates the workflow for finding and qualifying new investment leads.",
+    description="協調尋找和篩選新投資潛在客戶的工作流程。",
 )

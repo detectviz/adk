@@ -127,7 +127,7 @@
                     class="text-green-500">g</span><span class="text-red-500">o</span>
                 <span>AI</span>
             </h1>
-            <p class="text-lg text-gray-600">Personal Travel Agent</p>
+            <p class="text-lg text-gray-600">個人旅遊代理</p>
         </div>
     </header>
 
@@ -135,7 +135,7 @@
         <div class="bg-white rounded-2xl p-6 shadow-lg flex flex-col">
             <div id="transcript-container" class="bg-gray-50 rounded-lg p-4 flex-grow h-96 overflow-y-auto">
                 <div id="transcript" class="space-y-4">
-                    <div class="text-gray-500 text-center py-10">Start a conversation to see the transcript.</div>
+                    <div class="text-gray-500 text-center py-10">開始對話以查看文字記錄。</div>
                 </div>
             </div>
 
@@ -155,7 +155,7 @@
                             d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                     </svg>
                 </button>
-                <p id="mic-status" class="text-sm font-medium text-gray-600 mt-3">Click the icon to start recording</p>
+                <p id="mic-status" class="text-sm font-medium text-gray-600 mt-3">點擊圖示開始錄音</p>
             </div>
         </div>
     </div>
@@ -164,11 +164,11 @@
     <script src="stream_manager.js"></script>
 
     <script>
-        // Initialize variables
+        // 初始化變數
         const stream = new StreamManager('ws://localhost:8080');
         stream.maxReconnectAttempts = 0;
         let isRecording = false;
-        // DOM elements
+        // DOM 元素
         const micButton = document.getElementById('mic-button');
         const micStatus = document.getElementById('mic-status');
         const transcriptContainer = document.getElementById('transcript');
@@ -177,7 +177,7 @@
         const micIcon = micButton.querySelector('.mic-icon');
 
 
-        // Function to add message to transcript
+        // 將訊息新增至文字記錄的函式
         function updateTranscript(text, sender, isPartial = false) {
             const initialPlaceholder = transcriptContainer.querySelector('.text-gray-500.text-center.py-10');
             if (initialPlaceholder) {
@@ -221,7 +221,7 @@
         }
 
 
-        // Microphone button handler
+        // 麥克風按鈕處理常式
         micButton.addEventListener('click', async () => {
             if (isRecording) {
                 stopStream();
@@ -230,30 +230,30 @@
             }
         });
 
-        // Start recording
+        // 開始錄音
         async function startStream() {
             try {
                 const success = await stream.start();
                 if (success) {
                     isRecording = true;
                     micButton.classList.add('mic-active');
-                    micStatus.textContent = 'Recording...';
+                    micStatus.textContent = '錄音中...';
                 }
             } catch (error) {
-                console.error('Error starting recording:', error);
-                micStatus.textContent = 'Error starting. Try again.';
+                console.error('啟動錄音時發生錯誤:', error);
+                micStatus.textContent = '啟動時發生錯誤。請再試一次。';
             }
         }
 
-        // Stop recording
+        // 停止錄音
         function stopStream() {
             stream.stop();
             isRecording = false;
             micButton.classList.remove('mic-active');
-            micStatus.textContent = 'Click the icon to start recording';
+            micStatus.textContent = '點擊圖示開始錄音';
         }
 
-        // Initialize multimodal client
+        // 初始化多模態用戶端
         async function initializeStream() {
             try {
                 await stream.openConnection();
@@ -261,7 +261,7 @@
                 let isFirstChunk = true;
 
                 stream.onReady = () => {
-                    console.log('Stream ready');
+                    console.log('串流已就緒');
                 };
 
                 stream.onAudioReceived = (audioData) => {
@@ -288,7 +288,7 @@
                 };
 
                 stream.onTurnComplete = () => {
-                    console.log('Turn complete, preparing for next turn');
+                    console.log('回合完成，準備下一回合');
                     audioIndicator.classList.add('hidden');
                     currentResponseText = '';
                     isFirstChunk = true;
@@ -300,29 +300,29 @@
                 };
 
                 stream.onError = (error) => {
-                    console.error('Stream error:', error);
-                    updateTranscript("Sorry, an error occurred. Please try again.", "assistant");
+                    console.error('串流錯誤:', error);
+                    updateTranscript("抱歉，發生錯誤。請再試一次。", "assistant");
                     currentResponseText = ''; isFirstChunk = true;
                 };
 
                 stream.onInterrupted = () => {
-                    console.log('Stream interrupted');
+                    console.log('串流已中斷');
                     audioIndicator.classList.add('hidden');
                     stream.interrupt();
                     currentResponseText = ''; isFirstChunk = true;
                 };
             } catch (error) {
-                console.error('Failed to initialize stream:', error);
-                updateTranscript("Sorry, connection failed. Please try again later.", "assistant");
+                console.error('初始化串流失敗:', error);
+                updateTranscript("抱歉，連線失敗。請稍後再試。", "assistant");
             }
         }
 
-        // Initialize on page load
+        // 頁面載入時初始化
         window.addEventListener('load', () => {
             initializeStream();
         });
 
-        // Add unload handler
+        // 新增卸載處理常式
         window.addEventListener('beforeunload', () => {
             stream.closeConnection();
         });
