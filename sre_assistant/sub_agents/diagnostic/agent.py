@@ -8,7 +8,7 @@ from google.adk.agents import LlmAgent
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.events.event import Event
-from .tool_registry import (
+from .tools import (
     promql_query,
     log_search,
     trace_analysis,
@@ -18,7 +18,7 @@ from .prompts import DIAGNOSTIC_PROMPT
 from ...citation_manager import SRECitationFormatter
 from typing import List, Dict, Any, AsyncGenerator
 import json
-from google.adk.tools import agent_tool
+from google.adk.tools.agent_tool import agent_tool
 
 class DiagnosticAgent(LlmAgent):
     """
