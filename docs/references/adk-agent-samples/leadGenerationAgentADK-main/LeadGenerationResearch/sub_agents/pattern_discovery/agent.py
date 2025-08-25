@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Pattern Discovery Orchestrator Agent and its sub-components.
+模式發現協調代理及其子元件。
 """
 import os
 from typing import AsyncGenerator
@@ -37,70 +37,69 @@ from .prompt import (
 )
 from .schemas import CompanyFinderOutput, ValidationResult, SignalSearcherOutput
 
-# Company Finder Agent
+# 公司尋找代理
 company_finder_agent = LlmAgent(
     name="CompanyFinderAgent",
-    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-2.5-pro"),
+    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-1.5-pro"),
     instruction=COMPANY_FINDER_PROMPT,
     tools=[google_search],
     output_key="company_finder_output",
 )
 
-# Company Formatter Agent
+# 公司格式化代理
 company_formatter_agent = LlmAgent(
     name="CompanyFormatterAgent",
-    model=os.getenv("GEN_FAST_MODEL", "gemini-2.0-flash"),
+    model=os.getenv("GEN_FAST_MODEL", "gemini-1.5-flash"),
     instruction=FORMATTER_PROMPT,
     output_schema=CompanyFinderOutput,
     output_key="companies_found_structured",
-    description="Takes unstructured text about companies and formats it into a valid JSON object.",
+    description="將關於公司的非結構化文本格式化為有效的 JSON 物件。",
 )
 
-# Validator Agent Template
+# 驗證器代理模板
 validator_agent_template = LlmAgent(
     name="ValidatorAgent",
-    model=os.getenv("GEN_FAST_MODEL", "gemini-2.0-flash"),
+    model=os.getenv("GEN_FAST_MODEL", "gemini-1.5-flash"),
     instruction=VALIDATOR_PROMPT,
     output_schema=ValidationResult,
-    description="Validates a single company to ensure it is a foreign entity that has recently invested in the target market.",
+    description="驗證單一公司，確保其為近期在目標市場投資的外國實體。",
 )
 
-# Signal Searcher Agent Template (Researcher)
+# 信號搜尋器代理模板（研究員）
 signal_searcher_agent_template = LlmAgent(
     name="SignalSearcherAgent",
-    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-2.5-pro"),
+    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-1.5-pro"),
     instruction=SIGNAL_SEARCHER_PROMPT,
     tools=[google_search],
-    output_key="signal_searcher_output", # Save unstructured output
-    description="Researches a single, validated company to find its pre-investment signals.",
+    output_key="signal_searcher_output", # 儲存非結構化輸出
+    description="研究單一經過驗證的公司，以尋找其投資前信號。",
 )
 
-# Signal Formatter Agent Template (Formatter)
+# 信號格式化器代理模板（格式化器）
 signal_formatter_agent_template = LlmAgent(
     name="SignalFormatterAgent",
-    model=os.getenv("GEN_FAST_MODEL", "gemini-2.0-flash"),
-    instruction="""Format the following unstructured text from the Signal Searcher into the `SignalSearcherOutput` JSON schema.
+    model=os.getenv("GEN_FAST_MODEL", "gemini-1.5-flash"),
+    instruction="""將來自信號搜尋器的以下非結構化文本格式化為 `SignalSearcherOutput` JSON 結構。
 
 {unstructured_text}
 """,
     output_schema=SignalSearcherOutput,
-    output_key="research_findings", # Save structured output
+    output_key="research_findings", # 儲存結構化輸出
 )
 
-# Pattern Synthesizer Agent
+# 模式綜合代理
 pattern_synthesizer_agent = LlmAgent(
     name="PatternSynthesizerAgent",
-    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-2.5-pro"),
+    model=os.getenv("GEN_ADVANCED_MODEL", "gemini-1.5-pro"),
     instruction=SYNTHESIZER_PROMPT,
     output_key="discovered_patterns",
-    description="Analyzes research from multiple signal searchers and synthesizes the common patterns.",
+    description="分析來自多個信號搜尋器的研究，並綜合共同模式。",
 )
 
-# Synthesizer Orchestrator Agent
+# 綜合協調代理
 class SynthesizerOrchestratorAgent(BaseAgent):
     """
-    Gathers all the parallel research findings and formats them into a single
-    string for the PatternSynthesizerAgent.
+    收集所有並行研究結果，並將其格式化為單一字串，供模式綜合代理使用。
     """
 
     async def _run_async_impl(
@@ -114,8 +113,8 @@ class SynthesizerOrchestratorAgent(BaseAgent):
             companies_list = companies_found_structured.get("companies_found", [])
 
         if not companies_list:
-            ctx.session.state["all_research_findings"] = "No companies were found to consolidate."
-            yield Event(author=self.name, content=Content(parts=[Part(text="No research findings to consolidate.")]))
+            ctx.session.state["all_research_findings"] = "沒有找到可供整合的公司。"
+            yield Event(author=self.name, content=Content(parts=[Part(text="沒有可供整合的研究結果。")]))
             return
         
         num_companies = len(companies_list)
@@ -124,30 +123,29 @@ class SynthesizerOrchestratorAgent(BaseAgent):
             validation_result = ctx.session.state.get(f"validation_result_{i}")
             research_findings = ctx.session.state.get(f"research_findings_{i}")
 
-            finding_str = f"--- Company {i+1} ---\n"
+            finding_str = f"--- 公司 {i+1} ---\n"
             if validation_result:
-                finding_str += f"Validation: {'VALID' if validation_result.get('is_valid') else 'INVALID'}\n"
-                finding_str += f"Reasoning: {validation_result.get('reasoning')}\n"
+                finding_str += f"驗證：{'有效' if validation_result.get('is_valid') else '無效'}\n"
+                finding_str += f"原因：{validation_result.get('reasoning')}\n"
             
             if research_findings:
                 # The research_findings object is now a dictionary.
-                finding_str += f"Research Summary: {research_findings.get('summary')}\n"
-                finding_str += f"Sources: {', '.join(research_findings.get('sources', []))}\n"
+                finding_str += f"研究摘要：{research_findings.get('summary')}\n"
+                finding_str += f"來源：{', '.join(research_findings.get('sources', []))}\n"
             
             all_findings.append(finding_str)
         
-        # Save the consolidated findings to a new state variable.
+        # 將整合後的研究結果儲存到新的狀態變數中。
         ctx.session.state["all_research_findings"] = "\n".join(all_findings)
         
-        yield Event(author=self.name, content=Content(parts=[Part(text="Research findings consolidated.")]))
+        yield Event(author=self.name, content=Content(parts=[Part(text="研究結果已整合。")]))
 
 synthesizer_orchestrator_agent = SynthesizerOrchestratorAgent(name="SynthesizerOrchestrator")
 
-# Research Orchestrator Agent (Replaces Validation & Signal Research Orchestrators)
+# 研究協調代理（取代驗證與信號研究協調器）
 class ResearchOrchestratorAgent(BaseAgent):
     """
-    Dynamically creates and runs a parallel workflow to validate and research
-    a list of companies.
+    動態地建立並執行一個並行工作流程來驗證和研究公司列表。
     """
 
     async def _run_async_impl(
@@ -155,14 +153,14 @@ class ResearchOrchestratorAgent(BaseAgent):
     ) -> AsyncGenerator[Event, None]:
         companies_found_structured = ctx.session.state.get("companies_found_structured")
         if not companies_found_structured:
-            yield Event(author=self.name, content=Content(parts=[Part(text="No companies to research.")]))
+            yield Event(author=self.name, content=Content(parts=[Part(text="沒有要研究的公司。")]))
             return
 
         companies_list = companies_found_structured.get("companies_found", [])
         
         research_pipelines = []
         for i, company_data in enumerate(companies_list):
-            # For each company, create a simple sequential pipeline of (Validator -> Searcher -> Formatter).
+            # 對於每家公司，建立一個簡單的順序流程 (驗證器 -> 搜尋器 -> 格式化器)。
             research_pipeline = SequentialAgent(
                 name=f"CompanyResearchPipeline_{i}",
                 sub_agents=[
@@ -197,7 +195,7 @@ class ResearchOrchestratorAgent(BaseAgent):
             )
             research_pipelines.append(research_pipeline)
         
-        # Create a new, temporary ParallelAgent to run all the pipelines.
+        # 建立一個新的臨時 ParallelAgent 來執行所有流程。
         parallel_researcher = ParallelAgent(
             name="DynamicParallelResearcher",
             sub_agents=research_pipelines,
@@ -208,7 +206,7 @@ class ResearchOrchestratorAgent(BaseAgent):
 
 research_orchestrator_agent = ResearchOrchestratorAgent(name="ResearchOrchestrator")
 
-# Main Pattern Discovery Agent
+# 主要模式發現代理
 pattern_discovery_agent = SequentialAgent(
     name="PatternDiscoveryAgent",
     sub_agents=[
@@ -218,5 +216,5 @@ pattern_discovery_agent = SequentialAgent(
         synthesizer_orchestrator_agent,
         pattern_synthesizer_agent,
     ],
-    description="Orchestrates the technical steps of discovering investment patterns."
+    description="協調發現投資模式的技術步驟。"
 )

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test deployment of Lead Generation Agent to Agent Engine."""
+"""測試將潛在客戶開發代理部署到代理引擎。"""
 
 import os
 import sys
@@ -22,19 +22,19 @@ from absl import app, flags
 from dotenv import load_dotenv
 from vertexai import agent_engines
 
-# Add the project root to the Python path
+# 將專案根目錄新增至 Python 路徑
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("project_id", None, "GCP project ID.")
-flags.DEFINE_string("location", None, "GCP location.")
-flags.DEFINE_string("bucket", None, "GCP bucket.")
+flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
+flags.DEFINE_string("location", None, "GCP 地區。")
+flags.DEFINE_string("bucket", None, "GCP 儲存桶。")
 flags.DEFINE_string(
     "resource_id",
     None,
-    "ReasoningEngine resource ID. If not provided, it will be read from the REASONING_ENGINE_ID environment variable.",
+    "ReasoningEngine 資源 ID。如果未提供，將從 REASONING_ENGINE_ID 環境變數中讀取。",
 )
 
 
@@ -49,8 +49,8 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
     )
     if not resource_id:
         print(
-            "Missing required environment variable: REASONING_ENGINE_ID. "
-            "You can also pass it as a command-line flag --resource_id."
+            "缺少必要的環境變數：REASONING_ENGINE_ID。 "
+            "您也可以透過命令列旗標 --resource_id 傳遞。"
         )
         return
 
@@ -69,14 +69,14 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
     )
 
     if not project_id:
-        print("Missing required environment variable: GOOGLE_CLOUD_PROJECT")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_PROJECT")
         return
     elif not location:
-        print("Missing required environment variable: GOOGLE_CLOUD_LOCATION")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_LOCATION")
         return
     elif not bucket:
         print(
-            "Missing required environment variable: GOOGLE_CLOUD_STORAGE_BUCKET"
+            "缺少必要的環境變數：GOOGLE_CLOUD_STORAGE_BUCKET"
         )
         return
 
@@ -88,17 +88,17 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
 
     user_id = f"user_{uuid.uuid4()}"
     agent = agent_engines.get(resource_id)
-    print(f"Found agent with resource ID: {resource_id}")
+    print(f"找到具有資源 ID 的代理： {resource_id}")
     session = agent.create_session(user_id=user_id)
-    print(f"Created session for user ID: {user_id}")
+    print(f"已為使用者 ID 建立工作階段： {user_id}")
     
     
-    print("Type 'quit' to exit.")
+    print("輸入 'quit' 離開。")
 
 
 
     while True:
-        user_input = input("Input: ")
+        user_input = input("輸入: ")
         if user_input == "quit":
             break
 
@@ -113,13 +113,13 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
                     for part in parts:
                         if "text" in part:
                             text_part = part["text"]
-                            print(f"Response: {text_part}")
+                            print(f"回應: {text_part}")
 
 
 
 
     agent.delete_session(user_id=user_id, session_id=session["id"])
-    print(f"Deleted session for user ID: {user_id}")
+    print(f"已刪除使用者 ID 的工作階段： {user_id}")
 
 
 if __name__ == "__main__":

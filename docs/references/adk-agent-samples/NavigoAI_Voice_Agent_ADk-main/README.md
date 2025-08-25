@@ -1,88 +1,88 @@
-# Real-Time Voice Assistant with Google ADK
+# 使用 Google ADK 的即時語音助理
 
-This project implements a real-time, multimodal voice assistant using the Google Assistant "Diamond" Kit (ADK). It features a Python-based server that handles audio and video streaming, and a web-based client for user interaction.
+本專案使用 Google 助理「鑽石」套件 (ADK) 實作了一個即時、多模態的語音助理。它包含一個處理音訊和視訊串流的 Python 伺服器，以及一個用於使用者互動的網頁用戶端。
 
-## Features
+## 功能
 
-- **Real-Time Audio Streaming**: Captures microphone input and streams it to the server for processing.
-- **Multimodal Capabilities**: Supports both audio and video data streams.
-- **Google ADK Integration**: Leverages the Google ADK for conversational AI, including speech-to-text and text-to-speech.
-- **Function Calling**: Integrated with Google Maps for location-based queries.
-- **Web-Based Client**: Simple HTML and JavaScript client for interacting with the assistant.
+- **即時音訊串流**：擷取麥克風輸入並將其串流至伺服器進行處理。
+- **多模態能力**：支援音訊和視訊資料流。
+- **Google ADK 整合**：利用 Google ADK 進行對話式 AI，包括語音轉文字和文字轉語音。
+- **函式呼叫**：與 Google 地圖整合，用於基於位置的查詢。
+- **網頁用戶端**：用於與助理互動的簡單 HTML 和 JavaScript 用戶端。
 
-## Project Structure
+## 專案結構
 
 ```
 .
 ├── client/
-│   ├── interface.html       # The main HTML file for the client UI
-│   ├── sound_handler.js     # Manages audio playback
-│   └── stream_manager.js    # Handles WebSocket connection and data streaming
+│   ├── interface.html       # 用戶端 UI 的主要 HTML 檔案
+│   ├── sound_handler.js     # 管理音訊播放
+│   └── stream_manager.js    # 處理 WebSocket 連線和資料串流
 ├── server/
-│   ├── streaming_service.py # Main Python server using WebSockets and Google ADK
-│   ├── core_utils.py        # Core utilities and configurations
-│   ├── requirements.txt     # Python dependencies
-│   └── start_servers.sh     # Script to start the server
-└── README.md                # This file
+│   ├── streaming_service.py # 使用 WebSockets 和 Google ADK 的主要 Python 伺服器
+│   ├── core_utils.py        # 核心公用程式和設定
+│   ├── requirements.txt     # Python 依賴套件
+│   └── start_servers.sh     # 啟動伺服器的腳本
+└── README.md                # 此檔案
 ```
 
-## Setup and Installation
+## 設定與安裝
 
-### Prerequisites
+### 先決條件
 
 - Python 3.8+
-- `pip` for package management
-- An active Google Cloud project with the required APIs enabled.
+- 用於套件管理的 `pip`
+- 一個已啟用所需 API 的有效 Google Cloud 專案。
 
-### 1. Set Up Environment Variables
+### 1. 設定環境變數
 
-Create a `.env` file in the `server/` directory and add your Google Maps API key:
+在 `server/` 目錄中建立一個 `.env` 檔案，並新增您的 Google 地圖 API 金鑰：
 
 ```
-GOOGLE_MAPS_API_KEY="YOUR_API_KEY_HERE"
+GOOGLE_MAPS_API_KEY="您的_API_金鑰_放這裡"
 ```
 
-### 2. Install Dependencies
+### 2. 安裝依賴套件
 
-It is recommended to use a virtual environment to manage the project's dependencies.
+建議使用虛擬環境來管理專案的依賴套件。
 
 ```bash
-# Navigate to the server directory
+# 前往伺服器目錄
 cd server
 
-# Create a virtual environment
+# 建立虛擬環境
 python3 -m venv .venv
 
-# Activate the virtual environment
-# On macOS and Linux:
+# 啟用虛擬環境
+# 在 macOS 和 Linux 上：
 source .venv/bin/activate
-# On Windows:
+# 在 Windows 上：
 # .\.venv\Scripts\activate
 
-# Install the required Python packages
+# 安裝必要的 Python 套件
 pip install -r requirements.txt
 ```
 
-## Running the Application
+## 執行應用程式
 
-1.  **Start the Server**:
-    Open a terminal, navigate to the `server/` directory, and run the start script:
+1.  **啟動伺服器**：
+    開啟一個終端機，前往 `server/` 目錄，然後執行啟動腳本：
 
     ```bash
     cd server
     ./start_servers.sh
     ```
 
-    The server will start on `http://localhost:8080`.
+    伺服器將在 `http://localhost:8080` 上啟動。
 
-2.  **Open the Client**:
-    Open the [`client/interface.html`](client/interface.html) file in your web browser. The client will automatically connect to the WebSocket server.
+2.  **開啟用戶端**：
+    在您的網頁瀏覽器中開啟 [`client/interface.html`](client/interface.html) 檔案。用戶端將自動連接到 WebSocket 伺服器。
 
-3.  **Interact with the Assistant**:
-    - Click the "Start Streaming" button to begin capturing audio.
-    - The assistant will respond with both text and audio.
+3.  **與助理互動**：
+    - 點擊「開始串流」按鈕以開始擷取音訊。
+    - 助理將以文字和音訊兩種方式回應。
 
-## Configuration
+## 設定
 
-- **Server Port**: The WebSocket server port can be configured in [`server/streaming_service.py`](server/streaming_service.py). The default is `8080`.
-- **Google ADK Model**: The model and voice settings can be adjusted in [`server/core_utils.py`](server/core_utils.py).
+- **伺服器連接埠**：WebSocket 伺服器連接埠可在 [`server/streaming_service.py`](server/streaming_service.py) 中設定。預設為 `8080`。
+- **Google ADK 模型**：模型和語音設定可在 [`server/core_utils.py`](server/core_utils.py) 中調整。

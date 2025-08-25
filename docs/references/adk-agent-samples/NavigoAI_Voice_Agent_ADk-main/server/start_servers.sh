@@ -1,20 +1,20 @@
 #!/bin/bash
 
-# Start the ADK multimodal server
-echo "Starting the streaming service on port 8080..."
+# 啟動 ADK 多模態伺服器
+echo "正在 8080 連接埠上啟動串流服務..."
 cd "$(dirname "$0")"
 python3 streaming_service.py &
 ADK_PID=$!
 
-# Wait a moment to ensure the server starts properly
+# 稍待片刻以確保伺服器正常啟動
 sleep 2
 
-echo "Streaming service is now active with PID: $ADK_PID"
+echo "串流服務現已啟用，PID 為： $ADK_PID"
 echo ""
-echo "To stop the server, press Ctrl+C."
+echo "若要停止伺服器，請按 Ctrl+C。"
 
-# Trap Ctrl+C to properly shut down server
-trap "echo 'Shutting down the streaming service...'; kill $ADK_PID; exit 0" INT
+# 攔截 Ctrl+C 以正常關閉伺服器
+trap "echo '正在關閉串流服務...'; kill $ADK_PID; exit 0" INT
 
-# Wait until the user presses Ctrl+C
+# 等待使用者按下 Ctrl+C
 wait

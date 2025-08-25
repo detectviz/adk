@@ -12,35 +12,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pydantic schemas for the Pattern Discovery workflow."""
+"""模式發現工作流程的 Pydantic 模型。"""
 
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
 class Company(BaseModel):
-    """The structure of a single company found by the agent."""
-    company_name: str = Field(description="The name of the company.")
-    country_of_origin: str = Field(description="The country where the company is headquartered.")
-    investment_type: str = Field(description="The nature of the investment (e.g., new office, acquisition).")
-    investment_date: str = Field(description="The date of the investment (e.g., 2023-Q4).")
-    source_url: str = Field(description="The URL of the source article or press release.")
-    business_description: str = Field(description="A brief, one-sentence description of the company's business.")
+    """由代理找到的單一公司的結構。"""
+    company_name: str = Field(description="公司名稱。")
+    country_of_origin: str = Field(description="公司總部所在的國家。")
+    investment_type: str = Field(description="投資的性質（例如，新辦公室、收購）。")
+    investment_date: str = Field(description="投資日期（例如，2023-Q4）。")
+    source_url: str = Field(description="來源文章或新聞稿的 URL。")
+    business_description: str = Field(description="關於公司業務的簡短一句描述。")
 
 class CompanyFinderOutput(BaseModel):
-    """The structure of the final output from the Company Finder Agent."""
-    companies_found: List[Company] = Field(description="A list of companies that match the criteria.")
+    """公司尋找代理的最終輸出結構。"""
+    companies_found: List[Company] = Field(description="符合條件的公司列表。")
 
 class ValidationResult(BaseModel):
-    """The structure of the validation result for a single company."""
-    company_name: str = Field(description="The name of the company.")
-    is_valid: bool = Field(description="True if the company meets all validation criteria.")
-    reasoning: str = Field(description="A brief explanation of the validation decision.")
+    """單一公司的驗證結果結構。"""
+    company_name: str = Field(description="公司名稱。")
+    is_valid: bool = Field(description="如果公司符合所有驗證標準，則為 True。")
+    reasoning: str = Field(description="驗證決策的簡要說明。")
     corrected_country_of_origin: Optional[str] = Field(
         default=None,
-        description="The corrected country of origin, if the original was wrong."
+        description="更正後的來源國，如果原始資料有誤。"
     )
 
 class SignalSearcherOutput(BaseModel):
-    """The structure of the output from the Signal Searcher Agent."""
-    summary: str = Field(description="A summary of the pre-investment signals found.")
-    sources: List[str] = Field(description="A list of source URLs to support the findings.")
+    """信號搜尋代理的輸出結構。"""
+    summary: str = Field(description="找到的投資前信號的摘要。")
+    sources: List[str] = Field(description="支持調查結果的來源 URL 列表。")

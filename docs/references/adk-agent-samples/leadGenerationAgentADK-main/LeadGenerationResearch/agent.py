@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Lead Generation Agent v3 - Simplified Interactive Agent."""
+"""潛在客戶開發代理 v3 - 簡化互動式代理。"""
 
 from google.adk.agents import Agent
 from google.adk.agents.callback_context import CallbackContext
@@ -20,13 +20,13 @@ import os
 from google.adk.tools import get_user_choice
 
 
-# Import agent components from their new, organized locations
+# 從其新的、有組織的位置匯入代理元件
 from .tools.callbacks import before_agent_run, after_tool_run
 from .tools.agent_tools import agent_tools
 from .prompt import ROOT_AGENT_INSTRUCTION
 
 
-# Load environment variables
+# 載入環境變數
 try:
     from dotenv import load_dotenv
     load_dotenv()

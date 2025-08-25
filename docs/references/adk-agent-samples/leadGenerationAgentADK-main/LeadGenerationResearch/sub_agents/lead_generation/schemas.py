@@ -12,22 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pydantic schemas for the Lead Generation workflow."""
+"""潛在客戶開發工作流程的 Pydantic 模型。"""
 
 from pydantic import BaseModel, Field
 from typing import List
 
 class Lead(BaseModel):
-    """The structure of a single potential lead."""
-    company_name: str = Field(description="The name of the company.")
-    country_of_origin: str = Field(description="The country where the company is headquartered.")
-    business_description: str = Field(description="A brief, one-sentence description of the company's business.")
+    """單一潛在客戶的結構。"""
+    company_name: str = Field(description="公司名稱。")
+    country_of_origin: str = Field(description="公司總部所在的國家。")
+    business_description: str = Field(description="關於公司業務的簡短一句描述。")
 
 class LeadFinderOutput(BaseModel):
-    """The structure of the final output from the Lead Finder Agent."""
-    potential_leads: List[Lead] = Field(description="A list of potential leads that match the criteria.")
+    """潛在客戶尋找代理的最終輸出結構。"""
+    potential_leads: List[Lead] = Field(description="符合條件的潛在客戶列表。")
 
 class LeadSignalAnalyzerOutput(BaseModel):
-    """The structure of the output from the Lead Signal Analyzer Agent."""
-    summary: str = Field(description="A summary of the pre-investment signals found for the lead.")
-    sources: List[str] = Field(description="A list of source URLs to support the findings.")
+    """潛在客戶信號分析代理的輸出結構。"""
+    summary: str = Field(description="為潛在客戶找到的投資前信號的摘要。")
+    sources: List[str] = Field(description="支持調查結果的來源 URL 列表。")

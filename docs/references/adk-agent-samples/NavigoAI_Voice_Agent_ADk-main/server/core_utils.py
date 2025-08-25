@@ -7,13 +7,13 @@ import websockets
 import traceback
 from websockets.exceptions import ConnectionClosed
 
-# Set up logging
+# 設定日誌
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 stream_logger = logging.getLogger(__name__)
 
 
-# Constants
+# 常數
 load_dotenv()
 
 PROJECT_ID = os.environ.get("PROJECT_ID")
@@ -23,63 +23,62 @@ VOICE_NAME = os.environ.get("VOICE_NAME")
 GOOGLE_GENAI_USE_VERTEXAI = "FALSE"
 
 
-# Audio sample rates for input/output
-RECEIVE_SAMPLE_RATE = 24000  # Rate of audio received from Gemini
-SEND_SAMPLE_RATE = 16000     # Rate of audio sent to Gemini
+# 輸入/輸出的音訊取樣率
+RECEIVE_SAMPLE_RATE = 24000  # 從 Gemini 接收的音訊速率
+SEND_SAMPLE_RATE = 16000     # 傳送至 Gemini 的音訊速率
 
-# System instruction used by both implementations
+# 兩種實作都使用的系統指令
 SYSTEM_INSTRUCTION = """
-You are NaviGo AI, a friendly and helpful travel assistant.
-You talk to user like an Women Indian Travel Agent in late 40s who is very knowledgeable about travel destinations, routes, and local attractions.
-Your goal is to provide accurate and relevant travel information to users.
-You should introduce yourself at the beginning of the conversation: Be innovative and creative but mention your name Navigo AI and what you do.
-You can use the google_search tool to answer generic travel queries.
-When a user has any question regarding location , navigation it uses google maps mcp tools.
-Avoid Giving Any Information about yourself, your capabilities, or the tools you use.
+您是 NaviGo AI，一個友善且樂於助人的旅遊助理。
+您像一位 40 多歲的印度女性旅遊代理與使用者交談，她對旅遊目的地、路線和當地景點非常了解。
+您的目標是為使用者提供準確且相關的旅遊資訊。
+您應該在對話開始時自我介紹：要有創新和創意，但要提及您的名字 Navigo AI 和您的工作。
+您可以使用 google_search 工具來回答一般的旅遊查詢。
+當使用者有任何關於地點、導航的問題時，它會使用 google maps mcp 工具。
+避免提供任何關於您自己、您的能力或您使用的工具的資訊。
 
-Be clear in your responses. Always keep your responses concise and to the point.
-If you don't know the answer to a question, politely inform the user that you don't have that information.
-If the user asks for information that is not related to travel, politely inform them that you cannot assist with that.
+您的回答要清晰。始終保持回答簡潔扼要。
+如果您不知道問題的答案，請禮貌地告知使用者您沒有該資訊。
+如果使用者詢問與旅遊無關的資訊，請禮貌地告知他們您無法提供協助。
 """
 
-# Base WebSocket server class that handles common functionality
+# 處理通用功能的基礎 WebSocket 伺服器類別
 
 
 class BaseStreamServer:
     def __init__(self, host="0.0.0.0", port=8765):
         self.host = host
         self.port = port
-        self.active_connections = {}  # Store client connections
+        self.active_connections = {}  # 儲存用戶端連線
 
     async def start_server(self):
-        stream_logger.info(f"Starting stream server on {self.host}:{self.port}")
+        stream_logger.info(f"正在 {self.host}:{self.port} 上啟動串流伺服器")
         async with websockets.serve(self.manage_connection, self.host, self.port):
-            await asyncio.Future()  # Run forever
+            await asyncio.Future()  # 永久執行
 
     async def manage_connection(self, websocket):
-        """Handle a new client connection"""
+        """處理新的用戶端連線"""
         connection_id = id(websocket)
-        stream_logger.info(f"New connection established: {connection_id}")
+        stream_logger.info(f"已建立新連線： {connection_id}")
 
-        # Send ready message to client
+        # 向用戶端傳送準備就緒訊息
         await websocket.send(json.dumps({"type": "ready"}))
 
         try:
-            # Start processing the stream for this client
+            # 開始處理此用戶端的串流
             await self.handle_stream(websocket, connection_id)
         except ConnectionClosed:
-            stream_logger.info(f"Connection closed: {connection_id}")
+            stream_logger.info(f"連線已關閉： {connection_id}")
         except Exception as e:
-            stream_logger.error(f"Error handling connection {connection_id}: {e}")
+            stream_logger.error(f"處理連線 {connection_id} 時發生錯誤： {e}")
             stream_logger.error(traceback.format_exc())
         finally:
-            # Clean up
+            # 清理
             if connection_id in self.active_connections:
                 del self.active_connections[connection_id]
 
     async def handle_stream(self, websocket, client_id):
         """
-        Process data stream from the client. This is an abstract method that
-        subclasses must implement.
+        處理來自用戶端的資料流。這是一個抽象方法，子類別必須實作。
         """
-        raise NotImplementedError("Subclasses must implement handle_stream")
+        raise NotImplementedError("子類別必須實作 handle_stream")

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Deployment script for the Lead Generation Agent."""
+"""潛在客戶開發代理的部署腳本。"""
 
 
 import os
@@ -23,30 +23,30 @@ from dotenv import load_dotenv
 from vertexai import agent_engines
 from vertexai.preview.reasoning_engines import AdkApp
 
-# Add the project root to the Python path
+# 將專案根目錄新增至 Python 路徑
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from LeadGenerationResearch.agent import root_agent
 
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("project_id", None, "GCP project ID.")
-flags.DEFINE_string("location", None, "GCP location.")
-flags.DEFINE_string("bucket", None, "GCP bucket.")
-flags.DEFINE_string("resource_id", None, "ReasoningEngine resource ID.")
+flags.DEFINE_string("project_id", None, "GCP 專案 ID。")
+flags.DEFINE_string("location", None, "GCP 地區。")
+flags.DEFINE_string("bucket", None, "GCP 儲存桶。")
+flags.DEFINE_string("resource_id", None, "ReasoningEngine 資源 ID。")
 
-flags.DEFINE_bool("list", False, "List all agents.")
-flags.DEFINE_bool("create", False, "Creates a new agent.")
-flags.DEFINE_bool("delete", False, "Deletes an existing agent.")
+flags.DEFINE_bool("list", False, "列出所有代理。")
+flags.DEFINE_bool("create", False, "建立一個新代理。")
+flags.DEFINE_bool("delete", False, "刪除一個現有代理。")
 flags.mark_bool_flags_as_mutual_exclusive(["create", "delete"])
 
 
 def create() -> None:
-    """Creates an agent engine for the Lead Generation Agent."""
-    # Define the environment variables to be set in the deployed agent's environment.
-    # These are read from the local environment (e.g., your .env file).
+    """為潛在客戶開發代理建立一個代理引擎。"""
+    # 定義要在已部署代理的環境中設定的環境變數。
+    # 這些變數會從本機環境（例如您的 .env 檔案）中讀取。
     env_vars = {
-        "GEN_FAST_MODEL": os.getenv("GEN_FAST_MODEL", "gemini-2.0-flash"),
-        "GEN_ADVANCED_MODEL": os.getenv("GEN_ADVANCED_MODEL", "gemini-2.5-pro"),
+        "GEN_FAST_MODEL": os.getenv("GEN_FAST_MODEL", "gemini-1.5-flash"),
+        "GEN_ADVANCED_MODEL": os.getenv("GEN_ADVANCED_MODEL", "gemini-1.5-pro"),
         "GOOGLE_GENAI_USE_VERTEXAI": os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "True"),
     }
     adk_app = AdkApp(
@@ -73,31 +73,31 @@ def create() -> None:
         ],
         extra_packages=["./LeadGenerationResearch"],
     )
-    print(f"Created remote agent: {remote_agent.resource_name}")
-    print(f"With environment variables: {env_vars}")
+    print(f"已建立遠端代理： {remote_agent.resource_name}")
+    print(f"使用環境變數： {env_vars}")
 
 
 def delete(resource_id: str) -> None:
     remote_agent = agent_engines.get(resource_id)
     remote_agent.delete(force=True)
-    print(f"Deleted remote agent: {resource_id}")
+    print(f"已刪除遠端代理： {resource_id}")
 
 
 def list_agents() -> None:
     remote_agents = agent_engines.list()
     template = """
 {agent.name} ("{agent.display_name}")
-- Create time: {agent.create_time}
-- Update time: {agent.update_time}
+- 建立時間： {agent.create_time}
+- 更新時間： {agent.update_time}
 """
     remote_agents_string = "\n".join(
         template.format(agent=agent) for agent in remote_agents
     )
-    print(f"All remote agents:\n{remote_agents_string}")
+    print(f"所有遠端代理：\n{remote_agents_string}")
 
 
 def main(argv: list[str]) -> None:
-    del argv  # unused
+    del argv  # 未使用
     load_dotenv()
 
     project_id = (
@@ -119,14 +119,14 @@ def main(argv: list[str]) -> None:
     print(f"BUCKET: {bucket}")
 
     if not project_id:
-        print("Missing required environment variable: GOOGLE_CLOUD_PROJECT")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_PROJECT")
         return
     elif not location:
-        print("Missing required environment variable: GOOGLE_CLOUD_LOCATION")
+        print("缺少必要的環境變數：GOOGLE_CLOUD_LOCATION")
         return
     elif not bucket:
         print(
-            "Missing required environment variable: GOOGLE_CLOUD_STORAGE_BUCKET"
+            "缺少必要的環境變數：GOOGLE_CLOUD_STORAGE_BUCKET"
         )
         return
 
@@ -142,11 +142,11 @@ def main(argv: list[str]) -> None:
         create()
     elif FLAGS.delete:
         if not FLAGS.resource_id:
-            print("resource_id is required for delete")
+            print("刪除操作需要 resource_id")
             return
         delete(FLAGS.resource_id)
     else:
-        print("Unknown command")
+        print("未知的指令")
 
 
 if __name__ == "__main__":

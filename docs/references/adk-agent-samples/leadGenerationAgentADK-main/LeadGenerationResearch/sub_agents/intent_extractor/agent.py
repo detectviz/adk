@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Intent Extractor Agent - Extracts country, industry, stage, and intent from user queries."""
+"""意圖提取代理 - 從使用者查詢中提取國家、產業、階段和意圖。"""
 
 import os
 from google.adk.agents import LlmAgent
 from .schemas import IntentExtractionResult
 
-# Load environment variables
+# 載入環境變數
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -28,12 +28,12 @@ except ImportError:
 from .prompt import INTENT_EXTRACTOR_PROMPT
 
 
-# Create intent extractor agent
+# 建立意圖提取代理
 intent_extractor_agent = LlmAgent(
     name="intent_extractor_agent",
-    model=os.getenv("LEAD_GEN_TRIAGE_MODEL", "gemini-2.0-flash"),
+    model=os.getenv("LEAD_GEN_TRIAGE_MODEL", "gemini-1.5-flash"),
     instruction=INTENT_EXTRACTOR_PROMPT,
     output_schema=IntentExtractionResult,
     output_key="intent_extraction_result",
-    description="Extracts user intent, country, industry, and conversation stage from queries",
+    description="從查詢中提取使用者意圖、國家、產業和對話階段",
 )

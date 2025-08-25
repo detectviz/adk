@@ -1,43 +1,43 @@
-# Rethinking Voice AI: A Practical Guide to Building Assistants with Gemini 2.5's Native Audio
+# 重新思考語音 AI：使用 Gemini 1.5 的原生音訊功能建構助理的實用指南
 
-For years, the blueprint for voice assistants has been the same: a rigid, three-step dance of Speech-to-Text (STT), Large Language Model (LLM) processing, and finally, Text-to-Speech (TTS). This pipeline, while functional, is clumsy. The noticeable lag, the robotic cadence, and the inability to grasp emotional nuance are all symptoms of a system that's translating, not truly understanding.
+多年來，語音助理的藍圖始終如一：一個由語音轉文字 (STT)、大型語言模型 (LLM) 處理，最後是文字轉語音 (TTS) 組成的僵化三步驟。這個流程雖然可用，但卻很笨拙。明顯的延遲、機器人般的語調，以及無法掌握情緒細微差別，都是一個只會翻譯而非真正理解的系統所表現出的症狀。
 
-The traditional approach creates a bottleneck, adding latency and stripping the conversation of its natural flow. Gemini 2.5 Flash with native audio processing changes the game.
+傳統方法會產生瓶頸，增加延遲並剝奪對話的自然流暢性。具備原生音訊處理功能的 Gemini 1.5 Flash 改變了遊戲規則。
 
-By processing audio end-to-end in a single, unified model, Gemini eliminates the clumsy shuffle, resulting in a fluid, low-latency interaction that feels less like a command-and-response and more like a genuine conversation.
+透過在單一、統一的模型中進行端到端的音訊處理，Gemini 消除了笨拙的轉換過程，從而實現了流暢、低延遲的互動，感覺更像是一場真正的對話，而不僅僅是命令與回應。
 
-## The Native Audio Advantage (In Brief)
+## 原生音訊的優勢（簡介）
 
-*   **Natural Conversation:** Experience remarkably fluid, low-latency interactions with appropriate expressivity and rhythm.
-*   **Powerful Tool Integration:** The model can use tools like Google Search or your own custom functions during a live conversation to fetch real-time information.
-*   **Audio-Video Understanding:** Go beyond voice. Converse with the AI about what it sees via a live video feed or screen sharing.
-*   **Affective & Context-Aware Dialog:** The AI responds to your tone of voice and intelligently ignores background noise, understanding when to speak and when to listen.
+*   **自然對話：** 體驗極其流暢、低延遲的互動，並帶有適當的表達能力和節奏感。
+*   **強大的工具整合：** 模型可以在即時對話中使用 Google 搜尋或您自己的自訂函式等工具來擷取即時資訊。
+*   **影音理解：** 超越語音。透過即時視訊饋送或螢幕分享，與 AI 討論它所看到的一切。
+*   **情感與情境感知對話：** AI 會回應您的語氣，並智慧地忽略背景噪音，了解何時該說話、何時該傾聽。
 
-## Building NaviGo AI: A Step-by-Step Guide
+## 建構 NaviGo AI：逐步指南
 
-Let's walk through how to build "NaviGo AI," a voice-first AI travel agent, using the Google Agent Development Kit (ADK) and a simple web interface.
+讓我們來逐步介紹如何使用 Google 代理開發套件 (ADK) 和一個簡單的網頁介面來建構一個名為「NaviGo AI」的語音優先 AI 旅遊代理。
 
-### Part 1: The Backend Agent (`streaming_service.py`)
+### 第 1 部分：後端代理 (`streaming_service.py`)
 
-The Python backend uses WebSockets to manage the real-time conversation stream with the browser.
+Python 後端使用 WebSockets 來管理與瀏覽器的即時對話串流。
 
-#### Step 1.1: Define the Agent and Its Tools
+#### 步驟 1.1：定義代理及其工具
 
-First, we instantiate an `Agent`, defining its "NaviGo AI" persona via a system instruction and equipping it with tools for web search and Google Maps.
+首先，我們實例化一個 `Agent`，透過系統指令定義其「NaviGo AI」的角色，並為其配備網頁搜尋和 Google 地圖的工具。
 
 ```python
 # From streaming_service.py
 
-# Your Google Maps API key is needed for the MCPToolset
+# MCPToolset 需要您的 Google 地圖 API 金鑰
 maps_api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
 
 self.agent = Agent(
     name="voice_assistant_agent",
-    model=MODEL, # "gemini-2.5-flash-preview-native-audio-dialog"
-    instruction=SYSTEM_INSTRUCTION, # Defines the "NaviGo AI" persona
+    model=MODEL, # "gemini-1.5-flash-preview-native-audio-dialog"
+    instruction=SYSTEM_INSTRUCTION, # 定義 "NaviGo AI" 的角色
     tools=[
         google_search,
-        MCPToolset( # Google Maps tool
+        MCPToolset( # Google 地圖工具
             connection_params=StdioServerParameters(
                 command='npx',
                 args=["-y", "@modelcontextprotocol/server-google-maps"],
@@ -48,89 +48,89 @@ self.agent = Agent(
 )
 ```
 
-** Supercharging the Agent with Tools**
+** 使用工具為代理增強功能**
 
-Defining the agent is just the start. The real power comes from the tools we provide. This is what transforms our voice model from a conversationalist into a capable assistant. By integrating tools, the agent can break out of its pre-trained knowledge and interact with the real world in real-time.
+定義代理只是第一步。真正的力量來自我們提供的工具。這正是將我們的語音模型從一個健談者轉變為一個能幹的助理的關鍵。透過整合工具，代理可以突破其預先訓練的知識，並與真實世界進行即時互動。
 
-Our NaviGo agent is equipped with two powerful tools:
+我們的 NaviGo 代理配備了兩種強大的工具：
 
-*   **Google Search (`google_search`):** This is the agent's window to the world. It gives NaviGo the ability to look up anything on the web during the conversation.
-*   **Google Maps (`MCPToolset`):** For a travel agent, this tool is indispensable. It connects the agent directly to Google Maps' powerful APIs.
+*   **Google 搜尋 (`google_search`):** 這是代理通往世界的窗口。它讓 NaviGo 能夠在對話中查詢網路上的任何內容。
+*   **Google 地圖 (`MCPToolset`):** 對於旅遊代理來說，這個工具是不可或缺的。它將代理直接連接到 Google 地圖強大的 API。
 
-#### Step 1.2: Configure the Live Session
+#### 步驟 1.2：設定即時會話
 
-The `RunConfig` object tells the agent how to handle the stream. We configure it for bidirectional (BIDI) audio, specify that we want audio responses, and request transcriptions for both what the user says and what the model speaks.
+`RunConfig` 物件告訴代理如何處理串流。我們將其設定為雙向 (BIDI) 音訊，指定我們需要音訊回應，並要求對使用者所說和模型所說的內容進行轉錄。
 
 ```python
 # From streaming_service.py
 
 run_config = RunConfig(
-    streaming_mode=StreamingMode.BIDI, # Bidirectional streaming
+    streaming_mode=StreamingMode.BIDI, # 雙向串流
     speech_config=types.SpeechConfig(
         voice_config=types.VoiceConfig(
             prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                voice_name=VOICE_NAME # e.g., "Puck"
+                voice_name=VOICE_NAME # 例如 "Puck"
             )
         )
     ),
-    response_modalities=["AUDIO"], # We want audio back from the model
+    response_modalities=["AUDIO"], # 我們希望從模型得到音訊回應
     output_audio_transcription=types.AudioTranscriptionConfig(),
     input_audio_transcription=types.AudioTranscriptionConfig(),
 )
 ```
 
-#### Step 1.3: Handle the Real-time Data Flow
+#### 步驟 1.3：處理即時資料流
 
-We use an `asyncio.TaskGroup` to run multiple tasks concurrently, ensuring we can send and receive data simultaneously without blocking. This architecture is key to a low-latency experience.
+我們使用 `asyncio.TaskGroup` 來同時執行多個任務，確保我們可以在不阻塞的情況下同時發送和接收資料。這種架構是實現低延遲體驗的關鍵。
 
 ```python
 # From streaming_service.py
 
 async with asyncio.TaskGroup() as tg:
-    # Task 1: Listens for audio messages from the browser client
+    # 任務 1：監聽來自瀏覽器用戶端的音訊訊息
     tg.create_task(receive_client_messages(), name="ClientMessageReceiver")
     
-    # Task 2: Sends audio from the client to the Gemini service
+    # 任務 2：將來自用戶端的音訊發送到 Gemini 服務
     tg.create_task(send_audio_to_service(), name="AudioSender")
     
-    # Task 3: Listens for responses from the Gemini service
+    # 任務 3：監聽來自 Gemini 服務的回應
     tg.create_task(receive_service_responses(), name="ServiceResponseReceiver")
 ```
 
-#### Step 1.4: Process Streaming Responses
+#### 步驟 1.4：處理串流回應
 
-In `receive_service_responses`, we iterate through events from the agent. A key challenge in streaming is handling partial responses to avoid duplicating text on the frontend. We check a flag in the event string to process only the final streaming chunks of text.
+在 `receive_service_responses` 中，我們迭代來自代理的事件。串流中的一個主要挑戰是處理部分回應，以避免在前端重複文本。我們檢查事件字串中的一個旗標，以僅處理文本的最終串流區塊。
 
 ```python
 # From streaming_service.py, inside receive_service_responses
 
 async for event in runner.run_live(...):
-    event_str = str(event) # For checking partial flags
+    event_str = str(event) # 用於檢查部分旗標
 
     if event.content and event.content.parts:
         for part in event.content.parts:
-            # Handle audio output from the model
+            # 處理模型的音訊輸出
             if hasattr(part, "inline_data") and part.inline_data:
                 b64_audio = base64.b64encode(part.inline_data.data).decode("utf-8")
                 await websocket.send(json.dumps({"type": "audio", "data": b64_audio}))
 
-            # Handle text output
+            # 處理文字輸出
             if hasattr(part, "text") and part.text:
-                if "partial=True" in event_str: # Check for streaming chunks
+                if "partial=True" in event_str: # 檢查串流區塊
                     await websocket.send(json.dumps({"type": "text", "data": part.text}))
     
-    # Let the client know when the model is done with its turn
+    # 讓用戶端知道模型何時完成其回合
     if event.turn_complete:
         await websocket.send(json.dumps({"type": "turn_complete"}))
 ```
 
-### Part 2: The Frontend Client (`interface.html` & `sound_handler.js`)
+### 第 2 部分：前端用戶端 (`interface.html` & `sound_handler.js`)
 
-The frontend captures microphone audio and plays back the agent's spoken response.
+前端擷取麥克風音訊並播放代理的語音回應。
 
-#### Step 2.1: Connecting to the Server
+#### 步驟 2.1：連接到伺服器
 
-The client connects to the WebSocket server using the URL provided to the `StreamManager` constructor.
+用戶端使用提供給 `StreamManager` 建構函式的 URL 連接到 WebSocket 伺服器。
 
 ```javascript
 // From interface.html
@@ -138,9 +138,9 @@ The client connects to the WebSocket server using the URL provided to the `Strea
 const stream = new StreamManager('ws://localhost:8765');
 ```
 
-#### Step 2.2: Capture and Send User Audio
+#### 步驟 2.2：擷取並傳送使用者音訊
 
-When the user clicks the mic button, `sound_handler.js` uses a `ScriptProcessorNode` to capture raw audio. Each chunk is converted from the browser's 32-bit float format to the 16-bit PCM format the model expects, Base64 encoded, and sent to the server via WebSocket.
+當使用者點擊麥克風按鈕時，`sound_handler.js` 使用 `ScriptProcessorNode` 來擷取原始音訊。每個區塊都從瀏覽器的 32 位元浮點格式轉換為模型期望的 16 位元 PCM 格式，進行 Base64 編碼，並透過 WebSocket 發送到伺服器。
 
 ```javascript
 // From sound_handler.js
@@ -150,7 +150,7 @@ processor.onaudioprocess = (e) => {
 
     const inputData = e.inputBuffer.getChannelData(0);
 
-    // Convert float32 to int16
+    // 將 float32 轉換為 int16
     const int16Data = new Int16Array(inputData.length);
     for (let i = 0; i < inputData.length; i++) {
         int16Data[i] = Math.max(-32768, Math.min(32767, Math.floor(inputData[i] * 32768)));
@@ -159,7 +159,7 @@ processor.onaudioprocess = (e) => {
     const audioBuffer = new Uint8Array(int16Data.buffer);
     const base64Audio = this._arrayBufferToBase64(audioBuffer);
 
-    // Send the audio chunk to the server
+    // 將音訊區塊發送到伺服器
     this.ws.send(JSON.stringify({
         type: 'audio',
         data: base64Audio
@@ -167,19 +167,19 @@ processor.onaudioprocess = (e) => {
 };
 ```
 
-#### Step 2.3: Ensure Smooth Audio Playback
+#### 步驟 2.3：確保流暢的音訊播放
 
-To avoid choppy audio, incoming audio chunks from the server are added to a queue. The `playNext` function plays them sequentially using the Web Audio API, creating a smooth, uninterrupted stream of speech.
+為避免音訊斷斷續續，從伺服器傳來的音訊區塊會被新增到一個佇列中。`playNext` 函式使用 Web Audio API 按順序播放它們，從而產生流暢、不間斷的語音流。
 
 ```javascript
 // From sound_handler.js
 
 async playSound(base64Audio) {
-    // Decode and add the new audio data to the queue
+    // 解碼並將新的音訊資料新增到佇列中
     const audioData = this._base64ToArrayBuffer(base64Audio);
     this.audioQueue.push(audioData);
 
-    // If not already playing, start the playback process
+    // 如果尚未播放，則開始播放過程
     if (!this.isPlaying) {
         this.playNext();
     }
@@ -192,40 +192,40 @@ playNext() {
     }
 
     this.isPlaying = true;
-    const audioData = this.audioQueue.shift(); // Get next chunk from queue
+    const audioData = this.audioQueue.shift(); // 從佇列中獲取下一個區塊
 
-    // ... code to decode and play the audioData using Web Audio API ...
+    // ... 使用 Web Audio API 解碼和播放 audioData 的程式碼 ...
 
     source.onended = () => {
-        this.playNext(); // When one chunk finishes, play the next
+        this.playNext(); // 當一個區塊播放完畢時，播放下一個
     };
 
     source.start(0);
 }
 ```
 
-#### Step 2.4: Wire Events to the UI
+#### 步驟 2.4：將事件連接到 UI
 
-Finally, in `interface.html`, we set up event listeners on our `stream` object. These listeners take the data received from the server and use the `updateTranscript` function to dynamically render the conversation in the browser, providing a complete, interactive experience.
+最後，在 `interface.html` 中，我們在 `stream` 物件上設定事件監聽器。這些監聽器接收從伺服器傳來的資料，並使用 `updateTranscript` 函式在瀏覽器中動態呈現對話，提供完整的互動體驗。
 
 ```javascript
 // From interface.html
 
 stream.onUserTranscript = (text) => {
     if (text && text.trim()) {
-        updateTranscript(text, 'user', true); // Display partial user transcript
+        updateTranscript(text, 'user', true); // 顯示部分使用者轉錄稿
     }
 };
 
 stream.onTextReceived = (text) => {
     if (text && text.trim()) {
         currentResponseText += text;
-        updateTranscript(currentResponseText, "assistant", true); // Update assistant's partial response
+        updateTranscript(currentResponseText, "assistant", true); // 更新助理的部分回應
     }
 };
 
 stream.onTurnComplete = () => {
-    // Mark the last message as complete
+    // 將最後一則訊息標示為已完成
     const lastMessage = transcriptContainer.lastElementChild;
     if (lastMessage && lastMessage.dataset.partial === 'true') {
         delete lastMessage.dataset.partial;
@@ -233,10 +233,10 @@ stream.onTurnComplete = () => {
 };
 ```
 
-## Get Started
+## 開始使用
 
-This guide provides a practical walkthrough for building a real-time voice assistant using the Google Agent Development Kit (ADK). The complete source code for this project, along with official documentation, is available at the links below.
+本指南提供了使用 Google 代理開發套件 (ADK) 建構即時語音助理的實用演練。本專案的完整原始碼以及官方文件可在以下連結中找到。
 
-*   Project Source Code
-*   Official Google AI Documentation
-*   Google ADK Sample Projects
+*   專案原始碼
+*   Google AI 官方文件
+*   Google ADK 範例專案
