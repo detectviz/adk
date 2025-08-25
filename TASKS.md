@@ -8,74 +8,11 @@
 
 ---
 
-## ✅ P0 - 核心基礎設施（已完成）
-
-SRE Assistant 的核心架構已全部完成並通過測試：
-
-### 完成項目
-- ✅ **進階工作流程架構**: 成功從 `SequentialAgent` 遷移到混合式工作流程，整合 `ParallelAgent`、`ConditionalAgent`、`LoopAgent`
-- ✅ **統一認證系統**: `AuthFactory` 和 `AuthManager` 已實現，支援多種認證方式和 RBAC
-- ✅ **RAG 引用系統**: `SRECitationFormatter` 已整合到診斷流程
-- ✅ **持久化層**: Session (`FirestoreTaskStore`) 和 Memory (`VertexAIBackend`) 均已實現
-
-**系統已準備好進入功能擴展階段**
-
----
-
-## 🚨 P0 - 關鍵架構修復 (P1 前置任務)
-
-### 1. 🔐 [P0-CRITICAL] 重構 AuthManager 以支援可擴展狀態管理
-**目標**: 將 `AuthManager` 的狀態管理從記憶體遷移到 ADK 的持久化 `SessionService`。
-
-**問題描述**:
-目前 `AuthManager` 的快取、速率限制和審計日誌都存在記憶體中。這在多實例部署（GKE/Cloud Run）時會導致狀態不一致、速率限制失效、日誌丟失，完全違背了專案的可擴展性目標。
-
-**解決方案**:
-遵循 `sessions-state.md` 官方文件，將狀態存儲在 `context.state` 中，並使用 `user:` 前綴。
-- **認證快取**: `context.state['user:auth_cache']`
-- **速率限制**: `context.state['user:rate_limit_timestamps']`
-- **審計日誌**: 應重構為寫入標準日誌服務 (如 Cloud Logging)，而非 session state。
-
-**參考**: `docs/references/adk-docs/sessions-state.md`
-**預期效益**:
-- 實現真正的無狀態服務，支援水平擴展
-- 確保所有實例間的安全策略一致
-- 符合 ADK 最佳實踐
-
----
-
 ## 🔥 P1 - 核心功能升級（當前重點）
 
 以下任務是即將進行的開發週期的主要焦點，按實施順序排列：
 
-### 1. 🧠 [P1-高] 智慧分診系統升級
-**目標**: 將現有的靜態 `ConditionalRemediation` 升級為 LLM 驅動的動態分診系統
-
-**實施計畫**:
-```python
-# 替換現有的條件邏輯
-class SREIntelligentDispatcher(BaseAgent):
-    """基於 LLM 的動態分診器"""
-    def __init__(self):
-        self.expert_registry = {
-            "k8s_diagnostic": KubernetesDiagnosticAgent(),
-            "db_diagnostic": DatabaseDiagnosticAgent(),
-            "network_diagnostic": NetworkDiagnosticAgent(),
-            "rollback_fix": RollbackRemediationAgent(),
-            "scaling_fix": AutoScalingAgent(),
-            "config_fix": ConfigurationFixAgent()
-        }
-```
-
-**參考**: `google-adk-workflows/dispatcher/agent.py`
-**預期效益**: 
-- 提升 30% 診斷準確率
-- 支援動態擴展新專家代理
-- 減少硬編碼邏輯
-
----
-
-### 2. ✔️ [P1-高] 修復後驗證機制
+### 1. ✔️ [P1-高] 修復後驗證機制
 **目標**: 在修復操作後加入自動驗證步驟，確保修復成功且未引入新問題
 
 **實施計畫**:
@@ -91,7 +28,7 @@ class SREIntelligentDispatcher(BaseAgent):
 
 ---
 
-### 3. 🐙 [P1-中] GitHub 事件管理系統
+### 2. 🐙 [P1-中] GitHub 事件管理系統
 **目標**: 實現完整的事件生命週期追蹤
 
 **實施要點**:
@@ -107,7 +44,7 @@ class SREIntelligentDispatcher(BaseAgent):
 
 ---
 
-### 4. 📊 [P1-中] SLO 管理與五個為什麼
+### 3. 📊 [P1-中] SLO 管理與五個為什麼
 **目標**: 建立數據驅動的可靠性管理系統
 
 **核心功能**:
@@ -129,7 +66,7 @@ slo_manager:
 
 ---
 
-### 5. 🤝 [P1-中] HITL 審批工作流程
+### 4. 🤝 [P1-中] HITL 審批工作流程
 **目標**: 為高風險操作建立人工審批機制
 
 **技術架構**:
@@ -144,6 +81,23 @@ slo_manager:
 | Pod 重啟 | 自動 | 自動 | 需審批 |
 | 配置變更 | 自動 | 需審批 | 需審批 |
 | 資料庫故障轉移 | 需審批 | 需審批 | 需審批+確認 |
+
+---
+
+## ✅ 已完成任務 (Completed Tasks)
+
+### ✅ [P1-高] 智慧分診系統升級
+**狀態**: 完成
+**說明**: 已將靜態的 `ConditionalRemediation` 代理替換為 `SREIntelligentDispatcher`。新的分診器使用 LLM 來動態選擇最合適的修復專家代理，提高了系統的靈活性和可擴展性。
+
+### ✅ [P0-CRITICAL] 解決套件匯入與環境問題
+**狀態**: 完成
+**說明**:
+原始任務是關於 `AuthManager` 的狀態管理，但在深入調查後，發現根本問題是 `sre_assistant/__init__.py` 中的伺服器邏輯導致的**循環匯入**。此問題已透過以下方式解決：
+1.  將伺服器邏輯移至獨立的 `main.py`。
+2.  將大型代理類別模組化，移出 `workflow.py`。
+3.  清理所有 `__init__.py` 檔案以打破循環依賴。
+4.  修復了測試環境，使其能夠正確執行。
 
 ---
 
@@ -211,7 +165,7 @@ slo_manager:
 ## 🗓️ 實施時間表
 
 ### Sprint 1-2 (週 1-4)
-- 完成智慧分診系統
+- ✅ ~~完成智慧分診系統~~
 - 實現修復後驗證機制
 - 開始 GitHub 整合開發
 
