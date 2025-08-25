@@ -25,19 +25,19 @@ USER_ID = "user1234"
 SESSION_ID = "session_code_exec_async"
 GEMINI_MODEL = "gemini-2.0-flash"
 
-# Agent Definition
+# 代理定義
 code_agent = LlmAgent(
     name=AGENT_NAME,
     model=GEMINI_MODEL,
     code_executor=BuiltInCodeExecutor(),
-    instruction="""You are a calculator agent.
-    When given a mathematical expression, write and execute Python code to calculate the result.
-    Return only the final numerical result as plain text, without markdown or code blocks.
+    instruction="""您是一個計算器代理。
+    當給定一個數學表達式時，編寫並執行 Python 程式碼來計算結果。
+    僅以純文字形式返回最終的數值結果，不含 markdown 或程式碼區塊。
     """,
-    description="Executes Python code to perform calculations.",
+    description="執行 Python 程式碼以執行計算。",
 )
 
-# Session and Runner
+# 會話和執行器
 session_service = InMemorySessionService()
 session = asyncio.run(session_service.create_session(
     app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
@@ -45,41 +45,41 @@ session = asyncio.run(session_service.create_session(
 runner = Runner(agent=code_agent, app_name=APP_NAME, session_service=session_service)
 
 
-# Agent Interaction (Async)
+# 代理互動 (非同步)
 async def call_agent_async(query):
     content = types.Content(role="user", parts=[types.Part(text=query)])
-    print(f"\n--- Running Query: {query} ---")
-    final_response_text = "No final text response captured."
+    print(f"\n--- 正在執行查詢：{query} ---")
+    final_response_text = "未擷取到最終文字回應。"
     try:
-        # Use run_async
+        # 使用 run_async
         async for event in runner.run_async(
             user_id=USER_ID, session_id=SESSION_ID, new_message=content
         ):
-            print(f"Event ID: {event.id}, Author: {event.author}")
+            print(f"事件 ID：{event.id}，作者：{event.author}")
 
-            # --- Check for specific parts FIRST ---
+            # --- 首先檢查特定部分 ---
             has_specific_part = False
             if event.content and event.content.parts:
-                for part in event.content.parts:  # Iterate through all parts
+                for part in event.content.parts:  # 迭代所有部分
                     if part.executable_code:
-                        # Access the actual code string via .code
+                        # 透過 .code 存取實際的程式碼字串
                         print(
-                            f"  Debug: Agent generated code:\n```python\n{part.executable_code.code}\n```"
+                            f"  偵錯：代理產生的程式碼：\n```python\n{part.executable_code.code}\n```"
                         )
                         has_specific_part = True
                     elif part.code_execution_result:
-                        # Access outcome and output correctly
+                        # 正確存取 outcome 和 output
                         print(
-                            f"  Debug: Code Execution Result: {part.code_execution_result.outcome} - Output:\n{part.code_execution_result.output}"
+                            f"  偵錯：程式碼執行結果：{part.code_execution_result.outcome} - 輸出：\n{part.code_execution_result.output}"
                         )
                         has_specific_part = True
-                    # Also print any text parts found in any event for debugging
+                    # 也印出在任何事件中找到的任何文字部分以進行偵錯
                     elif part.text and not part.text.isspace():
-                        print(f"  Text: '{part.text.strip()}'")
-                        # Do not set has_specific_part=True here, as we want the final response logic below
+                        print(f"  文字：'{part.text.strip()}'")
+                        # 此處不要設定 has_specific_part=True，因為我們需要下面的最終回應邏輯
 
-            # --- Check for final response AFTER specific parts ---
-            # Only consider it final if it doesn't have the specific code parts we just handled
+            # --- 在特定部分之後檢查最終回應 ---
+            # 僅當它沒有我們剛處理的特定程式碼部分時才將其視為最終回應
             if not has_specific_part and event.is_final_response():
                 if (
                     event.content
@@ -87,30 +87,30 @@ async def call_agent_async(query):
                     and event.content.parts[0].text
                 ):
                     final_response_text = event.content.parts[0].text.strip()
-                    print(f"==> Final Agent Response: {final_response_text}")
+                    print(f"==> 最終代理回應：{final_response_text}")
                 else:
-                    print("==> Final Agent Response: [No text content in final event]")
+                    print("==> 最終代理回應：[最終事件中沒有文字內容]")
 
     except Exception as e:
-        print(f"ERROR during agent run: {e}")
+        print(f"代理執行期間發生錯誤：{e}")
     print("-" * 30)
 
 
-# Main async function to run the examples
+# 執行範例的主非同步函式
 async def main():
-    await call_agent_async("Calculate the value of (5 + 7) * 3")
-    await call_agent_async("What is 10 factorial?")
+    await call_agent_async("計算 (5 + 7) * 3 的值")
+    await call_agent_async("10 的階乘是多少？")
 
 
-# Execute the main async function
+# 執行主非同步函式
 try:
     asyncio.run(main())
 except RuntimeError as e:
-    # Handle specific error when running asyncio.run in an already running loop (like Jupyter/Colab)
+    # 處理在已執行的事件迴圈中執行 asyncio.run 時的特定錯誤（如 Jupyter/Colab）
     if "cannot be called from a running event loop" in str(e):
-        print("\nRunning in an existing event loop (like Colab/Jupyter).")
-        print("Please run `await main()` in a notebook cell instead.")
-        # If in an interactive environment like a notebook, you might need to run:
+        print("\n正在現有事件迴圈中執行（如 Colab/Jupyter）。")
+        print("請改在筆記本儲存格中執行 `await main()`。")
+        # 如果在像筆記本這樣的互動式環境中，您可能需要執行：
         # await main()
     else:
-        raise e  # Re-raise other runtime errors
+        raise e  # 重新引發其他執行時錯誤

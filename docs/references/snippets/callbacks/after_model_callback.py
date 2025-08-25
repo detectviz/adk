@@ -19,85 +19,86 @@ from typing import Optional
 from google.genai import types 
 from google.adk.sessions import InMemorySessionService
 from google.adk.models import LlmResponse
+import copy
 
 GEMINI_2_FLASH="gemini-2.0-flash"
 
-# --- Define the Callback Function ---
+# --- 定義回呼函式 ---
 def simple_after_model_modifier(
     callback_context: CallbackContext, llm_response: LlmResponse
 ) -> Optional[LlmResponse]:
-    """Inspects/modifies the LLM response after it's received."""
+    """在收到大型語言模型（LLM）回應後，檢查/修改它。"""
     agent_name = callback_context.agent_name
-    print(f"[Callback] After model call for agent: {agent_name}")
+    print(f"[回呼] 代理 {agent_name} 的模型呼叫後")
 
-    # --- Inspection ---
+    # --- 檢查 ---
     original_text = ""
     if llm_response.content and llm_response.content.parts:
-        # Assuming simple text response for this example
+        # 此範例假設為簡單的文字回應
         if llm_response.content.parts[0].text:
             original_text = llm_response.content.parts[0].text
-            print(f"[Callback] Inspected original response text: '{original_text[:100]}...'") # Log snippet
+            print(f"[回呼] 檢查到的原始回應文字：'{original_text[:100]}...'") # 記錄片段
         elif llm_response.content.parts[0].function_call:
-             print(f"[Callback] Inspected response: Contains function call '{llm_response.content.parts[0].function_call.name}'. No text modification.")
-             return None # Don't modify tool calls in this example
+             print(f"[回呼] 檢查到的回應：包含函式呼叫 '{llm_response.content.parts[0].function_call.name}'。不進行文字修改。")
+             return None # 在此範例中不修改工具呼叫
         else:
-             print("[Callback] Inspected response: No text content found.")
+             print("[回呼] 檢查到的回應：未找到文字內容。")
              return None
     elif llm_response.error_message:
-        print(f"[Callback] Inspected response: Contains error '{llm_response.error_message}'. No modification.")
+        print(f"[回呼] 檢查到的回應：包含錯誤 '{llm_response.error_message}'。不進行修改。")
         return None
     else:
-        print("[Callback] Inspected response: Empty LlmResponse.")
-        return None # Nothing to modify
+        print("[回呼] 檢查到的回應：空的 LlmResponse。")
+        return None # 無法修改
 
-    # --- Modification Example ---
-    # Replace "joke" with "funny story" (case-insensitive)
+    # --- 修改範例 ---
+    # 將 "joke" 替換為 "funny story"（不區分大小寫）
     search_term = "joke"
     replace_term = "funny story"
     if search_term in original_text.lower():
-        print(f"[Callback] Found '{search_term}'. Modifying response.")
+        print(f"[回呼] 找到 '{search_term}'。正在修改回應。")
         modified_text = original_text.replace(search_term, replace_term)
-        modified_text = modified_text.replace(search_term.capitalize(), replace_term.capitalize()) # Handle capitalization
+        modified_text = modified_text.replace(search_term.capitalize(), replace_term.capitalize()) # 處理大寫
 
-        # Create a NEW LlmResponse with the modified content
-        # Deep copy parts to avoid modifying original if other callbacks exist
+        # 使用修改後的內容建立一個新的 LlmResponse
+        # 深層複製 parts 以避免在有其他回呼存在時修改原始物件
         modified_parts = [copy.deepcopy(part) for part in llm_response.content.parts]
-        modified_parts[0].text = modified_text # Update the text in the copied part
+        modified_parts[0].text = modified_text # 更新複製部分中的文字
 
         new_response = LlmResponse(
              content=types.Content(role="model", parts=modified_parts),
-             # Copy other relevant fields if necessary, e.g., grounding_metadata
+             # 如有需要，複製其他相關欄位，例如 grounding_metadata
              grounding_metadata=llm_response.grounding_metadata
              )
-        print(f"[Callback] Returning modified response.")
-        return new_response # Return the modified response
+        print(f"[回呼] 返回修改後的回應。")
+        return new_response # 返回修改後的回應
     else:
-        print(f"[Callback] '{search_term}' not found. Passing original response through.")
-        # Return None to use the original llm_response
+        print(f"[回呼] 未找到 '{search_term}'。傳遞原始回應。")
+        # 返回 None 以使用原始的 llm_response
         return None
 
 
-# Create LlmAgent and Assign Callback
+# 建立 LlmAgent 並指派回呼
 my_llm_agent = LlmAgent(
         name="AfterModelCallbackAgent",
         model=GEMINI_2_FLASH,
-        instruction="You are a helpful assistant.",
-        description="An LLM agent demonstrating after_model_callback",
-        after_model_callback=simple_after_model_modifier # Assign the function here
+        instruction="您是一位有幫助的助理。",
+        description="一個展示 after_model_callback 的 LLM 代理",
+        after_model_callback=simple_after_model_modifier # 在此處指派函式
 )
 
 APP_NAME = "guardrail_app"
 USER_ID = "user_1"
 SESSION_ID = "session_001"
 
-# Session and Runner
+# 會話和執行器
 async def setup_session_and_runner():
     session_service = InMemorySessionService()
     session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
     runner = Runner(agent=my_llm_agent, app_name=APP_NAME, session_service=session_service)
     return session, runner
 
-# Agent Interaction
+# 代理互動
 async def call_agent_async(query):
   session, runner = await setup_session_and_runner()
 
@@ -107,8 +108,8 @@ async def call_agent_async(query):
   async for event in events:
       if event.is_final_response():
           final_response = event.content.parts[0].text
-          print("Agent Response: ", final_response)
+          print("代理回應：", final_response)
 
-# Note: In Colab, you can directly use 'await' at the top level.
-# If running this code as a standalone Python script, you'll need to use asyncio.run() or manage the event loop.
-await call_agent_async("""write multiple time the word "joke" """)
+# 注意：在 Colab 中，您可以直接在頂層使用 'await'。
+# 如果將此程式碼作為獨立的 Python 腳本執行，您需要使用 asyncio.run() 或管理事件迴圈。
+await call_agent_async("""多次寫下「joke」這個詞""")

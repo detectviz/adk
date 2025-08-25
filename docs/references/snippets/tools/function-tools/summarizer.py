@@ -25,18 +25,18 @@ SESSION_ID="1234"
 summary_agent = Agent(
     model="gemini-2.0-flash",
     name="summary_agent",
-    instruction="""You are an expert summarizer. Please read the following text and provide a concise summary.""",
-    description="Agent to summarize text",
+    instruction="""您是一位專業的摘要員。請閱讀以下文字並提供簡潔的摘要。""",
+    description="用於摘要文字的代理",
 )
 
 root_agent = Agent(
     model='gemini-2.0-flash',
     name='root_agent',
-    instruction="""You are a helpful assistant. When the user provides a text, use the 'summarize' tool to generate a summary. Always forward the user's message exactly as received to the 'summarize' tool, without modifying or summarizing it yourself. Present the response from the tool to the user.""",
+    instruction="""您是一位樂於助人的助理。當使用者提供一段文字時，請使用 'summarize' 工具產生摘要。請務必將使用者的訊息完全照原樣轉發給 'summarize' 工具，不要自行修改或摘要。將工具的回應呈現給使用者。""",
     tools=[AgentTool(agent=summary_agent)]
 )
 
-# Session and Runner
+# 會話和執行器
 async def setup_session_and_runner():
     session_service = InMemorySessionService()
     session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
@@ -44,7 +44,7 @@ async def setup_session_and_runner():
     return session, runner
 
 
-# Agent Interaction
+# 代理互動
 async def call_agent_async(query):
     content = types.Content(role='user', parts=[types.Part(text=query)])
     session, runner = await setup_session_and_runner()
@@ -53,19 +53,19 @@ async def call_agent_async(query):
     async for event in events:
         if event.is_final_response():
             final_response = event.content.parts[0].text
-            print("Agent Response: ", final_response)
+            print("代理回應：", final_response)
 
 
-long_text = """Quantum computing represents a fundamentally different approach to computation, 
-leveraging the bizarre principles of quantum mechanics to process information. Unlike classical computers 
-that rely on bits representing either 0 or 1, quantum computers use qubits which can exist in a state of superposition - effectively 
-being 0, 1, or a combination of both simultaneously. Furthermore, qubits can become entangled, 
-meaning their fates are intertwined regardless of distance, allowing for complex correlations. This parallelism and 
-interconnectedness grant quantum computers the potential to solve specific types of incredibly complex problems - such 
-as drug discovery, materials science, complex system optimization, and breaking certain types of cryptography - far 
-faster than even the most powerful classical supercomputers could ever achieve, although the technology is still largely in its developmental stages."""
+long_text = """量子運算代表了一種根本不同的計算方法，
+利用量子力學的奇特原理來處理資訊。與依賴於代表 0 或 1 的位元的傳統電腦不同，
+量子電腦使用量子位元，它可以存在於疊加態中——實際上
+同時是 0、1 或兩者的組合。此外，量子位元可以變得糾纏，
+這意味著無論距離多遠，它們的命運都是交織在一起的，從而實現了複雜的關聯。這種平行性和
+互聯性賦予了量子電腦解決特定類型的極其複雜問題的潛力——例如
+藥物發現、材料科學、複雜系統優化和破解某些類型的密碼學——遠
+比最強大的傳統超級電腦所能達到的速度快得多，儘管該技術仍主要處於開發階段。"""
 
 
-# Note: In Colab, you can directly use 'await' at the top level.
-# If running this code as a standalone Python script, you'll need to use asyncio.run() or manage the event loop.
+# 注意：在 Colab 中，您可以直接在頂層使用 'await'。
+# 如果將此程式碼作為獨立的 Python 腳本執行，您需要使用 asyncio.run() 或管理事件迴圈。
 await call_agent_async(long_text)

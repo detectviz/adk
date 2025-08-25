@@ -2,109 +2,109 @@ from google.adk.auth import AuthConfig
 from google.adk.events import Event
 import asyncio
 
-# --- Helper Functions ---
+# --- 輔助函式 ---
 async def get_user_input(prompt: str) -> str:
   """
-  Asynchronously prompts the user for input in the console.
+  在主控台中非同步提示使用者輸入。
 
-  Uses asyncio's event loop and run_in_executor to avoid blocking the main
-  asynchronous execution thread while waiting for synchronous `input()`.
+  使用 asyncio 的事件迴圈和 run_in_executor，以避免在等待同步的 `input()`
+  時阻塞主非同步執行緒。
 
   Args:
-    prompt: The message to display to the user.
+    prompt: 要向使用者顯示的訊息。
 
   Returns:
-    The string entered by the user.
+    使用者輸入的字串。
   """
   loop = asyncio.get_event_loop()
-  # Run the blocking `input()` function in a separate thread managed by the executor.
+  # 在由執行器管理的獨立執行緒中執行阻塞的 `input()` 函式。
   return await loop.run_in_executor(None, input, prompt)
 
 
 def is_pending_auth_event(event: Event) -> bool:
   """
-  Checks if an ADK Event represents a request for user authentication credentials.
+  檢查一個 ADK 事件是否代表使用者驗證憑證的請求。
 
-  The ADK framework emits a specific function call ('adk_request_credential')
-  when a tool requires authentication that hasn't been previously satisfied.
+  當工具需要先前未滿足的驗證時，ADK 框架會發出一個特定的函式呼叫
+  ('adk_request_credential')。
 
   Args:
-    event: The ADK Event object to inspect.
+    event: 要檢查的 ADK 事件物件。
 
   Returns:
-    True if the event is an 'adk_request_credential' function call, False otherwise.
+    如果事件是 'adk_request_credential' 函式呼叫，則為 True，否則為 False。
   """
-  # Safely checks nested attributes to avoid errors if event structure is incomplete.
+  # 安全地檢查巢狀屬性以避免在事件結構不完整時發生錯誤。
   return (
       event.content
       and event.content.parts
-      and event.content.parts[0] # Assuming the function call is in the first part
+      and event.content.parts[0] # 假設函式呼叫在第一個部分
       and event.content.parts[0].function_call
-      # The specific function name indicating an auth request from the ADK framework.
+      # 表示來自 ADK 框架的驗證請求的特定函式名稱。
       and event.content.parts[0].function_call.name == 'adk_request_credential'
   )
 
 
 def get_function_call_id(event: Event) -> str:
   """
-  Extracts the unique ID of the function call from an ADK Event.
+  從 ADK 事件中提取函式呼叫的唯一 ID。
 
-  This ID is crucial for correlating a function *response* back to the specific
-  function *call* that the agent initiated to request for auth credentials.
+  此 ID 對於將函式*回應*關聯回代理為請求驗證憑證而發起的
+  特定函式*呼叫*至關重要。
 
   Args:
-    event: The ADK Event object containing the function call.
+    event: 包含函式呼叫的 ADK 事件物件。
 
   Returns:
-    The unique identifier string of the function call.
+    函式呼叫的唯一識別碼字串。
 
   Raises:
-    ValueError: If the function call ID cannot be found in the event structure.
-                (Corrected typo from `contents` to `content` below)
+    ValueError: 如果在事件結構中找不到函式呼叫 ID。
+                （下方已更正錯字 `contents` 為 `content`）
   """
-  # Navigate through the event structure to find the function call ID.
+  # 遍覽事件結構以尋找函式呼叫 ID。
   if (
       event
       and event.content
       and event.content.parts
-      and event.content.parts[0] # Use content, not contents
+      and event.content.parts[0] # 使用 content，而非 contents
       and event.content.parts[0].function_call
       and event.content.parts[0].function_call.id
   ):
     return event.content.parts[0].function_call.id
-  # If the ID is missing, raise an error indicating an unexpected event format.
-  raise ValueError(f'Cannot get function call id from event {event}')
+  # 如果缺少 ID，則引發錯誤，表示事件格式不符預期。
+  raise ValueError(f'無法從事件 {event} 中取得函式呼叫 ID')
 
 
 def get_function_call_auth_config(event: Event) -> AuthConfig:
   """
-  Extracts the authentication configuration details from an 'adk_request_credential' event.
+  從 'adk_request_credential' 事件中提取驗證設定詳細資訊。
 
-  Client should use this AuthConfig to necessary authentication details (like OAuth codes and state)
-  and sent it back to the ADK to continue OAuth token exchanging.
+  用戶端應使用此 AuthConfig 來取得必要的驗證詳細資訊（如 OAuth 授權碼和狀態）
+  並將其傳回 ADK 以繼續 OAuth 權杖交換。
 
   Args:
-    event: The ADK Event object containing the 'adk_request_credential' call.
+    event: 包含 'adk_request_credential' 呼叫的 ADK 事件物件。
 
   Returns:
-    An AuthConfig object populated with details from the function call arguments.
+    一個 AuthConfig 物件，其中填入了函式呼叫參數中的詳細資訊。
 
   Raises:
-    ValueError: If the 'auth_config' argument cannot be found in the event.
-                (Corrected typo from `contents` to `content` below)
+    ValueError: 如果在事件中找不到 'auth_config' 參數。
+                （下方已更正錯字 `contents` 為 `content`）
   """
   if (
       event
       and event.content
       and event.content.parts
-      and event.content.parts[0] # Use content, not contents
+      and event.content.parts[0] # 使用 content，而非 contents
       and event.content.parts[0].function_call
       and event.content.parts[0].function_call.args
       and event.content.parts[0].function_call.args.get('auth_config')
   ):
-    # Reconstruct the AuthConfig object using the dictionary provided in the arguments.
-    # The ** operator unpacks the dictionary into keyword arguments for the constructor.
+    # 使用參數中提供的字典重建 AuthConfig 物件。
+    # ** 運算子將字典解包為建構函式的關鍵字參數。
     return AuthConfig(
           **event.content.parts[0].function_call.args.get('auth_config')
       )
-  raise ValueError(f'Cannot get auth config from event {event}')
+  raise ValueError(f'無法從事件 {event} 中取得驗證設定')

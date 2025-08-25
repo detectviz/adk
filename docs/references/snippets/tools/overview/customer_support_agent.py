@@ -25,39 +25,39 @@ SESSION_ID="1234"
 
 
 def check_and_transfer(query: str, tool_context: ToolContext) -> str:
-    """Checks if the query requires escalation and transfers to another agent if needed."""
+    """檢查查詢是否需要升級，並在需要時轉接給其他代理。"""
     if "urgent" in query.lower():
-        print("Tool: Detected urgency, transferring to the support agent.")
+        print("工具：偵測到緊急情況，正在轉接給支援代理。")
         tool_context.actions.transfer_to_agent = "support_agent"
-        return "Transferring to the support agent..."
+        return "正在轉接給支援代理..."
     else:
-        return f"Processed query: '{query}'. No further action needed."
+        return f"已處理查詢：'{query}'。無需進一步操作。"
 
 escalation_tool = FunctionTool(func=check_and_transfer)
 
 main_agent = Agent(
     model='gemini-2.0-flash',
     name='main_agent',
-    instruction="""You are the first point of contact for customer support of an analytics tool. Answer general queries. If the user indicates urgency, use the 'check_and_transfer' tool.""",
+    instruction="""您是分析工具客戶支援的第一線聯絡人。請回答一般查詢。如果使用者表示緊急，請使用 'check_and_transfer' 工具。""",
     tools=[check_and_transfer]
 )
 
 support_agent = Agent(
     model='gemini-2.0-flash',
     name='support_agent',
-    instruction="""You are the dedicated support agent. Mentioned you are a support handler and please help the user with their urgent issue."""
+    instruction="""您是專門的支援代理。請表明您是支援處理人員，並協助使用者處理其緊急問題。"""
 )
 
 main_agent.sub_agents = [support_agent]
 
-# Session and Runner
+# 會話和執行器
 async def setup_session_and_runner():
     session_service = InMemorySessionService()
     session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
     runner = Runner(agent=main_agent, app_name=APP_NAME, session_service=session_service)
     return session, runner
 
-# Agent Interaction
+# 代理互動
 async def call_agent_async(query):
     content = types.Content(role='user', parts=[types.Part(text=query)])
     session, runner = await setup_session_and_runner()
@@ -66,8 +66,8 @@ async def call_agent_async(query):
     async for event in events:
         if event.is_final_response():
             final_response = event.content.parts[0].text
-            print("Agent Response: ", final_response)
+            print("代理回應：", final_response)
 
-# Note: In Colab, you can directly use 'await' at the top level.
-# If running this code as a standalone Python script, you'll need to use asyncio.run() or manage the event loop.
-await call_agent_async("this is urgent, i cant login")
+# 注意：在 Colab 中，您可以直接在頂層使用 'await'。
+# 如果將此程式碼作為獨立的 Python 腳本執行，您需要使用 asyncio.run() 或管理事件迴圈。
+await call_agent_async("這是緊急情況，我無法登入")

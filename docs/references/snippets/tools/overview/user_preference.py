@@ -1,21 +1,21 @@
 from google.adk.tools import ToolContext, FunctionTool
 
 def update_user_preference(preference: str, value: str, tool_context: ToolContext):
-    """Updates a user-specific preference."""
+    """更新使用者特定的偏好設定。"""
     user_prefs_key = "user:preferences"
-    # Get current preferences or initialize if none exist
+    # 取得目前的偏好設定，如果不存在則初始化
     preferences = tool_context.state.get(user_prefs_key, {})
     preferences[preference] = value
-    # Write the updated dictionary back to the state
+    # 將更新後的字典寫回狀態
     tool_context.state[user_prefs_key] = preferences
-    print(f"Tool: Updated user preference '{preference}' to '{value}'")
+    print(f"工具：已將使用者偏好 '{preference}' 更新為 '{value}'")
     return {"status": "success", "updated_preference": preference}
 
 pref_tool = FunctionTool(func=update_user_preference)
 
-# In an Agent:
+# 在代理中：
 # my_agent = Agent(..., tools=[pref_tool])
 
-# When the LLM calls update_user_preference(preference='theme', value='dark', ...):
-# The tool_context.state will be updated, and the change will be part of the
-# resulting tool response event's actions.state_delta.
+# 當大型語言模型（LLM）呼叫 update_user_preference(preference='theme', value='dark', ...) 時：
+# tool_context.state 將會更新，且變更將成為
+# 產生的工具回應事件的 actions.state_delta 的一部分。
