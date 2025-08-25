@@ -16,18 +16,18 @@ import os
 
 
 def load_instruction_from_file(
-    filename: str, default_instruction: str = "Default instruction."
+    filename: str, default_instruction: str = "預設指令。"
 ) -> str:
-    """Reads instruction text from a file relative to this script."""
+    """從相對於此腳本的檔案中讀取指令文字。"""
     instruction = default_instruction
     try:
-        # Construct path relative to the current script file (__file__)
+        # 建構相對於目前腳本檔案 (__file__) 的路徑
         filepath = os.path.join(os.path.dirname(__file__), filename)
         with open(filepath, "r", encoding="utf-8") as f:
             instruction = f.read()
-        print(f"Successfully loaded instruction from {filename}")
+        print(f"成功從 {filename} 載入指令")
     except FileNotFoundError:
-        print(f"WARNING: Instruction file not found: {filepath}. Using default.")
+        print(f"警告：找不到指令檔案：{filepath}。使用預設指令。")
     except Exception as e:
-        print(f"ERROR loading instruction file {filepath}: {e}. Using default.")
+        print(f"錯誤：載入指令檔案 {filepath} 時發生錯誤：{e}。使用預設指令。")
     return instruction

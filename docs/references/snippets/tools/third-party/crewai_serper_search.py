@@ -20,14 +20,14 @@ from google.genai import types
 from crewai_tools import SerperDevTool
 
 
-# Constants
+# 常數
 APP_NAME = "news_app"
 USER_ID = "user1234"
 SESSION_ID = "1234"
 
-# Ensure SERPER_API_KEY is set in your environment
+# 確保您的環境中已設定 SERPER_API_KEY
 if not os.getenv("SERPER_API_KEY"):
-    print("Warning: SERPER_API_KEY environment variable not set.")
+    print("警告：未設定 SERPER_API_KEY 環境變數。")
 
 serper_tool_instance = SerperDevTool(
     n_results=10,
@@ -37,20 +37,20 @@ serper_tool_instance = SerperDevTool(
 
 adk_serper_tool = CrewaiTool(
     name="InternetNewsSearch",
-    description="Searches the internet specifically for recent news articles using Serper.",
+    description="使用 Serper 在網際網路上專門搜尋最近的新聞文章。",
     tool=serper_tool_instance
 )
 
 serper_agent = Agent(
     name="basic_search_agent",
     model="gemini-2.0-flash",
-    description="Agent to answer questions using Google Search.",
-    instruction="I can answer your questions by searching the internet. Just ask me anything!",
-    # Add the Serper tool
+    description="使用 Google 搜尋來回答問題的代理。",
+    instruction="我可以透過搜尋網際網路來回答您的問題。儘管問我任何事！",
+    # 新增 Serper 工具
     tools=[adk_serper_tool]
 )
 
-# Session and Runner
+# 會話和執行器
 async def setup_session_and_runner():
     session_service = InMemorySessionService()
     session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
@@ -58,7 +58,7 @@ async def setup_session_and_runner():
     return session, runner
 
 
-# Agent Interaction
+# 代理互動
 async def call_agent_async(query):
     content = types.Content(role='user', parts=[types.Part(text=query)])
     session, runner = await setup_session_and_runner()
@@ -67,8 +67,8 @@ async def call_agent_async(query):
     async for event in events:
         if event.is_final_response():
             final_response = event.content.parts[0].text
-            print("Agent Response: ", final_response)
+            print("代理回應：", final_response)
 
-# Note: In Colab, you can directly use 'await' at the top level.
-# If running this code as a standalone Python script, you'll need to use asyncio.run() or manage the event loop.
-await call_agent_async("what's the latest news on AI Agents?")
+# 注意：在 Colab 中，您可以直接在頂層使用 'await'。
+# 如果將此程式碼作為獨立的 Python 腳本執行，您需要使用 asyncio.run() 或管理事件迴圈。
+await call_agent_async("關於 AI 代理的最新消息是什麼？")

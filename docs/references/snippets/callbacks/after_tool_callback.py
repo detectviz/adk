@@ -25,69 +25,69 @@ from copy import deepcopy
 
 GEMINI_2_FLASH="gemini-2.0-flash"
 
-# --- Define a Simple Tool Function (Same as before) ---
+# --- 定義一個簡單的工具函式（與之前相同）---
 def get_capital_city(country: str) -> str:
-    """Retrieves the capital city of a given country."""
-    print(f"--- Tool 'get_capital_city' executing with country: {country} ---")
+    """擷取給定國家的首都。"""
+    print(f"--- 工具 'get_capital_city' 正在執行，國家：{country} ---")
     country_capitals = {
         "united states": "Washington, D.C.",
         "canada": "Ottawa",
         "france": "Paris",
         "germany": "Berlin",
     }
-    return {"result": country_capitals.get(country.lower(), f"Capital not found for {country}")}
+    return {"result": country_capitals.get(country.lower(), f"找不到 {country} 的首都")}
 
-# --- Wrap the function into a Tool ---
+# --- 將函式包裝成一個工具 ---
 capital_tool = FunctionTool(func=get_capital_city)
 
-# --- Define the Callback Function ---
+# --- 定義回呼函式 ---
 def simple_after_tool_modifier(
     tool: BaseTool, args: Dict[str, Any], tool_context: ToolContext, tool_response: Dict
 ) -> Optional[Dict]:
-    """Inspects/modifies the tool result after execution."""
+    """在工具執行後檢查/修改工具結果。"""
     agent_name = tool_context.agent_name
     tool_name = tool.name
-    print(f"[Callback] After tool call for tool '{tool_name}' in agent '{agent_name}'")
-    print(f"[Callback] Args used: {args}")
-    print(f"[Callback] Original tool_response: {tool_response}")
+    print(f"[回呼] 代理 '{agent_name}' 中工具 '{tool_name}' 的工具呼叫後")
+    print(f"[回呼] 使用的參數：{args}")
+    print(f"[回呼] 原始工具回應：{tool_response}")
 
-    # Default structure for function tool results is {"result": <return_value>}
+    # 函式工具結果的預設結構是 {"result": <return_value>}
     original_result_value = tool_response.get("result", "")
     # original_result_value = tool_response
 
-    # --- Modification Example ---
-    # If the tool was 'get_capital_city' and result is 'Washington, D.C.'
+    # --- 修改範例 ---
+    # 如果工具是 'get_capital_city' 且結果是 'Washington, D.C.'
     if tool_name == 'get_capital_city' and original_result_value == "Washington, D.C.":
-        print("[Callback] Detected 'Washington, D.C.'. Modifying tool response.")
+        print("[回呼] 偵測到 'Washington, D.C.'。正在修改工具回應。")
 
-        # IMPORTANT: Create a new dictionary or modify a copy
+        # 重要：建立一個新字典或修改一個副本
         modified_response = deepcopy(tool_response)
-        modified_response["result"] = f"{original_result_value} (Note: This is the capital of the USA)."
-        modified_response["note_added_by_callback"] = True # Add extra info if needed
+        modified_response["result"] = f"{original_result_value} (注意：這是美國的首都)。"
+        modified_response["note_added_by_callback"] = True # 如果需要，可以新增額外資訊
 
-        print(f"[Callback] Modified tool_response: {modified_response}")
-        return modified_response # Return the modified dictionary
+        print(f"[回呼] 修改後的工具回應：{modified_response}")
+        return modified_response # 返回修改後的字典
 
-    print("[Callback] Passing original tool response through.")
-    # Return None to use the original tool_response
+    print("[回呼] 傳遞原始工具回應。")
+    # 返回 None 以使用原始的 tool_response
     return None
 
 
-# Create LlmAgent and Assign Callback
+# 建立 LlmAgent 並指派回呼
 my_llm_agent = LlmAgent(
         name="AfterToolCallbackAgent",
         model=GEMINI_2_FLASH,
-        instruction="You are an agent that finds capital cities using the get_capital_city tool. Report the result clearly.",
-        description="An LLM agent demonstrating after_tool_callback",
-        tools=[capital_tool], # Add the tool
-        after_tool_callback=simple_after_tool_modifier # Assign the callback
+        instruction="您是一個使用 get_capital_city 工具尋找首都的代理。請清楚地報告結果。",
+        description="一個展示 after_tool_callback 的 LLM 代理",
+        tools=[capital_tool], # 新增工具
+        after_tool_callback=simple_after_tool_modifier # 指派回呼
     )
 
 APP_NAME = "guardrail_app"
 USER_ID = "user_1"
 SESSION_ID = "session_001"
 
-# Session and Runner
+# 會話和執行器
 async def setup_session_and_runner():
     session_service = InMemorySessionService()
     session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
@@ -95,7 +95,7 @@ async def setup_session_and_runner():
     return session, runner
 
 
-# Agent Interaction
+# 代理互動
 async def call_agent_async(query):
     content = types.Content(role='user', parts=[types.Part(text=query)])
     session, runner = await setup_session_and_runner()
@@ -104,8 +104,8 @@ async def call_agent_async(query):
     async for event in events:
         if event.is_final_response():
             final_response = event.content.parts[0].text
-            print("Agent Response: ", final_response)
+            print("代理回應：", final_response)
 
-# Note: In Colab, you can directly use 'await' at the top level.
-# If running this code as a standalone Python script, you'll need to use asyncio.run() or manage the event loop.
+# 注意：在 Colab 中，您可以直接在頂層使用 'await'。
+# 如果將此程式碼作為獨立的 Python 腳本執行，您需要使用 asyncio.run() 或管理事件迴圈。
 await call_agent_async("united states")

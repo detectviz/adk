@@ -23,39 +23,34 @@ from google.genai import types
 
 # --8<-- [start:define_long_running_function]
 
-# 1. Define the long running function
+# 1. 定義長時間執行的函式
 def ask_for_approval(
     purpose: str, amount: float
 ) -> dict[str, Any]:
-    """Ask for approval for the reimbursement."""
-    # create a ticket for the approval
-    # Send a notification to the approver with the link of the ticket
+    """請求核准報銷。"""
+    # 為核准建立一個工單
+    # 向核准人發送帶有工單連結的通知
     return {'status': 'pending', 'approver': 'Sean Zhou', 'purpose' : purpose, 'amount': amount, 'ticket-id': 'approval-ticket-1'}
 
 def reimburse(purpose: str, amount: float) -> str:
-    """Reimburse the amount of money to the employee."""
-    # send the reimbrusement request to payment vendor
+    """向員工報銷款項。"""
+    # 將報銷請求傳送給支付供應商
     return {'status': 'ok'}
 
-# 2. Wrap the function with LongRunningFunctionTool
+# 2. 使用 LongRunningFunctionTool 包裝函式
 long_running_tool = LongRunningFunctionTool(func=ask_for_approval)
 
 # --8<-- [end:define_long_running_function]
 
-# 3. Use the tool in an Agent
+# 3. 在代理中使用該工具
 file_processor_agent = Agent(
-    # Use a model compatible with function calling
+    # 使用與函式呼叫相容的模型
     model="gemini-2.0-flash",
     name='reimbursement_agent',
     instruction="""
-      You are an agent whose job is to handle the reimbursement process for
-      the employees. If the amount is less than $100, you will automatically
-      approve the reimbursement.
+      您是一個負責處理員工報銷流程的代理。如果金額低於 100 美元，您將自動核准報銷。
 
-      If the amount is greater than $100, you will
-      ask for approval from the manager. If the manager approves, you will
-      call reimburse() to reimburse the amount to the employee. If the manager
-      rejects, you will inform the employee of the rejection.
+      如果金額大於 100 美元，您將向經理請求核准。如果經理核准，您將呼叫 reimburse() 向員工報銷款項。如果經理拒絕，您將通知員工該請求被拒絕。
     """,
     tools=[reimburse, long_running_tool]
 )
@@ -65,7 +60,7 @@ APP_NAME = "human_in_the_loop"
 USER_ID = "1234"
 SESSION_ID = "session1234"
 
-# Session and Runner
+# 會話和執行器
 async def setup_session_and_runner():
     session_service = InMemorySessionService()
     session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
@@ -74,11 +69,11 @@ async def setup_session_and_runner():
 
 # --8<-- [start: call_reimbursement_tool]
 
-# Agent Interaction
+# 代理互動
 async def call_agent_async(query):
 
     def get_long_running_function_call(event: Event) -> types.FunctionCall:
-        # Get the long running function call from the event
+        # 從事件中取得長時間執行的函式呼叫
         if not event.long_running_tool_ids or not event.content or not event.content.parts:
             return
         for part in event.content.parts:
@@ -91,7 +86,7 @@ async def call_agent_async(query):
                 return part.function_call
 
     def get_function_response(event: Event, function_call_id: str) -> types.FunctionResponse:
-        # Get the function response for the fuction call with specified id.
+        # 取得具有指定 ID 的函式呼叫的函式回應。
         if not event.content or not event.content.parts:
             return
         for part in event.content.parts:
@@ -106,7 +101,7 @@ async def call_agent_async(query):
     session, runner = await setup_session_and_runner()
     events = runner.run_async(user_id=USER_ID, session_id=SESSION_ID, new_message=content)
 
-    print("\nRunning agent...")
+    print("\n正在執行代理...")
     events_async = runner.run_async(
         session_id=session.id, user_id=USER_ID, new_message=content
     )
@@ -114,7 +109,7 @@ async def call_agent_async(query):
 
     long_running_function_call, long_running_function_response, ticket_id = None, None, None
     async for event in events_async:
-        # Use helper to check for the specific auth request event
+        # 使用輔助函式檢查特定的驗證請求事件
         if not long_running_function_call:
             long_running_function_call = get_long_running_function_call(event)
         else:
@@ -127,8 +122,8 @@ async def call_agent_async(query):
 
 
     if long_running_function_response:
-        # query the status of the correpsonding ticket via tciket_id
-        # send back an intermediate / final response
+        # 透過 ticket_id 查詢對應工單的狀態
+        # 傳回一個中繼/最終回應
         updated_response = long_running_function_response.model_copy(deep=True)
         updated_response.response = {'status': 'approved'}
         async for event in runner.run_async(
@@ -140,12 +135,12 @@ async def call_agent_async(query):
           
 # --8<-- [end:call_reimbursement_tool]          
 
-# Note: In Colab, you can directly use 'await' at the top level.
-# If running this code as a standalone Python script, you'll need to use asyncio.run() or manage the event loop.
+# 注意：在 Colab 中，您可以直接在頂層使用 'await'。
+# 如果將此程式碼作為獨立的 Python 腳本執行，您需要使用 asyncio.run() 或管理事件迴圈。
                    
-# reimbursement that doesn't require approval
-# asyncio.run(call_agent_async("Please reimburse 50$ for meals"))
-await call_agent_async("Please reimburse 50$ for meals") # For Notebooks, uncomment this line and comment the above line
-# reimbursement that requires approval
-# asyncio.run(call_agent_async("Please reimburse 200$ for meals"))
-await call_agent_async("Please reimburse 200$ for meals") # For Notebooks, uncomment this line and comment the above line
+# 不需要核准的報銷
+# asyncio.run(call_agent_async("請報銷 50 美元的餐費"))
+await call_agent_async("請報銷 50 美元的餐費") # 對於筆記本，請取消註解此行並註解上一行
+# 需要核准的報銷
+# asyncio.run(call_agent_async("請報銷 200 美元的餐費"))
+await call_agent_async("請報銷 200 美元的餐費") # 對於筆記本，請取消註解此行並註解上一行

@@ -24,65 +24,65 @@ from google.adk.tools.bigquery.config import WriteMode
 from google.genai import types
 import google.auth
 
-# Define constants for this example agent
+# 為此範例代理定義常數
 AGENT_NAME = "bigquery_agent"
 APP_NAME = "bigquery_app"
 USER_ID = "user1234"
 SESSION_ID = "1234"
 GEMINI_MODEL = "gemini-2.0-flash"
 
-# Define a tool configuration to block any write operations
+# 定義一個工具設定以阻止任何寫入操作
 tool_config = BigQueryToolConfig(write_mode=WriteMode.BLOCKED)
 
-# Define a credentials config - in this example we are using application default
-# credentials
+# 定義一個憑證設定 - 在此範例中，我們使用應用程式預設
+# 憑證
 # https://cloud.google.com/docs/authentication/provide-credentials-adc
 application_default_credentials, _ = google.auth.default()
 credentials_config = BigQueryCredentialsConfig(
     credentials=application_default_credentials
 )
 
-# Instantiate a BigQuery toolset
+# 實例化一個 BigQuery 工具集
 bigquery_toolset = BigQueryToolset(
     credentials_config=credentials_config, bigquery_tool_config=tool_config
 )
 
-# Agent Definition
+# 代理定義
 bigquery_agent = Agent(
     model=GEMINI_MODEL,
     name=AGENT_NAME,
     description=(
-        "Agent to answer questions about BigQuery data and models and execute"
-        " SQL queries."
+        "回答有關 BigQuery 資料和模型的問題並執行"
+        " SQL 查詢的代理。"
     ),
     instruction="""\
-        You are a data science agent with access to several BigQuery tools.
-        Make use of those tools to answer the user's questions.
+        您是一個可以存取多個 BigQuery 工具的資料科學代理。
+        請利用這些工具來回答使用者的問題。
     """,
     tools=[bigquery_toolset],
 )
 
-# Session and Runner
+# 會話和執行器
 session_service = InMemorySessionService()
 session = asyncio.run(session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID))
 runner = Runner(agent=bigquery_agent, app_name=APP_NAME, session_service=session_service)
 
-# Agent Interaction
+# 代理互動
 def call_agent(query):
     """
-    Helper function to call the agent with a query.
+    用查詢呼叫代理的輔助函式。
     """
     content = types.Content(role='user', parts=[types.Part(text=query)])
     events = runner.run(user_id=USER_ID, session_id=SESSION_ID, new_message=content)
 
-    print("USER:", query)
+    print("使用者:", query)
     for event in events:
         if event.is_final_response():
             final_response = event.content.parts[0].text
-            print("AGENT:", final_response)
+            print("代理:", final_response)
 
-call_agent("Are there any ml datasets in bigquery-public-data project?")
-call_agent("Tell me more about ml_datasets.")
-call_agent("Which all tables does it have?")
-call_agent("Tell me more about the census_adult_income table.")
-call_agent("How many rows are there per income bracket?")
+call_agent("bigquery-public-data 專案中有沒有 ml 資料集？")
+call_agent("告訴我更多關於 ml_datasets 的資訊。")
+call_agent("它有哪些資料表？")
+call_agent("告訴我更多關於 census_adult_income 資料表的資訊。")
+call_agent("每個收入等級有多少列？")

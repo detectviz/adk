@@ -26,13 +26,13 @@ SESSION_ID = "session1234"
 
 def get_stock_price(symbol: str):
     """
-    Retrieves the current stock price for a given symbol.
+    擷取給定股票代號的目前股價。
 
     Args:
-        symbol (str): The stock symbol (e.g., "AAPL", "GOOG").
+        symbol (str): 股票代號（例如 "AAPL", "GOOG"）。
 
     Returns:
-        float: The current stock price, or None if an error occurs.
+        float: 目前股價，如果發生錯誤則為 None。
     """
     try:
         stock = yf.Ticker(symbol)
@@ -43,27 +43,27 @@ def get_stock_price(symbol: str):
         else:
             return None
     except Exception as e:
-        print(f"Error retrieving stock price for {symbol}: {e}")
+        print(f"擷取 {symbol} 的股價時發生錯誤：{e}")
         return None
 
 
 stock_price_agent = Agent(
     model='gemini-2.0-flash',
     name='stock_agent',
-    instruction= 'You are an agent who retrieves stock prices. If a ticker symbol is provided, fetch the current price. If only a company name is given, first perform a Google search to find the correct ticker symbol before retrieving the stock price. If the provided ticker symbol is invalid or data cannot be retrieved, inform the user that the stock price could not be found.',
-    description='This agent specializes in retrieving real-time stock prices. Given a stock ticker symbol (e.g., AAPL, GOOG, MSFT) or the stock name, use the tools and reliable data sources to provide the most up-to-date price.',
-    tools=[get_stock_price], # You can add Python functions directly to the tools list; they will be automatically wrapped as FunctionTools.
+    instruction= '您是一個擷取股價的代理。如果提供了股票代號，請擷取目前價格。如果只給了公司名稱，請先執行 Google 搜尋以找到正確的股票代號，然後再擷取股價。如果提供的股票代號無效或無法擷取資料，請告知使用者找不到股價。',
+    description='此代理專門擷取即時股價。給定股票代號（例如 AAPL、GOOG、MSFT）或股票名稱，使用工具和可靠的資料來源提供最新的價格。',
+    tools=[get_stock_price], # 您可以直接將 Python 函式新增到工具清單中；它們將被自動包裝為 FunctionTools。
 )
 
 
-# Session and Runner
+# 會話和執行器
 async def setup_session_and_runner():
     session_service = InMemorySessionService()
     session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
     runner = Runner(agent=stock_price_agent, app_name=APP_NAME, session_service=session_service)
     return session, runner
 
-# Agent Interaction
+# 代理互動
 async def call_agent_async(query):
     content = types.Content(role='user', parts=[types.Part(text=query)])
     session, runner = await setup_session_and_runner()
@@ -72,9 +72,9 @@ async def call_agent_async(query):
     async for event in events:
         if event.is_final_response():
             final_response = event.content.parts[0].text
-            print("Agent Response: ", final_response)
+            print("代理回應：", final_response)
 
 
-# Note: In Colab, you can directly use 'await' at the top level.
-# If running this code as a standalone Python script, you'll need to use asyncio.run() or manage the event loop.
-await call_agent_async("stock price of GOOG")
+# 注意：在 Colab 中，您可以直接在頂層使用 'await'。
+# 如果將此程式碼作為獨立的 Python 腳本執行，您需要使用 asyncio.run() 或管理事件迴圈。
+await call_agent_async("GOOG 的股價")

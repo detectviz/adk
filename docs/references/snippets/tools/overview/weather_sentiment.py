@@ -23,33 +23,33 @@ USER_ID="user1234"
 SESSION_ID="1234"
 MODEL_ID="gemini-2.0-flash"
 
-# Tool 1
+# 工具 1
 def get_weather_report(city: str) -> dict:
-    """Retrieves the current weather report for a specified city.
+    """擷取指定城市的目前天氣報告。
 
     Returns:
-        dict: A dictionary containing the weather information with a 'status' key ('success' or 'error') and a 'report' key with the weather details if successful, or an 'error_message' if an error occurred.
+        dict: 一個包含天氣資訊的字典，其中 'status' 鍵為 'success' 或 'error'，如果成功，則 'report' 鍵包含天氣詳細資訊，如果發生錯誤，則包含 'error_message'。
     """
     if city.lower() == "london":
-        return {"status": "success", "report": "The current weather in London is cloudy with a temperature of 18 degrees Celsius and a chance of rain."}
+        return {"status": "success", "report": "倫敦目前的天氣是多雲，溫度為攝氏 18 度，有降雨機率。"}
     elif city.lower() == "paris":
-        return {"status": "success", "report": "The weather in Paris is sunny with a temperature of 25 degrees Celsius."}
+        return {"status": "success", "report": "巴黎天氣晴朗，溫度為攝氏 25 度。"}
     else:
-        return {"status": "error", "error_message": f"Weather information for '{city}' is not available."}
+        return {"status": "error", "error_message": f"'{city}' 的天氣資訊不可用。"}
 
 weather_tool = FunctionTool(func=get_weather_report)
 
 
-# Tool 2
+# 工具 2
 def analyze_sentiment(text: str) -> dict:
-    """Analyzes the sentiment of the given text.
+    """分析給定文字的情緒。
 
     Returns:
-        dict: A dictionary with 'sentiment' ('positive', 'negative', or 'neutral') and a 'confidence' score.
+        dict: 一個包含 'sentiment'（'positive'、'negative' 或 'neutral'）和 'confidence' 分數的字典。
     """
-    if "good" in text.lower() or "sunny" in text.lower():
+    if "good" in text.lower() or "sunny" in text.lower() or "好" in text or "晴" in text:
         return {"sentiment": "positive", "confidence": 0.8}
-    elif "rain" in text.lower() or "bad" in text.lower():
+    elif "rain" in text.lower() or "bad" in text.lower() or "雨" in text or "不好" in text:
         return {"sentiment": "negative", "confidence": 0.7}
     else:
         return {"sentiment": "neutral", "confidence": 0.6}
@@ -57,20 +57,20 @@ def analyze_sentiment(text: str) -> dict:
 sentiment_tool = FunctionTool(func=analyze_sentiment)
 
 
-# Agent
+# 代理
 weather_sentiment_agent = Agent(
     model=MODEL_ID,
     name='weather_sentiment_agent',
-    instruction="""You are a helpful assistant that provides weather information and analyzes the sentiment of user feedback.
-**If the user asks about the weather in a specific city, use the 'get_weather_report' tool to retrieve the weather details.**
-**If the 'get_weather_report' tool returns a 'success' status, provide the weather report to the user.**
-**If the 'get_weather_report' tool returns an 'error' status, inform the user that the weather information for the specified city is not available and ask if they have another city in mind.**
-**After providing a weather report, if the user gives feedback on the weather (e.g., 'That's good' or 'I don't like rain'), use the 'analyze_sentiment' tool to understand their sentiment.** Then, briefly acknowledge their sentiment.
-You can handle these tasks sequentially if needed.""",
+    instruction="""您是一個提供天氣資訊並分析使用者回饋情緒的樂於助人的助理。
+**如果使用者詢問特定城市的天氣，請使用 'get_weather_report' 工具擷取天氣詳細資訊。**
+**如果 'get_weather_report' 工具返回 'success' 狀態，請向使用者提供天氣報告。**
+**如果 'get_weather_report' 工具返回 'error' 狀態，請告知使用者指定城市的天氣資訊不可用，並詢問他們是否有其他想查詢的城市。**
+**提供天氣報告後，如果使用者對天氣給出回饋（例如，「那很好」或「我不喜歡下雨」），請使用 'analyze_sentiment' 工具來了解他們的情緒。** 然後，簡要地確認他們的情緒。
+如果需要，您可以循序處理這些任務。""",
     tools=[weather_tool, sentiment_tool]
 )
 
-# Session and Runner
+# 會話和執行器
 async def setup_session_and_runner():
     session_service = InMemorySessionService()
     session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
@@ -78,7 +78,7 @@ async def setup_session_and_runner():
     return session, runner
 
 
-# Agent Interaction
+# 代理互動
 async def call_agent_async(query):
     content = types.Content(role='user', parts=[types.Part(text=query)])
     session, runner = await setup_session_and_runner()
@@ -87,8 +87,8 @@ async def call_agent_async(query):
     async for event in events:
         if event.is_final_response():
             final_response = event.content.parts[0].text
-            print("Agent Response: ", final_response)
+            print("代理回應：", final_response)
 
-# Note: In Colab, you can directly use 'await' at the top level.
-# If running this code as a standalone Python script, you'll need to use asyncio.run() or manage the event loop.
-await call_agent_async("weather in london?")
+# 注意：在 Colab 中，您可以直接在頂層使用 'await'。
+# 如果將此程式碼作為獨立的 Python 腳本執行，您需要使用 asyncio.run() 或管理事件迴圈。
+await call_agent_async("倫敦的天氣如何？")

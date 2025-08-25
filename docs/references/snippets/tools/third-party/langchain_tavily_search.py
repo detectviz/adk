@@ -19,15 +19,15 @@ from google.adk.tools.langchain_tool import LangchainTool
 from google.genai import types
 from langchain_community.tools import TavilySearchResults
 
-# Ensure TAVILY_API_KEY is set in your environment
+# 確保您的環境中已設定 TAVILY_API_KEY
 if not os.getenv("TAVILY_API_KEY"):
-    print("Warning: TAVILY_API_KEY environment variable not set.")
+    print("警告：未設定 TAVILY_API_KEY 環境變數。")
 
 APP_NAME = "news_app"
 USER_ID = "1234"
 SESSION_ID = "session1234"
 
-# Instantiate LangChain tool
+# 實例化 LangChain 工具
 tavily_search = TavilySearchResults(
     max_results=5,
     search_depth="advanced",
@@ -36,16 +36,16 @@ tavily_search = TavilySearchResults(
     include_images=True,
 )
 
-# Wrap with LangchainTool
+# 使用 LangchainTool 包裝
 adk_tavily_tool = LangchainTool(tool=tavily_search)
 
-# Define Agent with the wrapped tool
+# 使用包裝後的工具定義代理
 my_agent = Agent(
     name="langchain_tool_agent",
     model="gemini-2.0-flash",
-    description="Agent to answer questions using TavilySearch.",
-    instruction="I can answer your questions by searching the internet. Just ask me anything!",
-    tools=[adk_tavily_tool] # Add the wrapped tool here
+    description="使用 TavilySearch 來回答問題的代理。",
+    instruction="我可以透過搜尋網際網路來回答您的問題。儘管問我任何事！",
+    tools=[adk_tavily_tool] # 在此處新增包裝後的工具
 )
 
 async def setup_session_and_runner():
@@ -54,7 +54,7 @@ async def setup_session_and_runner():
     runner = Runner(agent=my_agent, app_name=APP_NAME, session_service=session_service)
     return session, runner
 
-# Agent Interaction
+# 代理互動
 async def call_agent_async(query):
     content = types.Content(role='user', parts=[types.Part(text=query)])
     session, runner = await setup_session_and_runner()
@@ -63,8 +63,8 @@ async def call_agent_async(query):
     async for event in events:
         if event.is_final_response():
             final_response = event.content.parts[0].text
-            print("Agent Response: ", final_response)
+            print("代理回應：", final_response)
 
-# Note: In Colab, you can directly use 'await' at the top level.
-# If running this code as a standalone Python script, you'll need to use asyncio.run() or manage the event loop.
-await call_agent_async("stock price of GOOG")
+# 注意：在 Colab 中，您可以直接在頂層使用 'await'。
+# 如果將此程式碼作為獨立的 Python 腳本執行，您需要使用 asyncio.run() 或管理事件迴圈。
+await call_agent_async("GOOG 的股價")

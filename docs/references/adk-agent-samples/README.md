@@ -1,8 +1,62 @@
-# ADK Sample Agents
+# ADK 範例代理
 
 此資料夾包含 [Python 代理開發套件 (Python Agent Development Kit)](https://github.com/google/adk-python) (Python ADK) 的範例代理。
 
 此目錄中的每個資料夾都包含一個不同的代理範例。
+
+## 範例索引列表
+
+*   [`analytics`](analytics/): 一個輕量級的分析代理，可根據包含資料的使用者提示產生圖表。
+*   [`dice_agent_grpc`](dice_agent_grpc/): 建立一個支援 gRPC 傳輸的 A2A 伺服器來與代理互動。
+*   [`github-agent`](github-agent/): 一個智慧型 GitHub 代理，可以使用自然語言查詢 GitHub 儲存庫。
+*   [`a2a-mcp-without-framework`](a2a-mcp-without-framework/): 展示使用 `a2a-python` SDK 進行多輪對話協定 (MCP) 的基本客戶端/伺服器設定。
+*   [`a2a_mcp`](a2a_mcp/): 一個多代理系統，使用模型內容協定 (MCP) 作為註冊表來協調專門的代理以規劃旅程。
+*   [`a2a_telemetry`](a2a_telemetry/): 展示如何啟用和匯出 A2A 伺服器和客戶端的分布式追蹤。
+*   [`academic-research`](academic-research/): 協助研究人員識別最新出版物並發現新興研究領域。
+*   [`birthday_planner_adk`](birthday_planner_adk/): 一個協助規劃生日派對的多代理系統。
+*   [`adk_cloud_run`](adk_cloud_run/): 展示如何將以 ADK 建置的代理部署到 Google Cloud Run。
+*   [`adk_expense_reimbursement`](adk_expense_reimbursement/): 一個處理費用報銷請求的代理，可動態產生網頁表單。
+*   [`adk_facts`](adk_facts/): 一個可針對給定主題產生趣味知識的簡單代理。
+*   [`veo_video_gen`](veo_video_gen/): 一個使用 Google 的 VEO 模型從文字提示生成影片的代理。
+*   [`any_agent_adversarial_multiagent`](any_agent_adversarial_multiagent/): 一個「攻擊者」與「防禦者」代理的模擬，用於測試 AI 的穩健性。
+*   [`ag2`](ag2/): 一個使用 AG2 框架建置的代理，展示不同代理框架如何透過 A2A 協定通訊。
+*   [`airbnb_planner_multiagent`](airbnb_planner_multiagent/): 一個協調尋找 Airbnb 房源和取得天氣預報的多代理系統。
+*   [`auto-insurance-agent`](auto-insurance-agent/): 管理會員、理賠、獎勵和道路救援的汽車保險代理。
+*   [`azureaifoundry_sdk`](azureaifoundry_sdk/): 展示如何將 Microsoft 的 Azure AI Foundry Agent Service 與 Google 的 A2A 協定整合。
+*   [`beeai-chat`](beeai-chat/): 展示如何使用 BeeAI 框架建立一個互動式聊天代理。
+*   [`brand-search-optimization`](brand-search-optimization/): 透過分析和比較熱門搜尋結果來豐富電子商務產品資料。
+*   [`camel`](camel/): 展示用於安全執行和資料流管理的 CaMeL 框架，可防禦提示注入攻擊。
+*   [`content_planner`](content_planner/): 根據高階描述建立詳細的內容大綱。
+*   [`crewai`](crewai/): 一個使用 CrewAI 框架和 Gemini API 來根據文字提示生成圖片的簡單代理。
+*   [`customer-service`](customer-service/): 提供居家裝修、園藝及相關用品的客戶服務、產品選擇、訂單管理。
+*   [`data-science`](data-science/): 一個為複雜資料分析而設計的多代理系統。
+*   [`dice_agent_rest`](dice_agent_rest/): 建立一個支援 REST 傳輸的 A2A 伺服器，可與代理互動。
+*   [`financial-advisor`](financial-advisor/): 透過提供金融和投資相關主題的教育內容來協助人類財務顧問。
+*   [`fomc-research`](fomc-research/): 進行市場事件分析。
+*   [`gemini-fullstack`](gemini-fullstack/): 一個使用 Gemini 建構複雜全端研究代理的藍圖。
+*   [`google-adk-workflows`](google-adk-workflows/): 展示使用 Google ADK 的各種協調模式來規劃複雜旅行任務的多代理工作流程。
+*   [`headless_agent_auth`](headless_agent_auth/): 展示無頭代理如何利用 Auth0 的 CIBA 流程請求使用者授權以存取外部 API。
+*   [`helloworld`](helloworld/): 一個只會回傳訊息事件的「Hello World」範例代理。
+*   [`image-scoring`](image-scoring/): 根據政策生成圖片並對其評分以衡量政策遵循度的代理。
+*   [`langgraph`](langgraph/): 一個使用 LangGraph 和 ReAct 模式建構的貨幣轉換代理。
+*   [`llama_index_file_chat`](llama_index_file_chat/): 一個允許使用者上傳檔案並針對其內容進行問答的對話式代理。
+*   [`llm-auditor`](llm-auditor/): 用於聊天機器人回應驗證和內容稽核。
+*   [`machine-learning-engineering`](machine-learning-engineering/): 自動建立和訓練機器學習模型。
+*   [`marketing-agency`](marketing-agency/): 簡化新網站和產品的發布流程。
+*   [`marvin`](marvin/): 使用 Marvin 框架從非結構化文字中提取結構化的聯絡資訊。
+*   [`mindsdb`](mindsdb/): 使用 MindsDB 連接、查詢和分析來自數百個聯合資料來源的資料。
+*   [`number_guessing_game`](number_guessing_game/): 一個由三個輕量級 A2A 代理組成的合作猜數字遊戲。
+*   [`personal-expense-assistant-adk`](personal-expense-assistant-adk/): 擷取、儲存個人發票和收據，並提供搜尋功能。
+*   [`personalized-shopping`](personalized-shopping/): 提供產品推薦。
+*   [`purchasing-concierge-intro-a2a`](purchasing-concierge-intro-a2a/): 展示如何在沒有任何代理框架的情況下設定和使用 a2a-python SDK。
+*   [`qa-test-planner-agent`](qa-test-planner-agent/): 分析產品需求文件並產生測試計畫。
+*   [`semantickernel`](semantickernel/): 一個使用 Microsoft Semantic Kernel 建構的旅遊代理。
+*   [`software-bug-assistant`](software-bug-assistant/): 透過查詢內部和外部知識來源來協助解決軟體錯誤。
+*   [`sre-bot`](sre-bot/): 協助網站可靠性工程師處理營運任務和監控。
+*   [`travel-concierge`](travel-concierge/): 旅遊管家、數位任務助理。
+*   [`travel_planner_agent`](travel_planner_agent/): 一個符合 OpenAI 模型規格的旅遊助理。
+*   [`RAG`](RAG/): 由 RAG 驅動的代理，回答與上傳至 Vertex AI RAG 引擎的文件相關的問題。
+*   [`youtube-shorts-assistant`](youtube-shorts-assistant/): 一個多代理工作流程，用於協調腳本撰寫、視覺化和格式化，以生成 YouTube Shorts 的內容概念。
 
 ## 入門指南 (Getting Started)
 
@@ -76,6 +130,7 @@
 | [旅遊管家 (Travel Concierge)](travel-concierge) | 旅遊管家、數位任務助理。 | `Python`, `Custom tool`, `Agent tool`, `Schema`, `Context`, `Dynamic Prompts` | 對話式 (Conversational) | 進階 (Advanced) | 多代理 (Multi Agent) | 旅遊 (Travel) |
 | [旅遊規劃助理 (Travel Planner Assistant)](travel_planner_agent) | 一個符合 OpenAI 模型規格的旅遊助理，能夠提供旅遊規劃服務。此範例展示了如何設定和使用不同的 LLM（如 OpenAI、Qwen）作為代理程式的後端。 | `Travel`, `Planner`, `OpenAI`, `Qwen`, `A2A` | 對話式 (Conversational) | 簡單 (Easy) | 單一代理程式 (Single Agent) | 旅遊 (Travel) |
 | [Vertex AI 檢索代理 (Vertex AI Retrieval Agent)](RAG) | 由 RAG 驅動的代理，回答與上傳至 Vertex AI RAG 引擎的文件相關的問題。 | `RAG Engine` | 工作流程 (Workflow) | 中等 (Intermediate) | 單一代理程式 (Single Agent) | 通用 (Horizontal) |
+| [YouTube Shorts 小幫手 (YouTube Shorts Assistant)](youtube-shorts-assistant) | 一個多代理工作流程，用於協調腳本撰寫、視覺化和格式化，以生成 YouTube Shorts 的內容概念。 | `Content Creation`, `YouTube`, `Video`, `Multi-agent`, `Workflow` | 工作流程 (Workflow) | 中等 (Intermediate) | 多代理 (Multi Agent) | 內容創作 / 行銷 (Content Creation / Marketing) |
 
 
 
