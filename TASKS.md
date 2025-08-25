@@ -2,8 +2,8 @@
 
 本文件為 SRE Assistant 專案的權威任務清單，整合了架構分析、參考範例研究和多方建議後的最終版本。
 
+- **演進願景**: [ROADMAP.md](ROADMAP.md)
 - **架構基礎**: [ARCHITECTURE.md](ARCHITECTURE.md)
-- **參考資源**: [reference-list.md](reference-list.md)
 - **重構計畫**: [REFACTOR_PLAN.md](REFACTOR_PLAN.md)
 
 ---
