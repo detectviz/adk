@@ -131,3 +131,45 @@
 - **簡介**: 這是一個專門用於**審計和驗證**其他 LLM 輸出的代理。它可以檢查輸出的安全性、品質和準確性。
 - **與 SRE Assistant 的關relation**:
     - **輸出品質保證**: 此模式與 `google-adk-workflows` 中的 `SelfCriticAgent` 相輔相成，為 SRE Assistant 的「驗證階段」提供了另一種實現思路。我們可以有一個 `RemediationAuditor` 代理來審查由其他代理生成的修復計畫或覆盤報告，確保其符合我們的工程標準。
+
+---
+
+### 9. A2A 通訊協定 (A2A Communication Protocols)
+
+#### 範例: `dice_agent_grpc`
+
+- **簡介**: 這是一個極簡但至關重要的範例，它展示如何透過 **gRPC** 而非預設的 REST/HTTP 來提供 ADK 代理服務。
+- **與 SRE Assistant 的關聯性**:
+    - **Phase 3 的核心技術**: `ROADMAP.md` 和 `ARCHITECTURE.md` 明確指出，Phase 3 的聯邦化架構將採用 gRPC 作為 A2A (Agent-to-Agent) 通訊協定。此範例是實現 `TASK-P3-A2A-01` 的**直接樣板**。
+    - **高效能通訊**: 為團隊提供了如何在 ADK 中設定和使用 gRPC Server 的基礎知識，這對於實現低延遲、高效能的內部代理通訊至關重要。
+
+---
+
+### 10. 全端整合與前端開發 (Full-Stack & Frontend Integration)
+
+#### 範例: `gemini-fullstack`
+
+- **簡介**: 一個生產級的藍圖，展示如何建構一個包含 **React 前端**和由 ADK 驅動的 **FastAPI 後端**的複雜全端應用。
+- **與 SRE Assistant 的關聯性**:
+    - **Phase 2 的完美藍圖**: 這是為 Phase 2 開發 **Grafana 插件**最直接、最全面的參考。它完美地展示了前端 (Grafana Plugin) 如何與後端 (SRE Assistant API) 進行互動、傳遞狀態和顯示結果。
+    - **前後端分離實踐**: 其清晰的目錄結構 (`/app` 為後端, `/frontend` 為前端) 和 `make dev` 的啟動方式，為開發團隊提供了組織和管理全端應用的最佳實踐。
+    - **人在環節 (Human-in-the-Loop)**: 其「規劃-審批-執行」的工作流程，是 SRE Assistant 在執行高風險操作前需要使用者確認的絕佳實現範例。
+
+#### 範例: `personal-expense-assistant-adk`
+
+- **簡介**: 另一個優秀的全端應用範例，使用 **Gradio** 作為前端，FastAPI 作為後端，並整合了 Firestore 作為資料庫。
+- **與 SRE Assistant 的關聯性**:
+    - **替代架構模式**: 提供了與 `gemini-fullstack` 不同的前端技術棧 (Gradio)，讓開發團隊在為 Grafana 插件設計 UI 互動時有更多的參考。
+    - **資料庫整合與回呼**: 清楚地展示了如何將代理與一個真實的、持久化的資料庫（Firestore）整合，這對於實現 `TASK-P1-CORE-01` (`MemoryProvider`) 和 `TASK-P1-CORE-02` (`session_service_builder`) 極具參考價值。其 `callbacks.py` 檔案也為如何在 UI 中即時串流顯示代理的「思考過程」提供了範本。
+
+---
+
+### 11. 機器學習與預測分析 (Machine Learning & Predictive Analysis)
+
+#### 範例: `machine-learning-engineering`
+
+- **簡介**: 一個基於研究論文的、極其複雜和強大的多代理系統，專門用於**自動化解決機器學習工程任務**。
+- **與 SRE Assistant 的關聯性**:
+    - **`PredictiveMaintenanceAgent` 的架構藍圖**: 這是為 Phase 3 `PredictiveMaintenanceAgent` 提供的**黃金標準**參考。該代理的目標（例如，根據歷史指標預測未來故障）本質上就是一個機器學習任務。
+    - **從規劃到部署的完整週期**: 它展示了一個完整的 ML 任務生命週期：定義任務、產生和執行訓練程式碼、評估結果、迭代優化程式碼，最後產生模型。這為 SRE Assistant 如何實現一個能夠自我改進的預測模型提供了完整的思路。
+    - **複雜的多代理協調**: 其包含的 `frontdoor_agent`、`refinement_agent`、`ensemble_agent` 等多個專業化子代理，為 SRE Assistant 在未來如何建構更複雜的、特定領域的專家代理提供了進階的架構範例。
