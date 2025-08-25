@@ -173,3 +173,44 @@
     - **`PredictiveMaintenanceAgent` 的架構藍圖**: 這是為 Phase 3 `PredictiveMaintenanceAgent` 提供的**黃金標準**參考。該代理的目標（例如，根據歷史指標預測未來故障）本質上就是一個機器學習任務。
     - **從規劃到部署的完整週期**: 它展示了一個完整的 ML 任務生命週期：定義任務、產生和執行訓練程式碼、評估結果、迭代優化程式碼，最後產生模型。這為 SRE Assistant 如何實現一個能夠自我改進的預測模型提供了完整的思路。
     - **複雜的多代理協調**: 其包含的 `frontdoor_agent`、`refinement_agent`、`ensemble_agent` 等多個專業化子代理，為 SRE Assistant 在未來如何建構更複雜的、特定領域的專家代理提供了進階的架構範例。
+
+---
+
+### 12. 關鍵模式與第三方框架整合 (Key Patterns & 3rd-Party Framework Integration)
+
+#### 範例: `marvin`
+
+- **簡介**: 此範例展示如何使用 **Marvin** 框架從非結構化文字中**提取結構化資料** (Pydantic 模型)。
+- **與 SRE Assistant 的關聯性**:
+    - **核心工具實現模式**: SRE Assistant 的許多工具 (如 `PrometheusQueryTool`, `KubernetesOperationTool`) 都需要結構化的輸入。此範例為如何將自然語言（來自使用者或日誌）可靠地轉換為工具可以使用的 Pydantic 物件提供了一個強大的模式。
+    - **結構化資料提取**: 對於從告警描述或事件日誌中解析主機名稱、錯誤代碼和時間戳等特定實體至關重要。
+    - **多輪對話狀態**: 該範例還展示了如何透過多輪對話來收集所有必要的資訊，這對於需要澄清使用者意圖的複雜命令非常有用。
+
+#### 範例: `mindsdb`
+
+- **簡介**: 此範例展示如何將自然語言查詢轉換為 SQL，以查詢和分析來自 **MindsDB** 所連接的聯合資料來源的資料。
+- **與 SRE Assistant 的關聯性**:
+    - **自然語言資料庫查詢**: 為 SRE Assistant 提供了直接透過自然語言查詢其內部 **PostgreSQL** 資料庫（例如，查詢歷史事件或 Runbook）的能力藍圖。
+    - **`PredictiveMaintenanceAgent` 的未來參考**: MindsDB 專為資料庫內機器學習而設計。此範例是 Phase 3 `PredictiveMaintenanceAgent` 如何分析歷史時間序列資料以進行故障預測的絕佳概念證明。
+    - **資料聯邦**: 其跨多個資料來源進行查詢的能力，與 SRE Assistant 需要整合內部資料庫和外部可觀測性平台（如 Prometheus）的理念相符。
+
+#### 範例: `analytics`
+
+- **簡介**: 一個使用 `matplotlib` 和 `crewai` 將自然語言轉換為**數據視覺化圖表**的代理。
+- **與 SRE Assistant 的關聯性**:
+    - **補充 `GrafanaIntegrationTool`**: 雖然主要目標是嵌入 Grafana 圖表，但此範例提供了一種內建的、輕量級的圖表生成能力。這對於在 ChatOps 介面中進行快速、即時的資料視覺化非常有用。
+    - **工具鏈模式**: 展示了一個清晰的工具鏈：LLM 解析請求 -> Pandas 處理數據 -> Matplotlib 產生圖表。這是 SRE Assistant 許多診斷流程可以遵循的模式。
+
+#### 範例: `semantickernel`
+
+- **簡介**: 此範例展示如何將微軟的 **Semantic Kernel** 代理框架與 ADK 的 A2A 伺服器整合。
+- **與 SRE Assistant 的關聯性**:
+    - **架構靈活性**: 與 `crewai` 和 `langgraph` 範例一樣，它展示了 SRE Assistant 的核心架構可以與各種第三方代理框架**互操作**。開發團隊可以為不同的專業化代理選擇最適合的工具。
+    - **外掛程式與串流**: 其對「外掛程式」（工具）和串流回應的清晰使用，為 `SREWorkflow` 和工具的實現提供了寶貴的參考。
+
+#### 範例: `a2a-mcp-without-framework`
+
+- **簡介**: 一個**不依賴 ADK 框架**的、最簡化的 A2A 協定客戶端/伺服器實現。
+- **與 SRE Assistant 的關聯性**:
+    - **底層協定理解**: 這是供開發人員深入理解 A2A 協定本身運作方式的完美教育資源。當需要對 Phase 3 的聯邦化通訊進行低階除錯時，此範例將非常寶貴。
+    - **基礎知識**: 透過剝離所有框架的抽象，它揭示了請求/回應結構、任務管理和資料模型的本質，有助於鞏固團隊對核心架構的理解。
