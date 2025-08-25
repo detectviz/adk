@@ -9,6 +9,30 @@
 
 本清單確保 SRE Assistant 完全符合 Google ADK 官方最佳實踐，消除所有技術債務風險。每項檢查點都基於官方文檔、實戰經驗和架構審查結果制定。
 
+## 0. ADK 最佳實踵審核 - ADK Best Practice Check
+
+> 評估 https://github.com/detectviz/adk (SRE Assistant) 是否有效利用 ADK 建構。
+
+> 源自搜集並分析官方資源，包括 Vertex AI 文件、Google Cloud 部落格文章、YouTube 教學影片和 GitHub 範例儲存庫。由於 ADK 於 2025 年 4 月發布，僅歷經 4 個月，這些資源反映了框架的早期成熟階段，強調模組化、工具驅動設計、多代理協調、記憶管理、安全守欄、測試監控與可擴展部署。官方資源聚焦於生產級應用，確保代理的可靠性、可重用性和雲端整合。
+
+該審核表從技術實現視角評估 SRE Assistant 是否有效利用 ADK 建構，涵蓋核心類別。每項包括：
+- **審核項目描述**：具體檢查點。
+- **ADK 架構師觀點**：為什麼推薦此實踐，從技術角度解釋其益處（如提升可擴展性、減少錯誤）。
+- **參考連結**：官方來源。
+- **評估結果**：是否通過（基於儲存庫分析）。
+- **改進建議**（若不通過）：與時俱進的務實建議，參考最新資源。
+
+| 審核項目 | ADK 架構師觀點 | 參考連結 | 評估結果 | 改進建議（若不通過） |
+|----------|----------------|----------|----------|---------------------|
+| **模組化代理設計**<br>檢查是否使用 AdkApp 類定義代理，支援子代理和協調邏輯（如條件路由、並行執行）。 | 推薦因為 ADK 強調 code-first 方法，讓開發者精確控制代理行為，避免黑箱 LLM 依賴，提升 debuggability 和可重用性；在 SRE 情境，可模組化診斷/修復代理，減少 downtime。 | [Quickstart: Build an agent with the Agent Development Kit](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-development-kit/quickstart)<br>[Develop an Agent Development Kit agent](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/develop/adk)<br>[google/adk-samples (GitHub 示例)](https://github.com/google/adk-samples) | 通過：使用 SREWorkflow 協調器和 sub_agents/ 目錄，類似 AdkApp 的模組化。 | N/A |
+| **工具註冊與整合**<br>檢查工具是否中央註冊（如 tools.py），支援 OpenAPI、外部 API 和驗證。 | 推薦因為工具是 ADK 核心，允許代理調用外部系統（如 RAG 或 SLO 工具），提升自主性；在 SRE 中，這確保事件診斷工具可擴展，支援異質環境而不重寫代碼。 | [Tools Make an Agent: From Zero to Assistant with ADK (部落格)](https://cloud.google.com/blog/topics/developers-practitioners/tools-make-an-agent-from-zero-to-assistant-with-adk)<br>[Build a GitHub agent using Google ADK and OpenAPI Integration (Medium 文章，基於官方)](https://medium.com/google-cloud/build-a-github-agent-using-google-adk-and-openapi-integration-82abc326b288)<br>[ADK Tutorials (官方文檔)](https://google.github.io/adk-docs/tutorials/) | 通過：tools.py 作為中央註冊，整合 RAG 和 SLO 工具。 | N/A |
+| **多代理協調**<br>檢查是否實現多代理系統（如 A2A 協議），包括並行/條件執行和協調器。 | 推薦因為 ADK 支援多代理工作流，改善複雜任務分解（如 SRE 的診斷-修復-優化），提升效能並允許專門代理分工，減少單一代理負荷。 | [Build multi-agentic systems using Google ADK (部落格)](https://cloud.google.com/blog/products/ai-machine-learning/build-multi-agentic-systems-using-google-adk)<br>[Unlock AI agent collaboration. Convert ADK agents for A2A (部落格)](https://cloud.google.com/blog/products/ai-machine-learning/unlock-ai-agent-collaboration-convert-adk-agents-for-a2a)<br>[Google Agent Development Kit (ADK): Complete Tutorial (YouTube)](https://www.youtube.com/watch?v=2BA_nF-bpws) | 通過：SREWorkflow 協調子代理處理階段性任務。 | N/A |
+| **記憶與狀態管理**<br>檢查是否整合短期/長期記憶（如 Vertex AI Memory Bank），支援 RAG 和會話持久化。 | 推薦因為記憶確保代理上下文連續性，在 SRE 中可追蹤事件歷史，避免重複診斷；ADK 的 Memory Bank 提供可擴展儲存，支援生產級查詢。 | [Remember this: Agent state and memory with ADK (部落格)](https://cloud.google.com/blog/topics/developers-practitioners/remember-this-agent-state-and-memory-with-adk)<br>[Quickstart with Agent Development Kit (記憶教程)](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/memory-bank/quickstart-adk)<br>[google/adk-python (GitHub)](https://github.com/google/adk-python) | 不通過：有 memory/ 目錄，但未明確整合 Vertex AI Memory Bank 或長期記憶。 | 整合 Memory Bank 以支援跨會話 SRE 事件追蹤，參考最新 quickstart 更新（2025 年 8 月），確保與 Vertex AI 同步以利未來擴展。 |
+| **安全與守欄**<br>檢查是否實現 HITL、最小權限、工具驗證和異常處理。 | 推薦因為 ADK 強調守欄防止濫用，在 SRE 中保護關鍵操作（如修復）免於錯誤；技術上，這透過 callbacks 和驗證提升可靠性，符合企業安全標準。 | [Use Google ADK and MCP with an external server (部落格，含安全)](https://cloud.google.com/blog/topics/developers-practitioners/use-google-adk-and-mcp-with-an-external-server)<br>[Vertex AI Agent Engine overview (安全部分)](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview)<br>[Google ADK for Beginners: Developing AI Agents (YouTube，含守欄)](https://m.youtube.com/watch?v=f5Ihdw32tTw&t=1905s) | 不通過：有 HITL 和 auth/，但缺少全面工具驗證和率限。 | 添加 ADK callbacks 實現工具率限和審計，參考 2025 年 5 月部落格更新，確保與 MCP 整合以防外部伺服器漏洞。 |
+| **測試與監控**<br>檢查是否包含單元/整合測試（如 pytest）和 OpenTelemetry 儀表化。 | 推薦因為 ADK 代理需嚴格測試以確保可靠性，在 SRE 中監控效能指標可預防生產故障；OpenTelemetry 提供分散追蹤，支援規模化診斷。 | [BigQuery meets Google ADK & MCP (部落格，含監控)](https://cloud.google.com/blog/products/ai-machine-learning/bigquery-meets-google-adk-and-mcp)<br>[Activity · google/adk-samples (GitHub 測試範例)](https://github.com/google/adk-samples/activity)<br>[Google Agent Development Kit for Beginners (Part 1) (YouTube)](https://www.youtube.com/watch?v=r-JsrEoctCQ) | 不通過：有 tests/ 目錄，但無 OpenTelemetry 或全面覆蓋。 | 擴展 pytest 涵蓋代理協調，並整合 OpenTelemetry，參考 2025 年 8 月 GitHub 更新，確保與 Vertex AI 指標同步以利即時監控。 |
+| **部署與整合**<br>檢查是否支援本地/雲端部署（如 Vertex AI、Docker），包含 MCP/A2A 相容。 | 推薦因為 ADK 設計用於無縫遷移到生產，支援 GKE/Cloud Run；在 SRE 中，這確保高可用性，允許容器化部署以匹配 CI/CD 流程。 | [Use a Agent Development Kit agent (部署指南)](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/use/adk)<br>[Build and manage multi-system agents with Vertex AI (部落格)](https://cloud.google.com/blog/products/ai-machine-learning/build-and-manage-multi-system-agents-with-vertex-ai)<br>[Build Your First AI Agent With Google ADK in Minutes! (YouTube)](https://www.youtube.com/watch?v=QN14IFM9s04) | 不通過：支援 ADK Runner，但無 Vertex AI 或 Docker 腳本。 | 提供 GKE 部署範例並轉換為 A2A 相容，參考 2025 年 7 月部落格，確保與最新 Vertex AI 更新整合以支援規模化 SRE 工作流。 |
+| **文檔與貢獻**<br>檢查是否包含詳細 README、架構說明、貢獻指南和 CHANGELOG。 | 推薦因為 ADK 作為開源框架，優質文檔促進社區協作；在 SRE 項目中，這確保知識轉移，加速迭代和故障排除。 | [Build a deep research agent with Google ADK (部落格，含文檔範例)](https://cloud.google.com/blog/products/ai-machine-learning/build-a-deep-research-agent-with-google-adk)<br>[Quickstart - Agent Development Kit (官方文檔模板)](https://google.github.io/adk-docs/get-started/quickstart/)<br>[Agent Development Kit (ADK) examples (GitHub)](https://github.com/Neutrollized/adk-examples) | 通過：有 README、ARCHITECTURE.md 和貢獻指南。 | N/A |
+
 ## 1. 架構設計審查
 
 ### 1.1 多代理協調架構

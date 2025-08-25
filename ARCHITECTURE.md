@@ -505,7 +505,7 @@ class RemoteAgentClient:
 ### 15.1 參考資源
 
 - [ADK 官方文檔](docs/references/adk-docs)
-- [Google SRE Book](google-sre-book.md)
+- [Google SRE Book](docs/references/google-sre-book/README.md)
 - [內部參考文檔](docs/references/)
 
 ### 15.2 術語表
