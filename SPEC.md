@@ -68,6 +68,65 @@
 
 根據 [ROADMAP.md](ROADMAP.md) 的規劃，SRE Assistant 將逐步演進為一個由以下專業化代理組成的聯邦。
 
+## 4. 標準化介面與錯誤處理 (Standardized Interface & Error Handling)
+
+### 4.1. 工具介面規格 (Tool Interface Specification)
+
+所有工具的 `execute` 方法都必須遵循以下標準化輸入與輸出格式，以確保系統的穩定性和可預測性。
+
+```python
+from typing import Dict, Any, Optional, Protocol
+from pydantic import BaseModel
+
+class ToolError(BaseModel):
+    """標準化的工具錯誤模型"""
+    code: str  # e.g., "RATE_LIMIT_EXCEEDED", "API_AUTH_ERROR"
+    message: str
+    details: Optional[Dict[str, Any]] = None
+
+class ToolResult(BaseModel):
+    """標準化的工具返回結果"""
+    success: bool
+    data: Optional[Dict[str, Any]] = None
+    error: Optional[ToolError] = None
+    metadata: Dict[str, Any] = {"timestamp": ..., "raw_output": ...}
+
+class BaseTool(Protocol):
+    """所有工具都應實現的協議"""
+    async def execute(
+        self,
+        params: Dict[str, Any],
+        context: InvocationContext
+    ) -> ToolResult:
+        """
+        執行工具的核心邏輯。
+
+        Returns:
+            ToolResult: 一個包含執行結果的標準化物件。
+        """
+        pass
+```
+
+### 4.2. 錯誤處理策略 (Error Handling Strategy)
+
+- **工具層級**: 工具內部應捕獲可預期的異常（如 API 錯誤、網絡問題），並將其包裝成 `ToolError` 返回。未預期的異常應向上拋出。
+- **代理層級**: 代理在收到 `ToolResult` 後，應首先檢查 `success` 字段。如果為 `False`，則應根據 `error.code` 執行相應的錯誤處理邏輯（如重試、降級、請求人類介入）。
+- **通用錯誤碼**:
+    - `INVALID_PARAMS`: 輸入參數錯誤。
+    - `AUTH_FAILURE`: 認證失敗。
+    - `TIMEOUT`: 操作超時。
+    - `NOT_FOUND`: 請求的資源未找到。
+    - `EXTERNAL_API_ERROR`: 外部 API 調用失敗。
+
+## 5. 版本管理策略 (Versioning Strategy)
+
+- **代理版本**: 遵循語義化版本（SemVer, `MAJOR.MINOR.PATCH`）。`MAJOR` 版本變更表示有破壞性 API 變更。
+- **工具版本**: 工具的版本應與其所屬的代理或共享庫的版本保持一致。
+- **相容性**:
+    - `MINOR` 和 `PATCH` 版本的更新必須向後相容。
+    - 協調器（Orchestrator）在調用專業化代理時，應檢查其 `MAJOR` 版本號是否相容。
+- **文檔**: 所有破壞性變更都必須在 `CHANGELOG.md` 中有清晰的記錄和遷移指南。
+
 ### 3.1 代理類別總覽 (Agent Categories)
 
 | 代理名稱 (Agent Name) | 使用案例 (Use Case) | 標籤 (Tag) | 互動類型 (Interaction Type) | 複雜度 (Complexity) | 代理類型 (Agent Type) | 垂直領域 (Vertical) |
