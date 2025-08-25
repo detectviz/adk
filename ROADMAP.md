@@ -21,9 +21,21 @@
 
 ---
 
+## 風險評估 (Risk Assessment)
+
+| 階段 (Phase) | 風險 (Risk) | 可能性 (Likelihood) | 影響 (Impact) | 緩解策略 (Mitigation) |
+| :--- | :--- | :--- | :--- | :--- |
+| Phase 1 | ADK 框架的學習曲線可能比預期陡峭 | 中 (Medium) | 中 (Medium) | 安排專門的學習時間，建立內部知識庫，尋求 Google 團隊的支援 |
+| Phase 1 | 數據庫整合 (Postgres/Weaviate) 的複雜度被低估 | 高 (High) | 高 (High) | 優先進行 PoC 驗證，使用 ORM 簡化操作，確保數據庫專家參與早期設計 |
+| Phase 2 | Grafana 插件的自定義 UI 開發比預期耗時 | 高 (High) | 中 (Medium) | 優先實現核心功能，複雜的 UI 組件延後，重用 Grafana 原生組件 |
+| Phase 2 | Grafana 插件與後端之間的 WebSocket 通訊不穩定 | 中 (Medium) | 高 (High) | 實現心跳機制和自動重連，設計備用的 RESTful API 作為降級方案 |
+| Phase 3 | A2A (gRPC) 通訊協議的設計與實現複雜 | 高 (High) | 高 (High) | 參考業界成熟的服務網格方案，從簡單的點對點通訊開始，逐步擴展 |
+
+---
+
 ## Phase 1: MVP - 後端優先與核心能力建設 (Backend First & Core Capabilities)
 
-- **預計時間**: 1-2 個月
+- **預計時間**: 2-3 個月
 - **主題**: 專注於後端 SRE Assistant Agent 的核心能力建設，並透過官方 ADK 工具進行快速驗證。
 - **關鍵目標**: 打造一個功能強大、邏輯可靠的 SRE 後端服務。
 - **使用者互動介面**: **官方 ADK Web UI**。
@@ -45,7 +57,7 @@
 
 ## Phase 2: Grafana 原生體驗 (The Grafana-Native Experience)
 
-- **預計時間**: 2-3 個月
+- **預計時間**: 3-4 個月
 - **主題**: 將 SRE Assistant 的強大能力無縫嵌入到 SRE 的日常工作平台 Grafana 中。
 - **關鍵目標**: 開發自定義 Grafana 插件，提供一站式的 ChatOps 和自動化體驗。
 - **使用者互動介面**: **SRE Assistant Grafana Plugin**。

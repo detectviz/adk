@@ -73,37 +73,94 @@ sre_assistant/
 ### P1 - 新功能 (New Features)
 
 - **基礎設施 (Infrastructure)**
-    - [ ] 創建 `docker-compose.yml`，用於一鍵啟動本地開發環境 (ADK Backend, PostgreSQL, Redis, Weaviate, Grafana, Loki)。
-    - [ ] 編寫開發環境的啟動與使用文檔。
+    - [ ] **TASK-P1-INFRA-01**: 創建 `docker-compose.yml`
+      - **依賴**: 無
+      - **驗收標準**:
+        - [ ] 能夠透過 `docker-compose up` 成功啟動所有服務。
+        - [ ] 服務之間網絡互通。
+        - [ ] 數據卷掛載正確，數據可持久化。
+    - [ ] **TASK-P1-INFRA-02**: 編寫開發環境的啟動與使用文檔
+      - **依賴**: [TASK-P1-INFRA-01]
+      - **驗收標準**:
+        - [ ] 文檔應包含環境要求、啟動步驟、停止步驟和常見問題排查。
+        - [ ] 新成員能夠根據文檔獨立完成環境設置。
 
 - **後端服務 (Backend Service)**
-    - [ ] 實現基於 ADK 的核心 `SREAssistant` Agent 服務。
-    - [ ] 實現基於 `None` 選項的無認證模式，供本地測試使用。
-    - [ ] 使用 ADK Web UI 作為主要的開發與互動介面。
+    - [ ] **TASK-P1-SVC-01**: 實現核心 `SREAssistant` Agent 服務
+      - **依賴**: [TASK-P1-INFRA-01]
+      - **驗收標準**:
+        - [ ] 服務能成功啟動並監聽指定端口。
+        - [ ] `SREWorkflow` 能夠接收請求並返回基礎回應。
+    - [ ] **TASK-P1-SVC-02**: 實現無認證模式
+      - **依賴**: [TASK-P1-SVC-01]
+      - **驗收標準**:
+        - [ ] 當 `auth.provider` 設置為 `None` 時，所有請求無需認證即可通過。
+        - [ ] `InvocationContext` 中有模擬的用戶資訊。
+    - [ ] **TASK-P1-SVC-03**: 使用 ADK Web UI 進行開發與互動
+      - **依賴**: [TASK-P1-SVC-01]
+      - **驗收標準**:
+        - [ ] 可透過 ADK Web UI 與後端服務進行問答互動。
+        - [ ] 能夠正確顯示工具調用和最終結果。
 
 - **核心工具 (Core Tools)**
-    - [ ] 實現 `PrometheusQueryTool` 並整合到 Agent 中。
-    - [ ] 實現 `LokiLogQueryTool` 並整合到 Agent 中。
-    - [ ] 實現 `GitHubTool` 用於創建 Issue。
+    - [ ] **TASK-P1-TOOL-01**: 實現 `PrometheusQueryTool`
+      - **依賴**: [TASK-P1-SVC-01]
+      - **驗收標準**:
+        - [ ] 能夠成功查詢 Prometheus 並返回指標數據。
+        - [ ] 遵循 `SPEC.md` 中定義的 `ToolResult` 格式。
+        - [ ] 有對應的單元測試。
+    - [ ] **TASK-P1-TOOL-02**: 實現 `LokiLogQueryTool`
+      - **依賴**: [TASK-P1-SVC-01]
+      - **驗收標準**:
+        - [ ] 能夠成功查詢 Loki 並返回日誌數據。
+        - [ ] 遵循 `SPEC.md` 中定義的 `ToolResult` 格式。
+        - [ ] 有對應的單元測試。
+    - [ ] **TASK-P1-TOOL-03**: 實現 `GitHubTool`
+      - **依賴**: [TASK-P1-SVC-01]
+      - **驗收標準**:
+        - [ ] 能夠成功在指定的 GitHub Repo 中創建 Issue。
+        - [ ] 遵循 `SPEC.md` 中定義的 `ToolResult` 格式。
+        - [ ] 有對應的單元測試，並使用 mock 進行隔離。
 
 - **核心服務 (Core Services)**
-    - [ ] **記憶體**: 實現 `MemoryProvider` 以對接 Weaviate/Postgres，並提供 RAG 檢索能力。
-    - [ ] **會話**: 實現 `session_service_builder` 以對接 Redis/Postgres，提供持久化會話。
-    - [ ] **認證**: 實現 `AuthProvider` 以支援 OAuth 2.0 流程。
+    - [ ] **TASK-P1-CORE-01**: 實現 `MemoryProvider` (RAG)
+      - **依賴**: [TASK-P1-INFRA-01]
+      - **驗收標準**:
+        - [ ] 能夠將文檔向量化並存儲到 Weaviate。
+        - [ ] 能夠根據查詢進行語義搜索並返回相關文檔片段。
+        - [ ] 有整合測試驗證 RAG 流程。
+    - [ ] **TASK-P1-CORE-02**: 實現 `session_service_builder` (持久化會話)
+      - **依賴**: [TASK-P1-INFRA-01]
+      - **驗收標準**:
+        - [ ] 多輪對話的上下文能夠被正確保存和讀取。
+        - [ ] 服務重啟後，可以從 Redis/Postgres 中恢復會話狀態。
+        - [ ] 有整合測試驗證會話持久化。
+    - [ ] **TASK-P1-CORE-03**: 實現 `AuthProvider` (OAuth 2.0)
+      - **依賴**: [TASK-P1-SVC-01]
+      - **驗收標準**:
+        - [ ] 能夠與一個 OIDC Provider (如 Google) 完成認證流程。
+        - [ ] 成功獲取並驗證 `id_token` 和 `access_token`。
+        - [ ] 有整合測試（可使用 mock OIDC server）。
 
 ### P1 - 重構 (Refactoring)
 
-- [ ] **AuthManager 狀態管理**:
+- [✅] **TASK-P1-REFACTOR-01**: AuthManager 狀態管理
     - **來源**: `REFACTOR_PLAN.md`
     - **任務**: 將 `AuthManager` 重構為無狀態服務，所有狀態透過 `InvocationContext` 讀寫，並由 `SessionService` 持久化。
-    - **驗收標準**: `AuthManager` 內部不再持有 `_auth_cache` 或 `_rate_limits` 等實例變數。
+    - **依賴**: 無 (已完成)
+    - **驗收標準**:
+        - [ ] `AuthManager` 內部不再持有 `_auth_cache` 或 `_rate_limits` 等實例變數。
+        - [ ] 狀態讀寫均通過 `InvocationContext`。
 
 ### P1 - 技術債 (Technical Debt)
 
-- [ ] **增加測試覆蓋率**:
+- [ ] **TASK-P1-DEBT-01**: 增加測試覆蓋率
     - **來源**: `TASKS.md` (舊)
     - **任務**: 為 Phase 1 開發的核心模組（Auth, Memory, Session, Tools）增加單元和整合測試。
-    - **驗收標準**: 核心模組的測試覆蓋率達到 80% 以上。
+    - **依賴**: [TASK-P1-CORE-01], [TASK-P1-CORE-02], [TASK-P1-CORE-03], [TASK-P1-TOOL-01], [TASK-P1-TOOL-02], [TASK-P1-TOOL-03]
+    - **驗收標準**:
+        - [ ] `pytest --cov` 報告顯示核心模組測試覆蓋率 > 80%。
+        - [ ] CI 流水線中包含測試覆蓋率檢查步驟。
 
 ---
 
