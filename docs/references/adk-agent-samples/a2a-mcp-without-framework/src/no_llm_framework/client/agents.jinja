@@ -1,0 +1,11 @@
+# 代理 (Agent) 上下文
+
+以下是一些來自代理 (Agent) 的諮詢，可能對回答問題有幫助
+{% for agent in agent_cards %}
+代理名稱: {{agent.name}}
+代理描述: {{agent.description}}
+代理技能: {% for skill in agent.skills%}
+    - 名稱: {{skill.name}}
+        - 描述: {{skill.description}}
+        - 範例: {{skill.examples}}{% endfor %}{% endfor %}
+-------------------

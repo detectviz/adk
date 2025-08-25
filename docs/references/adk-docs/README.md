@@ -23,6 +23,7 @@
 
 ### API 參考 (API Reference)
 * [Api Reference](api-reference.md) - ADK 的 API 參考文件連結。
+* [Api Reference Google Adk](api-reference-google-adk.rst.md) - ADK 的 Python API 文件。
 
 ### 產出物 (Artifacts)
 * [Artifacts](artifacts.md) - 關於代理產出物以及如何管理它們的資訊。
@@ -112,4 +113,3 @@
 
 ### 教學 (Tutorials)
 * [Tutorials Agent Team](tutorials-agent-team.md) - 一個建立代理團隊的實作教學。
-* [Tutorials](tutorials.md) - ADK 的教學文件。
