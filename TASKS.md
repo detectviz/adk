@@ -22,6 +22,28 @@ SRE Assistant 的核心架構已全部完成並通過測試：
 
 ---
 
+## 🚨 P0 - 關鍵架構修復 (P1 前置任務)
+
+### 1. 🔐 [P0-CRITICAL] 重構 AuthManager 以支援可擴展狀態管理
+**目標**: 將 `AuthManager` 的狀態管理從記憶體遷移到 ADK 的持久化 `SessionService`。
+
+**問題描述**:
+目前 `AuthManager` 的快取、速率限制和審計日誌都存在記憶體中。這在多實例部署（GKE/Cloud Run）時會導致狀態不一致、速率限制失效、日誌丟失，完全違背了專案的可擴展性目標。
+
+**解決方案**:
+遵循 `sessions-state.md` 官方文件，將狀態存儲在 `context.state` 中，並使用 `user:` 前綴。
+- **認證快取**: `context.state['user:auth_cache']`
+- **速率限制**: `context.state['user:rate_limit_timestamps']`
+- **審計日誌**: 應重構為寫入標準日誌服務 (如 Cloud Logging)，而非 session state。
+
+**參考**: `docs/references/adk-docs/sessions-state.md`
+**預期效益**:
+- 實現真正的無狀態服務，支援水平擴展
+- 確保所有實例間的安全策略一致
+- 符合 ADK 最佳實踐
+
+---
+
 ## 🔥 P1 - 核心功能升級（當前重點）
 
 以下任務是即將進行的開發週期的主要焦點，按實施順序排列：
@@ -150,6 +172,18 @@ slo_manager:
 - Token 使用優化建議
 - 資源配置優化
 - ROI 分析儀表板
+
+### 5. [P2-Security] 整合 Secret Manager 進行令牌存儲
+**目標**: 遵循 ADK 安全最佳實踐，將敏感的認證令牌（特別是刷新令牌）存儲在專用的密鑰管理器中。
+**問題描述**: 直接將令牌存儲在會話狀態中會帶來安全風險。
+**解決方案**:
+1. 將獲取的令牌存儲在 Google Secret Manager 或 HashiCorp Vault 中。
+2. 在 `context.state` 中僅存儲對密鑰的引用或短期的訪問令牌。
+3. `AuthManager` 在需要時從密鑰管理器中檢索令牌。
+**參考**: `docs/references/adk-docs/tools-authentication.md` (Security Warning)
+**預期效益**:
+- 大幅提升系統安全性，防止令牌洩露。
+- 符合生產環境部署的合規性要求。
 
 ---
 

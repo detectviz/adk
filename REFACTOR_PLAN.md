@@ -4,6 +4,128 @@
 
 ---
 
+## 🚨 P0 - 關鍵架構重構
+
+### 0. AuthManager 狀態管理重構
+
+#### 當前狀態 (問題)
+`AuthManager` 使用實例自身的記憶體 (`self._auth_cache`, `self._rate_limits`) 來存儲狀態。這在多實例部署時會導致資料不一致。
+
+```python
+# sre_assistant/auth/auth_manager.py (舊實現)
+class AuthManager:
+    def __init__(self):
+        # ...
+        self._auth_cache = {}
+        self._rate_limits = {}
+
+    async def authorize(self, user_info: Dict, resource: str, action: str) -> bool:
+        # ... 直接操作 self._rate_limits ...
+        pass
+```
+
+#### 目標架構 (解決方案)
+`AuthManager` 應改為無狀態 (stateless) 服務。所有狀態都應通過傳入的 `InvocationContext` 讀寫，並利用 ADK 的 `SessionService` 進行持久化。
+
+#### 實施步驟
+
+1.  **修改方法簽名**: `AuthManager` 的核心方法 (`authenticate`, `authorize`) 必須接收 `InvocationContext` 作為參數，以便訪問 `context.state`。
+
+2.  **重構速率限制邏輯**:
+    *   從 `self._rate_limits` 遷移到 `context.state['user:rate_limit_timestamps']`。
+    *   使用 `user:` 前綴確保速率限制是針對每個用戶且跨會話共享的。
+
+3.  **重構快取邏輯**:
+    *   從 `self._auth_cache` 遷移到 `context.state['user:auth_cache']`。
+
+4.  **重構主工作流程調用**:
+    *   修改 `SREWorkflow.run_with_auth`，將 `InvocationContext` 傳遞給 `auth_manager` 的方法。
+
+#### 目標程式碼範例
+
+```python
+# sre_assistant/auth/auth_manager.py (新實現)
+from google.adk.agents.invocation_context import InvocationContext
+
+class AuthManager:
+    def __init__(self):
+        # 不再有 self._auth_cache 或 self._rate_limits
+        auth_config = config_manager.get_auth_config()
+        self.provider = AuthFactory.create(auth_config)
+        self.config = auth_config
+
+    async def authenticate(self, ctx: InvocationContext, credentials: Dict[str, Any]) -> Tuple[bool, Optional[Dict]]:
+        # 1. 檢查快取
+        cache_key = self._get_cache_key(credentials)
+        user_cache_key = f"user:auth_cache_{cache_key}"
+        cached = ctx.state.get(user_cache_key)
+        if cached and cached.get('expires') > datetime.utcnow().timestamp():
+            return True, cached['user_info']
+
+        # 2. 執行認證
+        success, user_info = await self.provider.authenticate(credentials)
+
+        # 3. 寫入快取到 context.state
+        if success and user_info:
+            ctx.state[user_cache_key] = {
+                'user_info': user_info,
+                'expires': (datetime.utcnow() + timedelta(minutes=5)).timestamp()
+            }
+
+        return success, user_info
+
+    async def authorize(self, ctx: InvocationContext, user_info: Dict, resource: str, action: str) -> bool:
+        # 1. 檢查速率限制
+        if self.config.enable_rate_limiting:
+            if not self._check_rate_limit(ctx, user_info):
+                return False
+
+        # ... 執行授權檢查 ...
+        return await self.provider.authorize(user_info, resource, action)
+
+    def _check_rate_limit(self, ctx: InvocationContext, user_info: Dict) -> bool:
+        user_id = user_info.get('user_id', 'anonymous')
+        rate_limit_key = f"user:rate_limit_timestamps_{user_id}"
+
+        now = datetime.utcnow().timestamp()
+
+        # 從 context.state 讀取時間戳
+        timestamps = ctx.state.get(rate_limit_key, [])
+
+        # 清理過期記錄
+        minute_ago = now - 60
+        valid_timestamps = [t for t in timestamps if t > minute_ago]
+
+        if len(valid_timestamps) >= self.config.max_requests_per_minute:
+            return False
+
+        valid_timestamps.append(now)
+        # 將更新後的時間戳寫回 context.state
+        ctx.state[rate_limit_key] = valid_timestamps
+        return True
+
+# sre_assistant/workflow.py (需要對應修改)
+class SREWorkflow(SequentialAgent):
+    # ...
+    async def run_with_auth(self, credentials, resource, action, initial_context=None):
+        ctx = initial_context or InvocationContext()
+        ctx.state["user_info"] = user_info
+
+        # 認證 (傳入 ctx)
+        success, user_info = await self.auth_manager.authenticate(ctx, credentials)
+        if not success:
+            raise PermissionError("Authentication failed.")
+
+        # 授權 (傳入 ctx)
+        authorized = await self.auth_manager.authorize(ctx, user_info, resource, action)
+        if not authorized:
+            raise PermissionError("Authorization failed.")
+
+        return await self.run_async(ctx)
+```
+
+---
+
 ## 🎯 重構總體策略
 
 ### 核心原則
