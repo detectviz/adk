@@ -1,222 +1,159 @@
-# TASKS.md - SRE Assistant 開發路線圖
+# TASKS.md - SRE Assistant 統一任務清單
 
-本文件為 SRE Assistant 專案的權威任務清單，整合了架構分析、參考範例研究和多方建議後的最終版本。
+**版本**: 4.0.0
+**狀態**: 生效中
+**關聯架構**: [ARCHITECTURE.md](ARCHITECTURE.md)
+**關聯路線圖**: [ROADMAP.md](ROADMAP.md)
+**關聯規格**: [SPEC.md](SPEC.md)
 
-- **演進願景**: [ROADMAP.md](ROADMAP.md)
-- **架構基礎**: [ARCHITECTURE.md](ARCHITECTURE.md)
-- **重構計畫**: [REFACTOR_PLAN.md](REFACTOR_PLAN.md)
+## 總覽
 
----
-
-## 🔥 P1 - 核心功能升級（當前重點）
-
-以下任務是即將進行的開發週期的主要焦點，按實施順序排列：
-
-### 1. ✔️ [P1-高] 修復後驗證機制
-**目標**: 在修復操作後加入自動驗證步驟，確保修復成功且未引入新問題
-
-**實施計畫**:
-- 在工作流程中新增 `VerificationPhase`
-- 實現 `HealthCheckAgent` 重新執行關鍵診斷
-- 實現 `VerificationCriticAgent` 評估修復效果
-
-**參考**: `google-adk-workflows/self_critic/agent.py`
-**預期效益**:
-- 減少 50% 的修復失敗率
-- 自動檢測修復引起的副作用
-- 提供修復效果的量化評估
+本文件是 SRE Assistant 專案的**唯一真實來源 (Single Source of Truth)**，用於追蹤所有開發任務。它根據 [ROADMAP.md](ROADMAP.md) 的階段進行組織，並整合了所有新功能、重構計畫和已知的技術債。
 
 ---
 
-### 2. 🐙 [P1-中] GitHub 事件管理系統
-**目標**: 實現完整的事件生命週期追蹤
+## 🎯 目標目錄結構 (Target Directory Structure)
 
-**實施要點**:
-- 使用結構化 Markdown 模板創建 issue
-- 實現 P0/P1/P2 自動標籤系統
-- 建立 PR 與事件的自動關聯
+所有開發任務應朝著以下目標目錄結構進行，此結構符合 ADK 最佳實踐並反映了我們的聯邦化架構。
 
-**參考**: `software-bug-assistant/tools/github_tools.py`
-**交付標準**:
-- [ ] 自動創建事件 issue
-- [ ] 狀態同步更新
-- [ ] 事後檢討報告自動附加
-
----
-
-### 3. 📊 [P1-中] SLO 管理與五個為什麼
-**目標**: 建立數據驅動的可靠性管理系統
-
-**核心功能**:
-```yaml
-slo_manager:
-  error_budget:
-    calculation: automatic
-    alerting: multi-window
-  five_whys:
-    template: google-sre-book
-    automation: llm-assisted
+```
+sre_assistant/
+├── __init__.py                 # A2A 服務暴露與註冊
+├── workflow.py                 # SREWorkflow - 主工作流程協調器
+├── contracts.py                # Pydantic 資料模型 (Events, Incidents, etc.)
+├── prompts.py                  # 全域/共享的 Prompt 模板
+├── tool_registry.py            # 全域共享工具的註冊與管理
+│
+├── auth/                       # 認證與授權模組
+│   ├── __init__.py
+│   ├── auth_factory.py         # 根據配置創建 AuthProvider
+│   └── auth_manager.py         # 統一管理認證流程
+│
+├── config/                     # 配置管理模組
+│   ├── config_manager.py
+│   └── environments/
+│       ├── development.yaml
+│       └── production.yaml
+│
+├── memory/                     # 長期記憶體 (RAG) 模組
+│   └── backend_factory.py      # 根據配置創建 MemoryProvider
+│
+├── session/                    # 會話 (短期記憶) 管理模組
+│   └── backend_factory.py      # 根據配置創建 SessionProvider
+│
+├── sub_agents/                 # 專業化代理 (聯邦化階段)
+│   ├── __init__.py
+│   ├── incident_handler/       # 事件處理 Assistant
+│   │   ├── __init__.py
+│   │   ├── agent.py
+│   │   ├── prompts.py
+│   │   └── tools.py            # incident_handler 專用工具
+│   └── predictive_maintenance/ # 預測維護 Assistant
+│       ├── __init__.py
+│       ├── agent.py
+│       └── ...
+│
+├── deployment/                 # 部署相關配置 (Docker, K8s, etc.)
+│   ├── Dockerfile
+│   └── cloud_run/
+│
+├── eval/                       # 評估框架與腳本
+│   └── evaluation.py
+│
+└── tests/                      # 測試套件
+    ├── test_workflow.py
+    ├── test_auth.py
+    └── ...
 ```
 
-**參考**: `machine-learning-engineering/optimization/`
-**關鍵指標**:
-- Error Budget 消耗率實時追蹤
-- 多窗口燃燒率警報
-- 自動化根因分析報告
+---
+
+## Phase 1: MVP - 後端優先與核心能力建設 (預計 1-2 個月)
+
+### P1 - 新功能 (New Features)
+
+- **基礎設施 (Infrastructure)**
+    - [ ] 創建 `docker-compose.yml`，用於一鍵啟動本地開發環境 (ADK Backend, PostgreSQL, Redis, Weaviate, Grafana, Loki)。
+    - [ ] 編寫開發環境的啟動與使用文檔。
+
+- **後端服務 (Backend Service)**
+    - [ ] 實現基於 ADK 的核心 `SREAssistant` Agent 服務。
+    - [ ] 實現基於 `None` 選項的無認證模式，供本地測試使用。
+    - [ ] 使用 ADK Web UI 作為主要的開發與互動介面。
+
+- **核心工具 (Core Tools)**
+    - [ ] 實現 `PrometheusQueryTool` 並整合到 Agent 中。
+    - [ ] 實現 `LokiLogQueryTool` 並整合到 Agent 中。
+    - [ ] 實現 `GitHubTool` 用於創建 Issue。
+
+- **核心服務 (Core Services)**
+    - [ ] **記憶體**: 實現 `MemoryProvider` 以對接 Weaviate/Postgres，並提供 RAG 檢索能力。
+    - [ ] **會話**: 實現 `session_service_builder` 以對接 Redis/Postgres，提供持久化會話。
+    - [ ] **認證**: 實現 `AuthProvider` 以支援 OAuth 2.0 流程。
+
+### P1 - 重構 (Refactoring)
+
+- [ ] **AuthManager 狀態管理**:
+    - **來源**: `REFACTOR_PLAN.md`
+    - **任務**: 將 `AuthManager` 重構為無狀態服務，所有狀態透過 `InvocationContext` 讀寫，並由 `SessionService` 持久化。
+    - **驗收標準**: `AuthManager` 內部不再持有 `_auth_cache` 或 `_rate_limits` 等實例變數。
+
+### P1 - 技術債 (Technical Debt)
+
+- [ ] **增加測試覆蓋率**:
+    - **來源**: `TASKS.md` (舊)
+    - **任務**: 為 Phase 1 開發的核心模組（Auth, Memory, Session, Tools）增加單元和整合測試。
+    - **驗收標準**: 核心模組的測試覆蓋率達到 80% 以上。
 
 ---
 
-### 4. 🤝 [P1-中] HITL 審批工作流程
-**目標**: 為高風險操作建立人工審批機制
+## Phase 2: Grafana 原生體驗 (預計 2-3 個月)
 
-**技術架構**:
-- 使用 `LongRunningFunctionTool` 模式
-- 整合通知系統 (Slack/PagerDuty)
-- 實現審批超時自動處理
+### P2 - 新功能 (New Features)
 
-**參考**: `human_in_loop/agent.py`
-**風險矩陣**:
-| 操作 | 開發環境 | 測試環境 | 生產環境 |
-|------|---------|---------|---------|
-| Pod 重啟 | 自動 | 自動 | 需審批 |
-| 配置變更 | 自動 | 需審批 | 需審批 |
-| 資料庫故障轉移 | 需審批 | 需審批 | 需審批+確認 |
+- **Grafana 插件 (Plugin Development)**
+    - [ ] 開發 SRE Assistant Grafana App Plugin v1.0。
+    - [ ] 在插件中實現 ChatOps 面板。
+    - [ ] 實現插件與後端服務的 WebSocket / RESTful 安全通訊。
+- **Grafana 整合 (Deep Integration)**
+    - [ ] 實現 `GrafanaIntegrationTool` 的 `embed_panel` 功能，並在聊天中提供對應指令。
+    - [ ] 實現 `GrafanaIntegrationTool` 的 `create_annotation` 功能，並在聊天中提供對應指令。
+    - [ ] 實現 `GrafanaOnCallTool`，用於創建告警升級和獲取值班人員。
+- **DevOps 工具 (DevOps Tools)**
+    - [ ] 實現 `TerraformTool`，用於基礎設施即代碼的管理。
+- **修復後驗證 (Post-Remediation Verification)**
+    - **來源**: `TASKS.md` (舊)
+    - **任務**: 在工作流程中新增 `VerificationPhase`，包含 `HealthCheckAgent` 和 `VerificationCriticAgent`，確保修復操作的有效性。
+- **事件管理 (Incident Management)**
+    - **來源**: `TASKS.md` (舊)
+    - **任務**: 整合 `GitHubTool`，實現從事件到 Issue 的自動創建和狀態同步。
 
----
+### P2 - 重構 (Refactoring)
 
-## ✅ 已完成任務 (Completed Tasks)
+- [ ] **智慧分診系統**:
+    - **來源**: `REFACTOR_PLAN.md`
+    - **任務**: 使用基於 LLM 的 `SREIntelligentDispatcher` 替換靜態的條件判斷邏輯，以動態選擇最合適的專家代理。
+    - **驗收標準**: 系統能夠根據診斷摘要，動態調度在 `SPEC.md` 中定義的專家代理。
 
-### ✅ [P1-高] 智慧分診系統升級
-**狀態**: 完成
-**說明**: 已將靜態的 `ConditionalRemediation` 代理替換為 `SREIntelligentDispatcher`。新的分診器使用 LLM 來動態選擇最合適的修復專家代理，提高了系統的靈活性和可擴展性。
+### P2 - 技術債 (Technical Debt)
 
-### ✅ [P0-CRITICAL] 解決套件匯入與環境問題
-**狀態**: 完成
-**說明**:
-原始任務是關於 `AuthManager` 的狀態管理，但在深入調查後，發現根本問題是 `sre_assistant/__init__.py` 中的伺服器邏輯導致的**循環匯入**。此問題已透過以下方式解決：
-1.  將伺服器邏輯移至獨立的 `main.py`。
-2.  將大型代理類別模組化，移出 `workflow.py`。
-3.  清理所有 `__init__.py` 檔案以打破循環依賴。
-4.  修復了測試環境，使其能夠正確執行。
-
----
-
-## 🔷 P2 - 長期架構演進
-
-### 1. [P2] A2A 聯邦架構
-**願景**: 建立分散式 SRE 專家代理聯邦
-- 實現 `AgentCard` 服務發現
-- 建立安全的 A2A 通訊協議
-- 支援跨團隊代理協作
-
-### 2. [P2] 全面可觀測性
-**目標**: 使用 OpenTelemetry 實現端到端追蹤
-- 代理決策追蹤
-- Token 使用分析
-- 性能瓶頸識別
-
-### 3. [P2] 宣告式配置
-**轉型**: 從程式碼到 YAML 配置
-- 工作流程 YAML 定義
-- 動態代理載入
-- 熱更新支援
-
-### 4. [P2] 智慧成本優化
-**功能**: 自動化成本管理
-- Token 使用優化建議
-- 資源配置優化
-- ROI 分析儀表板
-
-### 5. [P2-Security] 整合 Secret Manager 進行令牌存儲
-**目標**: 遵循 ADK 安全最佳實踐，將敏感的認證令牌（特別是刷新令牌）存儲在專用的密鑰管理器中。
-**問題描述**: 直接將令牌存儲在會話狀態中會帶來安全風險。
-**解決方案**:
-1. 將獲取的令牌存儲在 Google Secret Manager 或 HashiCorp Vault 中。
-2. 在 `context.state` 中僅存儲對密鑰的引用或短期的訪問令牌。
-3. `AuthManager` 在需要時從密鑰管理器中檢索令牌。
-**參考**: `docs/references/adk-docs/tools-authentication.md` (Security Warning)
-**預期效益**:
-- 大幅提升系統安全性，防止令牌洩露。
-- 符合生產環境部署的合規性要求。
+- [ ] **令牌儲存安全強化**:
+    - **來源**: `TASKS.md` (舊)
+    - **任務**: 將敏感的認證令牌（特別是 Refresh Token）從會話狀態中移出，存儲到 Google Secret Manager 或 HashiCorp Vault 中。
+    - **驗收標準**: `context.state` 中只儲存對秘密的引用。
+- [ ] **文檔更新**:
+    - **任務**: 更新所有面向使用者的文檔，引導使用者從 ADK Web UI 過渡到 Grafana 插件。
 
 ---
 
-## 📈 關鍵成功指標
+## Phase 3 & 4: 聯邦化與未來 (Federation & Future)
 
-### 技術指標
-| 指標 | 當前值 | P1 目標 | P2 目標 |
-|------|--------|---------|---------|
-| 診斷準確率 | 85% | > 95% | > 98% |
-| 平均診斷時間 | 30s | < 15s | < 10s |
-| MTTR | 30min | < 15min | < 10min |
-| 自動修復率 | 60% | > 80% | > 90% |
-| 錯誤預算效率 | 70% | > 85% | > 95% |
+*(註：此處為高階史詩級任務，將在 P1/P2 完成後進一步細化)*
 
-### 業務價值
-| 成果 | 衡量方式 | P1 目標 | P2 目標 |
-|------|----------|---------|---------|
-| 減少人工介入 | 自動化率 | 75% | 90% |
-| 提升可靠性 | SLO 達成率 | 99.9% | 99.95% |
-| 降低成本 | 營運成本節省 | 30% | 50% |
-| 團隊滿意度 | NPS 分數 | > 7 | > 8.5 |
-
----
-
-## 🗓️ 實施時間表
-
-### Sprint 1-2 (週 1-4)
-- ✅ ~~完成智慧分診系統~~
-- 實現修復後驗證機制
-- 開始 GitHub 整合開發
-
-### Sprint 3-4 (週 5-8)
-- 完成 GitHub 事件管理
-- 實現 SLO 管理系統
-- 開發五個為什麼模板
-
-### Sprint 5-6 (週 9-12)
-- 完成 HITL 審批流程
-- 全面測試 P1 功能
-- 準備生產環境部署
-
-### Q2+ (長期)
-- 逐步實施 P2 功能
-- 根據使用反饋迭代
-- 探索新的 AI 能力整合
-
----
-
-## ⚠️ 風險與緩解
-
-| 風險 | 影響 | 機率 | 緩解策略 |
-|------|------|------|----------|
-| LLM 分診錯誤 | 高 | 中 | 實施雙重確認機制，保留人工覆核選項 |
-| HITL 延遲 | 中 | 高 | 設置合理超時，建立升級路徑 |
-| 整合複雜度 | 中 | 中 | 採用漸進式整合，每個系統獨立測試 |
-| 成本超支 | 低 | 中 | 實施 Token 預算管理，優化 prompt |
-
----
-
-## 📝 關鍵決策記錄
-
-### ADR-001: 採用智慧分診替代靜態條件
-- **決策**: 使用 LLM 驅動的動態分診
-- **原因**: 提高靈活性，支援複雜場景
-- **權衡**: 增加延遲，但提升準確性
-
-### ADR-002: HITL 使用 LongRunningFunctionTool
-- **決策**: 採用異步審批模式
-- **原因**: 避免阻塞，支援並發處理
-- **權衡**: 實現複雜度增加
-
-### ADR-003: 優先實施驗證機制
-- **決策**: 在新功能前先完善驗證
-- **原因**: 確保系統可靠性
-- **權衡**: 延後新功能開發
-
----
-
-**文檔維護者**: Google ADK 首席架構師
-**最後更新**: 2025-08-25
-**下次審查**: 2025-09-08
-**版本**: 3.0.0
+- [ ] **(P3) 專業化代理**: 將覆盤報告生成功能重構為第一個獨立的 `PostmortemAgent`。
+- [ ] **(P3) A2A 通訊**: 實現 gRPC A2A 通訊協議，用於協調器與 `PostmortemAgent` 的通訊。
+- [ ] **(P3) 主動預防**: 整合機器學習模型，實現異常檢測和趨勢預測能力。
+- [ ] **(P3) 監控閉環**: 實現 `PrometheusConfigurationTool` 以動態更新監控目標。
+- [ ] **(P4) 聯邦協調器**: 開發功能完備的 SRE Orchestrator 服務。
+- [ ] **(P4) 代理矩陣**: 開發並部署 `CostOptimizationAgent` 和 `ChaosEngineeringAgent`。
+- [ ] **(P4) 服務發現**: 建立代理註冊中心。
