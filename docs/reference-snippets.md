@@ -38,13 +38,6 @@
     - **技術實現**: 展示了如何使用 `LongRunningFunctionTool` 來暫停工作流程，等待外部事件（例如，SRE 在 Grafana 介面點擊 "核准" 按鈕）觸發後續操作。
     - **功能規格**: 直接對應 `SPEC.md` 中對 `RemediationAgent` 的要求，即在執行高風險修復前必須獲得使用者授權。
 
-### 2.4. RAG 與記憶體提供者 (RAG and Memory Provider)
-
-- **檔案路徑**: `docs/references/adk-agent-samples/RAG/` (整個目錄)
-- **參考原因**:
-    - **核心功能**: `TASK-P1-CORE-01: 實現 MemoryProvider (RAG)` 是 Phase 1 的核心交付物之一。此目錄下的範例展示了如何整合向量資料庫（如 Weaviate）並透過 RAG 為代理提供上下文知識。
-    - **架構對齊**: 這些範例是實現 `ARCHITECTURE.md` 中定義的「統一記憶庫 (Unified Memory)」的基礎，特別是與 Weaviate 的互動部分。
-    - **實踐指南**: 提供了從文檔加載、向量化到檢索的完整流程，是開發 `sre_assistant/memory/` 模組的關鍵參考。
 
 ---
 

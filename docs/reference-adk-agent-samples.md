@@ -92,10 +92,11 @@
     - **數據注入**: `prepare_corpus_and_data.py` 腳本為我們如何建立自己的數據注入管道以填充 Weaviate 向量數據庫提供了良好範本。
     - **可信度**: 強調**引文 (Citation)** 的重要性，這對於確保 SRE Assistant 的回答是可信且可驗證的至關重要。
 - **參考原因**:
-  - **RAG 功能的主要參考**: 此範例是 **TASK-P1-CORE-01: 實現 `MemoryProvider` (RAG)** 的關鍵參考。
+  - **核心功能**: `TASK-P1-CORE-01: 實現 MemoryProvider (RAG)` 是 Phase 1 的核心交付物之一。此目錄下的範例展示了如何整合向量資料庫（如 Weaviate）並透過 RAG 為代理提供上下文知識。
   - **檢索工具模式**: 儘管它使用 Vertex AI 的 RAG 引擎，但其建立專用檢索工具 (`VertexAiRagRetrieval`) 並將其整合到代理推理過程的核心模式，可直接轉移到專案計劃使用的 Weaviate 後端。
   - **最佳實踐**: 其專案結構包含了專用的 `deployment` 和 `eval` 目錄，可作為 SRE Assistant 自身儲存庫結構和 CI/CD 流程的最佳實踐模型。
-
+  - **架構對齊**: 這些範例是實現 `ARCHITECTURE.md` 中定義的「統一記憶庫 (Unified Memory)」的基礎，特別是與 Weaviate 的互動部分。
+  - **實踐指南**: 提供了從文檔加載、向量化到檢索的完整流程，是開發 `sre_assistant/memory/` 模組的關鍵參考。
 
 
 #### 範例: `llama_index_file_chat`
