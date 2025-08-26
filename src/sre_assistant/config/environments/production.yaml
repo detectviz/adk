@@ -1,0 +1,20 @@
+# config/environments/production.yaml
+deployment:
+  platform: "agent_engine"
+  project_id: "my-gcp-project"
+  region: "us-central1"
+  min_replicas: 3
+  max_replicas: 20
+
+memory:
+  backend: "weaviate"
+  weaviate_url: "https://sre_assistant.weaviate.network"
+  weaviate_api_key: "${WEAVIATE_API_KEY}" # 從環境變數讀取
+
+auth:
+  provider: "google_iam"
+  service_account_path: "/secrets/service-account.json"
+  enable_rbac: true
+  enable_rate_limiting: true
+  max_requests_per_minute: 100
+  enable_audit_logging: true
