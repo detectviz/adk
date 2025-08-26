@@ -1,1023 +1,1008 @@
-# Agents Companion
+# 代理人指南 (Agents Companion)
 
-**Authors: Antonio Gulli, Lavi Nigam,**  
+**作者: Antonio Gulli, Lavi Nigam,**
 
-**Julia Wiesinger, Vladimir Vuskovic,**  
+**Julia Wiesinger, Vladimir Vuskovic,**
 
-**Irina Sigler, Ivan Nardini, Nicolas Stroppa,** 
+**Irina Sigler, Ivan Nardini, Nicolas Stroppa,**
 
-**Sokratis Kartakis, Narek Saribekyan,** 
+**Sokratis Kartakis, Narek Saribekyan,**
 
-**Anant Nawalgaria, and Alan Bount**  
-Agents Companion 
+**Anant Nawalgaria, and Alan Bount**
+代理人指南 (Agents Companion)
 
-**Acknowledgements** 
+**致謝**
 
-**Editors & curators** Anant Nawalgaria 
+**編輯與策展人** Anant Nawalgaria
 
-**Content contributors** Steven Johnson   
-Hussain Chinoy  
+**內容貢獻者** Steven Johnson
+Hussain Chinoy
 
-**Designer** 
+**設計師**
 
-Michael Lanning 
+Michael Lanning
 
-February 2025 2   
-**Table of contents**
+2025年2月 2日
+**目錄**
 
-Introduction 6 AgentOps 8 Agent Success Metrics 12 Agent Evaluation 14 Assessing Agent Capabilities 15 Evaluating Trajectory and Tool Use 17 Evaluating the Final Response 20 Human-in-the-Loop Evaluation 21 More about Agent Evaluation 22 Multiple Agents & Their Evaluation 23 Understanding Multi-Agent Architectures 24 Multi-Agent Design Patterns and Their Business Impact 25 Important components of Agents 28 Challenges in Multi-Agent systems 31 Multi-Agent Evaluation 32   
-Agentic RAG: A Critical Evolution in Retrieval-Augmented Generation 33 Agentic RAG and its Importance 34 Better Search, Better RAG 36 
+簡介 6 代理人維運 (AgentOps) 8 代理人成功指標 12 代理人評估 14 評估代理人能力 15 評估軌跡與工具使用 17 評估最終回應 20 人在環路評估 21 更多關於代理人評估 22 多代理人及其評估 23 理解多代理人架構 24 多代理人設計模式及其商業影響 25 代理人的重要組成部分 28 多代理人系統中的挑戰 31 多代理人評估 32
+代理式檢索增強生成 (Agentic RAG): 檢索增強生成的關鍵演進 33 代理式 RAG 及其重要性 34 更好的搜尋，更好的 RAG 36
 
-Agents in the enterprise 38 Manager of agents 38 Google Agentspace 40 
+企業中的代理人 38 代理人管理者 38 Google Agentspace 40
 
-NotebookLM Enterprise 41 Google AgentSpace Enterprise 43 From agents to contractors 46 Contracts 46 Contract Lifecycle 49 Contract execution 49 Contract Negotiation 50 Contract Feedback 51 Subcontracts 51 Automotive AI: Real World Use of Multi-Agent Architecture 54 Specialized Agents 54 Conversational Navigation Agent 54 Conversational Media Search Agent 55 Message Composition Agent 56 Car Manual Agent 57 General Knowledge Agent 57 Patterns in Use 58  
-Hierarchical Pattern 58 Diamond Pattern 59 Peer-to-Peer 61 Collaborative Pattern 63 Response Mixer Agent 65 Adaptive Loop Pattern 66 
+NotebookLM 企業版 41 Google AgentSpace 企業版 43 從代理人到承包商 46 合約 46 合約生命週期 49 合約執行 49 合約協商 50 合約回饋 51 子合約 51 汽車 AI：多代理人架構的真實世界應用 54 專業化代理人 54 對話式導航代理人 54 對話式媒體搜尋代理人 55 訊息撰寫代理人 56 汽車手冊代理人 57 通用知識代理人 57 使用中的模式 58
+分層模式 58 鑽石模式 59 點對點模式 61 協作模式 63 回應混合器代理人 65 適應性循環模式 66
 
-Advantages of Multi-Agent Architecture for Automotive AI 67 Agent Builder 68 Summary 69 Endnotes 74  
-Agents Companion 
+多代理人架構在汽車 AI 中的優勢 67 代理人建構器 (Agent Builder) 68 總結 69 尾註 74
+代理人指南 (Agents Companion)
 
-The future of AI is agentic.
+AI 的未來是代理式的 (agentic)。
 
-**Introduction** 
+**簡介**
 
-Generative AI agents mark a leap forward from traditional, standalone language models,  offering a dynamic approach to problem-solving and interaction. As defined in the original  Agents paper, an agent is an application engineered to achieve specific objectives by  perceiving its environment and strategically acting upon it using the tools at its disposal.  The fundamental principle of an agent lies in its synthesis of reasoning, logic, and access to  external information, enabling it to perform tasks and make decisions beyond the inherent  capabilities of the underlying model. These agents possess the capacity for autonomous  operation, independently pursuing their goals and proactively determining subsequent  actions, often without explicit instructions. 
+生成式 AI 代理人標誌著從傳統的、獨立的語言模型向前邁出的一大步，為解決問題和互動提供了一種動態的方法。正如最初的代理人論文所定義的，代理人 (agent) 是一種應用程式，旨在透過感知其環境並利用其可用的工具策略性地對其採取行動來實現特定目標。代理人的基本原則在於其對推理、邏輯和外部資訊存取的綜合，使其能夠執行超出底層模型固有能力的任務和決策。這些代理人具有自主操作的能力，獨立追求其目標並主動確定後續行動，通常無需明確的指示。
 
-February 2025 6   
-Agents Companion 
+2025年2月 6日
+代理人指南 (Agents Companion)
 
-The architecture of an agent is composed of three essential elements that drive its behavior  and decision-making: 
+代理人的架構由三個驅動其行為和決策的必要元素組成：
 
-• **Model:** Within the agent's framework, the term "model" pertains to the language  model (LM) that functions as the central decision-making unit, employing instruction based reasoning and logical frameworks. The model can vary from general-purpose to  multimodal or fine-tuned, depending on the agent's specific requirements. 
+• **模型 (Model):** 在代理人的框架內，「模型」一詞指的是作為中央決策單元的語言模型 (Language Model, LM)，它採用基於指令的推理和邏輯框架。根據代理人的具體要求，模型可以從通用型到多模態或微調型不等。
 
-• **Tools:** Tools are critical for bridging the divide between the agent's internal capabilities  and the external world, facilitating interaction with external data and services. These  tools empower agents to access and process real-world information. Tools can include  extensions, functions, and data stores. Extensions bridge the gap between an API and  an agent, enabling agents to seamlessly execute APIs. Functions are self-contained  modules of code that accomplish specific tasks. Data stores provide access to dynamic  and up-to-date information, ensuring a model’s responses remain grounded in factuality  and relevance. 
+• **工具 (Tools):** 工具對於彌合代理人內部能力與外部世界之間的鴻溝至關重要，它促進了與外部數據和服務的互動。這些工具使代理人能夠存取和處理真實世界的資訊。工具可以包括擴充功能、函式和數據儲存。擴充功能彌合了 API 和代理人之間的差距，使代理人能夠無縫地執行 API。函式是完成特定任務的自包含程式碼模組。數據儲存提供對動態和最新資訊的存取，確保模型的回應始終基於事實和相關性。
 
-• **Orchestration layer:** The orchestration layer is a cyclical process that dictates how the  agent assimilates information, engages in internal reasoning, and leverages that reasoning  to inform its subsequent action or decision. This layer is responsible for maintaining  memory, state, reasoning, and planning. It employs prompt engineering frameworks to  steer reasoning and planning, facilitating more effective interaction with the environment  and task completion. Reasoning techniques such as ReAct, Chain-of-Thought (CoT), and  Tree-of-Thoughts (ToT) can be applied within this layer. 
+• **協調層 (Orchestration layer):** 協調層是一個循環過程，它決定了代理人如何吸收資訊、進行內部推理，並利用該推理來通知其後續的行動或決策。該層負責維護記憶、狀態、推理和規劃。它採用提示工程框架來引導推理和規劃，促進與環境更有效的互動和任務完成。諸如 ReAct、思維鏈 (Chain-of-Thought, CoT) 和思維樹 (Tree-of-Thoughts, ToT) 等推理技術可以在該層內應用。
 
-Building on these foundational concepts, this companion paper is designed for developers  and serves as a "102" guide to more advanced topics. It offers in-depth explorations of agent  evaluation methodologies and practical applications of Google agent products for enhancing  agent capabilities in solving complex, real-world problems.
+基於這些基礎概念，本指南專為開發人員設計，作為更進階主題的「102」指南。它深入探討了代理人評估方法論，以及 Google 代理人產品在增強代理人解決複雜、真實世界問題能力方面的實際應用。
 
-February 2025 7   
-Agents Companion 
+2025年2月 7日
+代理人指南 (Agents Companion)
 
-While exploring these theoretical concepts, we'll examine how they manifest in real-world  implementations, with a particular focus on automotive AI as a compelling case study. The  automotive domain exemplifies the challenges and opportunities of multi-agent architectures  in production environments. Modern vehicles demand conversational interfaces that function  with or without connectivity, balance between on-device and cloud processing for both  safety and user experience, and seamlessly coordinate specialized capabilities across  navigation, media control, messaging, and vehicle systems. Through this automotive lens,  we'll see how different coordination patterns -- hierarchical, collaborative, and peer-to peer -- come together to create robust, responsive user experiences in environments with  significant constraints. This case study illustrates the practical application of multi-agent  systems that businesses across industries can adapt to their specific domains. 
+在探索這些理論概念的同時，我們將檢視它們如何在真實世界的實作中體現，特別是將汽車 AI 作為一個引人注目的案例研究。汽車領域例證了在生產環境中多代理人架構的挑戰與機遇。現代車輛需要能夠在有或沒有連接的情況下運作的對話式介面，在設備端和雲端處理之間取得平衡以兼顧安全性和使用者體驗，並在導航、媒體控制、訊息傳遞和車輛系統之間無縫協調專業能力。透過這個汽車領域的視角，我們將看到不同的協調模式——分層、協作和點對點——如何共同在具有顯著限制的環境中創造出強大、響應迅速的使用者體驗。這個案例研究說明了多代理人系統的實際應用，各行各業的企業都可以根據其特定領域進行調整。
 
-Anyone who has built with gen AI quickly realizes it’s easy to get from an idea to a proof-of concept, but it can be quite difficult to ensure high quality results and get to production - gen  AI agents are no exception. Quality and Reliability are the most cited concerns for deploying  to production, and the “AgentOps” process is a solution to optimize agent building. 
+任何曾經使用生成式 AI 進行建構的人很快就會意識到，從一個想法到一個概念驗證 (proof-of-concept) 很容易，但要確保高品質的結果並投入生產可能相當困難——生成式 AI 代理人也不例外。品質和可靠性是部署到生產環境中最常被提及的擔憂，而「代理人維運 (AgentOps)」流程是優化代理人建構的解決方案。
 
-**AgentOps** 
+**代理人維運 (AgentOps)**
 
-Over the past two years, the field of Generative AI (GenAI) has undergone significant  changes, with enterprise customers focusing on how to operationalize related solutions. This  has resulted in various terms describing the operationalization of GenAI, such as MLOps for  GenAI, LLMOps, FMOps, and GenAIOps. 
+在過去的兩年中，生成式 AI (Generative AI, GenAI) 領域發生了重大變化，企業客戶專注於如何將相關解決方案投入運營。這導致了描述 GenAI 運營化的各種術語，例如 GenAI 的 MLOps、LLMOps、FMOps 和 GenAIOps。
 
-Agent and Operations (AgentOps) is a subcategory of GenAIOps that focuses on the efficient  operationalization of Agents. Its main additional components include internal and external  tool management, agent brain prompt (goal, profile, instructions) and orchestration, memory,  and task decomposition.
+代理人與營運 (Agent and Operations, AgentOps) 是 GenAIOps 的一個子類別，專注於代理人的高效營運化。其主要附加組件包括內部和外部工具管理、代理人大腦提示（目標、設定檔、指令）和協調、記憶體以及任務分解。
 
-February 2025 8   
-Agents Companion 
+2025年2月 8日
+代理人指南 (Agents Companion)
 
-![][image1]  
-Figure 1. Relationship between DevOps, MLOps, and AgentOps.13 
+![][image1]
+圖 1. DevOps、MLOps 和 AgentOps 之間的關係。13
 
-Each of these “Ops” requires capabilities like version control, automated deployments  through CI/CD, testing, logging, security and (critically) metrics. Each system often  implements some form of optimization based on metrics – measuring what your system  is and isn’t doing, measuring the outcomes and business metrics, and automating the  processes for more holistic metrics, and incrementally improving step by step. This practice  might be called “A/B experimentation” or “ML Ops” or “Metrics Driven development",  but they derive from the same general approach and we will rely on those principles for  AgentOps as well. 
+每個「Ops」都需要版本控制、透過 CI/CD 的自動化部署、測試、日誌記錄、安全以及（至關重要的）指標等能力。每個系統通常都會根據指標實施某種形式的優化——衡量您的系統正在做什麼和沒做什麼，衡量結果和業務指標，並自動化流程以獲得更全面的指標，並逐步改進。這種做法可能被稱為「A/B 實驗」或「ML Ops」或「指標驅動開發」，但它們都源於相同的總體方法，我們也將在 AgentOps 中依賴這些原則。
 
-Remember that new practices don't replace the old. DevOps and MLOps best practices  are still necessary for AgentOps, as they are dependencies. For example, Agent tool use,  where APIs are invoked based on agent orchestration, often uses the same APIs you would 
+請記住，新的實踐並不會取代舊的。DevOps 和 MLOps 的最佳實踐對於 AgentOps 仍然是必要的，因為它們是依賴項。例如，代理人工具的使用，其中 API 是基於代理人協調來調用的，通常會使用您在非代理人軟體中會調用的相同 API。
 
-February 2025 9   
-Agents Companion 
+2025年2月 9日
+代理人指南 (Agents Companion)
 
-invoke with non-agentic software. Authentication and secret management, security, privacy,  exception handling, throttling, quotas, and scalability are still critical and require careful API  design in addition to Agent design. 
+身份驗證和秘密管理、安全性、隱私、異常處理、節流、配額和可擴展性仍然至關重要，除了代理人設計之外，還需要仔細的 API 設計。
 
-Let’s go ahead and define these “ops” terms to help distinguish between them: 
+讓我們來定義這些「ops」術語，以幫助區分它們：
 
-• **Development and Operations (DevOps)** is the practice of efficiently productionizing  deterministic software applications by integrating the elements of people, processes, and  technology. DevOps serves as the foundation for all the following terms. 
+• **開發與維運 (Development and Operations, DevOps)** 是透過整合人員、流程和技術的元素，有效地將確定性軟體應用程式產品化的實踐。DevOps 是以下所有術語的基礎。
 
-• **Machine Learning Operations (MLOps)** builds upon the capabilities of DevOps and  concentrates on the efficient productionization of ML models. The primary distinction is  that the output of an ML model is non-deterministic and relies on the input data (garbage  in, garbage out). 
+• **機器學習維運 (Machine Learning Operations, MLOps)** 建立在 DevOps 的能力之上，並專注於機器學習模型的高效產品化。主要區別在於機器學習模型的輸出是非確定性的，並且依賴於輸入數據（垃圾進，垃圾出）。
 
-• **Foundation Model Operations (FMOps)** expands upon the capabilities of MLOps  and focuses on the efficient productionization of pre-trained (trained from scratch) or  customized (fine-tuned) FMs. 
+• **基礎模型維運 (Foundation Model Operations, FMOps)** 擴展了 MLOps 的能力，專注於預訓練（從頭開始訓練）或客製化（微調）的基礎模型 (Foundation Models, FM) 的高效產品化。
 
-• **Prompt and Operations (PromptOps)** is a subcategory of GenAIOps that focuses  on operationalizing prompts effectively. Its main additional capabilities include prompt  storage, lineage, metadata management (including evaluation scores), a centralized  prompt template registry, and a prompt optimizer. 
+• **提示與維運 (Prompt and Operations, PromptOps)** 是 GenAIOps 的一個子類別，專注於有效地營運化提示。其主要附加功能包括提示儲存、血緣關係、元數據管理（包括評估分數）、一個集中的提示模板註冊表和一個提示優化器。
 
-• **RAG and Operations (RAGOps)** is a subcategory of GenAIOps that centers on efficiently  operationalizing RAG solutions. Its primary additional capabilities include the retrieval  process through offline data preparation (encompassing cleaning, chunking, vectorization,  similarity search, and re-ranking) and the generation process through prompt  augmentation and grounding.
+• **RAG 與維運 (RAG and Operations, RAGOps)** 是 GenAIOps 的一個子類別，專注於高效地營運化 RAG 解決方案。其主要附加功能包括透過離線數據準備（包括清理、分塊、向量化、相似性搜索和重新排序）的檢索過程，以及透過提示增強和 grounding 的生成過程。
 
-February 2025 10   
-Agents Companion 
+2025年2月 10日
+代理人指南 (Agents Companion)
 
-• **Agent and Operations (AgentOps)** is a subcategory of GenAIOps that focuses on the  efficient operationalization of Agents. Its main additional components include internal  and external tool management, agent brain prompt (goal, profile, instructions) and  orchestration, memory, and task decomposition. 
+• **代理人與維運 (Agent and Operations, AgentOps)** 是 GenAIOps 的一個子類別，專注於代理人的高效營運化。其主要附加組件包括內部和外部工具管理、代理人大腦提示（目標、設定檔、指令）和協調、記憶體以及任務分解。
 
-![][image2]Figure 2. Each of these “Ops” are about technology, processes, and people14 
+![][image2]圖 2. 每個「Ops」都是關於技術、流程和人員的14
 
-All of these “Ops” are, in essence, the harmonious blend of people, processes, and  technologies working together to efficiently deploy machine learning solutions into a  live production environment. It’s crucial to recognize that Ops extends beyond mere  technology; it’s not simply about constructing and delivering a ML pipeline. Successful Ops  implementations delve deeper, considering the customer’s operational model, their existing  business units, and their overall organizational structure. This holistic approach ensures that  the technology is tailored to their specific needs, seamlessly integrating into the business  and maximizing value.
+所有這些「Ops」本質上都是人員、流程和技術的和諧融合，共同致力於將機器學習解決方案高效地部署到即時生產環境中。認識到 Ops 超越了單純的技術至關重要；它不僅僅是建構和交付一個機器學習管線。成功的 Ops 實施會更深入地考慮客戶的營運模式、他們現有的業務單位以及他們的整體組織結構。這種全面的方法確保技術能夠根據他們的特定需求量身定制，無縫地整合到業務中並最大化價值。
 
-February 2025 11   
-Agents Companion 
+2025年2月 11日
+代理人指南 (Agents Companion)
 
-The next section will cover Agent Evaluation in detail, which is a significant part of the story  for AgentOps and automation to capture useful metrics. Before we go there, let’s start with a  thought experiment; imagine setting up an A/B experiment in production for your new Agent.  The treatment arm gets your new agent and the control arm does not. In that scenario, what  metrics are you measuring to determine if the treatment arm is doing better? What metrics  are you measuring to determine ROI for the project? Is it a goal being accomplished, or  sales totals, or a set of critical steps in a user journey? Those metrics must be understood,  instrumented and easily analyzed in addition to more detailed Agent Evaluation metrics. 
+下一節將詳細介紹代理人評估，這是 AgentOps 和自動化捕獲有用指標故事的重要組成部分。在此之前，讓我們從一個思想實驗開始；想像一下在生產環境中為您的新代理人設置 A/B 實驗。實驗組獲得您的新代理人，而對照組則沒有。在這種情況下，您要測量哪些指標來確定實驗組是否做得更好？您要測量哪些指標來確定專案的投資回報率？是完成一個目標、銷售總額，還是一系列關鍵的用戶旅程步驟？除了更詳細的代理人評估指標外，還必須理解、檢測和輕鬆分析這些指標。
 
-**Agent Success Metrics** 
+**代理人成功指標**
 
-Metrics are critical to building, monitoring, and comparing revisions of Agents. Business  metrics, like revenue or user engagement, are probably outside of the scope of the agent  itself but these should be the **north star metric** for your agents. 
+指標對於建構、監控和比較代理人的修訂版本至關重要。業務指標，如收入或用戶參與度，可能超出了代理人本身的範圍，但這些應該是您代理人的**北極星指標**。
 
-Most Agents are designed around accomplishing goals, so **goal completion rate** is a key  metric to track. Similarly, a goal might be broken down into a few critical tasks or critical  user interactions. Each of these critical tasks and interactions should be independently  instrumented and measured. 
+大多數代理人都是圍繞完成目標而設計的，因此**目標完成率**是要追蹤的關鍵指標。同樣，一個目標可能會被分解為一些關鍵任務或關鍵用戶互動。每個關鍵任務和互動都應獨立檢測和測量。
 
-So before we get into the details of the Agent itself, we already have several metrics  identified which you should be able to easily track on a dashboard. Each business metric,  goal, or critical interaction, will be aggregated in a familiar fashion: attempts, successes,  rates, etc. Additionally, metrics you should be able to get from any application telemetry  system are very important to track for agents as well, metrics like latency, errors, etc.
+因此，在我們深入了解代理人本身的細節之前，我們已經確定了幾個指標，您應該能夠在儀表板上輕鬆追蹤。每個業務指標、目標或關鍵互動都將以熟悉的方式匯總：嘗試次數、成功次數、比率等。此外，您可以從任何應用程式遙測系統中獲得的指標對於追蹤代理人也非常重要，例如延遲、錯誤等指標。
 
-February 2025 12   
-Agents Companion 
+2025年2月 12日
+代理人指南 (Agents Companion)
 
-None of these metrics are specific to Agents, you could track them for any software, but they  are even more important for Agent builders. Deterministic code does only what you tell it to  do, whereas an agent can do a lot more, relying on LLMs which are trained on huge amounts  of data. Instrumentation of these high level metrics is an important part of observability.  You can think of them as Key Performance Indicators (KPI) for the agent, and they allow for  observability in the aggregate, a higher level perspective of your agents. 
+這些指標都不是代理人特有的，您可以為任何軟體追蹤它們，但對於代理人建構者來說，它們甚至更重要。確定性程式碼只會執行您告訴它執行的操作，而代理人可以做更多的事情，它依賴於在大量數據上訓練的 LLM。檢測這些高層次指標是可觀測性的重要組成部分。您可以將它們視為代理人的關鍵績效指標 (Key Performance Indicators, KPI)，它們允許從宏觀上觀察您的代理人，提供一個更高層次的視角。
 
-Human feedback is one of the more critical metrics to track as well. A simple ���� or user  feedback form, within the context of an agent or task can go a long way to understanding  where your agent does well and where it needs improvement. This feedback can come from  end users of a consumer system, but also employees, QA testers, and process or domain  experts reviewing the agent. 
+人類回饋也是要追蹤的更關鍵的指標之一。在代理人或任務的背景下，一個簡單的 ���� 或用戶回饋表單，對於了解您的代理人在哪些方面做得好，哪些方面需要改進大有幫助。這種回饋可以來自消費者系統的終端用戶，也可以來自審查代理人的員工、QA 測試人員以及流程或領域專家。
 
-More detailed observability is also very important for agent building, being able to see and  understand what the agent is doing and why it’s doing that. An agent can be instrumented  with “trace” to log all of the inner workings of the agent, not only the critically important  tasks and user interactions. You *could* conceptually measure every internal step as metrics,  but that is rarely done. Instead these detailed traces are used to debug an agent when  metrics or manual testing show a problem, you can dig into details and see what went wrong.
+更詳細的可觀測性對於代理人建構也非常重要，能夠看到和理解代理人正在做什麼以及為什麼這樣做。代理人可以被檢測以「追蹤」來記錄代理人的所有內部運作，而不僅僅是至關重要的任務和用戶互動。您*可以*在概念上將每個內部步驟作為指標來衡量，但這很少見。相反，當指標或手動測試顯示問題時，這些詳細的追蹤被用來除錯代理人，您可以深入細節，看看出了什麼問題。
 
-February 2025 13   
-Agents Companion 
+2025年2月 13日
+代理人指南 (Agents Companion)
 
-![][image3]  
-Figure 3: An example of Cloud Observability showing traces for an agent with tools and LLM  OpenTelemetry spans.15 
+![][image3]
+圖 3：一個雲端可觀測性範例，顯示了一個帶有工具和 LLM OpenTelemetry 跨度 (spans) 的代理人的追蹤。15
 
-So far we’ve been talking about business metrics, goals, tasks, human feedback, and traces  – those are all ways of understanding the actions and impact of your agents, in production.  While developing an agent, in addition to manual testing, automated testing will be much  more efficient in the long run and provide greater insights into the behavior of agents. 
+到目前為止，我們一直在討論業務指標、目標、任務、人類回饋和追蹤——這些都是在生產中理解您的代理人行為和影響的方式。在開發代理人時，除了手動測試外，自動化測試從長遠來看將更有效率，並能更深入地了解代理人的行為。
 
-**Agent Evaluation** 
+**代理人評估 (Agent Evaluation)**
 
-To bridge the gap between a proof-of-concept and a production-ready AI agent, a robust  and automated evaluation framework is essential. Unlike evaluating generative models, where  the focus is primarily on the final output, agent evaluation requires a deeper understanding of  the decision-making process. Agent evaluation can be broken down into three components  that we discuss in this chapter: 
+為了彌合概念驗證和可投入生產的 AI 代理人之間的差距，一個強大且自動化的評估框架至關重要。與評估生成模型（主要關注最終輸出）不同，代理人評估需要更深入地理解決策過程。代理人評估可以分解為我們在本章中討論的三個組成部分：
 
-1. **Assessing Agent Capabilities:** Evaluating an agent's core abilities, such as its capacity to  understand instructions and reason logically.
+1. **評估代理人能力 (Assessing Agent Capabilities):** 評估代理人的核心能力，例如其理解指令和進行邏輯推理的能力。
 
-February 2025 14   
-Agents Companion 
+2025年2月 14日
+代理人指南 (Agents Companion)
 
-2. **Evaluating Trajectory and Tool Use:** Analyzing the steps an agent takes to reach a  solution, including its choice of tools, strategies, and the efficiency of its approach. 
+2. **評估軌跡與工具使用 (Evaluating Trajectory and Tool Use):** 分析代理人為達成解決方案所採取的步驟，包括其工具選擇、策略及其方法的效率。
 
-3. **Evaluating the Final Response:** Assessing the quality, relevance, and correctness of the  agent's final output. 
+3. **評估最終回應 (Evaluating the Final Response):** 評估代理人最終輸出的品質、相關性和正確性。
 
-**Assessing Agent Capabilities** 
+**評估代理人能力**
 
-Before evaluating your specific agentic use cases, publicly available benchmarks and  technical reports can provide insight into core capabilities and limitations to consider when  building out your agentic use cases. Public benchmarks exist for most fundamental agentic  capabilities like model performance, hallucinations, tool calling and planning. For example,  tool calling, the ability to select and use appropriate tools, is demonstrated by benchmarks  like the Berkeley Function-Calling Leaderboard (BFCL)16 and τ-bench17 that also outlines  common mistakes. Another example, PlanBench18 aims to assess planning and reasoning,  across several domains and specific capabilities.  
+在評估您的特定代理人使用案例之前，公開可用的基準測試和技術報告可以提供對核心能力和限制的洞察，以便在建構您的代理人使用案例時加以考慮。對於大多數基本的代理人能力，如模型性能、幻覺、工具呼叫和規劃，都存在公開的基準測試。例如，工具呼叫，即選擇和使用適當工具的能力，由像柏克萊函式呼叫排行榜 (Berkeley Function-Calling Leaderboard, BFCL)16 和 τ-bench17 這樣的基準測試來展示，後者還概述了常見的錯誤。另一個例子，PlanBench18 旨在評估跨多個領域和特定能力的規劃和推理。
 
-But tool calling and planning is not the only capability you should consider. Agents inherit  behaviors from their LLMs and each of their other components. Likewise, agent and user  interactions have a history in traditional conversational design systems and workflow  systems, and therefore can inherit the set of metrics and measurements that are used to  determine the efficacy of these systems. 
+但是工具呼叫和規劃並不是您應該考慮的唯一能力。代理人繼承了其 LLM 和其他每個組件的行為。同樣，代理人和用戶的互動在傳統的對話設計系統和工作流系統中有其歷史，因此可以繼承用於確定這些系統功效的指標和測量集。
 
-February 2025 15   
-Agents Companion 
+2025年2月 15日
+代理人指南 (Agents Companion)
 
-![][image4]  
-Figure 4: A high level diagram of AgentBench.19 
+![][image4]
+圖 4：AgentBench 的高層次圖表。19
 
-Holistic agent benchmarks like AgentBench19 try to capture end-to-end performance across  several scenarios. This is more realistic, when the scenario reflects your agent use case,  but not if it’s testing capabilities your agent doesn’t implement. It is difficult to simulate  the environment, tools, instructions, and use case requirements in ways that are both  specific and general at the same time. Companies and organizations are setting up public  benchmarks for specialized use cases, like Adyen’s Data Analyst leaderboard DBAStep20 which may give you a more targeted evaluation - if you understand both the evaluation  approach and the agents who are on the leaderboard. 
+像 AgentBench19 這樣的整體性代理人基準測試，試圖在多個場景中捕捉端到端的性能。當場景反映了您的代理人使用案例時，這更為現實，但如果它測試的是您的代理人未實現的能力，則不然。很難以既具體又通用的方式模擬環境、工具、指令和使用案例需求。公司和組織正在為專業使用案例建立公開的基準測試，例如 Adyen 的數據分析師排行榜 DBAStep20，如果您了解評估方法和排行榜上的代理人，這可能會給您一個更有針對性的評估。
 
-Public benchmarks are a valuable starting point, to get a feeling for what is possible and  identify pitfalls to look out for. Most benchmark assessments include discussions of common  failure modes that can guide you in setting up your own, use-case specific evaluation  framework. 
+公開基準測試是一個有價值的起點，可以讓您了解可能性並識別需要注意的陷阱。大多數基準測試評估都包含對常見失敗模式的討論，這可以指導您建立自己的、針對特定使用案例的評估框架。
 
-February 2025 16   
-Agents Companion 
+2025年2月 16日
+代理人指南 (Agents Companion)
 
-Beyond public evaluations, you will want to evaluate the behavior of your agent across a  variety of scenarios to ensure it does what you want it to do. You are simulating interactions  with your agent and evaluating how it responds. This includes the evaluating final response  and also the set of steps it takes along the way (trajectory). Those are the 2 most common  and practical approaches we recommend you start with. There are many other evaluation  techniques you can use beyond these, either for finer details on sub-components or  broader approaches. 
+除了公開評估之外，您還需要評估您的代理人在各種場景下的行為，以確保它能按照您的意願行事。您正在模擬與代理人的互動，並評估它的回應方式。這包括評估最終回應以及它在此過程中採取的一系列步驟（軌跡）。這是我們建議您開始使用的兩種最常見且最實用的方法。除此之外，您還可以使用許多其他評估技術，無論是針對子組件的更精細細節還是更廣泛的方法。
 
-Software engineers will compare this to automated testing of code. Investing in automated  tests saves you time and gives you confidence in the software you are building. With agents,  this automation pays off faster, in both time and confidence. Curating the evaluation data  set will be extremely important for accurately representing the use case your agent will  encounter, even more so than in software testing.  
+軟體工程師會將此與程式碼的自動化測試進行比較。投資自動化測試可以節省您的時間，並讓您對正在建構的軟體充滿信心。對於代理人來說，這種自動化在時間和信心上的回報更快。策劃評估數據集對於準確表示您的代理人將遇到的使用案例極其重要，甚至比在軟體測試中更重要。
 
-**Evaluating Trajectory and Tool Use** 
+**評估軌跡與工具使用**
 
-An agent usually does several actions before it responds back to the user. It might compare  the user input with session history to disambiguate a term, or lookup a policy document,  search a knowledge base or invoke an API to save a ticket. Each of those actions is a step on  a path, also called a “trajectory” of actions. Every time your agent does something, there’s a  trajectory of actions under the hood. 
+代理人在回應使用者之前通常會執行多個動作。它可能會將使用者輸入與會話歷史進行比較以消除術語的歧義，或者查詢策略文件、搜尋知識庫或調用 API 來儲存工單。每個動作都是路徑上的一個步驟，也稱為動作的「軌跡」(trajectory)。每次您的代理人做某件事時，背後都有一條動作軌跡。
 
-Comparing the trajectory that you expect the agent to take vs the trajectory that the agent  actually took, is particularly useful for developers who want to debug their application,  identifying errors or inefficiencies, and ultimately improving performance. 
+將您期望代理人採取的軌跡與代理人實際採取的軌跡進行比較，對於希望對其應用程式進行除錯、識別錯誤或低效率並最終提高性能的開發人員來說尤其有用。
 
-February 2025 17   
-Agents Companion 
+2025年2月 17日
+代理人指南 (Agents Companion)
 
-![][image5]  
-Figure 5: LangSmith diagram of final evaluation and trajectory.21 
+![][image5]
+圖 5：LangSmith 關於最終評估和軌跡的圖表。21
 
-The following six ground-truth-based automated trajectory evaluations provide different  lenses to assess the performance of an agent: 
+以下六種基於地面實況 (ground-truth) 的自動化軌跡評估，提供了不同的視角來評估代理人的性能：
 
-1. **Exact match:** Requires the AI agent to produce a sequence of actions (a "trajectory") that  perfectly mirrors the ideal solution. This is the most rigid metric, allowing no deviation from  the expected path.  
+1. **完全匹配 (Exact match):** 要求 AI 代理人產生的動作序列（「軌跡」）與理想解決方案完全一致。這是最嚴格的指標，不允許與預期路徑有任何偏差。
 
-2. **In-order match:** This metric assesses an agent's ability to complete the expected  trajectory, while accommodating extra, unpenalized actions. Success is defined by  completing the core steps in order, with flexibility for additional actions. 
+2. **順序匹配 (In-order match):** 此指標評估代理人完成預期軌跡的能力，同時容納額外的、不扣分的動作。成功定義為按順序完成核心步驟，並具有執行額外動作的靈活性。
 
-3. **Any-order match:** Compared to in-order match, this metric now disregards the order. It  asks if the agent included all necessary actions, but does not look into the order of actions  taken and also allows for extra steps.
+3. **任意順序匹配 (Any-order match):** 與順序匹配相比，此指標現在不考慮順序。它詢問代理人是否包含了所有必要的動作，但不關心所採取動作的順序，也允許額外的步驟。
 
-February 2025 18   
-Agents Companion 
+2025年2月 18日
+代理人指南 (Agents Companion)
 
-4. **Precision:** How many of the tool calls in the predicted trajectory are actually relevant or  correct according to the reference trajectory? 
+4. **精確率 (Precision):** 預測軌跡中有多少工具呼叫是根據參考軌跡實際相關或正確的？
 
-5. **Recall:** How many of the essential tool calls from the reference trajectory are actually  captured in the predicted trajectory? 
+5. **召回率 (Recall):** 參考軌跡中有多少必要的工具呼叫被實際捕獲在預測軌跡中？
 
-6. **Single-tool use:** Understand if a specific action is within the agent's trajectory. This  metric is useful to understand if the agent has learned to utilize a particular tool yet. 
+6. **單一工具使用 (Single-tool use):** 了解特定動作是否在代理人的軌跡內。此指標有助於了解代理人是否已經學會利用特定工具。
 
-![][image6]Figure 6: A radar chart plotting a single trajectory evaluation with a few metrics.24
+![][image6]圖 6：一個雷達圖，繪製了具有幾個指標的單一軌跡評估。24
 
-February 2025 19   
-Agents Companion 
+2025年2月 19日
+代理人指南 (Agents Companion)
 
-Consider these metrics as different lenses for analyzing and debugging your agent's  trajectory. Each metric offers a unique perspective, but not all will be relevant to every  situation. For instance, some use cases demand strict adherence to the ideal trajectory, while  others allow for more creative deviations. A clear limitation of this evaluation approach is that  you need to have a reference trajectory in place for this to work. While ground-truth-based  automated trajectory evaluations that are discussed here are prevalent in popular libraries.  Research is advancing the use of agent autoraters for more efficient evaluation, for example  Agent as a Judge, 202422. 
+將這些指標視為分析和除錯您的代理人軌跡的不同鏡頭。每個指標都提供了一個獨特的視角，但並非所有指標都適用於所有情況。例如，某些使用案例要求嚴格遵守理想軌跡，而其他使用案例則允許更具創造性的偏差。這種評估方法的一個明顯限制是，您需要有一個參考軌跡才能使其正常工作。雖然此處討論的基於地面實況的自動化軌跡評估在流行的函式庫中很普遍，但研究正在推進使用代理人自動評分器進行更有效的評估，例如 Agent as a Judge, 202422。
 
-**Evaluating the Final Response** 
+**評估最終回應**
 
-The final response evaluation boils down to a simple question: Does your agent achieve its  goals? You can define custom success criteria, tailored to your specific needs, to measure  this. For example, you could assess whether a retail chatbot accurately answers product  questions, or whether a research agent effectively summarizes findings with the appropriate  tone and style. To automate this process, you can use autorater. An autorater is an LLM  that acts as a judge. Given the input prompts and the generated response, it mirrors  human evaluation by assessing the response against a set of user-provided criteria. For  this evaluation to work, it is crucial to consider that given the absence of ground-truth, you  need to be very precise in defining your evaluation criteria, as this is the core of what your  evaluation is looking at. You find a number of predefined criteria in various libraries, treat  them as a starting point and tweak them to provide your definition of good. 
+最終回應評估歸結為一個簡單的問題：您的代理人是否達成了其目標？您可以定義客製化的成功標準，根據您的特定需求量身定制，以衡量這一點。例如，您可以評估零售聊天機器人是否準確回答產品問題，或者研究代理人是否以適當的語氣和風格有效地總結了研究結果。為了自動化此流程，您可以使用自動評分器 (autorater)。自動評分器是一個充當裁判的 LLM。給定輸入提示和生成的回應，它透過根據一組用戶提供的標準評估回應來模仿人類評估。為了使此評估有效，至關重要的是要考慮到在沒有地面實況的情況下，您需要非常精確地定義您的評估標準，因為這是您評估的核心。您可以在各種函式庫中找到許多預定義的標準，將它們視為起點並進行調整，以提供您對「好」的定義。
 
-February 2025 20   
-Agents Companion 
+2025年2月 20日
+代理人指南 (Agents Companion)
 
-**Human-in-the-Loop Evaluation** 
+**人在環路評估 (Human-in-the-Loop Evaluation)**
 
-The fields of agent development and agent evaluation are rapidly evolving. Evaluating  AI agents presents significant challenges, including defining clear objectives, designing  realistic environments, managing stochastic behavior, and ensuring fairness and bias  mitigation, particularly in socially impactful applications. Therefore, it's crucial to incorporate  a human-in-the-loop approach alongside the automated evaluations discussed previously  (which involve predefined metrics and autoraters). Human-in-the-loop is valuable for tasks  requiring subjective judgment or creative problem-solving, it can also serve to calibrate and  double-check if your automated evaluation approaches actually work and align with your  preferences. Key benefits include: 
+代理人開發和代理人評估領域正在迅速發展。評估 AI 代理人帶來了重大挑戰，包括定義明確的目標、設計現實的環境、管理隨機行為，以及確保公平性和偏見緩解，尤其是在具有社會影響力的應用中。因此，除了前面討論的自動化評估（涉及預定義的指標和自動評分器）之外，納入人在環路 (human-in-the-loop) 的方法至關重要。人在環路對於需要主觀判斷或創造性解決問題的任務很有價值，它也可以用來校準和複查您的自動化評估方法是否真的有效並符合您的偏好。主要好處包括：
 
-• **Subjectivity:** Humans can evaluate qualities that are difficult to quantify, such as  creativity, common sense, and nuance. 
+• **主觀性 (Subjectivity):** 人類可以評估難以量化的品質，例如創造力、常識和細微差別。
 
-• **Contextual Understanding:** Human evaluators can consider the broader context of the  agent's actions and their implications. 
+• **上下文理解 (Contextual Understanding):** 人類評估者可以考慮代理人行動的更廣泛背景及其影響。
 
-• **Iterative Improvement:** Human feedback provides valuable insights for refining the  agent's behavior and learning process. 
+• **迭代改進 (Iterative Improvement):** 人類回饋為改進代理人的行為和學習過程提供了寶貴的見解。
 
-• **Evaluating the evaluator:** Human feedback can provide a signal to calibrate and refine  your autoraters.  
+• **評估評估者 (Evaluating the evaluator):** 人類回饋可以提供一個信號來校準和改進您的自動評分器。
 
-To implement human-in-the-loop evaluation, consider these methods: 
+要實施人在環路評估，請考慮以下方法：
 
-• **Direct Assessment:** Human experts directly rate or score the agent's performance on  specific tasks. 
+• **直接評估 (Direct Assessment):** 人類專家直接對代理人在特定任務上的表現進行評分。
 
-• **Comparative Evaluation:** Experts compare the agent's performance to that of other  agents or your previous iterations. 
+• **比較評估 (Comparative Evaluation):** 專家將代理人的表現與其他代理人或您先前迭代的表現進行比較。
 
-February 2025 21   
-Agents Companion 
+2025年2月 21日
+代理人指南 (Agents Companion)
 
-• **User Studies:** Participants interact with the agent and provide feedback on its behavior,  usability, and overall effectiveness. 
+• **使用者研究 (User Studies):** 參與者與代理人互動，並就其行為、可用性和整體有效性提供回饋。
 
-**More about Agent Evaluation** 
+**更多關於代理人評估**
 
-In this section we cover agent evaluation from the practical perspective. But this is just the tip  of the iceberg. Agent evaluation presents many challenges. Evaluation data for your agents  may be difficult to find. While synthetic data or LLMs as judges can be used, evaluations  may still be incomplete. Also, LLM-as-a-Judge metrics, for example, may prioritize final  outcomes over the agent's reasoning and intermediate actions, potentially missing key  insights. Additionally, as evaluations for agent systems have a history in conversational and  workflow systems, there is so much to explore on how to inherit methods and metrics to  evaluate agent's capabilities, such as the ability to improve task performance over multiple  interactions. Evaluations for multi-modal generations pose additional complexities; images,  audio, and video evaluations require their own evaluation methods and metrics. Finally, real world environments pose further challenges, as they are dynamic and unpredictable, making  it difficult to evaluate agents in controlled settings. 
+在本節中，我們從實踐的角度涵蓋了代理人評估。但這只是冰山一角。代理人評估存在許多挑戰。您的代理人的評估數據可能很難找到。雖然可以使用合成數據或 LLM 作為裁判，但評估可能仍然不完整。此外，例如，LLM 作為裁判的指標可能會優先考慮最終結果，而不是代理人的推理和中間行動，從而可能錯失關鍵見解。此外，由於代理人系統的評估在對話和工作流系統中有其歷史，因此在如何繼承方法和指標以評估代理人的能力方面還有很多值得探索的地方，例如在多次互動中提高任務性能的能力。多模態生成的評估帶來了額外的複雜性；圖像、音訊和影片的評估需要它們自己的評估方法和指標。最後，真實世界的環境帶來了進一步的挑戰，因為它們是動態和不可預測的，使得在受控環境中評估代理人變得困難。
 
-Looking ahead, to solve these open challenges, the field of agent evaluation is evolving  rapidly. Key trends include a shift towards process-based evaluation, prioritizing the  understanding of agent reasoning; an increase in AI-assisted evaluation methods for  improved scalability; and a stronger focus on real-world application contexts. The  development of new standardized benchmarks is also gaining traction, facilitating objective  comparisons between agents, while increased emphasis on explainability and interpretability  aims to provide deeper insights into agent behavior.
+展望未來，為了解決這些開放性挑戰，代理人評估領域正在迅速發展。主要趨勢包括轉向基於過程的評估，優先理解代理人推理；增加 AI 輔助評估方法以提高可擴展性；以及更關注真實世界的應用背景。開發新的標準化基準測試也越來越受到重視，以促進代理人之間的客觀比較，同時更加強調可解釋性和可詮釋性，旨在更深入地了解代理人行為。
 
-February 2025 22   
-Agents Companion 
+2025年2月 22日
+代理人指南 (Agents Companion)
 
-| Evaluation Method  | ![][image7]Strengths  | ![][image8]Weaknesses |
-| :---- | :---- | :---- |
-| **Human Evaluation**  | Captures nuanced behavior,   considers human factors | Subjective, time-consuming,   expensive, difficult to scale |
-| **LLM-as-a-Judge**  | Scalable, efficient, consistent  | May overlook intermediate steps,  limited by LLM capabilities |
-| **Automated Metrics**  | Objective, scalable, efficient  | May not capture full capabilities,  susceptible to gaming |
+| 評估方法 | ![][image7]優點 | ![][image8]缺點 |
+| :--- | :--- | :--- |
+| **人工評估** | 捕捉細微行為，考慮人為因素 | 主觀，耗時，昂貴，難以擴展 |
+| **LLM 作為裁判** | 可擴展，高效，一致 | 可能忽略中間步驟，受 LLM 能力限制 |
+| **自動化指標** | 客觀，可擴展，高效 | 可能無法捕捉全部能力，易受操縱 |
 
-Table 1: A table comparing strengths and weaknesses of automated evaluations for Agents. 
+表 1：比較代理人自動化評估的優缺點。
 
-At this point it should be clear that only by continually refining evaluation methods, we will  ensure that AI agents are developed and deployed responsibly, effectively, and ethically in  the coming future.  
+至此應該很清楚，只有不斷完善評估方法，我們才能確保 AI 代理人在未來能夠負責任、有效且合乎道德地開發和部署。
 
-**Multiple Agents & Their Evaluation** 
+**多代理人及其評估**
 
-Agent evaluation, which assesses the effectiveness, reliability, and adaptability of  autonomous AI agents, as seen in the previous section, has emerged as a key focus area.  We have seen a significant evolution in AI systems, transitioning towards multi-agent  architectures—where multiple specialized agents collaborate to achieve complex objectives.  
+代理人評估，如前一節所述，評估自主 AI 代理人的有效性、可靠性和適應性，已成為一個關鍵的焦點領域。我們已經看到 AI 系統的重大演進，正轉向多代理人 (Multi-Agent) 架構——其中多個專業化代理人協作以實現複雜的目標。
 
-A multi-agent system is like a team of experts, each specializing in a particular area, working  together to solve a complex problem. Each agent is an independent entity, potentially using a  different LLM, and with its own unique role and context. Agents communicate and collaborate  to achieve a common goal. This approach differs from traditional single-agent systems,  where one LLM handles all aspects of a task.
+一個多代理人系統就像一個專家團隊，每個專家都專精於特定領域，共同解決一個複雜的問題。每個代理人都是一個獨立的實體，可能使用不同的 LLM，並有其獨特的角色和背景。代理人之間進行溝通和協作以實現共同的目標。這種方法不同於傳統的單一代理人系統，後者由一個 LLM 處理任務的所有方面。
 
-February 2025 23   
-Agents Companion 
+2025年2月 23日
+代理人指南 (Agents Companion)
 
-Multi-agent systems offer several advantages over single-agent systems: 
+多代理人系統相較於單一代理人系統有幾個優勢：
 
-• **Enhanced Accuracy:** Agents can cross-check each other's work, leading to more  accurate results. 
+• **增強準確性 (Enhanced Accuracy):** 代理人可以互相核對工作，從而獲得更準確的結果。
 
-• **Improved Efficiency:** Agents can work in parallel, speeding up task completion. 
+• **提高效率 (Improved Efficiency):** 代理人可以並行工作，加快任務完成速度。
 
-• **Better Handling of Complex Tasks:** Large tasks can be broken down into smaller, more  manageable subtasks, with each agent focusing on a specific aspect. 
+• **更好地處理複雜任務 (Better Handling of Complex Tasks):** 可以將大型任務分解為更小、更易於管理的子任務，每個代理人專注於特定方面。
 
-• **Increased Scalability:** The system can be easily scaled by adding more agents with  specialized capabilities. 
+• **增加可擴展性 (Increased Scalability):** 可以透過增加具有專業能力的代理人來輕鬆擴展系統。
 
-• **Improved Fault Tolerance:** If one agent fails, others can take over its responsibilities. 
+• **提高容錯性 (Improved Fault Tolerance):** 如果一個代理人失敗，其他代理人可以接管其職責。
 
-• **Reduced Hallucinations and Bias:** By combining the perspectives of multiple agents,  the system can reduce the effects of hallucinations and bias, leading to more reliable and  trustworthy outputs. 
+• **減少幻覺和偏見 (Reduced Hallucinations and Bias):** 透過結合多個代理人的觀點，系統可以減少幻覺和偏見的影響，從而獲得更可靠和值得信賴的輸出。
 
-**Understanding Multi-Agent Architectures** 
+**理解多代理人架構**
 
-Unlike traditional monolithic AI systems, multi-agent architectures break down a problem  into distinct tasks handled by specialized agents. Each agent operates with defined roles,  interacting dynamically with others to optimize decision-making, knowledge retrieval, and  execution. These architectures enable more structured reasoning, decentralized problem solving, and scalable task automation, offering a paradigm shift from single-agent workflows. 
+與傳統的單體 AI 系統不同，多代理人架構將問題分解為由專業化代理人處理的不同任務。每個代理人都有明確的角色，並與其他代理人動態互動，以優化決策、知識檢索和執行。這些架構能夠實現更結構化的推理、去中心化的問題解決和可擴展的任務自動化，為單一代理人工作流程帶來了典範轉移。
 
-At their core, multi-agent systems leverage principles of modularity, collaboration, and  hierarchy to create a robust AI ecosystem. Agents within these systems can be categorized  based on their function for example:
+在其核心，多代理人系統利用模組化、協作和層級的原則來創建一個強大的 AI 生態系統。這些系統中的代理人可以根據其功能進行分類，例如：
 
-February 2025 24   
-Agents Companion 
+2025年2月 24日
+代理人指南 (Agents Companion)
 
-• **Planner Agents:** Responsible for breaking down high-level objectives into  structured sub-tasks. 
+• **規劃者代理人 (Planner Agents):** 負責將高層次的目標分解為結構化的子任務。
 
-• **Retriever Agents:** Optimize knowledge acquisition by dynamically fetching relevant data  from external sources. 
+• **檢索者代理人 (Retriever Agents):** 透過動態地從外部來源獲取相關數據來優化知識獲取。
 
-• **Execution Agents:** Perform computations, generate responses, or interact with APIs. 
+• **執行者代理人 (Execution Agents):** 執行計算、生成回應或與 API 互動。
 
-• **Evaluator Agents:** Monitor and validate responses, ensuring coherence and alignment  with objectives. 
+• **評估者代理人 (Evaluator Agents):** 監控和驗證回應，確保連貫性並與目標一致。
 
-Through these components, multi-agent architectures extend beyond simple prompt-based  interactions, enabling AI-driven workflows that are adaptive, explainable, and efficient. 
+透過這些組件，多代理人架構超越了簡單的基於提示的互動，實現了適應性強、可解釋且高效的 AI 驅動工作流程。
 
-**Multi-Agent Design Patterns and Their Business Impact** 
+**多代理人設計模式及其商業影響**
 
-To design effective multi-agent architectures, specific design patterns have emerged. These  patterns define interaction protocols, delegation mechanisms, and role distributions, allowing  businesses to implement AI-driven automation in structured ways. Some common design  patterns include:
+為了設計有效的多代理人架構，出現了特定的設計模式。這些模式定義了互動協議、委派機制和角色分配，讓企業能夠以結構化的方式實施 AI 驅動的自動化。一些常見的設計模式包括：
 
-February 2025 25   
-Agents Companion 
+2025年2月 25日
+代理人指南 (Agents Companion)
 
-| Type of Multi-Agent System  | Description  | Example |
-| ----- | :---- | :---- |
-| **Sequential** | Agents work in a sequential   manner, with each agent   completing its task before   passing the output to the   next agent. | An assembly line, where each  worker performs a specific   operation before passing the  product to the next worker. |
-| **Hierarchical** | Agents are organized in a   hierarchical structure, with a  "manager" agent coordinating the  workflow and delegating tasks to  "worker" agents. | A system with a leader agent  responsible for making strategic  decisions and follower agents  executing tasks based on the  leader's instructions. |
-| **Collaborative** | Agents work together   collaboratively, sharing   information and resources to  achieve a common goal. | A team of researchers working  on a project, where each member  contributes their expertise   and insights. |
-| **Competitive** | Agents may compete with   each other to achieve the   best outcome. | LLMs act as individual players in a  game like Overcooked-AI, where  they must coordinate their actions  to achieve a shared goal while  competing for resources and  optimizing individual performance. |
+| 多代理人系統類型 | 描述 | 範例 |
+| --- | :--- | :--- |
+| **循序式 (Sequential)** | 代理人以循序的方式工作，每個代理人完成其任務後，將輸出傳遞給下一個代理人。 | 一條裝配線，每個工人在將產品傳遞給下一個工人之前執行特定的操作。 |
+| **分層式 (Hierarchical)** | 代理人被組織在一個分層結構中，由一個「管理者」代理人協調工作流程並將任務委派給「工作者」代理人。 | 一個系統，其中有一個領導者代理人負責做出戰略決策，而追隨者代理人則根據領導者的指示執行任務。 |
+| **協作式 (Collaborative)** | 代理人共同協作，分享資訊和資源以實現共同目標。 | 一組研究人員在一個專案上工作，每個成員都貢獻自己的專業知識和見解。 |
+| **競爭式 (Competitive)** | 代理人可能會互相競爭以達到最佳結果。 | LLM 在像 Overcooked-AI 這樣的遊戲中扮演獨立玩家，它們必須協調行動以實現共同目標，同時競爭資源並優化個人表現。 |
 
-Table 2: A table comparing types of multi-agent systems.
+表 2：比較不同類型的多代理人系統。
 
-February 2025 26   
-Agents Companion 
+2025年2月 26日
+代理人指南 (Agents Companion)
 
-![][image9]  
-Figure 7: An image depicting different multi-agent topologies, from LangGraph documentation.23 
+![][image9]
+圖 7：一張描繪不同多代理人拓撲結構的圖片，來自 LangGraph 文件。23
 
-The choice of design pattern depends on the specific application and the desired level of  interaction between agents. 
+設計模式的選擇取決於具體的應用和代理人之間期望的互動水平。
 
-Businesses benefit from these patterns by reducing operational bottlenecks, improving  knowledge retrieval, and enhancing automation reliability. Multi-agent systems enable  companies to scale AI deployments while ensuring agility in decision-making and  workflow execution.
+企業透過這些模式受益，可以減少營運瓶頸、改善知識檢索並增強自動化可靠性。多代理人系統使公司能夠擴展 AI 部署，同時確保決策和工作流程執行的敏捷性。
 
-February 2025 27   
-Agents Companion 
+2025年2月 27日
+代理人指南 (Agents Companion)
 
-**Important components of Agents** 
+**代理人的重要組成部分**
 
-The architecture of LLM-based AI agents consists of several interrelated components  essential for autonomous operation and intelligent interaction: 
+基於 LLM 的 AI 代理人架構由幾個相互關聯的組件組成，這些組件對於自主操作和智慧互動至關重要：
 
-• **Interaction Wrapper:** This component serves as the interface between the agent  and its environment, managing communication and adapting to various input and  output modalities. 
+• **互動包裝器 (Interaction Wrapper):** 此組件作為代理人與其環境之間的介面，管理通訊並適應各種輸入和輸出模態。
 
-• **Memory Management:** This includes short-term working memory for immediate context,  cache, and sessions . It also can include long-term storage for learned patterns and  experiences, as episodes, examples, skills or reference data. It also includes “reflection”  to decide which short term items (eg: user preference) should be copied into long term  memory (eg: user profile), and if that can be shared across agents, tasks, or sessions. 
+• **記憶體管理 (Memory Management):** 這包括用於即時上下文的短期工作記憶體、快取和會話。它還可以包括用於學習到的模式和經驗的長期儲存，如情節、範例、技能或參考數據。它還包括「反思」(reflection)，以決定哪些短期項目（例如：用戶偏好）應該被複製到長期記憶體（例如：用戶個人資料），以及是否可以在代理人、任務或會話之間共享。
 
-• **Cognitive Functionality:** This is often underpinned by Chain-of-Thought (CoT), ReAct,  reasoning, thinking, or a planner subsystem - it allows agents to decompose complex  tasks into logical steps and engage in self-correction. In some cases this also includes  user intent refinement, to ask a clarifying question if uncertain. 
+• **認知功能 (Cognitive Functionality):** 這通常由思維鏈 (Chain-of-Thought, CoT)、ReAct、推理、思考或規劃子系統支撐——它允許代理人將複雜的任務分解為邏輯步驟並進行自我修正。在某些情況下，這也包括用戶意圖的細化，以便在不確定時提出澄清問題。
 
-• **Tool Integration:** This subsystem enables agents to utilize external tools, expanding  their capabilities beyond natural language processing. Dynamic tool registries allowing  discovery, registration, and “Tool RAG”. 
+• **工具整合 (Tool Integration):** 該子系統使代理人能夠利用外部工具，將其能力擴展到自然語言處理之外。動態工具註冊表允許發現、註冊和「工具 RAG」。
 
-• **Flow / Routing:** This governs connections with other agents, facilitating dynamic neighbor  discovery and efficient communication within the multi-agent system. This might be  implemented as a delegation of a task to a background agent, or handoff of the user  interaction to an agent, or the use of an agent as a tool.
+• **流程/路由 (Flow / Routing):** 這管理與其他代理人的連接，促進動態鄰居發現和多代理人系統內的有效通訊。這可以實現為將任務委派給後台代理人、將用戶互動交接給代理人，或將代理人作為工具使用。
 
-February 2025 28   
-Agents Companion 
+2025年2月 28日
+代理人指南 (Agents Companion)
 
-• **Feedback Loops / Reinforcement Learning:** These enable continuous learning and  adaptation by processing interaction outcomes and refining decision-making strategies.  For gen AI agents this rarely takes the form of traditional RL training, but the performance  metrics of the past can be incorporated into future decision making. 
+• **回饋循環/強化學習 (Feedback Loops / Reinforcement Learning):** 這些透過處理互動結果和改進決策策略來實現持續學習和適應。對於生成式 AI 代理人來說，這很少採用傳統強化學習訓練的形式，但過去的性能指標可以納入未來的決策中。
 
-• **Agent Communication:** Effective communication between agents is crucial for the  success of multi-agent systems. The Agent to Agent communication protocol facilitates  structured and efficient communication among agents, enabling them to achieve  consensus and address complex problems collaboratively 
+• **代理人通訊 (Agent Communication):** 代理人之間的有效通訊對於多代理人系統的成功至關重要。代理人對代理人 (Agent to Agent) 通訊協議促進了代理人之間結構化和高效的通訊，使它們能夠達成共識並協作解決複雜問題。
 
-• **Remote Agent Communication:** Agent to Agent communication within an organization  is critical to allows agents to share messages, tasks, and knowledge. Once your multi agent system includes a remote agent, the communication protocol becomes even more  important. Asynchronous tasks and sessions need to be durable, and updated with  notifications while end users are not in session. Negotiations between Agents must allow  for bringing a user into session and for supported UX capabilities.  
+• **遠端代理人通訊 (Remote Agent Communication):** 組織內的代理人對代理人通訊至關重要，它允許代理人共享訊息、任務和知識。一旦您的多代理人系統包含一個遠端代理人，通訊協議就變得更加重要。異步任務和會話需要持久，並在終端使用者不在會話中時透過通知進行更新。代理人之間的協商必須允許將使用者帶入會話並支持 UX 功能。
 
-• **Agent & Tool Registry (mesh):** As you go beyond a handful of tools or a handful of  agents, you need a robust system to discover, register, administer, select and utilize from  a “mesh” of tools or agents. Critically important is the ontology and description of the  tools and agents, their capabilities and requirements, and their performance metrics. Your  agents will make a plan and choose which tool or which agent to use from such a system,  and those choices are informed by the data in the system
+• **代理人與工具註冊表 (網格) (Agent & Tool Registry (mesh)):** 當您使用的工具或代理人數量超過少數時，您需要一個強大的系統來從工具或代理人的「網格」中發現、註冊、管理、選擇和利用。至關重要的是工具和代理人的本體論和描述、它們的能力和要求，以及它們的性能指標。您的代理人將制定一個計劃，並從這樣的系統中選擇使用哪個工具或哪個代理人，而這些選擇是由系統中的數據所告知的。
 
-February 2025 29   
-Agents Companion 
+2025年2月 29日
+代理人指南 (Agents Companion)
 
-![][image10]  
-Figure 8: An image demonstrating the process of a user interacting with multiple, self-coordinating agents.24 
+![][image10]
+圖 8：一張展示使用者與多個自我協調代理人互動過程的圖片。24
 
-These architectural elements provide a robust foundation for the autonomous operation and  collaborative capabilities of LLM agents within multi-agent systems.
+這些架構元素為 LLM 代理人在多代理人系統中的自主操作和協作能力提供了堅實的基礎。
 
-February 2025 30   
-Agents Companion 
+2025年2月 30日
+代理人指南 (Agents Companion)
 
-**Challenges in Multi-Agent systems**  
+**多代理人系統中的挑戰**
 
-While multi-agent systems offer numerous advantages, they also face several challenges: 
+雖然多代理人系統提供了許多優勢，但它們也面臨一些挑戰：
 
-• **Task Communication:** Today most agent frameworks communicate in messages, not  structured async tasks. 
+• **任務通訊 (Task Communication):** 現今大多數代理人框架以訊息而非結構化的異步任務進行通訊。
 
-• **Task Allocation:** Efficiently dividing complex tasks among different agents can be  challenging, and feedback loops are often left up to the developer to implement. 
+• **任務分配 (Task Allocation):** 在不同代理人之間有效地分配複雜任務可能具有挑戰性，而回饋循環通常留給開發人員來實現。
 
-• **Coordinating Reasoning:** Getting agents to debate and reason together effectively  requires sophisticated coordination mechanisms. 
+• **協調推理 (Coordinating Reasoning):** 讓代理人有效地進行辯論和共同推理需要複雜的協調機制。
 
-• **Managing Context:** Keeping track of all the information, tasks, and conversations  between agents can be overwhelming. 
+• **管理上下文 (Managing Context):** 追蹤所有代理人之間的資訊、任務和對話可能會讓人不知所措。
 
-• **Time and Cost:** Multi-agent interactions can be computationally expensive and time consuming. This results in higher runtime prices and more user latency. 
+• **時間與成本 (Time and Cost):** 多代理人互動可能計算成本高昂且耗時。這導致更高的執行時間價格和更多的用戶延遲。
 
-• **Complexity:** In the same way that microservice architecture allows each microservice  more flexibility and simplicity, the system as a whole usually becomes more complex.  
+• **複雜性 (Complexity):** 就像微服務架構允許每個微服務更具靈活性和簡單性一樣，整個系統通常變得更加複雜。
 
-Addressing these challenges is crucial for developing robust and efficient  multi-agent systems.
+解決這些挑戰對於開發強大而高效的多代理人系統至關重要。
 
-February 2025 31   
-Agents Companion 
+2025年2月 31日
+代理人指南 (Agents Companion)
 
-**Multi-Agent Evaluation** 
+**多代理人評估 (Multi-Agent Evaluation)**
 
-Luckily, the evaluation of multi-agent systems is a clear progression of evaluating single  agent systems. Agent Success Metrics are unchanged, business metrics as your north star,  goals and critical task success metrics, application telemetry metrics like latency and errors.  Instrumenting the multi-agent system with trace will help debug and understand what is  happening during complex interactions. 
+幸運的是，多代理人系統的評估是評估單一代理人系統的明確進展。代理人成功指標不變，業務指標作為您的北極星，目標和關鍵任務成功指標，以及應用程式遙測指標（如延遲和錯誤）。使用追蹤來檢測多代理人系統將有助於在複雜的互動過程中進行除錯和理解。
 
-In the Agent Evaluation section we discussed Evaluating Trajectories and Evaluating the Final  Response as the 2 best approaches to automated evaluation of an agent, and this remains  the case for multi-agent systems. For a multi-agent system, a trajectory of actions might  include several or even all of your agents. Even though several agents may collaborate on a  task, a single final answer is returned to the user at the end and can be evaluated in isolation. 
+在代理人評估部分，我們討論了評估軌跡和評估最終回應作為代理人自動化評估的兩種最佳方法，這對於多代理人系統仍然適用。對於一個多代理人系統，一個動作的軌跡可能包括幾個甚至所有的代理人。儘管多個代理人可能在一個任務上協作，但最終會向使用者返回一個單一的最終答案，並且可以單獨對其進行評估。
 
-Because a multi-agent system probably has more steps, you can drill down and evaluate at  every step. You can evaluate each of your agents in isolation and the system as a whole.  Trajectory evaluations are a scalable approach to do exactly this. 
+因為一個多代理人系統可能有更多的步驟，您可以深入並在每一步進行評估。您可以單獨評估每個代理人以及整個系統。軌跡評估是實現這一點的可擴展方法。
 
-There are some questions you need to ask, which are unique to multi-agent  systems, including: 
+您需要問一些獨特於多代理人系統的問題，包括：
 
-• **Cooperation and Coordination:** How well do agents work together and coordinate their  actions to achieve common goals? 
+• **合作與協調 (Cooperation and Coordination):** 代理人之間合作和協調行動以實現共同目標的效果如何？
 
-• **Planning and Task Assignment:** Did we come up with the right plan, and did we stick to  it? Did child agents deviate from the main plan or get lost in a cul-de-sac? 
+• **規劃與任務分配 (Planning and Task Assignment):** 我們是否制定了正確的計劃，並且堅持執行了？子代理人是否偏離了主計劃或迷失在死胡同裡？
 
-• **Agent Utilization:** How effectively do agents select the right agent and choose to use the  agent as a tool, delegate a background task, or transfer the user?
+• **代理人利用率 (Agent Utilization):** 代理人選擇正確的代理人以及選擇將代理人作為工具使用、委派後台任務或轉移用戶的效果如何？
 
-February 2025 32   
-Agents Companion 
+2025年2月 32日
+代理人指南 (Agents Companion)
 
-• **Scalability:** Does the system's quality improve as more agents are added? Does the  latency go down? Are we being more efficient or less? 
+• **可擴展性 (Scalability):** 隨著更多代理人的加入，系統的品質是否提高？延遲是否降低？我們是變得更有效率還是更低效率？
 
-These types of questions can guide developers to identify areas for improvement in the  multi-agent system. You will answer these questions using the same tools you use for single  agent systems, but the complexity of the analysis goes up. 
+這些類型的問題可以引導開發人員找出多代理人系統中需要改進的地方。您將使用與單一代理人系統相同的工具來回答這些問題，但分析的複雜性會增加。
 
-**Agentic RAG: A Critical Evolution in  Retrieval-Augmented Generation** 
+**代理式 RAG：檢索增強生成的關鍵演進**
 
-A significant advancement in multi-agent architectures is **Agentic Retrieval-Augmented  Generation (Agentic RAG)**. Traditional RAG pipelines rely on a static approach—retrieving  knowledge from vector databases and feeding it into an LLM for synthesis. However, this  approach often fails when dealing with ambiguous, multi-step, or multi-perspective queries. 
+多代理人架構的一個重大進展是**代理式檢索增強生成 (Agentic Retrieval-Augmented Generation, Agentic RAG)**。傳統的 RAG 管線依賴於一種靜態方法——從向量資料庫中檢索知識，然後將其饋入 LLM 進行綜合。然而，這種方法在處理模稜兩可、多步驟或多視角的查詢時常常會失敗。
 
-Agentic RAG introduces **autonomous retrieval agents** that actively refine their search  based on iterative reasoning. These agents enhance retrieval in the following ways: 
+代理式 RAG 引入了**自主檢索代理人**，它們會根據迭代推理主動地改進其搜尋。這些代理人透過以下方式增強檢索：
 
-• **Context-Aware Query Expansion:** Instead of relying on a single search pass, agents  generate multiple query refinements to retrieve more relevant and comprehensive results. 
+• **上下文感知查詢擴展 (Context-Aware Query Expansion):** 代理人不是依賴單一的搜尋過程，而是生成多個查詢的改進版本，以檢索更相關和全面的結果。
 
-• **Multi-Step Reasoning:** Agents decompose complex queries into smaller logical steps,  retrieving information sequentially to build structured responses. 
+• **多步驟推理 (Multi-Step Reasoning):** 代理人將複雜的查詢分解為更小的邏輯步驟，循序地檢索資訊以建構結構化的回應。
 
-• **Adaptive Source Selection:** Instead of fetching data from a single vector database,  retrieval agents dynamically select the best knowledge sources based on context. 
+• **適應性來源選擇 (Adaptive Source Selection):** 檢索代理人不是從單一的向量資料庫中獲取數據，而是根據上下文動態地選擇最佳的知識來源。
 
-• **Validation and Correction:** Evaluator agents cross-check retrieved knowledge for  hallucinations and contradictions before integrating it into the final response.
+• **驗證與修正 (Validation and Correction):** 評估者代理人在將檢索到的知識整合到最終回應之前，會對其進行幻覺和矛盾的交叉檢查。
 
-February 2025 33   
-Agents Companion 
+2025年2月 33日
+代理人指南 (Agents Companion)
 
-This approach significantly improves response **accuracy**, **explainability**, and **adaptability**,  making it a crucial innovation for enterprises dealing with complex knowledge retrieval tasks  in areas like legal research, scientific discovery, and business intelligence. 
+這種方法顯著提高了回應的**準確性**、**可解釋性**和**適應性**，使其成為企業在法律研究、科學發現和商業智慧等領域處理複雜知識檢索任務的關鍵創新。
 
-**Agentic RAG and its Importance** 
+**代理式 RAG 及其重要性**
 
-Agentic RAG (Retrieval-Augmented Generation) is an advanced approach that combines the  strengths of RAG with the autonomy of AI agents. Traditional RAG systems retrieve relevant  information from external knowledge sources to enhance LLM responses. Agentic RAG  takes this a step further by employing intelligent agents to orchestrate the retrieval process,  evaluate the retrieved information, and make decisions about how to best utilize it. 
+代理式檢索增強生成 (Agentic Retrieval-Augmented Generation, Agentic RAG) 是一種先進的方法，它將 RAG 的優勢與 AI 代理人的自主性相結合。傳統的 RAG 系統從外部知識來源檢索相關資訊以增強 LLM 的回應。代理式 RAG 更進一步，它利用智慧代理人來協調檢索過程、評估檢索到的資訊，並決定如何最好地利用它。
 
-Agentic RAG offers several advantages over traditional RAG: 
+代理式 RAG 相較於傳統 RAG 有幾個優勢：
 
-• **Improved Accuracy:** Agents can evaluate the quality of retrieved information and make  decisions about which sources to trust, leading to more accurate and reliable responses. 
+• **提高準確性 (Improved Accuracy):** 代理人可以評估檢索資訊的品質，並決定信任哪些來源，從而獲得更準確可靠的回應。
 
-• **Enhanced Contextual Understanding:** Agents can consider the context of the user's  query and the retrieved information to generate more relevant and meaningful responses. 
+• **增強上下文理解 (Enhanced Contextual Understanding):** 代理人可以考慮使用者查詢的上下文和檢索到的資訊，以生成更相關、更有意義的回應。
 
-• **Increased Adaptability:** Agents can adapt to changing information needs and  dynamically adjust their retrieval strategies to provide the most up-to-date and relevant  information. This adaptability is crucial in complex domains where information is constantly  evolving, such as healthcare, finance, and legal research.
+• **增加適應性 (Increased Adaptability):** 代理人可以適應不斷變化的資訊需求，並動態調整其檢索策略，以提供最新、最相關的資訊。這種適應性在資訊不斷演變的複雜領域至關重要，例如醫療保健、金融和法律研究。
 
-February 2025 34   
-Agents Companion 
+2025年2月 34日
+代理人指南 (Agents Companion)
 
-![][image11]  
-Figure 9: A diagram of Agentic RAG from Vectorize.io.25 
+![][image11]
+圖 9：來自 Vectorize.io 的代理式 RAG 圖表。25
 
-Agentic RAG is particularly valuable in complex domains where information is constantly  evolving, such as healthcare, finance, and legal research. For example, in healthcare, agentic  RAG can help navigate complicated medical databases, research papers, and patient  records, providing doctors with comprehensive and accurate information.
+代理式 RAG 在資訊不斷演變的複雜領域尤其有價值，例如醫療保健、金融和法律研究。例如，在醫療保健領域，代理式 RAG 可以幫助導航複雜的醫療資料庫、研究論文和病患記錄，為醫生提供全面而準確的資訊。
 
-February 2025 35   
-Agents Companion 
+2025年2月 35日
+代理人指南 (Agents Companion)
 
-**Better Search, Better RAG** 
+**更好的搜尋，更好的 RAG (Better Search, Better RAG)**
 
-Almost all RAG approaches require a search engine to index and retrieve relevant data. The  introduction of agents allows for refinement of query, filtering, ranking, and the final answer.  Agentic RAG agents are executing several searches to retrieve information. 
+幾乎所有的 RAG 方法都需要一個搜尋引擎來索引和檢索相關數據。代理人的引入允許對查詢、過濾、排名和最終答案進行細化。代理式 RAG 代理人正在執行多次搜尋以檢索資訊。
 
-For developers who are trying to optimize existing RAG implementations, it is usually most  valuable to improve search results (measured in recall) prior to introducing agents. Some of  the main techniques to improve search performance are: 
+對於試圖優化現有 RAG 實作的開發人員來說，在引入代理人之前改善搜尋結果（以召回率衡量）通常最有價值。一些改善搜尋性能的主要技術是：
 
-• **Parse** source documents and **chunk** them: **Vertex AI Layout Parser** can handle complex  document layouts, embedded tables, and embedded images like charts, and uses a  semantic chunker to keep chunks on topic with a hierarchy of headings. 
+• **解析 (Parse)** 來源文件並將其**分塊 (chunk)**：**Vertex AI Layout Parser** 可以處理複雜的文件佈局、嵌入式表格和嵌入式圖像（如圖表），並使用語意分塊器 (semantic chunker) 來保持分塊的主題性，並帶有標題層次結構。
 
-• Add **metadata** to your chunks: synonyms, keywords, authors, dates, tags and categories  allow your searches to boost, bury, and filter; these allow your users or your agents more  control over search results. 
+• 為您的分塊添加**元數據 (metadata)**：同義詞、關鍵字、作者、日期、標籤和類別允許您的搜尋進行提升、降權和過濾；這些讓您的使用者或您的代理人對搜尋結果有更多的控制權。
 
-• Fine tune the **embedding model** or add a **search adaptor** which changes embedding  space: these allow the searchable index of vectors to represent your domain better than a  general purpose embedding model. 
+• 微調**嵌入模型 (embedding model)** 或添加一個改變嵌入空間的**搜尋適配器 (search adaptor)**：這些允許可搜尋的向量索引比通用嵌入模型更好地代表您的領域。
 
-• A faster vector database can improve search quality: to search embeddings, you must  make a tradeoff between speed and accuracy, upgrading to an ultra-fast **Vertex AI  Vector Search** can improve both latency and quality 
+• 更快的向量資料庫可以提高搜尋品質：要搜尋嵌入，您必須在速度和準確性之間做出權衡，升級到超高速的 **Vertex AI Vector Search** 可以同時改善延遲和品質。
 
-• Use a **ranker**: vector searches are fast but approximate, they should return dozens or  hundreds of results which need to be re-ranked by a more sophisticated system to ensure  the top few results are the most relevant or best answer. 
+• 使用**排序器 (ranker)**：向量搜尋速度快但為近似值，它們應該返回數十或數百個結果，這些結果需要由更複雜的系統重新排序，以確保前幾個結果是最相關或最佳的答案。
 
-• Implement **check grounding**: as a safeguard on grounded generation, you can ensure  each phrase is actually citable by retrieved chunks.
+• 實作**檢查 grounding**：作為對 grounded generation 的保障，您可以確保每個短語都可以被檢索到的分塊實際引用。
 
-February 2025 36   
-Agents Companion 
+2025年2月 36日
+代理人指南 (Agents Companion)
 
-![][image12]  
-Figure 10: A diagram of common RAG and search components, showing Vertex AI Search26, search builder  APIs27, and RAG Engine.28 
+![][image12]
+圖 10：一個常見的 RAG 和搜尋組件圖，顯示了 Vertex AI Search26、搜尋建構器 API27 和 RAG 引擎28。
 
-Vertex AI Search26 is a powerful search engine providing Google quality search for your  data and can be used with any RAG or Agentic RAG implementation. Each of the above  components is automatically available within Vertex AI Search, without any development  time at all. For developers who want to build their own search engine, each of the above  components is exposed as a standalone API27, and RAG Engine28 can orchestrate the whole  pipeline easily, with a LlamaIndex-like Python-based interface.
+Vertex AI Search26 是一個強大的搜尋引擎，為您的數據提供 Google 品質的搜尋，並且可以與任何 RAG 或代理式 RAG 實作一起使用。上述每個組件都自動在 Vertex AI Search 中可用，完全無需開發時間。對於想要建構自己的搜尋引擎的開發人員，上述每個組件都作為獨立的 API27 公開，而 RAG 引擎28 可以輕鬆地協調整個管線，並提供類似 LlamaIndex 的基於 Python 的介面。
 
-February 2025 37   
-Agents Companion 
+2025年2月 37日
+代理人指南 (Agents Companion)
 
-**Agents in the enterprise** 
+**企業中的代理人**
 
-**Manager of agents** 
+**代理人管理者**
 
-2025 is the year of the agents, and this will particularly be true in the context of enterprises  that will develop and use agents that will assist employees to perform specific tasks  or autonomously run in the background performing automation. Business analysts can  effortlessly uncover industry trends and create compelling, data-driven presentations  fueled by AI-generated insights. HR teams can revolutionize the employee experience with  streamlined onboarding, even for complex tasks like 401k selection. Software engineers  can proactively identify and resolve bugs, enabling them to build and iterate with greater  efficiency, and accelerate deployment cycles. Marketers can unlock deeper performance  analysis, optimize content recommendations, and fine-tune campaigns effortlessly to achieve  better results.  
+2025 年是代理人之年，這在企業環境中尤其如此，企業將開發和使用代理人來協助員工執行特定任務，或在後台自主運行以執行自動化。業務分析師可以毫不費力地發現行業趨勢，並創建由 AI 生成的洞察力驅動的、引人注目的數據驅動簡報。人力資源團隊可以透過簡化的入職流程徹底改變員工體驗，即使是像 401k 選擇這樣的複雜任務也不例外。軟體工程師可以主動識別和解決錯誤，使他們能夠以更高的效率進行建構和迭代，並加速部署週期。行銷人員可以解鎖更深入的性能分析，優化內容推薦，並毫不費力地微調活動以取得更好的成果。
 
-We see two types of agents emerging: 
+我們看到兩種代理人正在興起：
 
-1. **“Assistants”**: Agents that interact with the user, take a task, execute it, and come back  to the user. Conversational agents popularized by frameworks like Gems or GPTs usually  belong to this category. Assistants can be general - able to help on a variety of tasks - or  specialized to a particular domain, or tasks. Examples include agents that help schedule  meetings, analyze data, write code, write marketing press releases, help sellers with  sales opportunities, or even agents that perform deep research on a particular topic  as requested by the user. These agents can be synchronous and return the requested  information or perform the requested task fast, or they run for a longer period of time  before returning (like the deep research agents). 
+1. **「助理 (Assistants)」**: 與使用者互動、接受任務、執行任務並向使用者回報的代理人。由 Gems 或 GPTs 等框架普及的對話式代理人通常屬於此類。助理可以是通用的——能夠在各種任務上提供幫助——也可以是專門針對特定領域或任務的。範例包括幫助安排會議、分析數據、編寫程式碼、撰寫行銷新聞稿、幫助銷售人員處理銷售機會，甚至根據使用者要求對特定主題進行深入研究的代理人。這些代理人可以是同步的，快速返回所要求的資訊或執行所要求的任務，也可以運行較長時間後再返回（如深度研究代理人）。
 
-February 2025 38   
-Agents Companion 
+2025年2月 38日
+代理人指南 (Agents Companion)
 
-2. **"Automation agents”**: Agents that run in the background, listen to events, monitor  changes in systems or data, and then make smart decisions and act. Action might include  acting on backend systems, performing some tests to validate the observation, fixing  problems, notifying the right employees, etc. This can really be seen as the backbone of  the automation of the future. While in the past we had to write special code to specify  the logic of automations, now we can start relying on smart and general decision making  abilities of AI agents. 
+2. **「自動化代理人 (Automation agents)」**: 在後台運行，監聽事件，監控系統或數據的變化，然後做出明智的決策並採取行動的代理人。行動可能包括對後端系統採取行動、執行一些測試以驗證觀察結果、解決問題、通知合適的員工等。這確實可以被視為未來自動化的支柱。過去我們必須編寫特殊的程式碼來指定自動化的邏輯，現在我們可以開始依賴 AI 代理人的智慧和通用決策能力。
 
-Rather than simply invoking agents to perform a task and wait for the output, knowledge  workers will increasingly become managers of agents. They will be assigning tasks to multiple  agents and manage them, check if any of agents need help or require approval to proceed,  use the output of specific agents to start new tasks, monitor execution of long running tasks  to review and steer them in the right direction. Novel user interfaces to allow this type of  virtual team management will emerge to allow orchestration, monitoring and managing a  multi-agent system with agents performing tasks, calling (or even creating) other agents. 
+知識工作者將越來越多地成為代理人的管理者，而不是僅僅調用代理人來執行任務並等待輸出。他們將向多個代理人分配任務並進行管理，檢查是否有任何代理人需要幫助或需要批准才能繼續，使用特定代理人的輸出來啟動新任務，監控長時間運行的任務的執行以進行審查並引導它們朝著正確的方向發展。新穎的使用者介面將出現，以允許這種虛擬團隊管理，從而允許協調、監控和管理一個由執行任務、呼叫（甚至創建）其他代理人的代理人組成的多代理人系統。
 
-**Google Agentspace** aims at providing this type of experience and allow to: 
+**Google Agentspace** 旨在提供這種類型的體驗，並允許：
 
-• **Create new agents** by using a no/low code interface or a full code framework to  implement both specialized assistants and automation agents 
+• 透過使用無程式碼/低程式碼介面或完整的程式碼框架來**創建新代理人**，以實現專業化的助理和自動化代理人。
 
-• **Configure** and manage the agents access for company administrators • **Invoke** the right agents when appropriate 
+• 為公司管理員**配置**和管理代理人存取權限。• 在適當的時候**調用**正確的代理人。
 
-• **Monitor**, **manage**, and **orchestrate** multiple agents in a UI suited for team management
+• 在適合團隊管理的 UI 中**監控**、**管理**和**協調**多個代理人。
 
-February 2025 39   
-Agents Companion 
+2025年2月 39日
+代理人指南 (Agents Companion)
 
-**Google Agentspace** 
+**Google Agentspace**
 
-Google Agentspace29 offers a suite of AI-driven tools designed to elevate enterprise  productivity by facilitating access to pertinent information and automating intricate,  agentic workflows. It harnesses the advanced reasoning capabilities of Gemini, the power  of Google's search infrastructure, and secure access to enterprise data, irrespective of its  physical location. 
+Google Agentspace29 提供了一套由 AI 驅動的工具，旨在透過促進對相關資訊的存取和自動化複雜的代理人工作流程來提升企業生產力。它利用了 Gemini 的先進推理能力、Google 搜尋基礎設施的力量，以及對企業數據的安全存取，無論其物理位置如何。
 
-Agentspace directly addresses the limitations inherent in traditional knowledge management  systems, which frequently fall short in areas such as personalization, automated answer  generation, contextual comprehension, and comprehensive information retrieval. It  empowers employees with efficient information access by consolidating disparate content  sources, generating grounded and personalized responses, and streamlining operational  workflows. Key functionalities include the capacity to ingest a wide variety of data formats,  synchronize data from Software-as-a-Service (SaaS) platforms, deliver access-controlled  search results and AI-generated answers, and integrate AI assistance and intelligent agents  into cohesive workflows. 
+Agentspace 直接解決了傳統知識管理系統固有的局限性，這些系統在個人化、自動答案生成、上下文理解和全面資訊檢索等領域常常表現不佳。它透過整合不同的內容來源、生成基於事實且個人化的回應以及簡化操作工作流程，賦予員工高效的資訊存取能力。主要功能包括能夠擷取各種數據格式、從軟體即服務 (SaaS) 平台同步數據、提供存取控制的搜尋結果和 AI 生成的答案，以及將 AI 輔助和智慧代理人整合到連貫的工作流程中。
 
-The architecture of Agentspace Enterprise is founded upon several core principles.  Paramount among these is built-in trust, which prioritizes security, explainability, and  governance through features such as single sign-on (SSO) authentication, an integrated  permissions model, and user-level access controls. Google's advanced intelligence is  leveraged to discern user behavior and content patterns through machine learning, resulting  in the delivery of highly relevant results via semantic understanding, knowledge graphs,  and LLMs. Universal connectivity is achieved by connecting to a diverse array of enterprise  systems with on-demand and automated data refreshes, thereby eliminating information  silos. Enterprise-level customization and user-level personalization are facilitated through  granular controls for search functionality, recommendations, LLMs, and knowledge graphs,  providing tailored experiences based on individual user roles, permissions, and search 
+Agentspace 企業版的架構建立在幾個核心原則之上。其中最重要的是內建的信任，它透過單一登入 (Single Sign-On, SSO) 身份驗證、整合的權限模型和使用者級別的存取控制等功能，優先考慮安全性、可解釋性和治理。Google 的先進智慧被用來透過機器學習辨別使用者行為和內容模式，從而透過語意理解、知識圖譜和 LLM 提供高度相關的結果。透過連接到各種企業系統，並提供隨選和自動化的數據刷新，實現了通用連接性，從而消除了資訊孤島。透過對搜尋功能、推薦、LLM 和知識圖譜的精細控制，促進了企業級的客製化和使用者級別的個人化，根據個人使用者角色、權限和搜尋歷史提供量身定制的體驗。即時回饋和適應機制能夠透過機器學習和使用者輸入持續改進結果。混合式檢索增強生成 (Blended Retrieval Augmented Generation, RAG) 允許客製化的數據混合，為基於企業數據的生成式 AI 應用提供支援。最後，可擴展性是一個關鍵的設計考量，系統被設計為能夠適應跨地理區域、語言和高峰使用需求的增長。
 
-February 2025 40   
-Agents Companion 
+安全性始終是首要考量。Google Agentspace 建立在 Google Cloud 的安全設計基礎設施之上，讓您能夠安心地在整個組織中自信地部署 AI 代理人。它提供了精細的 IT 控制，包括基於角色的存取控制 (Role-Based Access Control, RBAC)、VPC 服務控制和 IAM 整合，確保您的數據始終受到保護並符合法規。安全性是 Agentspace 的一個基本原則。它建立在 Google Cloud 的安全基礎設施之上，為部署 AI 代理人提供了一個強大的環境。精細的 IT 控制，包括 RBAC、虛擬私有雲 (Virtual Private Cloud, VPC) 服務控制和身份與存取管理 (Identity and Access Management, IAM) 整合，保證了數據保護和法規遵循。這些安全措施對於保護敏感資訊至關重要，並讓使用者能夠安心地在整個組織中自信地部署 AI 代理人。
 
-history. Real-time feedback and adaptation mechanisms enable the continuous refinement  of results through machine learning and user input. Blended Retrieval Augmented Generation  (RAG) allows for customizable data blending, powering generative AI applications grounded  in enterprise data. Finally, scalability is a critical design consideration, with the system  engineered to accommodate growth across geographical regions, languages, and peak  usage demands. 
+**NotebookLM 企業版**
 
-Security is always top of mind. Google Agentspace is built on the Google Cloud secure-by design infrastructure, giving you the peace of mind to confidently deploy AI agents across  your organization. It provides granular IT controls, including role-based access control  (RBAC), VPC Service Controls, and IAM integration, ensuring your data remains protected  and compliant at all times.Security is a foundational principle of Agentspace. Built upon the  secure infrastructure of Google Cloud, it provides a robust environment for the deployment  of AI agents. Granular IT controls, encompassing role-based access control (RBAC),  Virtual Private Cloud (VPC) Service Controls, and Identity and Access Management (IAM)  integration, guarantee data protection and regulatory compliance. These security measures  are essential for the safeguarding of sensitive information and give users the peace of mind  to confidently deploy AI agents across their organization. 
+NotebookLM30 是一款研究和學習工具，旨在簡化理解和綜合複雜資訊的過程。它使用戶能夠上傳各種來源資料，包括文件、筆記和其他相關檔案，並利用人工智慧的力量促進更深層次的理解。想像一下研究一個多方面的課題；NotebookLM 讓您能夠將所有分散的資源整合到
 
-**NotebookLM Enterprise** 
+2025年2月 41日
+代理人指南 (Agents Companion)
 
-NotebookLM30 is a research and learning tool designed to streamline the process of  understanding and synthesizing complex information. It empowers users to upload various  source materials, including documents, notes, and other relevant files, and leverages the  power of artificial intelligence to facilitate deeper comprehension. Imagine researching a  multifaceted topic; NotebookLM allows you to consolidate all your scattered resources into 
+一個單一、有組織的工作區。從本質上講，NotebookLM 扮演著一個專門的研究助理的角色，加速了研究過程，並使用戶能夠從單純的資訊收集轉向真正的理解。
 
-February 2025 41   
-Agents Companion 
+![][image13]圖 11：配置了一些模擬收益報告的 NotebookLM 企業版30。
 
-a single, organized workspace. In essence, NotebookLM functions as a dedicated research  assistant, accelerating the research process and enabling users to move beyond mere  information collection to genuine understanding. 
+NotebookLM Plus 在此基礎上建構，提供一個具有增強特性和功能的高級層級。雖然上傳來源、提問和生成摘要的核心功能仍然存在，但 NotebookLM Plus 通常會增加諸如增加來源資料儲存空間等特性，從而能夠處理更大、更複雜的專案。它
 
-![][image13]Figure 11: NotebookLM Enterprise30 configured with a few mock earning reports. 
+2025年2月 42日
+代理人指南 (Agents Companion)
 
-NotebookLM Plus builds upon this foundation, offering a premium tier with enhanced  features and capabilities. While the core functionality of uploading sources, asking questions,  and generating summaries remains, NotebookLM Plus typically adds features like increased  storage for source materials, enabling work with larger and more complex projects. It 
+也可能包含更複雜的由 AI 驅動的分析工具，例如更細緻的摘要選項、增強的問答能力，或更有效地識別不同來源之間聯繫和關係的能力。
 
-February 2025 42   
-Agents Companion 
+在 NotebookLM Plus 的基礎上，NotebookLM 企業版30 將這些強大的功能帶入企業環境，簡化了員工與數據互動並從中獲取洞察的方式。這個企業級版本不僅使用戶能夠上傳和綜合資訊，還能發現隱藏的模式並以創新的方式與數據互動。一個典型的例子是 AI 生成的音訊摘要功能，它透過讓使用者「聆聽」他們的研究來增強理解並促進高效的知識吸收。
 
-may also include more sophisticated AI-powered analysis tools, such as more nuanced  summarization options, enhanced question-answering capabilities, or the ability to identify  connections and relationships between different sources more effectively. 
+技術上，NotebookLM，無論是消費者版還是企業版，都採用 LLM 來處理上傳的文件、提取關鍵概念並生成摘要。音訊摘要功能使用文字轉語音 (Text-to-Speech, TTS) 技術，並結合先進的韻律控制以確保清晰度和自然度。至關重要的是，NotebookLM 企業版整合了企業級的安全和隱私功能，確保敏感的公司數據得到最謹慎的處理，並根據組織政策受到保護。`
 
-Building upon the foundation of NotebookLM Plus, NotebookLM Enterprise30 brings these  powerful capabilities to the enterprise environment, streamlining how employees interact  with and derive insights from their data. This enterprise-grade version enables users to not  only upload and synthesize information, but also to uncover hidden patterns and engage with  data in innovative ways. A prime example is the AI-generated audio summary feature, which  enhances comprehension and facilitates efficient knowledge absorption by allowing users to  "listen" to their research.  
+**Google AgentSpace 企業版**
 
-Technically, NotebookLM, both in its consumer and enterprise forms, employs LLMs to  process uploaded documents, extract key concepts, and generate summaries. The audio  summary feature uses text-to-speech (TTS) technology incorporating advanced prosody  control to ensure clarity and naturalness. Critically, NotebookLM Enterprise incorporates  enterprise-grade security and privacy features, ensuring that sensitive company data is  handled with the utmost care and protected in accordance with organizational policies.` 
+Google Agentspace 為員工提供了一個統一的、公司品牌的、多模態的搜尋代理人，作為企業資訊的權威來源。憑藉 Google 廣泛的搜尋能力，Agentspace 提供了無與倫比的對話式輔助。員工可以獲得複雜查詢的答案、主動的建議，以及對來自任何來源的資訊的統一存取。此功能擴展到非結構化數據（如文件和電子郵件）和結構化數據（如表格）。整合的翻譯功能確保了全面的理解，無論資訊的原始語言為何。為廣泛使用的第三方應用程式（包括 Confluence、Google Drive、Jira、Microsoft SharePoint、ServiceNow 等）預建的連接器，使員工能夠無縫地存取和查詢相關數據來源，從而促進更明智的決策。
 
-**Google AgentSpace Enterprise** 
+2025年2月 43日
+代理人指南 (Agents Companion)
 
-Google Agentspace furnishes employees with a unified, company-branded, multimodal  search agent that serves as the definitive source of enterprise information. Drawing upon  Google's extensive search capabilities, Agentspace offers unparalleled conversational  assistance. Employees get answers to complex queries, proactive recommendations,  and unified access to information from any source. This functionality extends to both  unstructured data, such as documents and emails, and structured data, like tables.  Integrated translation capabilities ensure comprehensive understanding, regardless of 
+![][image14]圖 12：為 Cymbal 銀行客製化並連接到多個數據儲存的 Agentspace29。
 
-February 2025 43   
-Agents Companion 
+代理人的功能遠不止資訊檢索，它們可以在現實世界中採取行動、管理異步任務和工作流程，並幫助員工完成工作。可以根據組織的獨特需求配置一個代理人庫，它將有助於深度研究、創意生成和基於價值的改進、創意資產生成、數據分析等等。
 
-the original language of the information. Pre-built connectors for widely used third-party  applications, including Confluence, Google Drive, Jira, Microsoft SharePoint, ServiceNow,  and others, empower employees to seamlessly access and query relevant data sources,  facilitating more informed decision-making. 
+2025年2月 44日
+代理人指南 (Agents Companion)
 
-![][image14]Figure 12: Agentspace29 customized for Cymbal bank, connected to several data stores. 
+Agentspace 企業版 Plus 有助於創建針對特定業務功能的客製化 AI 代理人。該平台能夠開發和部署具有上下文感知能力的生成式 AI 代理人，使跨部門（行銷、財務、法律、工程等）的員工能夠進行更有效的研究、快速生成內容並自動化重複性任務，包括多步驟工作流程。一個集中的介面簡化了這些專業化代理人的發現和存取，促進了可擴展的 AI 採用。客製化代理人將與內部和外部系統及數據連接，根據公司領域和政策進行量身定制，甚至可能利用在專有業務數據上訓練的機器學習模型。該平台為建構者提供了代理人開發、部署和生命週期管理的工具。
 
-Much more than just information retrieval, agents can take actions in the real world, manage  async tasks and workflows, and help employees get work done. A gallery of agents can be  configured based on an organization's unique needs and will help with deep research, idea  generation and merit based refinement, creative asset generation, data analytics and more.
+2025年2月 45日
+代理人指南 (Agents Companion)
 
-February 2025 44   
-Agents Companion 
+**從代理人到承包商 (From agents to contractors)**
 
-Agentspace Enterprise Plus facilitates the creation of custom AI agents tailored to specific  business functions. This platform enables the development and deployment of contextually  aware generative AI agents, empowering employees across departments—marketing,  finance, legal, engineering, and more—to conduct more effective research, rapidly generate  content, and automate repetitive tasks, including multi-step workflows. A centralized  interface streamlines the discovery and access of these specialized agents, promoting  scalable AI adoption. Custom agents will connect with internal and external systems and  data, be tailored to company domain and policies, and potentially even utilize machine  learning models trained on proprietary business data. The platform provides builders tools  for agent development, deployment, and lifecycle management.
+現今在各種工具和平台上定義 AI 代理人的通用介面非常簡單，通常包括指定目標、一些文本指令、代理人可以使用的工具以及一組範例。雖然這可能足以製作原型演示，但它會導致潛在的定義不夠具體，並可能是 AI 代理人難以從原型走向生產的主要原因之一。
 
-February 2025 45   
-Agents Companion 
+我們建議將代理人介面演進為「遵守合約的代理人 (Contract adhering agents)」，旨在利用 AI 代理人解決複雜的任務，特別是在風險較高的情況下。
 
-**From agents to contractors** 
+**合約 (Contracts)**
 
-The common interface to define AI agents across various tools and platforms today is very  simple, and usually includes specifying the goal, some textual instructions, the tools that the  agent can use, and a set of examples. While this might be sufficient to prototype demos, it  leads to potentially underspecified definitions, and might be one of the leading reasons that  AI agents can struggle to get from prototype-to-production.  
+承包商 (contractors) 的關鍵思想是指定和標準化請求者與代理人之間的合約，從而可以：
 
-We propose to evolve the Agent interface to evolve them into ”Contract adhering agents”  which are aimed at solving complex tasks using AI Agents, more specifically in contexts  where stakes are high.  
+1. **盡可能精確地定義結果**，就像我們在現實世界中與我們簽約的公司就某項服務達成協議時所做的那樣。這使得代理人（承包商）能夠根據期望的結果進行驗證，並不斷迭代直到達到期望的目標。
 
-**Contracts** 
+2. 使**協商任務**以及澄清和改進任務成為可能，以避免定義中的任何模糊性，並填補對目標的共同理解中的任何差距。
 
-The key idea of contractors is to specify and standardize the contracts between the  requester and the agents, making it possible to:  
+3. 為承包商定義規則，以便以標準方式**生成解決更大合約所需的新子合約**（參見下面關於子合約的部分）。
 
-1. **Define the outcomes as precisely as possible**, similarly to what we would do in a  real world scenario when agreeing on a service with a company we are contracting to  do something for us. This allows the agent (contractor) to validate against the desired  outcomes and iterate until the desired objective is achieved.  
+2025年2月 46日
+代理人指南 (Agents Companion)
 
-2. Make it possible to **negotiate the task** as well as clarifying and refining it, in order  to avoid any ambiguity in the definition, and fill any gap in common understanding of  the goals. 
+| 4.合約，初始定義 | | |
+| :--- | --- | --- |
+| **欄位** | **描述** | **必填** |
+| **任務/專案描述** | 提供我們期望承包商達成的詳細描述。它應該盡可能具體和明確。 | 是 |
+| **交付成果與規格** | 精確描述承包商任務的預期結果和交付成果，包括一份規格清單，闡明什麼使交付成果可被接受為結果，以及如何驗證交付成果是否滿足期望的詳細資訊。 | 是 |
+| **範圍** | 闡明承包商負責完成的任務範圍，詳細說明任務的每個方面。也用於闡明什麼是超出範圍的。 | 否 |
+| **預期成本** | 給出任務完成的成本預期。這通常是任務複雜性與將使用的工具相結合的函數。 | 是 |
+| **預期持續時間** | 給出任務完成的持續時間預期。 | 是 |
+| **輸入來源** | 指定可以使用哪些輸入來源，並認為對完成任務有用。 | 否 |
+| **報告與回饋** | 指定回饋循環應如何進行：我們期望多久收到一次進度更新，以及使用什麼機制/介面提供回饋（電子郵件、API 等）。 | 是 |
 
-3. Define the rules for the contractors to **generate new subcontracts** needed to solve the  bigger one in a standard fashion (cf. section below on subcontracts).
+表 3：合約的範例數據模型。
 
-February 2025 46   
-Agents Companion 
+2025年2月 47日
+代理人指南 (Agents Companion)
 
-| 4.Contract, initial definition |  |  |
-| :---- | ----- | ----- |
-| **Fields**  | **Description**  | **Required** |
-| **Task/Project  description** | Provide a detailed description of what we expect the contractor to achieve. It should be as specific and as  unambiguous as possible. | Yes |
-| **Deliverables &  Specifications** | Describe precisely the expected outcomes and  deliverables from the contractor's task, including a list of specifications clarifying what makes the deliverable acceptable as outcome and details on how to verify that the deliverable is fulfilling the expectation. | Yes |
-| **Scope** | Clarify the scope of the tasks that the contractor is responsible for completing, going into separate detail about every aspect of the task. Also used to clarify what is out  of scope. | No  |
-| **Expected Cost** | Gives expectation in terms of cost for the task completion. This is usually a function of the complexity of the task combined with what tools will be used. | Yes |
-| **Expected Duration**  | Gives expectation in terms of duration for the task completion.  | Yes |
-| **Input Sources**  | Specify what input sources can be used and considered to be  useful to complete the task.  | No |
-| **Reporting and  Feedback** | Specifies how the feedback loop should look like: how often we  expect updates on the progress, and what mechanism/surface  is used to provide feedback (emails, APIs, etc.). | Yes |
+| 合約迭代：回饋與協商 | | |
+| :--- | :--- | --- |
+| **欄位** | **描述** | **必填** |
+| **規格不足** | 強調規格不足或需要任務發起者澄清的方面。 | 否 |
+| **成本協商** | 認為完成任務的成本過高。 | 否 |
+| **風險** | 強調履行合約的潛在風險。 | 否 |
+| **需要額外輸入** | 表達需要哪些額外的數據或資訊才能履行合約。 | 否 |
 
-Table 3: An example data model for the contracts.
+表 4：承包商之間訊息迭代的範例數據模型。
 
-February 2025 47   
-Agents Companion 
+2025年2月 48日
+代理人指南 (Agents Companion)
 
-| Contract Iteration: Feedback & Negotiation |  |  |
-| :---- | :---- | ----- |
-| **Fields**  | **Description**  | **Required** |
-| **Underspecification**  | Highlight aspects that are underspecified or  need clarification from the task initiator.  | No |
-| **Cost negotiation**  | Cost considered too high to complete the task.  | No |
-| **Risk**  | Highlights potential risks in fulfilling the contract.  | No  |
-| **Additional input   needed** | Express the kinds of additional data or information that would  be useful to fulfill the contract.  | No |
+**合約生命週期 (Contract Lifecycle)**
 
-Table 4: An example data model for the iteration of messaging between contractors.
+下圖顯示了定義、協商和執行合約的生命週期：
 
-February 2025 48   
-Agents Companion 
+![][image15]圖 13：來自 Agentspace 的代理人即承包商生命週期圖。
 
-**Contract Lifecycle** 
+**合約執行 (Contract execution)**
 
-The following illustration shows the lifecycle of defining, negotiating and executing the  contract:  
+這要求承包商執行環境能夠履行合約，並根據其定義的規格解決合約背後的任務。優先考慮品質和完整性而非延遲，能夠充分利用 LLM 的能力，例如
 
-![][image15]Figure 13: A diagram of the agent as contractor lifecycle from Agentspace. 
+2025年2月 49日
+代理人指南 (Agents Companion)
 
-**Contract execution** 
+透過生成不同的解決方案，並對其進行審查、評分和演進。Co-Scientist 研究中展示了這種方法的一個例子。引擎可以根據提供的期望，對結果和交付成果進行迭代和自我驗證，並可以改進和自我修正，直到驗證器得到滿足。能夠根據一組客觀標準具體驗證解決方案的能力，已被證明在 AI 的背景下非常有效，並且是成功的 AI 系統（例如 Alpha-Code）的核心。
 
-This requires the contractor runtime to be able to fulfill the contracts and solve the  tasks behind contracts according to their defined specifications. Prioritizing quality and  completeness over latency enables to fully leverage the capabilities of LLMs, for example 
+**合約協商 (Contract Negotiation)**
 
-February 2025 49   
-Agents Companion 
+在自動化代理人的背景下，合約背後的一個核心假設是，企業世界中的許多任務在以較少限制（延遲和成本方面）的方式使用 LLM 的強大功能時，可以從中獲得顯著的益處。
 
-by generating different solutions, and reviewing, scoring, and evolving them. An example of  this methodology is shown below in the Co-Scientist study. The engine can iterate and self validate the results and deliverables based on the provided expectations, and can improve  and self-correct until the validators are fulfilled. The ability to concretely validate a solution  against a set of objective criteria has proven to work extremely well in the context of AI and  has been at the core of successful AI systems such as for example Alpha-Code. 
+能夠處理越來越複雜的任務，並使客戶能夠依賴和信任承包商的結果，將確保為公司帶來真正的價值。即便如此，我們也需要有一個相對優先級的概念，以確保任務得到適當的優先級排序，資源也得到公平的分配。因此，我們引入了一個成本概念（通常是相對於每個客戶或合約發起人），可以由合約發起人和承包商之間進行討論和協商，以確保合約相對於合約發起人發起的其他合約，獲得足夠的資源。承包商也可以協商合約的其他方面，例如規格和交付成果（也請參見下面關於回饋的部分）。
 
-**Contract Negotiation** 
+2025年2月 50日
+代理人指南 (Agents Companion)
 
-One core hypothesis behind contracts in the context of automation agents specifically is that  many tasks in the enterprise world can draw significant benefit from leveraging the power of  LLMs when used in a less-constrained manner (latency and cost wise). 
+**合約回饋 (Contract Feedback)**
 
-Being able to tackle more and more complex tasks and making it possible for customers to  be able to rely on and trust the results of contractors will ensure real value for companies.  Even that being said, we need to have a notion of relative priority in order to make sure that  tasks are appropriately prioritized as well as resources fairly allocated. We thus introduce a  notion of cost (typically relative per customer or contract initiator) which can be discussed  
+合約提供了一種提供回饋的工具，特別是用於解決模糊之處。隨著任務變得越來越複雜，能夠盡早提出與任務規格相關的模糊之處或其他問題至關重要。承包商可以在收到合約後立即（初始合約評估），然後以合約中預定的頻率提供對合約的回饋。
 
-and negotiated between the contract initiator and the contractor, in order to make sure that  the contract receives the adequate resources relative to the other contracts initiated by the  contract initiator. The contractors can also negotiate other aspects of the contracts, for  example in terms of specification and deliverables (cf. also section below on feedback).
+此回饋將包含澄清請求，或關於任務規格不足或錯誤指定的其他類型的回饋（不一致、規格衝突、澄清等）。
 
-February 2025 50   
-Agents Companion 
+**子合約 (Subcontracts)**
 
-**Contract Feedback** 
+雖然不直接屬於合約定義和規格的一部分，但將任務分解為子任務並生成子合約的能力，是驅動承包商引擎的核心概念。
 
-Contracts give a vehicle to provide feedback and in particular resolve ambiguities. As tasks  become more and more complex, it is critical to be able to raise ambiguities or other issues  related to the tasks specifications as early as possible. Contractors can give feedback on the  contract just after having received the contract (initial contract assessment), and then at a  frequency predefined in the contract. 
+當一個任務被認為過於複雜而無法直接處理時，承包商可以決定將該任務分解為更小、更容易的任務，這些任務將被添加到執行佇列中等待解決。這只有透過上述的合約形式化才有可能實現，它使得承包商能夠以統一和標準化的方式生成、處理和操作其他合約。
 
-This feedback will contain clarification requests, or other types of feedback about the  underspecification or misspecification of tasks (inconsistencies, conflicting specs,  clarification, etc.). 
+2025年2月 51日
+代理人指南 (Agents Companion)
 
-**Subcontracts** 
+**Google 的 Co-Scientist：多代理人智慧案例研究**
 
-Although not part of the contract definition and specification directly, the ability to  decompose a task into subtasks by generating subcontracts is a core concept that will be  used to power the contractors’ engine. 
+Google 的 AI 共同科學家 (AI co-scientist) 是一個將多代理人 LLM 系統應用於科學研究的典型範例。該系統利用一個由專業化代理人組成的團隊，每個代理人都有自己的角色和專業知識，以加速科學發現的步伐。這些代理人協作生成、評估和改進假設，模仿科學探究的迭代過程。
 
-When a task is considered too complex to be tackled directly, contractors can decide to  decompose the task into smaller and easier tasks, which will be added to the execution  queue for solving. This is made possible only through the contract formalization described  above, which makes it possible for the contractors to generate, process and manipulate  other contracts in a uniform and standardized way.
+該共同科學家系統採用「生成、辯論和演進」的方法，從科學方法中汲取靈感。這種方法涉及生成多樣化的假設，批判性地評估其潛力，並透過持續的回饋和分析來改進它們。該系統利用不同 LLM 的優勢，每個 LLM 都專精於研究過程的特定方面，以實現更全面、更穩健的結果。
 
-February 2025 51   
-Agents Companion 
+例如，在一項關於肝纖維化治療的研究中，這位共同科學家不僅識別了現有藥物，還提出了新的機制和有前景的候選藥物，展示了其產生新穎見解的潛力。其主要組成部分包括：
 
-**Google's Co-Scientist: A Case Study in  Multi-Agent Intelligence** 
+• **數據處理代理人 (Data Processing Agents):** 匯總和結構化大量的實驗數據。
 
-Google's AI co-scientist is a prime example of a multi-agent LLM system applied to scientific  research. This system utilizes a team of specialized agents, each with its own role and  expertise, to accelerate the pace of scientific discovery. These agents collaborate to  generate, evaluate, and refine hypotheses, mirroring the iterative process of scientific inquiry. 
+• **假設生成器 (Hypothesis Generators):** 根據現有研究和新發現提出潛在的解釋。
 
-The co-scientist system employs a "generate, debate, and evolve" approach, drawing  inspiration from the scientific method. This approach involves generating diverse hypotheses,  critically evaluating their potential, and refining them through ongoing feedback and analysis.  The system leverages the strengths of different LLMs, each specializing in a particular aspect  of the research process, to achieve a more comprehensive and robust outcome. 
+• **驗證代理人 (Validation Agents):** 運行模擬並在將結果呈現給研究人員之前進行驗證。
 
-For instance, in a study on liver fibrosis treatments, the co-scientist not only identified  existing drugs but also proposed new mechanisms and promising drug candidates,  demonstrating its potential to generate novel insights. Some of its major components are:  
+• **協作代理人 (Collaboration Agents):** 在不同研究團隊之間溝通發現，增強跨學科合作。
 
-• **Data Processing Agents:** aggregate and structure large volumes of experimental data. 
+2025年2月 52日
+代理人指南 (Agents Companion)
 
-• **Hypothesis Generators:** propose potential explanations based on existing research and  new findings. 
+圖 14：AI 共同科學家系統的流程圖31
 
-• **Validation Agents:** run simulations and verify results before presenting them  to researchers. 
+這種方法例證了多代理人架構如何超越靜態的 AI 互動，轉而培養能夠處理研究、企業自動化和知識管理中複雜任務的動態、演進的智慧。
 
-• **Collaboration Agents:** communicate findings across different research teams, enhancing  interdisciplinary cooperation.
+2025年2月 53日
+代理人指南 (Agents Companion)
 
-February 2025 52   
-Agents Companion 
+**汽車 AI：多代理人架構的真實世界應用**
 
-Figure 14: A process diagram of the AI co-scientist system31 
+為了說明多代理人概念在實踐中如何體現，讓我們來檢視一個專為汽車對話式 AI 設計的綜合性多代理人系統，其中幾個專業化代理人協作提供直觀、無縫的車內體驗。
 
-This approach exemplifies how multi-agent architectures move beyond static AI interactions,  instead fostering dynamic, evolving intelligence capable of handling sophisticated tasks in  research, enterprise automation, and knowledge management.
+首先，我們將看一些專業化代理人的例子，然後是一些將它們組合起來形成多代理人系統的常見模式。
 
-February 2025 53   
-Agents Companion 
+**專業化代理人 (Specialized Agents)**
 
-**Automotive AI: Real World Use of  Multi-Agent Architecture** 
+讓我們先看一些專業化代理人的例子。
 
-To illustrate how multi-agent concepts manifest in practice, let's examine a comprehensive  multi-agent system designed for automotive conversational AI, where several specialized  agents collaborate to provide an intuitive and seamless in-car experience. 
+**對話式導航代理人 (Conversational Navigation Agent)**
 
-First, we’ll look at some examples of specialized agents, followed by some common patterns  for combining them to form a multi-agent system. 
+對話式導航代理人專門幫助使用者尋找地點、建議地點，並使用像 Google Places 和 Maps 這樣的 API 進行導航。該代理人理解像「幫我找附近一家壽司餐廳」這樣的導航意圖，查詢 Places API 以獲得相關結果，根據使用者偏好和歷史數據對這些結果進行重新排序，並將導航命令發送到汽車的內建系統。
 
-**Specialized Agents** 
+2025年2月 54日
+代理人指南 (Agents Companion)
 
-Let’s first look at some examples of specialized agents.  
+**互動範例：**
 
-**Conversational Navigation Agent** 
+**使用者：**「我需要休息一下吃午餐。在我去慕尼黑的路上有什麼好餐廳嗎？」
 
-The Conversational Navigation Agent is specialized in helping users find locations, suggest  places, and navigate using APIs like Google Places and Maps. This agent understands  navigation intents like "Find me a sushi restaurant nearby," queries the Places API for relevant  results, re-ranks these results based on user preferences and historical data, and sends  navigation commands to the car's built-in system.
+**導航代理人：**「我在 A9 公路上沿途為您找到了三家評價很好的餐廳。25 公里處，在因戈爾施塔特出口有『Gasthaus Alte Mühle』，評分 4.5 顆星——評論者稱讚他們的傳統巴伐利亞菜餚和啤酒花園。45 公里處，在服務區的『La Strada』有 4.1 顆星，評論說他們的快速義大利餐很好。或者如果您可以再等 70 公里，在阿勒斯豪森附近的『Zeitlos』有 4.7 顆星——這家比較高級，提供從農場到餐桌的美食。您對哪一家最感興趣？」
 
-February 2025 54   
-Agents Companion 
+**使用者：**「那家巴伐利亞餐廳聽起來不錯。那裡停車方便嗎？離高速公路有多遠？」
 
-**Example Interaction:** 
+**導航代理人：**「Gasthaus Alte Mühle 有一個專用停車場，大約有 40 個車位。它距離 A9 因戈爾施塔特北出口僅 1.2 公里——大約 2 分鐘車程。他們以烤豬肉和自製餃子聞名。中午時段會很忙，但目前顯示為中等佔用率。您想讓我將這裡設為您的目的地並引導您過去嗎？如果我們現在出發，您大約會在 12:15 到達。」
 
-**User:** "I need to take a break for lunch. What are good restaurants on my route  to Munich?" 
+**對話式媒體搜尋代理人 (Conversational Media Search Agent)**
 
-**Navigation Agent:** "I found three well-rated restaurants along your route on the A9. In 25  kilometers, there's 'Gasthaus Alte Mühle' at the Ingolstadt exit with 4.5 stars - reviewers  praise their traditional Bavarian dishes and beer garden. In 45 kilometers, 'La Strada' at  the service area has 4.1 stars with good reviews for quick Italian meals. Or if you can wait  70 kilometers, 'Zeitlos' near Allershausen has 4.7 stars - it's a bit fancier with farm-to-table  cuisine. Which one interests you most?" 
+對話式媒體搜尋代理人專門幫助使用者尋找和播放音樂、有聲書和播客。該代理人從本地資料庫或串流媒體服務中檢索媒體，在必要時使用網路搜尋額外內容，根據心情、天氣和時間等情境因素建議媒體，並處理語音命令，例如「為我的駕駛播放一個輕鬆的播放清單」。當使用者問「誰的聲音像約翰·柯川？」等問題時，它還能識別相似的藝術家或內容。
 
-**User:** "The Bavarian place sounds good. Is there convenient parking there, and how far is  it from the motorway?" 
+2025年2月 55日
+代理人指南 (Agents Companion)
 
-**Navigation Agent:** "Gasthaus Alte Mühle has a dedicated parking area with about 40  spaces. It's only 1.2 kilometers from the A9 exit at Ingolstadt-Nord - about a 2-minute drive.  They're known for their Schweinebraten and homemade dumplings. It gets busy around  noon, but it's currently showing moderate occupancy. Would you like me to set this as your  destination and guide you there? You'll arrive around 12:15 if we head there now." 
+**互動範例：**
 
-**Conversational Media Search Agent** 
+**使用者：**「播點輕快的音樂，讓我在這漫長的高速公路上保持清醒。」
 
-The Conversational Media Search Agent is specialized in helping users find and play music,  audiobooks, and podcasts. This agent retrieves media from local databases or streaming  services, uses web search for additional content when necessary, suggests media based on  contextual factors like mood, weather, and time of day, and handles voice commands such  as "Play a relaxing playlist for my drive." It also identifies similar artists or content when users  ask questions like "Who sounds like John Coltrane?"
+**對話式媒體搜尋代理人：**「我會播放一個輕快的駕駛播放清單，幫助您保持精力。從皇后樂團的『Don't Stop Me Now』開始，接著是一些 Daft Punk 和 Stromae 的曲目。我還添加了一些符合您偏好的歐洲流行廣播金曲。我已經調整了音量以獲得最佳的道路感知。如果您想跳過一首歌，只需說『下一首』。」
 
-February 2025 55   
-Agents Companion 
+**訊息撰寫代理人 (Message Composition Agent)**
 
-**Example Interaction:** 
+訊息撰寫代理人專門幫助使用者在駕駛時起草、摘要和發送訊息或電子郵件。該代理人解析語音命令，如「告訴 Alex 我要遲到了」，使用自然語言模型撰寫符合上下文的訊息，提供草稿預覽並允許使用者修改，並與包括簡訊、WhatsApp 和電子郵件在內的各種訊息應用程式整合。
 
-**User:** "Play something upbeat to help me stay alert on this long motorway drive." 
+**互動範例：**
 
-**Conversational Media Search Agent:** "I'll play an upbeat driving playlist to help keep  you energized. Starting with 'Don't Stop Me Now' by Queen, followed by some Daft  Punk and Stromae tracks. I've added some popular European radio hits that match your  preferences. I've adjusted the volume for optimal road awareness. Just say 'next' if you  want to skip a song." 
+**使用者：**「E40 公路交通嚴重堵塞。通知我的團隊，我早上的站立會議會遲到 20 分鐘。」
 
-**Message Composition Agent** 
+**訊息撰寫代理人：**「我已經為您的工作團隊準備了一條訊息：『因 E40 公路交通堵塞，我將會遲到約 20 分鐘參加我們的晨間站會。請不用等我，直接開始。』我應該將此訊息發送到您的『工作團隊』聊天群組，還是您想先編輯一下？」
 
-The Message Composition Agent is specialized in helping users draft, summarize, and send  messages or emails while driving. This agent parses voice commands like "Tell Alex I'm  running late," uses natural language models to compose contextually appropriate messages,  offers draft previews with user modification options, and integrates with various messaging  apps including SMS, WhatsApp, and email. 
+2025年2月 56日
+代理人指南 (Agents Companion)
 
-**Example Interaction:** 
+**汽車手冊代理人 (Car Manual Agent)**
 
-**User:** "There's heavy traffic on the E40. Let my team know I'll be 20 minutes late to the  morning standup." 
+汽車手冊代理人專門透過利用檢索增強生成 (Retrieval-Augmented Generation, RAG) 系統來回答與汽車相關的問題。該代理人根據使用者查詢從汽車手冊中檢索相關章節，使用 LLM 總結和情境化這些資訊，並在適當時將使用者連結到詳細的文件或教學影片。
 
-**Message Composition Agent:** "I've prepared a message to your work team: 'Stuck in  traffic on the E40. Will be about 20 minutes late to our morning standup. Please start  without me.' Should I send this to your 'Work Team' chat group, or would you like to edit  it first?"
+**互動範例：**
 
-February 2025 56   
-Agents Companion 
+**使用者：**「在這輛福斯汽車中，如何關閉車道維持輔助功能？」
 
-**Car Manual Agent** 
+**汽車手冊代理人：**「要關閉您福斯汽車的車道維持輔助功能，請按方向盤左側帶有汽車和車道圖示的按鈕。當它被停用時，您會在駕駛員顯示器上看到確認訊息。您也可以在資訊娛樂系統的『設定』>『駕駛員輔助』>『車道維持』下永久禁用它。您想讓我引導您瀏覽設定選單嗎？」
 
-The Car Manual Agent is specialized in providing answers to car-related questions by  leveraging a Retrieval-Augmented Generation (RAG) system. This agent retrieves relevant  sections from the car manual based on user queries, summarizes and contextualizes this  information using an LLM, and links users to detailed documentation or instructional videos  when appropriate. 
+**通用知識代理人 (General Knowledge Agent)**
 
-**Example Interaction:** 
+通用知識代理人專門回答關於世界、歷史、科學、文化和其他一般主題的事實性問題。該代理人存取廣泛的知識庫來回答事實性問題，提供人物的傳記資訊，對概念和現象提供上下文解釋，在避免幻覺的同時保持對事實資訊的依據，並透過維持上下文感知來回應後續問題。
 
-**User:** "How do I turn off the lane-keeping assist feature in this Volkswagen?" 
+**互動範例：**
 
-**Car Manual Agent:** "To turn off lane-keeping assist in your Volkswagen, press the  button with the car-and-lane icon located on the left side of your steering wheel. You'll  see a confirmation in the driver display when it's deactivated. You can also disable  it permanently in the infotainment system under Settings > Driver Assistance > Lane  Keeping. Would you like me to walk you through the settings menu instead?" 
+**使用者：**「告訴我一個關於薩爾斯堡的有趣事實。」
 
-**General Knowledge Agent** 
+2025年2月 57日
+代理人指南 (Agents Companion)
 
-The General Knowledge Agent is specialized in answering factual questions about the world,  history, science, culture, and other general topics. This agent accesses a broad knowledge  base to answer factual questions, provides biographical information about people, offers  contextual explanations of concepts and phenomena, maintains grounding in factual  information while avoiding hallucinations, and responds to follow-up questions by maintaining  contextual awareness. 
+**通用知識代理人：**「奧地利的薩爾斯堡是莫札特的出生地，他是歷史上最著名的作曲家之一。除了這個眾所周知的事實之外，薩爾斯堡的老城區是聯合國教科文組織世界遺產，而且備受喜愛的音樂劇《真善美》的部分場景於 1964 年在那裡拍攝。薩爾斯堡音樂節是世界上最負盛名的音樂和戲劇節之一，自 1920 年以來每年都在那裡舉行。」
 
-**Example Interaction:** 
+**使用中的模式 (Patterns in Use)**
 
-**User:** "Tell me an interesting fact about Salzburg."
+讓我們來看看一些組合這些代理人的常用方法。
 
-February 2025 57   
-Agents Companion 
+**分層模式 (Hierarchical Pattern)**
 
-**General Knowledge Agent:** "Salzburg, Austria is the birthplace of Mozart, one of  history's most famous composers. Beyond that well-known fact, Salzburg's old town is a  UNESCO World Heritage site, and parts of the beloved musical 'The Sound of Music' were  filmed there in 1964. The Salzburg Festival, one of the world's most prestigious music and  drama festivals, has been held there annually since 1920." 
+一個中央協調器代理人 (Orchestrator Agent) 對查詢進行分類，並將它們路由到專業化代理人。例如，當使用者詢問「幫我找附近的一家壽司餐廳」時，協調器會將其檢測為導航請求，並將其路由到導航代理人，後者負責處理位置搜尋和與地圖 API 的互動。
 
-**Patterns in Use** 
+圖 15. 分層模式。
 
-Let’s look at the some common ways used to combine these agents. 
+2025年2月 58日
+代理人指南 (Agents Companion)
 
-**Hierarchical Pattern** 
+協調器代理人專門將查詢路由到最合適的專業化代理人，並管理整個對話流程。該代理人分析使用者查詢以確定領域和意圖，將請求導向最合適的專業化代理人，在多輪對話中維持對話上下文，並在專業化代理人無法提供滿意回應時管理後備策略。
 
-A central Orchestrator Agent classifies queries and routes them to specialized agents. For  example, when a user asks "Find me a sushi restaurant nearby," the Orchestrator detects  this as a navigation request and routes it to the Navigation Agent, which handles location  searches and interaction with maps APIs. 
+**互動範例：**
 
-Figure 15. Hierarchical pattern.
+**第一輪：**
 
-February 2025 58   
-Agents Companion 
+**使用者：**「前面有乾淨廁所的服務區嗎？」
 
-The Orchestrator Agent is specialized in routing queries to the most appropriate specialized  agents and managing the overall conversation flow. This agent analyzes user queries to  determine domain and intent, directs requests to the most suitable specialized agent,  maintains conversation context across multiple turns, and manages fallback strategies when  specialized agents cannot provide satisfactory responses. 
+**協調器代理人：** [內部路由至導航代理人]
 
-**Example Interaction:** 
+**導航代理人：**「在 E19 公路上前方 20 公里處有一個服務區。是 Aire de Waremme，去年剛翻新過，設施和清潔度評價都很好。那裡還有一家 Paul 麵包店和一家快餐店。」
 
-**First Turn:** 
+**第二輪：**
 
-**User:** "Is there a service area ahead with clean toilets?" 
+**使用者：**「今晚我的目的地會下雨嗎？」
 
-**Orchestrator Agent:** [internally routes to Navigation Agent] 
+**協調器代理人：** [識別為天氣查詢並路由至天氣資訊代理人]
 
-**Navigation Agent:** "There's a service area 20 kilometers ahead on the E19. It's Aire  de Waremme, which was renovated last year and has good ratings for facilities and  cleanliness. It also has a Paul bakery and a quick-service restaurant." 
+**天氣資訊代理人：**「您在布魯塞爾的目的地，預報顯示晚上有 60% 的機率會下小雨，大約從 19:00 開始。氣溫約為 14°C。如果您打算在戶外活動，我建議您帶把傘。」
 
-**Second Turn:** 
+2025年2月 59日
+代理人指南 (Agents Companion)
 
-**User:** "Will it rain at my destination this evening?" 
+**鑽石模式 (Diamond Pattern)**
 
-**Orchestrator Agent:** [recognizes weather query and routes to Weather  Information Agent] 
+在這種分層模式的變體中，來自專業化代理人的回應在到達使用者之前會經過一個中央審核代理人。例如，導航代理人生成關於附近餐廳的事實性回應，然後該回應會經過一個重述代理人 (Rephraser Agent)，該代理人會根據使用者偏好調整語氣和風格，然後再進行文字轉語音合成。
 
-**Weather Information Agent:** "At your destination in Brussels, the forecast shows a 60%  chance of light rain in the evening, starting around 19:00. Temperatures will be around  14°C. I'd recommend bringing an umbrella if you plan to be outdoors."
+重述代理人專門根據使用者偏好和上下文調整回應的語氣、風格和呈現方式。該代理人將技術資訊轉換為對話式語言，根據駕駛條件和緊急程度調整回應長度，根據使用者偏好個人化溝通風格，並格式化複雜資訊以便在駕駛時更容易理解。
 
-February 2025 59   
-Agents Companion 
+**互動範例：**
 
-**Diamond Pattern** 
+**[重述前汽車手冊代理人的原始回應]：**「在輪胎壓力監測系統警報事件中，車輛已檢測到一個或多個輪胎的壓力已低於建議的 2.2 巴充氣壓力。受影響輪胎的壓力約為 1.8 巴，比建議值低 18.75%。這不構成立即的安全危害，但長時間使用充氣不足的輪胎行駛會導致燃油效率下降、輪胎壽命縮短，並可能影響操控特性。建議您盡快前往服務站將輪胎充氣至適當規格。」
 
-In this variation of the hierarchical pattern, responses from specialized agents pass  through a central moderation agent before reaching the user. For instance, the Navigation  Agent generates a factual response about a nearby restaurant, which then goes through  a Rephraser Agent that adjusts the tone and style based on user preferences before  text-to-speech synthesis. 
+**重述代理人：** [針對駕駛情境進行調整，調整資訊密度和緊急程度]
 
-The Rephraser Agent is specialized in adapting the tone, style, and presentation of responses  to match user preferences and context. This agent transforms technical information into  conversational language, adjusts response length based on driving conditions and urgency,  personalizes communication style to match user preferences, and formats complex  information for easier comprehension while driving. 
+**給使用者的最終回應：**「您的右前輪胎壓有點低——降到了 1.8 巴。繼續行駛是安全的，但您最好在下一個加油站加點氣。胎壓過低會影響您的燃油經濟性，並使輪胎磨損得更快。如果您需要，我可以幫您找一個附近的加氣站。」
 
-**Example Interaction:** 
+2025年2月 60日
+代理人指南 (Agents Companion)
 
-**[Raw response from Car Manual Agent before rephrasing]:** "In the event of a tire  pressure monitoring system alert, the vehicle has detected that one or more tires have  fallen below the recommended inflation pressure of 2.2 bar. The affected tire's pressure is  approximately 1.8 bar, which is 18.75% below recommended levels. This does not constitute  an immediate safety hazard, but prolonged driving with underinflated tires can lead to  decreased fuel efficiency, reduced tire longevity, and potentially compromised handling  characteristics. It is advisable to proceed to a service station at your earliest convenience  to reinflate the tire to proper specifications." 
+圖 16. 鑽石模式。
 
-**Rephraser Agent:** [Adapts for driving context, adjusts information density and urgency] 
+**轉換範例：**
 
-**Final Response to User:** "Your front right tire is a bit low - down to 1.8 bar. It's safe to  keep driving, but you'll want to add some air at the next petrol station. Low tire pressure  can affect your fuel economy and make the tire wear out faster. I can help you find a  nearby place to fill up if you'd like."
+**初始回應（事實且中性）：**「我找到了一家評價很高的壽司餐廳。它叫櫻花壽司，地址是主街 123 號。評分 4.7 顆星，營業到晚上 10 點。您想讓我開始導航嗎？」
 
-February 2025 60   
-Agents Companion 
+**重述後（俏皮風格）：**「想吃壽司？別說了！快去主街 123 號的櫻花壽司吧，那裡的魚很新鮮，醬油源源不絕！評分 4.7 顆星，營業到晚上 10 點。準備好來一場鮮味冒險了嗎？」
 
-Figure 16. Diamond pattern. 
+2025年2月 61日
+代理人指南 (Agents Companion)
 
-**Example transformation:** 
+**點對點 (Peer-to-Peer)**
 
-**Initial Response (factual & neutral):** "I found a highly-rated sushi restaurant nearby. It's  called Sakura Sushi, located at 123 Main Street. It has a 4.7-star rating and is open until 10  PM. Would you like me to start navigation?" 
+當代理人偵測到協調器發生路由錯誤時，它們可以互相交接查詢。這創建了一個更具彈性的系統，可以從最初的錯誤分類中恢復。
 
-**After rephrasing (playful style):** "Sushi craving? Say no more! Head over to Sakura Sushi  at 123 Main Street, where the fish is fresh and the soy sauce flows freely! Rated 4.7 stars,  open till 10 PM. Ready for an umami adventure?”
+圖 17. 點對點。
 
-February 2025 61   
-Agents Companion 
+**範例場景：**
 
-**Peer-to-Peer** 
+1. 使用者詢問：「找附近吃壽司的地方」
 
-Agents can hand off queries to one another when they detect that the orchestration  made a routing mistake. This creates a more resilient system that can recover from  initial misclassifications. 
+2. 協調器正確地將此路由到對話式導航代理人，後者提供附近壽司餐廳的資訊。
 
-Figure 17. Peer-to-peer. 
+3. 使用者接著問：「紐約中央公園有多大？」
 
-**Example scenario:** 
+4. 協調器最初可能會再次將此路由到對話式導航代理人（基於先前的導航相關對話）。
 
-1. User asks: "Find a place to eat sushi nearby" 
+2025年2月 62日
+代理人指南 (Agents Companion)
 
-2. The Orchestrator correctly routes this to the Conversational Navigation Agent, which  provides information about nearby sushi restaurants. 
+5. 然而，對話式導航代理人會意識到這是一個通用知識問題，而不是導航請求，並將其交接給通用知識代理人，後者可以提供關於中央公園大小的事實資訊。
 
-3. User follows up: "How big is New York's Central Park?" 
+**點對點交接與集中式協調相比的優勢：**
 
-4. The Orchestrator might initially route this to the Conversational Navigation Agent again  (based on the previous navigation-related conversation).
+1. **對錯誤分類的彈性：** 即使中央協調器在路由上出錯，專業化代理人也能夠識別查詢何時超出其領域範圍並適當地重新導向。
 
-February 2025 62   
-Agents Companion 
+2. **路由方面的領域專業知識：** 專業化代理人通常對自己領域的邊界有更好的理解。媒體搜尋代理人比通用協調器更清楚地知道它能處理哪些類型的音樂相關查詢。
 
-5. However, the Conversational Navigation Agent recognizes this as a general knowledge  question rather than a navigation request, and hands it off to the General Knowledge  Agent, which can provide factual information about Central Park's size. 
+3. **降低協調複雜性：** 中央協調器在初始路由中不需要完美的準確性，從而降低了其決策邏輯的複雜性。
 
-**Advantages of peer-to-peer hand-off compared to centralized orchestration:** 
+**協作模式 (Collaborative Pattern)**
 
-1. **Resilience to misclassification:** Even if the central orchestrator makes an error in  routing, specialized agents can recognize when a query falls outside their domain and  redirect appropriately. 
+協作模式涉及多個代理人處理同一個任務的互補方面，並由一個回應混合器代理人 (Response Mixer Agent) 將不同代理人回應的元素組合起來，創建一個全面的答案。這種方法認識到，不同的代理人根據其專業知識，為一個完整的解決方案貢獻了有價值的片段。該模式在以下情況下特別有價值：
 
-2. **Domain expertise in routing:** Specialized agents often have better understanding of the  boundaries of their own domains. The Media Search Agent knows exactly what kinds of  music-related queries it can handle better than a general orchestrator would. 
+1. 查詢的不同方面需要不同類型的專業知識（例如，技術規格、實用建議和概念解釋）
 
-3. **Reduced orchestration complexity:** The central orchestrator doesn't need perfect  accuracy in initial routing, reducing the complexity of its decision-making logic. 
+2. 沒有單一的代理人擁有完整的資訊來完全解決使用者的需求 3. 使用者將從對同一個問題的多個視角中受益
 
-**Collaborative Pattern** 
+2025年2月 63日
+代理人指南 (Agents Companion)
 
-The Collaborative Pattern involves multiple agents working on complementary aspects of  the same task, with a Response Mixer Agent that combines elements from different agent  responses to create a comprehensive answer. This approach recognizes that different agents  contribute valuable pieces to a complete solution based on their specialized expertise. The  pattern is particularly valuable when: 
+4. 不同的專業化代理人可以存取不同的知識庫或推理能力
 
-1. Different aspects of a query require different types of expertise (e.g., technical  specifications, practical advice, and conceptual explanations) 
+與回應相互競爭的競爭性方法不同，協作模式假設來自不同代理人的回應是互補的而不是多餘的。回應混合器代理人會從每個來源中識別出最有價值的資訊，並將其綜合為一個連貫的答案，從而利用每個專家的獨特優勢。
 
-2. No single agent has complete information to fully address the user's needs 3. The user would benefit from multiple perspectives on the same question
+例如，當被問及如何處理水漂時，汽車手冊代理人提供特定車輛的安全系統資訊，駕駛技巧代理人提供實用的駕駛技巧，而通用知識代理人則解釋現象背後的物理原理。它們共同創造了一個比任何單一代理人所能提供的更完整、更有用的回應。
 
-February 2025 63   
-Agents Companion 
+2025年2月 64日
+代理人指南 (Agents Companion)
 
-4. Different specialized agents have access to distinct knowledge bases or  reasoning capabilities 
+圖 18. 協作模式。
 
-Unlike the competitive approach where responses compete, the collaborative pattern  assumes that responses from different agents are complementary rather than redundant.  The Response Mixer Agent identifies the most valuable information from each source and  synthesizes it into a cohesive answer that leverages the unique strengths of each specialist. 
+2025年2月 65日
+代理人指南 (Agents Companion)
 
-For example, when asked about handling hydroplaning, the Car Manual Agent contributes  vehicle-specific safety system information, the Driving Tips Agent provides practical driving  techniques, and the General Knowledge Agent explains the physics behind the phenomenon.  Together, they create a more complete and useful response than any single agent could  provide alone.
+**回應混合器代理人 (Response Mixer Agent)**
 
-February 2025 64   
-Agents Companion 
+回應混合器專門從多個代理人中挑選最佳回應，並在需要時將它們合併。該代理人根據答案的準確性和相關性評估答案，移除不正確的資訊，並將不同回應中的有用部分組合起來，為使用者創建最有幫助的答案。
 
-Figure 18. Collaborative pattern.
+**互動範例：**
 
-February 2025 65   
-Agents Companion 
+**使用者：**「我該如何處理水漂 (aquaplaning)？」
 
-**Response Mixer Agent** 
+**[幕後，多個代理人生成回應：]**
 
-The Response Mixer is specialized in picking the best responses from multiple agents  and merging them when needed. This agent evaluates answers based on their accuracy  and relevance, removes incorrect information, and combines useful parts from different  responses to create the most helpful answer for the user. 
+**汽車手冊代理人回應：**「您的奧迪配備了電子穩定控制系統 (ESC) 和防鎖死煞車系統 (ABS)，它們透過維持循跡控制來幫助防止水漂。」[信心分數：71%]
 
-**Example Interaction:** 
+**通用知識代理人回應：**「當您的輪胎因輪胎與路面之間積水而失去與路面的接觸時，就會發生水漂。」[信心分數：65%]
 
-**User:** "How do I handle aquaplaning?" 
+**安全提示代理人回應：**「如果您遇到水漂，請鬆開油門，避免突然煞車或轉向，並輕輕地朝您想去的方向轉向，直到您重新獲得循跡力。」[信心分數：94%]
 
-**[Behind the scenes, multiple agents generate responses:]** 
+**回應混合器代理人：**[挑選最相關的部分並將它們合併成一個完整的答案]
 
-**Car Manual Agent Response:** "Your Audi is equipped with Electronic Stability Control  (ESC) and Anti-lock Braking System (ABS) which help prevent aquaplaning by maintaining  traction control." [Confidence score: 71%] 
+**給使用者的最終回應：**「如果您遇到水漂，也就是當您的輪胎因輪胎與路面之間積水而失去接觸時，請鬆開油門，避免突然煞車或轉向，並輕輕地朝您想去的方向轉向，直到您重新獲得循跡力。您的奧迪的電子穩定控制系統和 ABS 系統將有助於維持控制，但正確的駕駛技巧仍然至關重要。」
 
-**General Knowledge Agent Response:** "Aquaplaning occurs when your tires lose contact  with the road surface due to water buildup between the tires and the road." [Confidence  score: 65%] 
+2025年2月 66日
+代理人指南 (Agents Companion)
 
-**Safety Tips Agent Response:** "If you experience aquaplaning, ease off the accelerator,  avoid sudden braking or steering, and gently steer in the direction you want to go until you  regain traction." [Confidence score: 94%] 
+這種競爭性方法確保了關鍵的安全資訊不會因路由錯誤而被遺漏，並且即使在查詢有多種合理解釋的情況下，使用者也能收到最有用可能的回應。
 
-**Response Mixer Agent:** [Picks the most relevant parts and merges them into one  complete answer] 
+**適應性循環模式 (Adaptive Loop Pattern)**
 
-**Final Response to User:** "If you experience aquaplaning, which happens when your  tires lose contact with the road due to water buildup, ease off the accelerator, avoid  sudden braking or steering, and gently steer in the direction you want to go until you  regain traction. Your Audi's Electronic Stability Control and ABS systems will help maintain  
+適應性循環模式涉及透過重複嘗試進行迭代式改進，逐步改善結果，直到滿足期望的標準。
 
-control, but proper driving technique is still essential."
+對話式導航代理人可以實現一個循環模式，以便在初始查詢未產生滿意結果時，迭代地改善搜尋結果。
 
-February 2025 66   
-Agents Companion 
+**互動範例：**
 
-This competitive approach ensures that critical safety information isn't missed due to  misrouting, and the user receives the most helpful possible response even when their query  has multiple valid interpretations. 
+1. 使用者詢問：「找一家提供素食選項的義大利餐廳」 2. 導航代理人使用這些參數查詢 Places API
 
-**Adaptive Loop Pattern** 
+3. 代理人評估結果，發現沒有符合所有標準的餐廳 4. 代理人不會返回「無結果」，而是自動重新擬定查詢： • 第一次循環：搜尋「提供素食選項的義大利餐廳」
 
-The Adaptive Loop Pattern involves iterative refinement through repeated attempts,  progressively improving results until they meet desired criteria. 
+• 第二次循環：擴大範圍至「義大利餐廳」，然後篩選提及植物性選項的餐廳
 
-The Conversational Navigation Agent can implement a loop pattern to iteratively improve  search results when initial queries don't yield satisfactory outcomes. 
+• 第三次循環：如果仍然不成功，則搜尋「素食餐廳」，並篩選具有義大利風味的餐廳
 
-**Example Interaction:** 
+5. 代理人呈現這些漸進式搜尋中的最佳匹配項，並解釋它們與原始請求的關係
 
-1. User asks: "Find a nice Italian restaurant that serves vegan options" 2. The Navigation Agent queries Places API with these parameters 
+2025年2月 67日
+代理人指南 (Agents Companion)
 
-3. The agent evaluates the results and finds no restaurants meeting all criteria 4. Instead of returning "no results," the agent automatically reformulates the query: • First loop: Searches for "Italian restaurants with vegetarian options" 
+這種循環行為使得搜尋能力更加強大，能夠適應可用性和上下文，即使沒有完全匹配的結果也能提供有用的結果。
 
-• Second loop: Broadens to "Italian restaurants" and then filters for those mentioning  plant-based options 
+**多代理人架構在汽車 AI 中的優勢**
 
-• Third loop: If still unsuccessful, searches for "vegan restaurants" and filters for  Italian-influenced cuisine 
+多代理人系統透過將複雜的任務分解為專業化的角色，為汽車 AI 帶來了強大的優勢。可以把它想像成組建一個專家團隊，而不是依賴一個通才。
 
-5. The agent presents the best matches from these progressive searches, explaining how  they relate to the original request
+在這種方法中，每個代理人都專精於自己最擅長的事情。導航代理人只專注於尋找地點和規劃路線。媒體搜尋代理人成為音樂和播客的專家。汽車手冊代理人專門負責車輛功能和故障排除。透過專注於特定領域，每個代理人都在其領域內發展出更深層次的能力。
 
-February 2025 67   
-Agents Companion 
+這種專業化使整個系統更有效率。當一個代理人處理的任務範圍更窄時，優化其性能就變得更簡單。結果是以更低的計算成本更快地提供更高品質的回應。性能得到改善，因為系統可以為每個任務匹配正確的資源。簡單的請求使用最少的處理能力，而複雜的問題僅在需要時才利用更強大的資源。
 
-This looping behavior enables more robust search capabilities that adapt to availability and  context, providing useful results even when exact matches aren't available. 
+在車輛中，速度至關重要，而多代理人系統在關鍵時刻能夠發揮作用。像調整空調控制或打開窗戶這樣的關鍵功能，由快速的設備端代理人運行，以實現即時回應。同時，像尋找餐廳推薦這樣不那麼緊急的任務，可以使用具有更廣泛知識的雲端代理人。這種分離確保了無論系統在做什麼，基本的車輛控制都能保持響應。
 
-**Advantages of Multi-Agent Architecture for Automotive AI** 
+2025年2月 68日
+代理人指南 (Agents Companion)
 
-Multi-agent systems bring powerful advantages to automotive AI by breaking down complex  tasks into specialized roles. Think of it as assembling a team of experts rather than relying on  one generalist. 
+這種設計也創造了天然的彈性。如果網路連線中斷，在設備端代理人上運行的基本功能會繼續運作。您可能會暫時失去餐廳推薦，但空調控制和基本的媒體播放仍然可以完美運作。
 
-In this approach, each agent specializes in what it does best. The Navigation Agent focuses  solely on finding locations and planning routes. The Media Search Agent becomes an  expert in music and podcasts. The Car Manual Agent specializes in vehicle features and  troubleshooting. By focusing on specific domains, each agent develops deeper capabilities in  its area. 
+**代理人建構器 (Agent Builder)**
 
-This specialization makes the entire system more efficient. When an agent handles a  narrower set of tasks, it becomes simpler to optimize its performance. The result is higher  quality responses delivered more quickly and at lower computational cost. Performance  improves because the system can match the right resources to each task. Simple requests  use minimal processing power, while complex questions tap into more powerful resources  only when needed. 
+**Vertex AI Agent Builder** 是一系列為開發人員設計的產品和服務。我們為您整合了一個全面的平台，用於建構和連接代理人。它結合了 Google Cloud 的工程卓越性和安全性、Google Deepmind 的 AI 研究，以及 AgentOps 的最佳實踐。Google Cloud 正在這個平台上建構我們自己的代理人，現在您也可以。預計 2025 年將有更多針對代理人開發人員的令人興奮的公告。
 
-Speed matters in a vehicle, and multi-agent systems deliver where it counts. Critical  functions like adjusting climate controls or opening windows run on fast, on-device  agents for immediate response. Meanwhile, less urgent tasks like finding restaurant  recommendationscan use cloud-based agents with more extensive knowledge. This  
+**Vertex AI Agent Engine** 簡化了開發流程，它依賴於 Google 工程管理的、與流行的開源代理人函式庫的整合。它提供了一個託管的自動擴展執行環境，以及代理人將需要的許多服務（例如：會話、範例、追蹤、評估）。這是以極低的工作量和高價值的方式，安全地部署您用任何框架編寫的代理人的方法。
 
-separation ensures that essential vehicle controls remain responsive regardless of what else  the system is doing.
+**Vertex AI Eval Service** 提供了本白皮書中討論的所有評估工具，以及更多。LLM、RAG 和代理人評估透過 Vertex AI Eval Service 穩定且可擴展，並與監控和實驗產品方便地整合。
 
-February 2025 68   
-Agents Companion 
+一個龐大的代理人工具組合，還有更多值得期待：
 
-This design also creates natural resilience. If internet connectivity drops the essential  functions running on on-device agents continue working. You might temporarily lose  restaurant recommendations, but climate control and basic media playbacks still  function perfectly. 
+• 透過 Vertex AI Search26 或 RAG Engine28 進行檢索。
 
-**Agent Builder** 
+• 透過 Gen AI Toolbox for Databases32 從資料庫進行非搜尋式檢索。
 
-**Vertex AI Agent Builder** is a collection of products and services for developers. We have  put together a comprehensive platform for you to build and connect agents. The engineering  excellence and security from Google Cloud, the AI research from Google Deepmind, and the  best practices of AgentOps. Google Cloud is building our own agents on top of this platform,  and now you can too. Expect many more exciting announcements 2025 targeting developers  of agents. 
+2025年2月 69日
+代理人指南 (Agents Companion)
 
-**Vertex AI Agent Engine** streamlines development, relying on Google engineering managed  integrations with popular open source agent libraries. It provides a managed autoscaling  runtime and many services agents will need (eg: session, examples, trace, evals). This is the  very low effort and high value way to safely deploy agents you have written in any framework. 
+• 與數百個支援完整 ACL 的 API 的應用程式整合33 • 使用 Apigee Hub34 將任何 API 轉變為託管的、企業就緒的工具
 
-**Vertex AI Eval Service** provides all of the evaluation tools discussed in this whitepaper, and  more. LLMs, RAG, and Agent evals are stable and scalable via the Vertex AI Eval Service, with  convenient integrations into monitoring and experimentation offerings. 
+當然還有最好的代理人 LLM，可以存取 Vertex AI Model Garden35 以及將為代理人時代提供動力的 Gemini 模型家族36。
 
-A large portfolio of agent tools, with more to watch out for: 
+**總結**
 
-• Retrieval via Vertex AI Search26 or RAG Engine28. 
+本白皮書（我們早期關於代理人白皮書的補充）探討了生成式 AI 代理人快速發展的格局，從其基本架構到先進的評估技術，以及多代理人系統的變革潛力。
 
-• Non-search based retrieval from DBs via Gen AI Toolbox for Databases32
+給開發人員的關鍵要點：
 
-February 2025 69   
-Agents Companion 
+1. **AgentOps 至關重要：** 建立成功的代理人遠不止於最初的概念驗證。擁抱 AgentOps 原則，整合 DevOps 和 MLOps 的最佳實踐，同時也要專注於代理人特定的元素，如工具管理、協調、記憶體和任務分解。
 
-• Application integrations33 with hundreds of APIs supporting full ACLs • Turn any API into a managed, enterprise ready tool with Apigee Hub34 
+2. 指標驅動改進：從業務層面的 KPI（如目標完成率、用戶參與度或收入）開始，作為您的「北極星」。然後，檢測您的代理人以追蹤與關鍵任務、用戶互動和代理人行動（追蹤）相關的細粒度指標。人類回饋（����、用戶調查）是無價的。
 
-And of course the best LLMs for agents, with access to Vertex AI Model Garden35 and also  the Gemini family of models36 which will power the agentic era. 
+3. **自動化評估是關鍵：** 不要僅僅依賴手動測試。實施自動化評估框架，評估代理人能力、軌跡（所採取的步驟）和最終回應。利用諸如完全匹配、順序匹配、精確率/召回率等技術進行軌跡評估，並使用自動評分器（LLM 作為裁判）來評估最終回應品質。
 
-**Summary** 
+2025年2月 70日
+代理人指南 (Agents Companion)
 
-This whitepaper (a companion to our earlier whitepaper on Agents) has explored the rapidly  evolving landscape of generative AI agents, from their fundamental architecture to advanced  evaluation techniques and the transformative potential of multi-agent systems.  
+4. **人在環路至關重要：** 自動化指標功能強大，但人工評估提供了必要的背景，尤其是在創造力、常識和細微差別等主觀方面。利用人工回饋來校準和驗證您的自動化評估方法。不要將領域知識外包。
 
-Key Takeaways for Developers: 
+5. **多代理人系統提供優勢：** 對於複雜的任務，可以考慮多代理人架構。它們可以提高準確性、效率、可擴展性和容錯性。了解不同的設計模式（循序式、分層式、協作式、競爭式），並為您的應用程式選擇合適的模式。
 
-1. **AgentOps is Essential:** Building successful agents goes far beyond the initial proof of-concept. Embrace AgentOps principles, integrating best practices from DevOps and  MLOps, but also focusing on agent-specific elements like tool management, orchestration,  memory, and task decomposition. 
+6. **代理式 RAG 提高相關性：** 超越傳統的 RAG，納入能夠主動改進搜尋查詢、評估檢索到的資訊並適應不斷變化的知識的代理人。這會帶來更準確、更具上下文相關性的回應。
 
-2. Metrics Drive Improvement: Start with business-level KPIs (like goal completion, user  engagement, or revenue) as your "north star." Then, instrument your agents to track  granular metrics related to critical tasks, user interactions, and agent actions (traces).  Human feedback (��, user surveys) is invaluable. 
+7. **搜尋優化是 RAG 的基礎：** 在深入研究複雜的代理式 RAG 之前，請先優化您的底層搜尋引擎。語意分塊、元數據豐富、微調嵌入模型和使用排序器等技術可以顯著提高檢索品質。
 
-3. **Automated Evaluation is Key:** Don't rely solely on manual testing. Implement automated  evaluation frameworks that assess agent capabilities, trajectory (the steps taken), and the  final response. Leverage techniques like exact match, in-order match, precision/recall for  trajectory evaluation, and autoraters (LLMs as judges) for final response quality.
+8. **代理人和工具註冊表很重要：** 隨著您使用的代理人或工具數量的增長，一個用於管理能力、本體論和性能的註冊表變得至關重要。
 
-February 2025 70   
-Agents Companion 
+9. **安全性至關重要：** 部署代理人時，尤其是在企業內部，請優先考慮安全性。利用像 Google Agentspace 這樣的平台，它提供內建的安全功能，如 RBAC、VPC 服務控制和 IAM 整合。
 
-4. **Human-in-the-Loop is Crucial:** Automated metrics are powerful, but human evaluation  provides essential context, especially for subjective aspects like creativity, common sense,  and nuance. Use human feedback to calibrate and validate your automated evaluation  methods. Don’t outsource the domain knowledge. 
+10.**高效利用開發人員週期：** 經典的自建與購買的設計選擇仍然是首要考慮，因為生成式 AI 代理人行業正在迅速發展。考慮使用平台和產品作為從頭開始建構一切的替代方案。這將緩衝快速變化的行業帶來的一些波動，並讓您能夠專注於您的數據、領域和使用者。
 
-5. **Multi-Agent Systems Offer Advantages:** Consider multi-agent architectures for  complex tasks. They can improve accuracy, efficiency, scalability, and fault tolerance.  Understand different design patterns (sequential, hierarchical, collaborative, competitive)  and choose the right one for your application. 
+2025年2月 71日
+代理人指南 (Agents Companion)
 
-6. **Agentic RAG Improves Relevance:** Move beyond traditional RAG by incorporating  agents that actively refine search queries, evaluate retrieved information, and adapt to  evolving knowledge. This leads to more accurate and contextually relevant responses. 
+11. **企業中的代理人：** 代理人正在透過讓我們變得更有效率，以及自動化可以完成的方式，來改變我們的工作方式。知識工作者將越來越多地管理代理人團隊，新穎的用戶體驗也將出現。Google Agentspace 是一個強大的工具，允許將企業搜尋、AI 和 AI 代理人置於公司數據和工作流程之上。
 
-7. **Search Optimization is Foundational to RAG:** Before diving into complex agentic RAG,  optimize your underlying search engine. Techniques like semantic chunking, metadata  enrichment, fine-tuning embedding models, and using rankers can significantly improve  retrieval quality. 
+**代理人研究與發展的未來方向：** AI 代理人領域正在經歷快速的演變。正在進行的研究和發展的關鍵領域包括：
 
-8. **Agent and Tool Registries are Important:** As the number of Agents or Tools you  are using grow, a registry to manage the capabilities, ontology, and performance  becomes essential. 
+• **先進的評估方法：** 開發更強大、更可擴展的評估技術，包括基於流程的評估（專注於推理）、AI 輔助評估和標準化的基準測試。
 
-9. **Security is Paramount:** When deploying agents, especially within an enterprise, prioritize  security. Leverage platforms like Google Agentspace that offer built-in security features  like RBAC, VPC Service Controls, and IAM integration. 
+• **多代理人協調：** 改善多代理人系統內的協調和通訊機制，以實現更有效的協作、任務處理和推理。
 
-10.**Efficient use of developer cycles:** The classic build vs buy design choices remain front  of mind, as the industry of gen AI agents is rapidly evolving. Consider platforms and  products as alternatives to building everything from scratch. This will buffer some of the  churn of a fast changing industry and allow you to focus on your data, domain, and users.
+• **真實世界適應：** 創建能夠在動態、不可預測的真實世界環境中適應和學習的代理人。像汽車 AI 這樣的生產系統說明了代理人必須如何在關鍵功能的設備端性能和複雜任務的雲端能力之間取得平衡，通常還要適應不斷變化的連接條件。
 
-February 2025 71   
-Agents Companion 
+• **可解釋性與可詮釋性：** 使代理人行為更加透明和易於理解，讓開發人員和使用者能夠更深入地了解其決策過程。
 
-11. **Agents in the enterprise:** Agents are transforming the way we work by making us much  more productive, and the way automation can be accomplished. Knowledge workers will  increasingly be managing fleets of agents and novel UX will emerge. Google Agentspace  is a powerful tool allowing to put Enterprise Search, AI and AI Agents on top of company’s  
+• **長期記憶與學習：** 開發更複雜的記憶體機制，讓代理人能夠在更長的時間內保留和利用資訊，從而實現持續學習和適應。
 
-data and workflows 
+2025年2月 72日
+代理人指南 (Agents Companion)
 
-**Future Directions for Agent Research and Development:** The field of AI agents is  undergoing rapid evolution. Key areas of ongoing research and development include: 
+• **代理人通訊協議 (Agent Communication Protocols):** 更好地定義代理人如何共享任務、知識和訊息，尤其是在不透明的遠端系統之間。
 
-• **Advanced Evaluation Methods:** Developing more robust and scalable evaluation  techniques, including process-based evaluation (focusing on reasoning), AI-assisted  evaluation, and standardized benchmarks. 
+• **從代理人到承包商 (From Agents to contractors):** 為了讓代理人達到更高的可靠性和實用性，我們需要提升任務的定義，將其變為具有明確交付成果、驗證機制和協商模糊性能力的合約，就像我們與其他公司簽訂工作合約一樣。
 
-• **Multi-Agent Coordination:** Improving the coordination and communication mechanisms  within multi-agent systems to enable more effective collaboration, task handling,  and reasoning. 
+**行動呼籲：**
 
-• **Real-World Adaptation:** Creating agents that can adapt and learn in dynamic,  unpredictable real-world environments. Production systems like automotive AI  illustrate how agents must balance between on-device performance for critical  functions and cloud-based capabilities for complex tasks, often adapting to changing  connectivity conditions. 
+AI 的未來是代理式的。我們鼓勵開發人員擁抱這些概念，並開始建構下一代智慧應用程式。開始試驗本白皮書中討論的工具和技術。探索可用的資源，例如 Google Agentspace、NotebookLM 企業版、Vertex Eval Service、Cloud Observability 和 Vertex AI Search，以加速您的開發過程。深入研究提供的程式碼範例、教學和文件，以獲得實踐經驗。建構、評估、迭代，並為不斷壯大的代理人開發人員社群做出貢獻。可能性是無限的，現在就是建構的時機！具體來說，請從參考資料中的程式碼和 Colab 筆記本開始。
 
-• **Explainability and Interpretability:** Making agent behavior more transparent and  understandable, allowing developers and users to gain deeper insights into their  decision-making processes. 
-
-• **Long-Term Memory and Learning:** Developing more sophisticated memory mechanisms  that allow agents to retain and utilize information over extended periods, enabling  continuous learning and adaptation.
-
-February 2025 72   
-Agents Companion 
-
-• **Agent Communication Protocols:** Better defining how agents share tasks, knowledge,  and messages, especially across remote systems which are opaque. 
-
-• **From Agents to contractors:** In order for agents to get to next level of reliability and  utility, we will need to step up the definition of tasks, making them into contracts with clear  deliverables, validation mechanisms, and ability to negotiate ambiguities, similarly to how  we contract work from other companies. 
-
-**Call to Action:** 
-
-The future of AI is agentic. We encourage developers to embrace these concepts and  begin building the next generation of intelligent applications. Start experimenting with the  tools and techniques discussed in this whitepaper. Explore the resources available, such  as Google Agentspace, NotebookLM Enterprise, Vertex Eval Service, Cloud Observability,  and Vertex AI Search, to accelerate your development process. Dive into the provided code  examples, tutorials, and documentation to gain hands-on experience. Build, evaluate, iterate,  and contribute to the growing community of agent developers. The possibilities are limitless,  and the time to build is now! Specifically, get started with the code and Colab notebooks in  the references.
-
-February 2025 73   
-Agents Companion
+2025年2月 73日
+代理人指南 (Agents Companion)

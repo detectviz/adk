@@ -1,1164 +1,1134 @@
-# Text Generation
+# 文字生成
 
-**Authors: Mohammadamin Barektain,**  
+**作者: Mohammadamin Barektain,**
 
-**Anant Nawalgaria, Daniel J. Mankowitz,**  
+**Anant Nawalgaria, Daniel J. Mankowitz,**
 
-**Majd Al Merey, Yaniv Leviathan, Massimo Mascaro,  Matan Kalman, Elena Buchatskaya,**  
+**Majd Al Merey, Yaniv Leviathan, Massimo Mascaro,  Matan Kalman, Elena Buchatskaya,**
 
-**Aliaksei Severyn, Irina Sigler, and Antonio Gulli**  
-Foundational Large Language Models & Text Generation 
+**Aliaksei Severyn, Irina Sigler, and Antonio Gulli**
+基礎大型語言模型與文字生成
 
-**Acknowledgements** 
+**致謝**
 
-**Content contributors** Adam Sadvovsky   
-Yonghui Wu 
+**內容貢獻者** Adam Sadvovsky
+Yonghui Wu
 
-Andrew Dai 
+Andrew Dai
 
-Efi Kokiopolou 
+Efi Kokiopolou
 
-Chuck Sugnet 
+Chuck Sugnet
 
-Aleksey Vlasenko 
+Aleksey Vlasenko
 
-Erwin Huizenga 
+Erwin Huizenga
 
-Aida Nematzadeh 
+Aida Nematzadeh
 
-Ira Ktena 
+Ira Ktena
 
-Olivia Wiles 
+Olivia Wiles
 
-Lavi Nigam 
+Lavi Nigam
 
-**Curators and Editors** Antonio Gulli   
-Anant Nawalgaria 
+**策展人與編輯** Antonio Gulli
+Anant Nawalgaria
 
-Grace Mollison  
+Grace Mollison
 
-**Technical Writer** 
+**技術作者**
 
-Mark Iverson 
+Mark Iverson
 
-**Designer** 
+**設計師**
 
-Michael Lanning 
+Michael Lanning
 
-February 20252   
-**Table of contents**
+2025年2月2日
+**目錄**
 
-Introduction 6 Why language models are important 7 Large language models 8 
+簡介 6 為什麼語言模型很重要 7 大型語言模型 8
 
-Transformer 9 Input preparation and embedding 11 Multi-head attention 12 
+Transformer 9 輸入準備與嵌入 11 多頭注意力 (Multi-head attention) 12
 
-Understanding self-attention 12 Multi-head attention: power in diversity 14 Layer normalization and residual connections 15 Feedforward layer 15 Encoder and decoder 16 Mixture of Experts (MoE) 17 Training the transformer 20 Data preparation 21 Training and loss function 21 The evolution of transformers 23 GPT-1 23 BERT 25   
-GPT-2 25 GPT-3/3.5/4 27 LaMDA 28 Gopher 29 GLaM 31 Chinchilla 31 PaLM 33 
+理解自我注意力 (Self-attention) 12 多頭注意力：多樣性中的力量 14 層歸一化與殘差連接 15 前饋層 15 編碼器與解碼器 16 專家混合 (Mixture of Experts, MoE) 17 訓練 Transformer 20 數據準備 21 訓練與損失函數 21 Transformer 的演進 23 GPT-1 23 BERT 25
+GPT-2 25 GPT-3/3.5/4 27 LaMDA 28 Gopher 29 GLaM 31 Chinchilla 31 PaLM 33
 
-PaLM 2 33 Gemini 34 Gemma 37 LLaMA 38 Mixtral 39 OpenAI O1 40 DeepSeek 40 Other open models 41 Comparison 43 
+PaLM 2 33 Gemini 34 Gemma 37 LLaMA 38 Mixtral 39 OpenAI O1 40 DeepSeek 40 其他開放模型 41 比較 43
 
-Fine-tuning large language models 45 Supervised fine-tuning 46 Reinforcement learning from human feedback 47 Parameter Efficient Fine-Tuning 49 
+微調大型語言模型 45 監督式微調 46 從人類回饋中進行強化學習 47 參數高效微調 49
 
-Using large language models 52 Prompt engineering 52 Sampling Techniques and Parameters 53 Task-based Evaluation 54 Accelerating inference 57  
-Trade offs 58 The Quality vs Latency/Cost Tradeoff 58 The Latency vs Cost Tradeoff 59 
+使用大型語言模型 52 提示工程 (Prompt engineering) 52 採樣技術與參數 53 基於任務的評估 54 加速推論 57
+權衡取捨 58 品質 vs. 延遲/成本的權衡 58 延遲 vs. 成本的權衡 59
 
-Output-approximating methods 60 Quantization 60 Distillation 61 
+輸出近似方法 60 量化 (Quantization) 60 蒸餾 (Distillation) 61
 
-Output-preserving methods 62 Flash Attention 63 Prefix Caching 63 Speculative Decoding 65 
+輸出保持方法 62 Flash Attention 63 前綴快取 (Prefix Caching) 63 推測解碼 (Speculative Decoding) 65
 
-Batching and Parallelization 67 Applications 68 Code and mathematics 71 Machine translation 72 Text summarization 73 Question-answering 73 Chatbots 74 Content generation 75 Natural language inference 75 Text classification 76 Text analysis 77 Multimodal applications 78 Summary 80 Endnotes 82  
-Foundational Large Language Models & Text Generation 
+批次處理與平行化 67 應用 68 程式碼與數學 71 機器翻譯 72 文字摘要 73 問答 73 聊天機器人 74 內容生成 75 自然語言推論 75 文字分類 76 文字分析 77 多模態應用 78 總結 80 尾註 82
+基礎大型語言模型與文字生成
 
-We believe that this new crop of  technologies has the potential to  assist, complement, empower,  and inspire people at any time  across almost any field.
+我們相信，這批新技術有潛力在任何時間、幾乎任何領域協助、補充、賦能和啟發人們。
 
-**Introduction** 
+**簡介**
 
-The advent of Large Language Models (LLMs) represents a seismic shift in the world of  artificial intelligence. Their ability to process, generate, and understand user intent is  fundamentally changing the way we interact with information and technology.  
+大型語言模型 (Large Language Models, LLM) 的出現代表了人工智慧世界的一次巨大變革。它們處理、生成和理解使用者意圖的能力，正在從根本上改變我們與資訊和技術互動的方式。
 
-An LLM is an advanced artificial intelligence system that specializes in processing,  understanding, and generating human-like text. These systems are typically implemented as  a deep neural network and are trained on massive amounts of text data. This allows them to  learn the intricate patterns of language, giving them the ability to perform a variety of tasks,  like machine translation, creative text generation, question answering, text summarization,  and many more reasoning and language oriented tasks. This whitepaper dives into the  timeline of the various architectures and approaches building up to the large language  models and the architectures being used at the time of publication. It also discusses fine 
+LLM 是一種先進的人工智慧系統，專門處理、理解和生成類人文字。這些系統通常以深度神經網絡的形式實現，並在大量的文字數據上進行訓練。這使得它們能夠學習語言的複雜模式，從而具備執行各種任務的能力，如機器翻譯、創意文字生成、問答、文字摘要以及更多以推理和語言為導向的任務。本白皮書深入探討了建構大型語言模型的各種架構和方法的發展時間線，以及截至發佈時正在使用的架構。它還討論了用於將 LLM 客製化到特定領域或任務的微調 (fine-tuning) 技術、提高訓練效率的方法，以及加速推論的方法。隨後將介紹各種應用和程式碼範例。
 
-February 2025 6   
-Foundational Large Language Models & Text Generation 
+**為什麼語言模型很重要**
 
-tuning techniques to customize an LLM to a certain domain or task, methods to make the  training more efficient, as well as methods to accelerate inference. These are then followed  by various applications and code examples.  
+LLM 在各種需要回答問題或複雜推理的不同且複雜的任務上，實現了相較於先前最先進的自然語言處理 (NLP) 模型顯著的性能提升，使得許多新的應用成為可能。這些應用包括語言翻譯、程式碼生成與補全、文字生成、文字分類和問答等等。儘管在大量數據上訓練的基礎 LLM 在各種任務上開箱即用時表現非常出色，並展現出新興行為（例如，執行未經直接訓練的任務的能力），但它們也可以透過稱為微調 (fine-tuning) 的過程來適應特定任務，以達到開箱即用時無法達到的性能水平。這需要的數據和計算資源遠少於從頭開始訓練一個 LLM。LLM 還可以透過*提示工程 (prompt engineering)* 這門學科進一步引導和塑造其行為：這是一門藝術與科學，旨在組合提示和 LLM 的參數以獲得期望的回應。
 
-**Why language models are important** 
+最大的問題是：這些大型語言模型是如何運作的？下一節將探討 LLM 的核心建構模塊，重點關注 Transformer 架構及其從最初的《Attention is all you need》論文1到最新模型（如 Google 最強大的 LLM Gemini）的演進。我們還將涵蓋訓練和微調技術，以及提高回應生成速度的方法。白皮書最後會以一些語言模型在實踐中如何使用的範例作結。
 
-LLMs achieve an impressive performance boost from the previous state of the art NLP  models across a variety of different and complex tasks which require answering questions  or complex reasoning, making feasible many new applications. These include language  translation, code generation and completion, text generation, text classification, and  question-answering, to name a few. Although foundational LLMs trained in a variety of  tasks on large amounts of data perform very well out of the box and display emergent  behaviors (e.g. the ability to perform tasks they have not been directly trained for) they can  also be adapted to solve specific tasks where performance out of the box is not at the level  desired through a process known as fine-tuning. This requires significantly less data and  computational resources than training an LLM from scratch. LLMs can be further nudged  and guided towards the desired behavior by the discipline of *prompt engineering:* the art and  science of composing the prompt and the parameters of an LLM to get the desired response. 
+2025年2月 7日
+基礎大型語言模型與文字生成
 
-The big question is: how do these large language models work? The next section explores the  core building blocks of LLMs, focusing on transformer architectures and their evolution from  the original ‘Attention is all you need’ paper1 to the latest models such as Gemini, Google’s  most capable LLM. We also cover training and fine-tuning techniques, as well as methods to  improve the speed of response generation. The whitepaper concludes with a few examples  of how language models are used in practice.
+**大型語言模型**
 
-February 2025 7   
-Foundational Large Language Models & Text Generation 
+*語言模型*預測一個詞序列的機率。通常，當給定一段文字前綴時，語言模型會為後續的詞分配機率。例如，給定前綴「美國最著名的城市是…」，語言模型可能會為「紐約」和「洛杉磯」這兩個詞預測高機率，而為「筆記型電腦」或「蘋果」預測低機率。你可以透過儲存一個 n-gram 表2來建立一個基本的語言模型，而現代語言模型通常基於神經模型，例如 Transformer。
 
-**Large language models** 
+在 Transformer 發明之前1，遞歸神經網絡 (Recurrent Neural Networks, RNN) 是序列建模的流行方法。特別是，「長短期記憶」(Long Short-Term Memory, LSTM) 和「門控循環單元」(Gated Recurrent Unit, GRU) 是常見的架構。3 這個領域包括語言問題，如機器翻譯、文字分類、文字摘要和問答等。RNN 順序處理輸入和輸出序列。它們根據前一個隱藏狀態和當前輸入生成一系列隱藏狀態。RNN 的順序性使其在訓練期間計算密集且難以平行化（儘管最近在狀態空間建模方面的工作正試圖克服這些挑戰）。
 
-A *language model* predicts the probability of a sequence of words. Commonly, when given  a prefix of text, a language model assigns probabilities to subsequent words. For example,  given the prefix “The most famous city in the US is…”, a language model might predict high  probabilities to the words “New York” and “Los Angeles” and low probabilities to the words  
+另一方面，Transformer 是一種神經網絡，由於其自我注意力 (self-attention) 機制，可以平行處理 token 序列。1 這意味著 Transformer 可以更有效地建模長期上下文，並且比 RNN 更容易平行化。這使得它們在處理長序列任務中的長期依賴性方面，訓練速度顯著加快，功能也更強大。然而，原始 Transformer 中自我注意力的成本在上下文長度上是二次方的，這限制了上下文的大小，而 RNN 理論上具有無限的上下文長度。儘管它們有無限的上下文長度，但在實踐中，由於梯度消失問題，它們很難利用它。近年來，Transformer 已成為序列建模和遷移學習問題最流行的方法。
 
-“laptop” or “apple”. You can create a basic language model by storing an n-gram table,2 while  modern language models are often based on neural models, such as transformers. 
+2025年2月 8日
+基礎大型語言模型與文字生成
 
-Before the invention of transformers1, recurrent neural networks (RNNSs) were the popular  approach for modeling sequences. In particular, “long short-term memory” (LSTM) and  “gated recurrent unit” (GRU) were common architectures.3 This area includes language  problems such as machine translation, text classification, text summarization, and question answering, among others. RNNs process input and output sequences sequentially. They  generate a sequence of hidden states based on the previous hidden state and the current  input. The sequential nature of RNNs makes them compute-intensive and hard to parallelize  during training (though recent work in state space modeling is attempting to overcome  these challenges). 
+在此，我們將討論 Transformer 模型的第一個版本，然後轉向更近期的先進模型和演算法。
 
-Transformers, on the other hand, are a type of neural network that can process sequences  of tokens in parallel thanks to the self-attention mechanism.1 This means that transformers  can model long-term contexts more effectively and are easier to parallelize than RNNs. This  makes them significantly faster to train, and more powerful compared to RNNs for handling  long-term dependencies in long sequence tasks. However, the cost of self-attention in the  original transformers is quadratic in the context length which limits the size of the context,  while RNNs have a theoretically infinite context length. Although they have infinite context  length, in practice they struggle to utilize it due to vanishing gradient problem. Transformers  have become the most popular approach for sequence modeling and transfer learning  problems in recent years.
+**Transformer**
 
-February 2025 8   
-Foundational Large Language Models & Text Generation 
+*Transformer 架構*於 2017 年在 Google 開發，用於翻譯模型。1 它是一個序列到序列 (sequence-to-sequence) 模型，能夠將一個領域的序列轉換為另一個領域的序列。例如，將法語句子翻譯成英語句子。原始的 Transformer 架構由兩部分組成：一個編碼器 (encoder) 和一個解碼器 (decoder)。編碼器將輸入文字（例如，一個法語句子）轉換為一個表示，然後傳遞給解碼器。解碼器使用這個表示以自回歸 (autoregressively) 的方式生成輸出文字（例如，一個英語翻譯）。1 值得注意的是，Transformer 編碼器的輸出大小與其輸入大小呈線性關係。圖 1 顯示了原始 Transformer 架構的設計。
 
-Herein, we discuss the first version of the transformer model and then move on to the more  recent advanced models and algorithms. 
+Transformer 由多個層組成。神經網絡中的一層包含一組參數，對數據執行特定的轉換。在圖中，您可以看到一些層的範例，包括多頭注意力 (Multi-Head Attention)、添加與歸一化 (Add & Norm)、前饋 (Feed-Forward)、線性 (Linear)、Softmax 等。這些層可以細分為輸入層、隱藏層和輸出層。輸入層（例如，輸入/輸出嵌入）是原始數據進入網絡的層。*輸入嵌入 (Input embeddings)* 用於表示模型的輸入 token。*輸出嵌入 (Output embeddings)* 用於表示模型預測的輸出 token。例如，在機器翻譯模型中，輸入嵌入將表示源語言中的單詞，而輸出嵌入將表示目標語言中的單詞。輸出層（例如，Softmax）是產生網絡輸出的最後一層。隱藏層（例如，多頭注意力）位於輸入層和輸出層之間，是魔法發生的地方！
 
-**Transformer** 
+2025年2月 9日
+基礎大型語言模型與文字生成
 
-The *transformer architecture* was developed at Google in 2017 for use in a translation model.1 It’s a sequence-to-sequence model capable of converting sequences from one domain  into sequences in another domain. For example, translating French sentences to English  sentences. The original transformer architecture consists of two parts: an encoder and a  decoder. The encoder converts the input text (e.g., a French sentence) into a representation,  which is then passed to the decoder. The decoder uses this representation to generate the  output text (e.g., an English translation) autoregressively.1 Notably, the size of the output of  the transformer encoder is linear in the size of its input. Figure 1 shows the design of the  original transformer architecture. 
+![][image1]
+圖 1. 原始 Transformer1 (P.C:5)
 
-The transformer consists of multiple layers. A layer in a neural network comprises a set of  parameters that perform a specific transformation on the data. In the diagram you can see  an example of some layers which include Multi-Head Attention, Add & Norm, Feed-Forward,  Linear, Softmax etc. The layers can be sub-divided into the input, hidden and output layers.  The input layer (e.g., Input/Output Embedding) is the layer where the raw data enters the  network. *Input embeddings* are used to represent the input tokens to the model. *Output  embeddings* are used to represent the output tokens that the model predicts. For example, in  a machine translation model, the input embeddings would represent the words in the source  language, while the output embeddings would represent the words in the target language.  The output layer (e.g., Softmax) is the final layer that produces the output of the network. The  hidden layers (e.g., Multi-Head Attention) are between the input and output layers and are  where the magic happens!
+2025年2月 10日
+基礎大型語言模型與文字生成
 
-February 2025 9   
-Foundational Large Language Models & Text Generation 
+為了更好地理解 Transformer 中的不同層，讓我們以法語到英語的翻譯任務為例。在這裡，我們解釋一個法語句子如何輸入到 Transformer 中，並輸出相應的英語翻譯。我們還將描述圖 1 中 Transformer 內部的每個組件。
 
-![][image1]  
-Figure 1. Original Transformer1 (P.C:5)
+**輸入準備與嵌入 (Input preparation and embedding)**
 
-February 2025 10   
-Foundational Large Language Models & Text Generation 
+為了為 Transformer 準備語言輸入，我們將輸入序列轉換為 token，然後再轉換為輸入嵌入。從高層次來看，輸入嵌入是一個高維向量68，表示句子中每個 token 的意義。這個嵌入然後被饋入 Transformer 進行處理。生成輸入嵌入涉及以下步驟：
 
-To better understand the different layers in the transformer, let’s use a French-to-English  translation task as an example. Here, we explain how a French sentence is input into the  transformer and a corresponding English translation is output. We will also describe each of  the components inside the transformer from Figure 1. 
+1. **歸一化 (Normalization)** (可選): 透過移除多餘的空白、重音等來標準化文字。
 
-**Input preparation and embedding** 
+2. **Tokenization (分詞)**: 將句子分解為單詞或子詞，並將它們映射到詞彙表中的整數 token ID。
 
-To prepare language inputs for transformers, we convert an input sequence into tokens  and then into input embeddings. At a high level, an input embedding is a high-dimensional  vector68 that represents the meaning of each token in the sentence. This embedding is  then fed into the transformer for processing. Generating an input embedding involves the  following steps: 
+3. **嵌入 (Embedding)**: 將每個 token ID 轉換為其對應的高維向量，通常使用查找表。這些可以在訓練過程中學習。
 
-1. **Normalization** (Optional): Standardizes text by removing redundant whitespace,  accents, etc. 
+4. **位置編碼 (Positional Encoding)**: 添加關於序列中每個 token 位置的資訊，以幫助 Transformer 理解詞序。
 
-2. **Tokenization**: Breaks the sentence into words or subwords and maps them to integer  token IDs from a vocabulary. 
+這些步驟有助於為 Transformer 準備輸入，以便它們能更好地理解文字的意義。
 
-3. **Embedding**: Converts each token ID to its corresponding high-dimensional vector,  typically using a lookup table. These can be learned during the training process. 
+2025年2月 11日
+基礎大型語言模型與文字生成
 
-4. **Positional Encoding**: Adds information about the position of each token in the sequence  to help the transformer understand word order. 
+**多頭注意力 (Multi-head attention)**
 
-These steps help to prepare the input for the transformers so that they can better  understand the meaning of the text.
+將輸入 token 轉換為嵌入向量後，您將這些嵌入饋送到多頭注意力模組中（見圖 1）。自我注意力 (Self-attention) 是 Transformer 中的一個關鍵機制；它使其能夠專注於與手頭任務相關的輸入序列的特定部分，並比傳統的 RNN 更有效地捕捉序列內的長距離依賴關係。
 
-February 2025 11   
-Foundational Large Language Models & Text Generation 
+**理解自我注意力 (Understanding self-attention)**
 
-**Multi-head attention** 
+考慮以下句子：「老虎跳出樹來喝水，因為它渴了。」(The tiger jumped out of a tree to get a drink because it was thirsty.) 自我注意力有助於確定句子中不同單詞和短語之間的關係。例如，在這個句子中，「老虎」和「它」是同一個對象，所以我們期望這兩個詞有很強的聯繫。自我注意力透過以下步驟實現這一點（圖 2）：
 
-After converting input tokens into embedding vectors, you feed these embeddings into  the multi-head attention module (see Figure 1). Self-attention is a crucial mechanism in  transformers; it enables them to focus on specific parts of the input sequence relevant to  the task at hand and to capture long-range dependencies within sequences more effectively  than traditional RNNs.  
+1. **創建查詢、鍵和值 (Creating queries, keys, and values):** 每個輸入嵌入都乘以三個學習到的權重矩陣 (Wq, Wk, Wv)，以生成查詢 (Query, Q)、鍵 (Key, K) 和值 (Value, V) 向量。這些就像每個單詞的專門表示。
 
-**Understanding self-attention** 
+• 查詢 (Query): 查詢向量幫助模型提問：「序列中的哪些其他單詞與我相關？」
 
-Consider the following sentence: “The tiger jumped out of a tree to get a drink because it  was thirsty.” Self-attention helps to determine relationships between different words and  phrases in sentences. For example, in this sentence, “the tiger” and “it” are the same object,  so we would expect these two words to be strongly connected. Self-attention achieves this  through the following steps (Figure 2): 
+• 鍵 (Key): 鍵向量就像一個標籤，幫助模型識別一個單詞可能如何與序列中的其他單詞相關。
 
-1. **Creating queries, keys, and values:** Each input embedding is multiplied by three learned  weight matrices (Wq, Wk, Wv) to generate query (Q), key (K), and value (V) vectors. These  are like specialized representations of each word. 
+• 值 (Value): 值向量持有實際的單詞內容資訊。
 
-• Query: The query vector helps the model ask, “Which other words in the sequence are  relevant to me?” 
+2. **計算分數 (Calculating scores):** 計算分數以確定每個單詞應該「關注」其他單詞的程度。這是透過將一個單詞的查詢向量與序列中所有單詞的鍵向量進行點積來完成的。
 
-• Key: The key vector is like a label that helps the model identify how a word might be  relevant to other words in the sequence. 
+2025年2月 12日
+基礎大型語言模型與文字生成
 
-• Value: The value vector holds the actual word content information. 
+3. **歸一化 (Normalization):** 為了穩定性，將分數除以鍵向量維度 (dk) 的平方根，然後通過一個 softmax 函數以獲得注意力權重。這些權重表示每個單詞與其他單詞的連接強度。
 
-2. **Calculating scores:** Scores are calculated to determine how much each word should  ‘attend’ to other words. This is done by taking the dot product of the query vector of one  word with the key vectors of all the words in the sequence.
+4. **加權值 (Weighted values):** 每個值向量乘以其對應的注意力權重。結果被加總，為每個單詞產生一個上下文感知的表示。
 
-February 2025 12   
-Foundational Large Language Models & Text Generation 
+![][image2]圖 2. 在多頭注意力模組中計算自我注意力的過程1 (P.C:5)
 
-3. **Normalization:** The scores are divided by the square root of the key vector dimension (dk)  for stability, then passed through a softmax function to obtain attention weights. These  weights indicate how strongly each word is connected to the others. 
+2025年2月 13日
+基礎大型語言模型與文字生成
 
-4. **Weighted values:** Each value vector is multiplied by its corresponding attention weight.  The results are summed up, producing a context-aware representation for each word. 
+在實踐中，這些計算是同時執行的，方法是將所有 token 的查詢、鍵和值向量堆疊成 Q、K 和 V 矩陣，然後將它們相乘，如圖 3 所示。
 
-![][image2]Figure 2. The process of computing self-attention in the multi-head attention module1 (P.C:5) 
+![][image3]
+圖 3. 注意力的基本操作，1 其中 Q=查詢, K=鍵, V=值, Z=注意力, d_k = 查詢和鍵的維度 (P.C:5)
 
-February 2025 13   
-Foundational Large Language Models & Text Generation 
+**多頭注意力：多樣性中的力量 (Multi-head attention: power in diversity)**
 
-In practice, these computations are performed at the same time, by stacking the query, key  and value vectors for all the tokens into Q, K and V matrices and multiplying them together as  shown in Figure 3. 
+多頭注意力使用多組 Q、K、V 權重矩陣。這些矩陣平行運行，每個「頭」可能專注於輸入關係的不同方面。每個頭的輸出被串接並進行線性轉換，為模型提供更豐富的輸入序列表示。
 
-![][image3]  
-Figure 3. The basic operation of attention,1 with Q=query, K=Keys and V=Value, Z=Attention, d_k = dimension  of queries and keys (P.C:5) 
+使用多頭注意力提高了模型處理複雜語言模式和長距離依賴關係的能力。這對於需要對語言結構和內容有細緻理解的任務至關重要，例如機器翻譯、文字摘要和問答。該機制使 Transformer 能夠考慮輸入的多種解釋和表示，從而提高了其在這些任務上的性能。
 
-**Multi-head attention: power in diversity** 
+2025年2月 14日
+基礎大型語言模型與文字生成
 
-Multi-head attention employs multiple sets of Q, K, V weight matrices. These run in parallel,  each ‘head’ potentially focusing on different aspects of the input relationships. The outputs  from each head are concatenated and linearly transformed, giving the model a richer  representation of the input sequence. 
+**層歸一化與殘差連接 (Layer normalization and residual connections)**
 
-The use of multi-head attention improves the model’s ability to handle complex language  patterns and long-range dependencies. This is crucial for tasks that require a nuanced  understanding of language structure and content, such as machine translation, text  summarization, and question-answering. The mechanism enables the transformer to consider  multiple interpretations and representations of the input, which enhances its performance on  these tasks. 
+Transformer 中的每一層，由一個多頭注意力模組和一個前饋層組成，都採用了層歸一化 (layer normalization) 和殘差連接 (residual connections)。這對應於圖 1 中的 *Add and Norm* 層，其中「Add」對應於殘差連接，「Norm」對應於層歸一化。層歸一化計算激活值的均值和方差，以歸一化給定層中的激活值。這通常是為了減少共變異數偏移 (covariate shift) 以及改善梯度流，從而在訓練期間產生更快的收斂速度和更好的整體性能。
 
-February 2025 14   
-Foundational Large Language Models & Text Generation 
+殘差連接將輸入傳播到一層或多層的輸出。這樣做的效果是使優化過程更容易學習，並且有助於處理梯度消失和梯度爆炸問題。
 
-**Layer normalization and residual connections** 
+*Add and Norm* 層應用於多頭注意力模組和下一節中描述的前饋層。
 
-Each layer in a transformer, consisting of a multi-head attention module and a feed-forward  layer, employs layer normalization and residual connections. This corresponds to the *Add  and Norm* layer in Figure 1, where ‘Add’ corresponds to the residual connection and ‘Norm’  corresponds to layer normalization. Layer normalization computes the mean and variance  of the activations to normalize the activations in a given layer. This is typically performed to  reduce covariate shift as well as improve gradient flow to yield faster convergence during  training as well as improved overall performance.  
+**前饋層 (Feedforward layer)**
 
-Residual connections propagate the inputs to the output of one or more layers. This has the  effect of making the optimization procedure easier to learn and also helps deal with vanishing  and exploding gradients.  
+多頭注意力模組和隨後的「Add and Norm」層的輸出被饋入每個 Transformer 區塊的前饋層。該層對數據應用逐位置的轉換，對序列中的每個位置獨立進行，這允許將額外的非線性和複雜性納入模型的表示中。前饋層通常由兩個線性轉換組成，中間有一個非線性激活函數，例如 ReLU 或 GELU。這種結構為模型增加了更多的表示能力。經過前饋層處理後，數據會再經過一次「Add and Norm」步驟，這有助於深度 Transformer 模型的穩定性和有效性。
 
-The *Add and Norm* layer is applied to both the multi-head attention module and the feed forward layer described in the following section. 
+2025年2月 15日
+基礎大型語言模型與文字生成
 
-**Feedforward layer**  
+**編碼器與解碼器 (Encoder and decoder)**
 
-The output of the multi-head attention module and the subsequent ‘Add and Norm’ layer is  fed into the feedforward layer of each transformer block. This layer applies a position-wise  transformation to the data, independently for each position in the sequence, which allows the  incorporation of additional non-linearity and complexity into the model’s representations. The  feedforward layer typically consists of two linear transformations with a non-linear activation  function, such as ReLU or GELU, in between. This structure adds further representational  power to the model. After processing by the feedforward layer, the data undergoes  another ‘Add and Norm’ step, which contributes to the stability and effectiveness of deep  transformer models.
+原始的 Transformer 架構依賴於編碼器和解碼器模組的組合。每個編碼器和解碼器都由一系列層組成，每層包含關鍵組件：一個多頭自我注意力機制、一個逐位置前饋網絡、歸一化層和殘差連接。
 
-February 2025 15   
-Foundational Large Language Models & Text Generation 
+編碼器的主要功能是將輸入序列處理成一個連續的表示，其中包含每個 token 的上下文資訊。輸入序列首先被歸一化、分詞並轉換為嵌入。位置編碼被添加到這些嵌入中以保留序列順序資訊。透過自我注意力機制，序列中的每個 token 都可以動態地關注任何其他 token，從而理解序列內的上下文關係。編碼器的輸出是一系列嵌入向量 Z，代表整個輸入序列。
 
-**Encoder and decoder** 
+解碼器的任務是根據編碼器輸出 Z 提供的上下文生成一個輸出序列。它以逐個 token 的方式運作，從一個序列開始 (start-of-sequence) token 開始。解碼器層採用兩種注意力機制：*遮罩式自我注意力 (masked self-attention)* 和編碼器-解碼器 *交叉注意力 (cross-attention)*。遮罩式自我注意力確保每個位置只能關注輸出序列中較早的位置，從而保留了自回歸特性。這對於防止解碼器在輸出序列中接觸到未來的 token 至關重要。編碼器-解碼器交叉注意力機制允許解碼器專注於輸入序列的相關部分，利用編碼器生成的上下文嵌入。這個迭代過程一直持續到解碼器預測出一個序列結束 (end-of-sequence) token，從而完成輸出序列的生成。
 
-The original transformer architecture relies on a combination of encoder and decoder  modules. Each encoder and decoder consists of a series of layers, with each layer  comprising key components: a multi-head self-attention mechanism, a position-wise feed forward network, normalization layers, and residual connections.  
+最近的大多數 LLM 都採用了 *僅解碼器 (decoder-only)* 的 Transformer 架構變體。這種方法放棄了傳統的編碼器-解碼器分離，而是專注於直接從輸入生成輸出序列。輸入序列經歷類似的嵌入和位置編碼過程，然後被饋送到解碼器中。解碼器然後使用遮罩式自我注意力來根據先前生成的 token 為每個後續 token 生成預測。這種簡化的方法簡化了特定任務的架構，在這些任務中，編碼和解碼可以有效地合併。
 
-The encoder’s primary function is to process the input sequence into a continuous  representation that holds contextual information for each token. The input sequence is first  normalized, tokenized, and converted into embeddings. Positional encodings are added to  these embeddings to retain sequence order information. Through self-attention mechanisms,  each token in the sequence can dynamically attend to any other token, thus understanding  the contextual relationships within the sequence. The output from the encoder is a series of  embedding vectors Z representing the entire input sequence.  
+2025年2月 16日
+基礎大型語言模型與文字生成
 
-The decoder is tasked with generating an output sequence based on the context provided  by the encoder’s output Z. It operates in a token-by-token fashion, beginning with a start of-sequence token. The decoder layers employ two types of attention mechanisms: *masked  self-attention* and encoder-decoder *cross-attention.* Masked self-attention ensures that  each position can only attend to earlier positions in the output sequence, preserving the  auto-regressive property. This is crucial for preventing the decoder from having access to  future tokens in the output sequence. The encoder-decoder cross-attention mechanism  allows the decoder to focus on relevant parts of the input sequence, utilizing the contextual  embeddings generated by the encoder. This iterative process continues until the decoder  predicts an end-of-sequence token, thereby completing the output sequence generation. 
+**專家混合 (Mixture of Experts, MoE)**
 
-Majority of recent LLMs adopted a *decoder-only* variant of transformer architecture. This  approach forgoes the traditional encoder-decoder separation, focusing instead on directly  generating the output sequence from the input. The input sequence undergoes a similar 
+專家混合 (Mixture of Experts, MoE) 是一種結合多個專業化子模型（「專家」）以提高整體性能的架構，尤其是在複雜任務上。它是一種集成學習 (ensemble learning) 的形式，但有一個關鍵區別：它不是簡單地匯總所有專家的預測，而是學習將輸入的不同部分路由到不同的專家。這使得模型能夠專業化，每個專家在特定的子領域或數據的某個方面變得精通。以下是描述 MoE 主要組件的更技術性的分解：
 
-February 2025 16   
-Foundational Large Language Models & Text Generation 
+**• 專家 (Experts):** 這些是單獨的子模型，每個都設計用於處理輸入數據的特定子集或特定任務。它們可以是任何類型的模型（例如，神經網絡、決策樹等），但在大型語言模型的上下文中，它們通常本身就是基於 Transformer 的架構。
 
-process of embedding and positional encoding before being fed into the decoder. The  decoder then uses masked self-attention to generate predictions for each subsequent  token based on the previously generated tokens. This streamlined approach simplifies the  architecture for specific tasks where encoding and decoding can be effectively merged. 
+**• 門控網絡 (Gating Network, Router):** 這是一個關鍵組件，學習將輸入路由到適當的專家。它接收輸入並產生一個關於專家的機率分佈。這個分佈決定了每個專家應該為最終預測「貢獻」多少。門控網絡通常也是一個神經網絡。
 
-**Mixture of Experts (MoE)** 
+**• 組合機制 (Combination Mechanism):** 這結合了專家的輸出，並由門控網絡的機率加權，以產生最終的預測。一種常見的方法是加權平均。
 
-A Mixture of Experts (MoE) is a an architecture that combines multiple specialized sub models (the “experts”) to improve overall performance, particularly on complex tasks. It’s  a form of ensemble learning, but with a key difference: instead of simply aggregating the  predictions of all experts, it learns to route different parts of the input to different experts.  This allows the model to specialize, with each expert becoming proficient in a specific  sub-domain or aspect of the data. Here’s a more technical breakdown describing the main  components of an MoE: 
+2025年2月 17日
+基礎大型語言模型與文字生成
 
-**• Experts:** These are the individual sub-models, each designed to handle a specific subset  of the input data or a particular task. They can be any type of model (e.g., neural networks,  decision trees, etc.), but in the context of large language models, they are typically  themselves transformer-based architectures.  
+在實踐中，專家混合 (MoE) 架構結合了多個專業化的子模型，稱為「專家」，以解決複雜的任務。MoE 不是簡單地對所有專家的預測進行平均，而是使用一個「門控網絡」來智慧地將輸入的不同部分路由到最相關的專家。專家和門控網絡都接收輸入。每個專家處理輸入並生成其輸出。同時，門控網絡分析輸入並產生一個關於專家的機率分佈，指示每個專家應對最終結果貢獻多少。這些機率然後對專家的輸出進行加權，加權組合成為最終的預測。這使得不同的專家能夠專注於處理特定類型的數據或子任務，從而提高整體性能，並透過「稀疏激活」，可能通過僅為任何給定輸入激活一部分專家來降低計算成本。
 
-**• Gating Network (Router):** This is a crucial component that learns to route the input to  the appropriate expert(s). It takes the input and produces a probability distribution over  the experts. This distribution determines how much each expert should “contribute” to the  final prediction. The gating network is also typically a neural network.  
+![][image4]
+圖 4. 專家混合集成70
 
-**• Combination Mechanism:** This combines the outputs of the experts, weighted by the  probabilities from the gating network, to produce the final prediction. A common approach  is a weighted average.
+2025年2月 18日
+基礎大型語言模型與文字生成
 
-February 2025 17   
-Foundational Large Language Models & Text Generation 
+**大型推理模型 (Large Reasoning Models)**
 
-In practice, A Mixture of Experts (MoE) architecture combines multiple specialized sub models, called “experts,” to tackle complex tasks. Instead of simply averaging all expert  predictions, an MoE uses a “gating network” to intelligently route different parts of the  input to the mostt relevant experts. Both the experts and the gating network receive the  input. Each expert processes the input and generates its output. Simultaneously, the  gating network analyzes the input and produces a probability distribution over the experts,  indicating how much each expert should contribute to the final result. These probabilities  then weight the outputs of the experts, and the weighted combination becomes the final  prediction. This allows different experts to specialize in handling specific types of data or  sub-tasks, improving overall performance and, through “sparse activation,” potentially  reducing computational cost by only activating a subset of experts for any given input. 
+在大型模型中實現強大的推理能力是一項複雜的工作，涉及架構設計、訓練方法和提示策略的結合。一個關鍵方面是納入有利於推理模式的歸納偏見 (inductive biases)。具有自我注意力機制的 Transformer 架構是基礎，允許模型在生成輸出時權衡輸入序列不同部分的重要性。然而，僅靠普通的 Transformer 不足以進行複雜的推理。
 
-![][image4]  
-Figure 4. Mixture of experts ensembling70
+思維鏈 (Chain-of-Thought, CoT) 提示明確鼓勵模型在得出最終答案之前生成中間的推理步驟。透過在提示中提供逐步推理的範例，模型學會將複雜問題分解為更小、更易於管理子問題。這模仿了人類的推理過程，並顯著提高了需要多步推斷的任務的性能。思維樹 (Tree-of-Thoughts) 更進一步，探索多個推理路徑，並使用搜索演算法找到最有希望的解決方案。這種技術對於遊戲樹或組合問題很有用。由淺入深 (Least-to-Most) 提示引導模型解決子問題，這些子問題逐漸變得更加複雜，一個子問題的輸出被用作更複雜的後續問題的提示的一部分。
 
-February 2025 18   
-Foundational Large Language Models & Text Generation 
+在專門為推理任務設計的數據集上進行微調也至關重要。這些數據集可能包含邏輯謎題、數學問題或常識推理挑戰。指令微調 (Instruction tuning)，即訓練模型遵循自然語言指令，進一步增強了其理解和回應複雜推理提示的能力。從人類回饋中進行強化學習 (Reinforcement Learning from Human Feedback, RLHF) 根據人類偏好來完善模型的輸出，提高其推理的品質和連貫性。RLHF 有助於獎勵模型，這些模型對推理能力和「有用性」進行評分。
 
-**Large Reasoning Models** 
+2025年2月 19日
+基礎大型語言模型與文字生成
 
-Achieving robust reasoning capabilities in Large Models is a complex endeavor that involves  a combination of architectural designs, training methodologies, and prompting strategies.  One crucial aspect is incorporating inductive biases that favor reasoning-conducive patterns.  Transformer architectures, with their self-attention mechanisms, are foundational, allowing  the model to weigh the importance of different parts of the input sequence when generating  an output. However, vanilla Transformers alone are not sufficient for complex reasoning. 
+知識蒸餾 (Knowledge distillation)，將知識從一個更大、能力更強的「教師」模型轉移到一個更小、更高效的「學生」模型，可用於提高較小模型的推理能力，同時保持效率。這種方法允許學生模型學習教師模型的推理模式，而無需相同的計算資源。在推論期間，像束搜索 (beam search) 這樣的技術，同時探索多個候選輸出，可以透過考慮不同的可能性來提高推理的品質。溫度縮放 (Temperature scaling)，調整模型輸出的隨機性，也可以影響推理中的探索-利用權衡。最後，納入外部知識源，如知識圖譜或結構化數據庫，可以為模型提供額外的資訊以支持其推理過程。這可以透過檢索增強生成 (retrieval-augmented generation) 等技術來實現，其中模型在生成輸出之前從外部來源檢索相關資訊。所有這些技術結合起來，跨越多個推理領域，創造出性能最佳的大型推理語言模型。
 
-Chain-of-Thought prompting explicitly encourages the model to generate intermediate  reasoning steps before arriving at a final answer. By providing examples of step-by-step  reasoning in the prompt, the model learns to decompose complex problems into smaller,  manageable sub-problems. This mimics human reasoning processes and significantly  improves performance on tasks requiring multi-step inference. Tree-of-Thoughts takes this  further, exploring multiple reasoning paths and using a search algorithm to find the most  promising solution. This technique is useful with game trees or combinatorial problems.  Least-to-Most prompting guides the model to solve subproblems, which get progressively  more complex, and the output of one subproblem is used as part of the prompt of the more  complex, subsequent problem. 
+**訓練 Transformer**
 
-Fine-tuning on datasets specifically designed for reasoning tasks is also crucial. These  datasets may contain logical puzzles, mathematical problems, or commonsense reasoning  challenges. Instruction tuning, where the model is trained to follow natural language  instructions, further enhances its ability to understand and respond to complex reasoning  prompts. Reinforcement Learning from Human Feedback (RLHF) refines the model’s outputs  based on human preferences, improving the quality and coherence of its reasoning. RLHF  helps in reward models that score reasoning ability as well as “helpfulness.”
+在討論機器學習模型時，區分訓練 (training) 和推論 (inference) 很重要。訓練通常指修改模型的參數，並涉及損失函數和反向傳播。推論是指僅使用模型進行預測輸出，而不更新模型權重。在推論期間，模型參數是固定的。到目前為止，我們學習了 Transformer 在推論期間如何生成輸出。接下來，我們將專注於如何訓練 Transformer 來執行一個或多個給定的任務。
 
-February 2025 19   
-Foundational Large Language Models & Text Generation 
+2025年2月 20日
+基礎大型語言模型與文字生成
 
-Knowledge distillation, transferring knowledge from a larger, more capable “teacher” model  to a smaller, more efficient “student” model, can be used to improve the reasoning abilities  of smaller models while maintaining efficiency. This approach allows the student model to  learn the reasoning patterns of the teacher model without requiring the same computational  resources. During inference, techniques like beam search, which explores multiple candidate  outputs simultaneously, can improve the quality of reasoning by considering different  possibilities. Temperature scaling, adjusting the randomness of the model’s output, can also  influence the exploration-exploitation trade-off in reasoning. Finally, incorporating external  knowledge sources, such as knowledge graphs or structured databases, can provide the  model with additional information to support its reasoning process. This can be achieved  through techniques like retrieval-augmented generation, where the model retrieves relevant  information from an external source before generating an output. These techniques all  combined, across many domains of reasoning, create the best performing reasoning large  language models. 
+**數據準備 (Data preparation)**
 
-**Training the transformer** 
+第一步是數據準備，這本身就涉及幾個重要步驟。首先，透過應用過濾、去重和歸一化等技術來清理數據。下一步是分詞 (tokenization)，使用位元組對編碼 (Byte-Pair Encoding, BPE)8, 9 和 Unigram 分詞8, 10 等技術將數據集轉換為 token。分詞會生成一個詞彙表，這是 LLM 使用的一組唯一 token。這個詞彙表作為模型處理和理解文字的「語言」。最後，數據通常被分割成用於訓練模型的訓練數據集和用於評估模型性能的測試數據集。
 
-When talking about machine learning models, it’s important to differentiate between  training and inference. Training typically refers to modifying the parameters of the model,  and involves loss functions and backpropagation. Inference is when model is used only  for the predicted output, without updating the model weights. The model parameters are  fixed during inference. Up until now we learned how transformers generate outputs during  inference. Next, we focus on how to train transformers to perform one or more given tasks.
+**訓練與損失函數 (Training and loss function)**
 
-February 2025 20   
-Foundational Large Language Models & Text Generation 
+一個典型的 Transformer 訓練循環包括幾個部分：首先，從訓練數據集中抽樣輸入序列的批次。對於每個輸入序列，都有一個對應的目標序列。在無監督預訓練中，目標序列是從輸入序列本身派生出來的。然後將這批輸入序列饋送到 Transformer 中。Transformer 生成預測的輸出序列。使用損失函數（通常是交叉熵損失）11 來衡量預測序列和目標序列之間的差異。計算該損失的梯度，優化器使用它們來更新 Transformer 的參數。重複此過程，直到 Transformer 收斂到一定的性能水平，或者直到它在預定數量的 token 上進行了訓練。
 
-**Data preparation** 
+根據所使用的架構，有不同的方法來制定 Transformer 的訓練任務：
 
-The first step is data preparation, which involves a few important steps itself. First, clean the  data by applying techniques such as filtering, deduplication, and normalization. The next  step is tokenization where the dataset is converted into tokens using techniques such as  Byte-Pair Encoding8, 9 and Unigram tokenization.8, 10 Tokenization generates a vocabulary,  which is a set of unique tokens used by the LLM. This vocabulary serves as the model’s  ’language’ for processing and understanding text. Finally, the data is typically split into a  training dataset for training the model as well as a test dataset which is used to evaluate the  models performance. 
+• **僅解碼器 (Decoder-only)** 模型通常在語言建模任務上進行預訓練（例如，參見尾註12、13）。解碼器的目標序列只是輸入序列的移位版本。給定一個像「the cat sat on the mat」這樣的訓練序列，可以為模型生成各種輸入/目標對。例如，輸入「the cat sat on」應該預測「the」，隨後輸入「the cat sat on the」應該預測目標序列「mat」。
 
-**Training and loss function** 
+• **僅編碼器 (Encoder-only)** 模型（如 BERT）14 通常透過以某種方式損壞輸入序列並讓模型嘗試重建它來進行預訓練。一種這樣的方法是遮罩語言建模 (Masked Language Modeling, MLM)。14 在我們的範例中，輸入序列可以是「The [MASK] sat on the mat」，序列目標將是原始句子。
 
-A typical transformer training loop consists of several parts: First, batches of input  sequences are sampled from a training dataset. For each input sequence, there is a  corresponding target sequence. In unsupervised pre-training, the target sequence is  derived from the input sequence itself. The batch of input sequences is then fed into the  transformer. The transformer generates predicted output sequences. The difference  between the predicted and target sequences is measured using a loss function (often cross entropy loss)11. Gradients of this loss are calculated, and an optimizer uses them to update  the transformer’s parameters. This process is repeated until the transformer converges to a  certain level of performance or until it has been trained on a pre-specified number of tokens.  
+• **編碼器-解碼器 (Encoder-decoder)** 模型（如原始 Transformer）在序列到序列的監督任務上進行訓練，例如翻譯（輸入序列「Le chat est assis sur le tapis」，目標「The cat sat on the mat」）、問答（輸入序列是問題，目標序列是相應的答案）和摘要（輸入序列是完整的文章，目標序列是其相應的摘要）。這些模型也可以透過將其他任務轉換為序列到序列的格式以無監督的方式進行訓練。例如，在維基百科數據上進行訓練時，輸入序列可能是文章的第一部分，目標序列則包含文章的其餘部分。
 
-There are different approaches to formulating the training task for transformers depending  on the architecture used: 
+訓練期間需要考慮的另一個因素是「上下文長度」(context length)。這指的是模型可以「記住」並用來預測序列中下一個 token 的先前 token 的數量。更長的上下文長度允許模型捕捉文本中更複雜的關係和依賴性，可能帶來更好的性能。然而，更長的上下文也需要更多的計算資源和記憶體，這會減慢訓練和推論速度。選擇適當的上下文長度需要在這些權衡之間取得平衡，具體取決於特定任務和可用資源。
 
-• **Decoder-only** models are typically pre-trained on the language modeling task (e.g., see  endnote12, 13). The target sequence for the decoder is simply a shifted version of the input  sequence. Given a training sequence like ‘the cat sat on the mat’ various input/target 
+2025年2月 22日
+基礎大型語言模型與文字生成
 
-February 2025 21   
-Foundational Large Language Models & Text Generation 
+**Transformer 的演進**
 
-pairs can be generated for the model. For example the input “the cat sat on” should  predict “the” and subsequently the input “the cat sat on the” should predict target  sequence “mat”. 
+接下來的章節將概述各種 Transformer 架構。這些包括僅編碼器、編碼器-解碼器，以及僅解碼器的 Transformer。我們從 GPT-1 和 BERT 開始，最後介紹 Google 最新的 LLM 家族，名為 Gemini。
 
-• **Encoder-only** models (like BERT)14 are often pre-trained by corrupting the input sequence  in some way and having the model try to reconstruct it. One such approach is masked  language modeling (MLM).14 In our example, the input sequence could be “The [MASK] sat  on the mat” and the sequence target would be the original sentence. 
+**GPT-1**
 
-• **Encoder-decoder** models (like the original transformer) are trained on sequence-to sequence supervised tasks such as translation (input sequence “Le chat est assis sur  le tapis” and target “The cat sat on the mat”), question-answering (where the input  sequence is a question and the target sequence is the corresponding answer), and  summarization (where the input sequence is a full article and the target sequence is its  corresponding summary). These models could also be trained in an unsupervised way by  converting other tasks into sequence-to-sequence format. For example, when training  on Wikipedia data, the input sequence might be the first part of an article, and the target  sequence comprises the remainder of the article. 
+GPT-1 (Generative pre-trained transformer version 1)15 是 OpenAI 於 2018 年開發的一款*僅解碼器*模型。它在 BooksCorpus 數據集（包含約數十億個單詞）上進行訓練，能夠生成文本、翻譯語言、撰寫不同類型的創意內容，並以資訊豐富的方式回答問題。GPT-1 的主要創新之處在於：
 
-An additional factor to consider during training is the ‘context length’. This refers to the  number of previous tokens the model can ‘remember’ and use to predict the next token in  the sequence. Longer context lengths allow the model to capture more complex relationships  and dependencies within the text, potentially leading to better performance. However, longer  contexts also require more computational resources and memory, which can slow down  training and inference. Choosing an appropriate context length involves balancing these  trade-offs based on the specific task and available resources.
+• **結合 Transformer 和無監督預訓練 (unsupervised pre-training):** 無監督預訓練是在大量未標記數據語料庫上訓練語言模型的過程。然後，使用監督數據對模型進行微調，以適應特定任務，例如翻譯或情感分類。在先前的工作中，大多數語言模型都是使用監督學習目標進行訓練的。這意味著模型是在一個標記數據集上進行訓練的，其中每個範例都有一個對應的標籤。這種方法有兩個主要限制。首先，它需要大量的標記數據，收集這些數據可能既昂貴又耗時。其次，模型只能泛化到與其訓練任務相似的任務。半監督序列學習是最早證明無監督預訓練後再進行監督訓練優於單獨進行監督訓練的研究之一。
 
-February 2025 22   
-Foundational Large Language Models & Text Generation 
+無監督預訓練透過在大量未標記數據語料庫上訓練模型來解決這些限制。這些數據可以比標記數據更容易、更便宜地收集。此外，模型可以泛化到與其訓練任務不同的任務。BooksCorpus 數據集是一個大型（5GB）的未標記文本語料庫，用於訓練 GPT-1 語言模型。該數據集包含超過 7,000 本未出版的書籍，為模型提供了大量的學習數據。此外，該語料庫包含長段的連續文本，有助於模型學習長距離依賴關係。總體而言，無監督預訓練是一種強大的技術，可用於訓練比僅使用監督學習訓練的模型更準確、更具泛化能力的語言模型。
 
-**The evolution of transformers** 
+• **任務感知輸入轉換 (Task-aware input transformations):** 有不同種類的任務，如文本蘊含 (textual entailment) 和問答，需要特定的結構。例如，文本蘊含需要一個前提和一個假設；問答需要一個上下文文檔、一個*問題*和可能的*答案*。GPT-1 的貢獻之一是將這些需要結構化輸入的任務類型轉換為語言模型可以解析的輸入，而無需在預訓練架構之上添加特定於任務的架構。對於文本蘊含，前提 *p* 和假設 *h* 用一個分隔符 token ($) 連接起來 - [*p, $, h*]。對於問答，上下文文檔 *c* 與問題 *q* 和可能的答案 *a* 連接起來，在問題和答案之間有一個分隔符 token - [*c,q,$,a*]。
 
-The next sections provide an overview of the various transformer architectures. These  include encoder-only, encoder-decoder, as well as decoder-only transformers. We start with  GPT-1 and BERT and end with Google’s latest family of LLMs called Gemini. 
+GPT-1 在多個基準測試中超越了以前的模型，取得了優異的成果。雖然 GPT-1 是自然語言處理 (NLP) 領域的一個重大突破，但它也有一些局限性。例如，該模型容易生成重複的文本，尤其是在給出超出其訓練數據範圍的提示時。它也無法在多輪對話中進行推理，也無法追蹤文本中的長期依賴關係。此外，其連貫性和流暢性僅限於較短的文本序列，較長的段落會缺乏連貫性。儘管有這些局限性，GPT-1 證明了無監督預訓練的力量，為基於 Transformer 架構的更大、更強大的模型奠定了基礎。
 
-**GPT-1** 
+2025年2月 24日
+基礎大型語言模型與文字生成
 
-GPT-1 (Generative pre-trained transformer version 1)15 was a *decoder-only* model developed  by OpenAI in 2018. It was trained on the BooksCorpus dataset (containing approximately  several billion words) and is able to generate text, translate languages, write different kinds  of creative content, and answer questions in an informative way. The main innovations in  GPT-1 were: 
+**BERT**
 
-• **Combining transformers and unsupervised pre-training:** Unsupervised pre-training  is a process of training a language model on a large corpus of unlabeled data. Then,  supervised data is used to fine-tune the model for a specific task, such as translation  or sentiment classification. In prior works, most language models were trained using a  supervised learning objective. This means that the model was trained on a dataset of  labeled data, where each example had a corresponding label. This approach has two main  limitations. First, it requires a large amount of labeled data, which can be expensive and  time-consuming to collect. Second, the model can only generalize to tasks that are similar  to the tasks that it was trained on. Semi-supervised sequence learning was one of the first  works that showed that unsupervised pre-training followed by supervised training was  superior than supervised training alone. 
+BERT14，全名為 Bidirectional Encoder Representations from Transformers（來自 Transformer 的雙向編碼器表示），它與傳統的編碼器-解碼器 Transformer 模型不同，是一個僅編碼器的架構。BERT 不做翻譯或生成序列，而是專注於透過在遮罩語言模型目標上進行訓練來深入理解上下文。在這種設定中，句子中的隨機單詞會被替換為一個 [MASK] token，BERT 會根據周圍的上下文嘗試預測原始單詞。BERT 訓練方案的另一個創新方面是下一句預測損失 (next sentence prediction loss)，它學習判斷一個給定的句子是否在邏輯上跟隨前一個句子。透過在這些目標上進行訓練，BERT 捕捉了一個單詞左右兩側複雜的上下文依賴關係，並且能夠辨別句子對之間的關係。這些能力使得 BERT 特別擅長於需要自然語言理解的任務，例如問答、情感分析和自然語言推斷等。由於這是一個僅編碼器的模型，BERT 無法生成文本。
 
-Unsupervised pre-training addresses these limitations by training the model on a large  corpus of unlabeled data. This data can be collected more easily and cheaply than labeled  data. Additionally, the model can generalize to tasks that are different from the tasks that 
+**GPT-2**
 
-February 2025 23   
-Foundational Large Language Models & Text Generation 
+GPT-2，12 是 GPT-1 的繼任者，由 OpenAI 於 2019 年發布。GPT-2 的主要創新是直接擴大規模，其參數數量和訓練數據集的大小都增加了十倍：
 
-it was trained on. The BooksCorpus dataset is a large (5GB) corpus of unlabeled text that  was used to train the GPT-1 language model. The dataset contains over 7,000 unpublished  books, which provides the model with a large amount of data to learn from. Additionally,  the corpus contains long stretches of contiguous text, which helps the model learn long range dependencies. Overall, unsupervised pre-training is a powerful technique that can  be used to train language models that are more accurate and generalizable than models  that are trained using supervised learning alone.  
+• **數據 (Data):** GPT-2 在一個名為 WebText 的大型（40GB）且多樣化的數據集上進行訓練，該數據集包含來自 Reddit 的 4500 萬個網頁，其 Karma 評分至少為 3。Karma 是 Reddit 上使用的一種評分指標，評分為 3 意味著所有帖子都具有合理的品質水平。
 
-• **Task-aware input transformations:** There are different kinds of tasks such as textual  entailment and question-answering that require a specific structure. For example,  textual entailment requires a premise and a hypothesis; question-answering requires a  context document; a *question* and possible *answers*. One of the contributions of GPT-1  is converting these types of tasks which require structured inputs into an input that the  language model can parse, without requiring task-specific architectures on top of the  pre-trained architecture. For textual entailment, the premise *p* and the hypothesis *h* are  concatenated with a delimiter token ($) in between - [*p, $, h*]. For question answering, the  context document *c* is concatenated with the question *q* and a possible answer *a* with a  delimiter token in between the question and answer - [*c,q,$,a*]. 
+2025年2月 25日
+基礎大型語言模型與文字生成
 
-GPT-1 surpassed previous models on several benchmarks, achieving excellent results. While  GPT-1 was a significant breakthrough in natural language processing (NLP), it had some  limitations. For example, the model was prone to generating repetitive text, especially when  given prompts outside the scope of its training data. It also failed to reason over multiple  turns of dialogue and could not track long-term dependencies in text. Additionally, its  cohesion and fluency were limited to shorter text sequences, and longer passages would  lack cohesion. Despite these limitations, GPT-1 demonstrated the power of unsupervised  pre-training, which laid the foundation for larger and more powerful models based on the  transformer architecture.
+• **參數 (Parameters):** GPT-2 擁有 15 億個參數，比之前的模型大一個數量級。更多的參數增加了模型的學習能力。作者訓練了四個語言模型，分別具有 1.17 億（與 GPT-1 相同）、3.45 億、7.62 億和 15 億（GPT-2）個參數，並發現參數最多的模型在每個後續任務上表現都更好。
 
-February 2025 24   
-Foundational Large Language Models & Text Generation 
+這次規模擴大產生了一個能夠生成比 GPT-1 更連貫、更逼真文本的模型。它生成類人回應的能力使其成為各種自然語言處理任務（如內容創作和翻譯）的寶貴工具。具體來說，GPT-2 在捕捉長距離依賴關係和常識推理方面表現出顯著的改進。雖然它在某些任務上表現良好，但在閱讀理解、摘要和翻譯方面並未超越當時最先進的技術。GPT-2 最顯著的成就是它能夠在各種任務上進行零樣本學習 (zero-shot learning)。零樣本任務轉移是指模型在未經訓練的情況下泛化到新任務的能力，這要求模型根據給定的指令來理解任務。例如，對於一個英語到德語的翻譯任務，模型可能會被給予一個英語句子，後面跟著「German」一詞和一個提示（「:」）。然後，模型會被期望理解這是一個翻譯任務，並生成該英語句子的德語翻譯。GPT-2 能夠在沒有任何明確監督的情況下執行機器翻譯、文本摘要和閱讀理解等任務。
 
-**BERT** 
+該研究發現，隨著模型容量的增加，零樣本任務的性能呈對數線性增長。GPT-2 表明，在更大的數據集上進行訓練並擁有更多的參數，可以提高模型理解任務的能力，並在零樣本設定下在許多任務上超越最先進的水平。
 
-BERT14 which stands for Bidirectional Encoder Representations from Transformers,  distinguishes itself from traditional encoder-decoder transformer models by being an  encoder-only architecture. Instead of translating or producing sequences, BERT focuses  on understanding context deeply by training on a masked language model objective. In  this setup, random words in a sentence are replaced with a [MASK] token, and BERT tries  to predict the original word based on the surrounding context. Another innovative aspect  of BERT’s training regime is the next sentence prediction loss, where it learns to determine  whether a given sentence logically follows a preceding one. By training on these objectives,  BERT captures intricate context dependencies from both the left and right of a word, and  it can discern the relationship between pairs of sentences. Such capabilities make BERT  especially good at tasks that require natural language understanding, such as question answering, sentiment analysis, and natural language inference, among others. Since this is an  encoder-only model, BERT cannot generate text. 
+2025年2月 26日
+基礎大型語言模型與文字生成
 
-**GPT-2** 
+**GPT-3/3.5/4**
 
-GPT-2,12 the successor to GPT-1, was released in 2019 by OpenAI. The main innovation of  GPT-2 was a direct scale-up, with a tenfold increase in both its parameter count and the size  of its training dataset: 
+GPT-3，13 或稱第三代生成式預訓練 Transformer 模型，相較於其前身 GPT-2，在規模、能力和靈活性方面都有了顯著的演進。最顯著的區別是 GPT-3 的龐大規模，擁有高達 1750 億個參數，而 GPT-2 最大的模型只有 15 億個參數。模型規模的增加使得 GPT-3 能夠儲存和回憶更大量的資訊，理解細微的指令，並在更長的段落中生成更連貫、更具上下文關聯性的文本。
 
-• **Data:** GPT-2 was trained on a large (40GB) and diverse dataset called WebText, which  consists of 45 million webpages from Reddit with a Karma rating of at least three. Karma  is a rating metric used on Reddit and a value of three means that all the posts were of a  reasonable level of quality.
+雖然 GPT-2 可以透過額外的訓練數據在特定任務上進行微調，但 GPT-3 只需幾個範例，有時甚至無需任何明確的範例——僅憑提供的指令——就能理解和執行任務。這突顯了 GPT-3 更強的動態理解和適應能力，減少了在 GPT-2 中更為普遍的、針對特定任務的微調需求。
 
-February 2025 25   
-Foundational Large Language Models & Text Generation 
+最後，GPT-3 的大規模模型和多樣化的訓練語料庫使其在更廣泛的任務中具有更好的泛化能力。這意味著，與 GPT-2 相比，GPT-3 在開箱即用的情況下，無需任何進一步的訓練，就能在從翻譯到問答的各種 NLP 挑戰中展現出更佳的性能。值得注意的是，發布方式也有所不同：OpenAI 最初因擔心濫用而對 GPT-2 的發布有所保留，但他們選擇將 GPT-3 作為商業 API 提供，這既反映了其效用，也反映了該組織在部署方面的立場演變。
 
-• **Parameters:** GPT-2 had 1.5 billion parameters, which was an order of magnitude larger  than the previous model. More parameters increase the model’s learning capacity. The  authors trained four language models with 117M (the same as GPT-1), 345M, 762M, and 1.5B  (GPT-2) parameters, and found that the model with the most parameters performed better  on every subsequent task. 
+指令微調隨後與 InstructGPT17 一同引入，這是 GPT-3 的一個版本，它使用監督式微調 (Supervised Fine-Tuning)，在一個包含人類示範期望模型行為的數據集上進行了微調。該模型的輸出隨後被排序，並使用從人類回饋中進行強化學習 (Reinforcement Learning from Human Feedback) 進一步微調。這使得模型能更好地遵循指令。
 
-This scaling up resulted in a model that was able to generate more coherent and realistic text  than GPT-1. Its ability to generate human-like responses made it a valuable tool for various  natural language processing tasks, such as content creation and translation. Specifically,  GPT-2 demonstrated significant improvement in capturing long-range dependencies and  common sense reasoning. While it performed well in some tasks, it did not outperform state of-the-art reading comprehension, summarization, and translation. GPT-2’s most significant  achievement was its ability to perform zero-shot learning on a variety of tasks. Zero-shot task  transfer is the ability of a model to generalize to a new task without being trained on it, which  requires the model to understand the task based on the given instruction. For example, for  an English to German translation task, the model might be given an English sentence followed  by the word “German” and a prompt (“:”). The model would then be expected to understand  that this is a translation task and generate the German translation of the English sentence.  GPT-2 was able to perform tasks such as machine translation, text summarization, and  reading comprehension without any explicit supervision. 
+2025年2月 27日
+基礎大型語言模型與文字生成
 
-The study discovered that performance on zero-shot tasks increased in a log-linear manner  as the model’s capacity increased. GPT-2 showed that training on a larger dataset and having  more parameters improved the model’s ability to understand tasks and surpass the state-of the-art on many tasks in zero-shot settings.
+一個 13 億參數的 InstructGPT 模型在人類評估中表現優於 1750 億參數的 GPT-3 模型。它在真實性和減少毒性方面也顯示出改進。
 
-February 2025 26   
-Foundational Large Language Models & Text Generation 
+GPT-3.5 模型，包括 GPT-3.5 turbo，在 GPT-3 的基礎上進行了改進，因為它能夠理解和生成程式碼。它針對對話進行了優化。並且能夠接收高達 16,385 個 token 的上下文窗口，並能生成高達 4,096 個 token 的輸出。
 
-**GPT-3/3.5/4** 
+GPT-4 將 GPT-3.5 擴展為一個大型多模態模型，能夠處理圖像和文本輸入並產生文本輸出。19 具體來說，接受文本或圖像作為輸入並輸出文本。該模型具有更廣泛的通用知識和先進的推理能力。它可以接收高達 128,000 個 token 的上下文窗口，最大輸出為 4,096 個 token。GPT-4 在解決數學、編碼、視覺、醫學、法律和心理學等不同領域的複雜任務方面表現出卓越的多功能性——所有這些都無需專門的指令。其性能通常與人類能力相當甚至超越，並顯著優於 GPT-3.5 等早期模型。
 
-GPT-3,13 or the third iteration of the Generative Pre-trained Transformer model, represents a  significant evolution from its predecessor, GPT-2, primarily in terms of scale, capabilities, and  flexibility. The most noticeable difference is the sheer size of GPT-3, boasting a whopping  175 billion parameters, compared to GPT-2’s largest model which had 1.5 billion parameters.  This increase in model size allowed GPT-3 to store and recall an even more vast amount of  information, understand nuanced instructions, and generate more coherent and contextually  relevant text over longer passages. 
+**LaMDA**
 
-While GPT-2 could be fine-tuned on specific tasks with additional training data, GPT-3 can  understand and execute tasks with just a few examples, or sometimes even without any  explicit examples—simply based on the instruction provided. This highlights GPT-3’s more  dynamic understanding and adaptation abilities, reducing the need for task-specific fine tuning which was more prevalent in GPT-2. 
+Google 的 LaMDA，20 全名為「對話應用語言模型」(Language Model for Dialogue Applications)，是大型語言模型領域的另一項貢獻，主要設計用於進行開放式對話。與傳統聊天機器人在更受限和預定義的領域中運作不同，LaMDA 被設計用於處理廣泛的主題，提供更自然、更流暢的對話。LaMDA 在以對話為中心的數據上進行訓練，以鼓勵持續的對話流，而不僅僅是孤立的回應，確保用戶可以進行更廣泛和探索性的對話。
 
-Finally, GPT-3’s large model scale and diverse training corpus have led to better  generalization across a broader range of tasks. This means that out-of-the-box, without  any further training, GPT-3 exhibits improved performance on diverse NLP challenges, from  translation to question-answering, compared to GPT-2. It’s also worth noting that the release  approach differed: while OpenAI initially held back GPT-2 due to concerns about misuse,  they chose to make GPT-3 available as a commercial API, reflecting both its utility and the  organization’s evolving stance on deployment. 
+2025年2月 28日
+基礎大型語言模型與文字生成
 
-Instruction tuning was then introduced with InstructGPT17, a version of GPT-3 that was fine tuned, using Supervised Fine-Tuning, on a dataset of human demonstrations of desired  model behaviors. Outputs from this model were then ranked and it was then further fine tuned using Reinforcement Learning from Human Feedback. This led to improved instruction 
+雖然 GPT 模型，特別是像 GPT-3 這樣的後期版本，致力於同時處理多種任務，從文本生成到程式碼編寫，但 LaMDA 的主要重點是維持和增強對話的深度和廣度。GPT 模型在其能夠以最少的提示產生連貫的長篇內容和執行各種任務方面表現出色，而 LaMDA 則強調對話的流動和進展，力求模仿人類對話的不可預測性和豐富性。
 
-February 2025 27   
-Foundational Large Language Models & Text Generation 
+**Gopher**
 
-following in the model. A 1.3B parameter InstructGPT model had better human evaluations  than the 175B parameter GPT-3 model. It also showed improvements in truthfulness and  reductions in toxicity. 
+Gopher22 是一個由 DeepMind 於 2021 年開發的、擁有 2800 億參數的語言模型，基於僅解碼器的 Transformer 架構。22 它可以生成文本、翻譯語言、撰寫不同種類的創意內容，並以資訊豐富的方式回答您的問題。與 GPT-3 類似，Gopher 專注於改善數據集品質和優化技術：
 
-GPT-3.5 models, including GPT-3.5 turbo, improve over GPT-3 as it is capable of  understanding and generating code. It’s been optimized for dialogue. And it’s capable of  receiving context windows of up to 16,385 tokens and can generate outputs of up to 4,096  tokens.  
+• **數據集 (Dataset):** 研究人員策劃了一個名為 MassiveText 的高品質文本數據集，其中包含超過 10 TB 的數據和來自網頁、書籍、新聞文章和程式碼（GitHub）的 24.5 億份文件。他們僅在 3000 億個 token 上進行訓練，佔數據集的 12%。重要的是，他們透過過濾數據來提高數據品質，例如移除重複文本和對相似文件進行去重。這顯著提高了模型在下游任務上的性能。
 
-GPT-4 extends GPT-3.5 as a large multimodal model capable of processing image and  text inputs and producing text outputs.19 Specifically, accepting text or images as input  and outputting text. This model has broader general knowledge and advanced reasoning  capabilities. It can receive context windows of up to 128,000 tokens and has a maximum  output of 4,096 tokens. GPT-4 demonstrates remarkable versatility by solving complex tasks  across diverse fields like mathematics, coding, vision, medicine, law, and psychology – all  without specialized instructions. Its performance often matches or even exceeds human  capabilities and significantly outperforms earlier models like GPT-3.5. 
+• **優化 (Optimization):** 研究人員在 1500 個步驟中使用了一個預熱學習率 (warmup learning rate)，然後使用餘弦排程 (cosine schedule) 將其衰減。他們還有一個有趣的規則，即隨著模型規模的增加，他們會降低學習率並增加每個批次中的 token 數量。此外，他們發現根據全域梯度範數將梯度裁剪到最大值 1 有助於穩定訓練。
 
-**LaMDA** 
+2025年2月 29日
+基礎大型語言模型與文字生成
 
-Google’s LaMDA,20 which stands for ‘Language Model for Dialogue Applications’ is another  contribution to the arena of large-scale language models, designed primarily to engage in  open-ended conversations. Unlike traditional chatbots which operate in more constrained  and predefined domains, LaMDA is engineered to handle a wide array of topics, delivering  more natural and flowing conversations. LaMDA was trained on dialogue-focused data to  encourage ongoing conversational flow, not just isolated responses, ensuring users can have  more extensive and explorative dialogues.
+Gopher 在各種任務上進行了評估，包括數學、常識、邏輯推理、通用知識、科學理解、倫理和閱讀理解。Gopher 在 81% 的任務上超越了先前最先進的模型。具體來說，Gopher 在知識密集型任務上表現良好，但在推理密集型任務（如抽象代數）上則表現不佳。
 
-February 2025 28   
-Foundational Large Language Models & Text Generation 
-
-While GPT models, especially the later iterations like GPT-3, have strived to address a  multitude of tasks simultaneously, from text generation to code writing, LaMDA’s primary  focus is on maintaining and enhancing conversational depth and breadth. GPT models  shine on their ability to produce coherent long-form content and perform various tasks  with minimal prompting, whereas LaMDA emphasizes the flow and progression of dialogue,  striving to mimic the unpredictability and richness of human conversations.  
-
-**Gopher** 
-
-Gopher22 is a 280 billion parameter language model based on the decoder-only transformer  architecture, developed by DeepMind in 2021.22 It can generate text, translate languages,  write different kinds of creative content, and answer your questions in an informative way.  Similar to GPT-3, Gopher focused on improving dataset quality and optimization techniques: 
-
-• **Dataset:** The researchers curated a high-quality text dataset called MassiveText, which  contains over 10 terabytes of data and 2.45B documents from web pages, books, news  articles, and code (GitHub). They only trained on 300B tokens, which is 12% of the dataset.  Importantly, they improved the quality of the data by filtering it, such as by removing  duplicate text and deduplicating similar documents. This significantly improved the  model’s performance on downstream tasks. 
-
-• **Optimization:** The researchers used a warmup learning rate for 1,500 steps and then  decayed it using a cosine schedule. They also had an interesting rule that as they  increased the model size, they decreased the learning rate and increased the number of  tokens in each batch. Additionally, they found that clipping gradients to be a maximum of 1  based on the global gradient norm helped stabilize the training.
-
-February 2025 29   
-Foundational Large Language Models & Text Generation 
-
-Gopher was evaluated on a variety of tasks, including mathematics, common sense, logical  reasoning, general knowledge, scientific understanding, ethics, and reading comprehension.  Gopher outperformed previous state-of-the-art models on 81% of the tasks. Specifically,  Gopher performed well on knowledge-intensive tasks but struggled on reasoning-heavy  tasks such as abstract algebra. 
-
-The authors also conducted a study on the effect of model size on different types of  tasks. Figure 4 shows the results of this ablation study. Specifically, the authors found that  increasing the number of parameters had a significant impact on logical reasoning and  reading comprehension, but it did not improve performance as much on tasks such as  general knowledge, where performance eventually almost plateaued. 
+作者還進行了一項關於模型大小對不同類型任務影響的研究。圖 4 顯示了這項消融研究的結果。具體來說，作者發現增加參數數量對邏輯推理和閱讀理解有顯著影響，但對通用知識等任務的性能提升不大，在這些任務上性能最終幾乎趨於平穩。
 
 ![][image5]![][image6]
 
-Figure 5. Ablation study22 on the effect of model size on the performance of Gopher on different types  of tasks
+圖 5. 關於模型大小對 Gopher 在不同類型任務上性能影響的消融研究22
 
-February 2025 30   
-Foundational Large Language Models & Text Generation 
+2025年2月 30日
+基礎大型語言模型與文字生成
 
-**GLaM** 
+**GLaM**
 
-GLaM (Generalist Language Model)23 was the first sparsely-activated mixture-of-experts  language model. Mixture-of-experts based models are much more computationally efficient  given their parameter count. This is achieved by only activating a subset of their parameters  (i.e. experts) for each input token. GLaM consists of 1.2 trillion parameters but uses only ⅓  of the energy used to train GPT-3 and half of the FLOPs for inference while achieving better  overall performance compared to GPT-3. 
+GLaM (Generalist Language Model)23 是第一個稀疏激活的專家混合語言模型。基於專家混合的模型由於其參數數量，計算效率要高得多。這是透過為每個輸入 token 僅激活其一部分參數（即專家）來實現的。GLaM 包含 1.2 萬億個參數，但訓練所用的能量僅為 GPT-3 的 ⅓，推論所需的 FLOPs 僅為一半，同時在整體性能上優於 GPT-3。
 
-**Chinchilla** 
+**Chinchilla**
 
-Until 2022, LLMs were primarily scaled by increasing the model size and using datasets that  are relatively small by current standards (up to 300 billion tokens for the largest models).  This approach was informed by the Kaplan et al.24 study, which examined how performance  of a language model, measured by cross-entropy loss, varies with changes in computational  budget, model size, and dataset size. Specifically, given a 100-fold increase in computational  resources (*C*), Kaplan et al.24 recommended scaling model size by approximately 28.8 times  (*Nopt*∝ *C*0.73), while increasing dataset size by only 3.5 times (*Dopt*∝ *C*0.27).  
+直到 2022 年，LLM 主要透過增加模型大小和使用按當前標準相對較小的數據集（最大模型最多 3000 億個 token）來進行擴展。這種方法是基於 Kaplan 等人24 的研究，該研究檢視了語言模型的性能（以交叉熵損失衡量）如何隨著計算預算、模型大小和數據集大小的變化而變化。具體來說，在計算資源 (*C*) 增加 100 倍的情況下，Kaplan 等人24 建議將模型大小擴展約 28.8 倍 (*Nopt*∝ *C*0.73)，而數據集大小僅增加 3.5 倍 (*Dopt*∝ *C*0.27)。
 
-The Chinchilla paper,25 revisited the compute optimal scaling laws and used three different  approaches to find that near equal scaling in parameters and data is optimal with increasing  compute. Thus, a 100-fold increase in compute should translate into a tenfold increase in  both data size and model size. 
+Chinchilla 論文25 重新審視了計算最優擴展定律，並使用三種不同的方法發現，隨著計算量的增加，參數和數據的近乎同等擴展是最佳的。因此，計算量增加 100 倍應轉化為數據大小和模型大小都增加十倍。
 
-February 2025 31   
-Foundational Large Language Models & Text Generation 
+2025年2月 31日
+基礎大型語言模型與文字生成
 
-![][image7]  
-Figure 6. Overlaid predictions from three different approaches from Chinchilla paper,25 along with  projections from Kaplan et al24 
+![][image7]
+圖 6. Chinchilla 論文中三種不同方法的預測疊加圖，25 以及 Kaplan 等人24 的預測
 
-To verify the updated scaling law, DeepMind trained a 70B parameter model (called  Chinchilla) using the same compute budget as the previously trained Gopher model.  Chinchilla uniformly and significantly outperformed Gopher (280B),21 GPT-3 (175B),13 and  Megatron-Turing NLG (530B)26 on a large range of downstream evaluation tasks. Due to being  4x smaller than Gopher, both the memory footprint and the inference cost of Chinchilla are  also smaller. 
+為了驗證更新後的擴展定律，DeepMind 使用與先前訓練的 Gopher 模型相同的計算預算，訓練了一個 70B 參數的模型（名為 Chinchilla）。Chinchilla 在廣泛的下游評估任務中，一致且顯著地優於 Gopher (280B)、21 GPT-3 (175B)、13 和 Megatron-Turing NLG (530B)26。由於比 Gopher 小 4 倍，Chinchilla 的記憶體佔用和推論成本也都更小。
 
-The findings of Chinchilla had significant ramifications for the development of future LLMs.  Focus shifted into finding ways to scale dataset size (while maintaining quality) alongside  increasing parameter count. Extrapolating this trend suggests that training dataset size  may soon be limited by the amount of text data available. This has led to new research by  Muennighoff et al.27 exploring scaling laws in data-constrained regimes.
+Chinchilla 的發現對未來 LLM 的發展產生了重大影響。焦點轉向尋找在增加參數數量的同時擴展數據集大小（並保持品質）的方法。推斷這一趨勢表明，訓練數據集的大小可能很快會受到可用文本數據量的限制。這導致了 Muennighoff 等人27 的新研究，探索在數據受限情況下的擴展定律。
 
-February 2025 32   
-Foundational Large Language Models & Text Generation 
+2025年2月 32日
+基礎大型語言模型與文字生成
 
-**PaLM** 
+**PaLM**
 
-*Pathways* language model (PaLM)28 is a 540-billion parameter transformer-based large  language model developed by Google AI. It was trained on a massive dataset of text and  code and is capable of performing a wide range of tasks, including common sense reasoning,  arithmetic reasoning, joke explanation, code generation, and translation. 
+*Pathways* 語言模型 (PaLM)28 是由 Google AI 開發的一款擁有 5400 億參數的基於 Transformer 的大型語言模型。它在大量的文本和程式碼數據集上進行訓練，能夠執行廣泛的任務，包括常識推理、算術推理、笑話解釋、程式碼生成和翻譯。
 
-At the time of its release, PaLM was also able to achieve state-of-the-art performance on  many language benchmarks, for example GLUE and SuperGLUE.29 
+在發布時，PaLM 也能夠在許多語言基準測試中達到最先進的性能，例如 GLUE 和 SuperGLUE。29
 
-One of the key features of PaLM is its ability to scale efficiently. This is thanks to the  Pathways system, which Google developed to distribute the training of large language  models across two TPU v4 Pods. 
+PaLM 的一個關鍵特性是其高效擴展的能力。這要歸功於 Pathways 系統，該系統由 Google 開發，用於在兩個 TPU v4 Pods 上分佈式訓練大型語言模型。
 
-**PaLM 2** 
+**PaLM 2**
 
-PaLM 230 is a successor to PaLM that was announced in May 2023. Thanks to a number of  architectural and training enhancements, PaLM 2 is even more capable than PaLM, with  fewer total parameters. It excels at advanced reasoning tasks, including code generation,  math, classification, question answering, and translation. 
+PaLM 230 是 PaLM 的繼任者，於 2023 年 5 月宣布。由於多項架構和訓練上的增強，PaLM 2 的能力甚至超過了 PaLM，且總參數更少。它在進階推理任務方面表現出色，包括程式碼生成、數學、分類、問答和翻譯。
 
-PaLM 2 has also been shown to be more efficient than PaLM and became the basis for a  number of commercial models Google released as part of Google Cloud Generative AI.
+PaLM 2 也被證明比 PaLM 更有效率，並成為 Google 作為 Google Cloud Generative AI 一部分發布的多個商業模型的基礎。
 
-February 2025 33   
-Foundational Large Language Models & Text Generation 
+2025年2月 33日
+基礎大型語言模型與文字生成
 
-**Gemini** 
+**Gemini**
 
-**![][image8]**  
-Figure 7. Gemini can receive multi-modal inputs including text, audio, images, and video data. These are all  tokenized and fed into its transformer model. The transformer generates an output that can contain images  and text. 
+**![][image8]**
+圖 7. Gemini 可以接收多模態輸入，包括文本、音訊、圖像和影片數據。這些都被分詞並饋入其 Transformer 模型。Transformer 生成的輸出可以包含圖像和文本。
 
-Gemini31 (Figure 6) is a state-of-the-art multimodal language family of models that can  take interleaved sequences of text, image, audio, and video as input. It’s built on top of  transformer decoders and has architectural improvements for scale as well as optimized  inference on Google’s Tensor Processing Units (TPUs). In its current version, these models  are trained to support contexts of different sizes, up to 2M tokens in the Gemini Pro version  on Vertex AI and employ mechanisms such as multi-query attention for efficiency. Gemini  models also employ a Mixture of Experts architecture to optimize efficiency and capabilities  of the models. Multimodality allows the models to process text, images and video in input,  with more modalities in input and output expected in the future. 
+Gemini31 (圖 6) 是一個最先進的多模態語言模型家族，可以將文本、圖像、音訊和影片的交錯序列作為輸入。它建立在 Transformer 解碼器之上，並具有用於擴展的架構改進以及在 Google 的張量處理單元 (Tensor Processing Units, TPU) 上優化的推論。在其當前版本中，這些模型被訓練以支持不同大小的上下文，在 Vertex AI 上的 Gemini Pro 版本中高達 200 萬個 token，並採用多查詢注意力 (multi-query attention) 等機制來提高效率。Gemini 模型還採用專家混合架構來優化模型的效率和能力。多模態性允許模型處理輸入中的文本、圖像和影片，預計未來將有更多的輸入和輸出模態。
 
-The Gemini models are trained on Google’s TPUv5e and TPUv4 processors, depending on  size and configuration. The pre-training data consists of web documents, books, code, and  image, audio, and video data. 
+Gemini 模型在 Google 的 TPUv5e 和 TPUv4 處理器上進行訓練，具體取決於大小和配置。預訓練數據包括網頁文檔、書籍、程式碼以及圖像、音訊和影片數據。
 
-February 2025 34   
-Foundational Large Language Models & Text Generation 
+2025年2月 34日
+基礎大型語言模型與文字生成
 
-Larger models are trained for the compute-optimal number of tokens using the same  approach as in Chinchilla paper,25 while small models are trained on significantly more tokens  than compute optimal to improve performance for a given inference budget. 
+較大的模型使用與 Chinchilla 論文25 中相同的方法，針對計算最優的 token 數量進行訓練，而較小的模型則在遠超計算最優的 token 數量上進行訓練，以在給定的推論預算下提高性能。
 
-The Gemini family of models is optimized for different sizes: Gemini Ultra, Gemini Pro, Gemini  Nano and Flash. Gemini Ultra is used for highly complex tasks and achieves state-of-the art results in 30 out of 32 benchmark tasks. Gemini Pro enables deployment at scale and  Gemini Nano is designed for on-device applications. The Gemini Nano models leverage  advancements such as distillation to produce state-of-the-art performance for small  language models on tasks such as summarization and reading comprehension. As the Gemini  models are natively multi-modal, it can be seen that training across multiple modalities does  indeed lead to a model that is capable of achieving strong capabilities in each domain.  
+Gemini 模型家族針對不同的大小進行了優化：Gemini Ultra、Gemini Pro、Gemini Nano 和 Flash。Gemini Ultra 用於高度複雜的任務，並在 32 個基準測試任務中的 30 個中取得了最先進的成果。Gemini Pro 可實現大規模部署，而 Gemini Nano 則專為設備端應用而設計。Gemini Nano 模型利用蒸餾等進步，在摘要和閱讀理解等任務上為小型語言模型產生了最先進的性能。由於 Gemini 模型是原生多模態的，可以看出，跨多種模態的訓練確實能產生一個在每個領域都能達到強大能力的模型。
 
-During the initial part of 2024, Google introduced the latest model of the Gemini family,  Gemini 1.5 Pro,32 a highly compute-efficient multimodal mixture-of-experts model. This  model also dramatically increased the size of the context window to millions of tokens  
+在 2024 年初，Google 推出了 Gemini 家族的最新模型 Gemini 1.5 Pro，32 這是一個計算效率極高的多模態專家混合模型。該模型還將上下文窗口的大小急劇增加到數百萬個 token，並且能夠在這些數百萬個 token 上進行回憶和推理，包括多個長文檔以及數小時的影片和音訊。Gemini 1.5 Pro 在不同領域展現出卓越的能力：
 
-and is capable of recalling and reasoning over those millions of tokens, including multiple  long documents and hours of video and audio. Gemini 1.5 Pro demonstrates remarkable  capabilities across different domains: 
+• 程式碼理解：它可以處理龐大的程式碼庫並回答高度具體的程式碼相關問題。
 
-• Code understanding: It can process massive codebases and answer highly specific  code-related questions. 
+• 語言學習：該模型可以僅憑其輸入中提供的參考資料，學習在訓練時從未見過的新語言。
 
-• Language learning: The model can learn new languages never observed at training time  solely based on reference materials provided within its input 
+• 多模態推理：它能理解圖像和文本，使其能夠根據一個簡單的草圖定位小說《悲慘世界》中的著名場景。
 
-• Multimodal reasoning: It understands images and text, allowing it to locate a famous scene  from the novel ‘Les Misérables’ based on a simple sketch. 
+• 影片理解：它可以分析整部電影，回答詳細問題，並以驚人的準確性指出具體的時間戳。
 
-• Video comprehension: It can analyze entire movies, answering detailed questions and  pinpointing specific timestamps with remarkable accuracy.
+2025年2月 35日
+基礎大型語言模型與文字生成
 
-February 2025 35   
-Foundational Large Language Models & Text Generation 
+Google 的 Gemini 1.5 Pro 模型在從極長的文檔中檢索資訊方面表現出色。在他們的研究中，32 它在長達 530,000 個 token 的文檔上表現出 100% 的召回率，在長達 100 萬個 token 的文檔上表現出超過 99.7% 的召回率。令人印象深刻的是，在從長達 1000 萬個 token 的文檔中查找資訊時，它仍能保持 99.2% 的準確性。
 
-Google’s Gemini 1.5 Pro model excels at retrieving information from even very long  documents. In their study,32 it demonstrated 100% recall on documents up to 530,000  tokens, and over 99.7% recall on those up to 1 million tokens. Impressively, it maintains 99.2%  accuracy when finding information in documents up to 10 million tokens. 
+此外，Gemini 1.5 Pro 在 LLM 遵循複雜指令的能力方面取得了重大飛躍。在一項包含 406 個多步驟提示的嚴格測試中，它顯著優於先前的 Gemini 模型。該模型準確遵循了近 90% 的指令，並完全完成了 66% 的複雜任務。
 
-Moreover, Gemini 1.5 Pro demonstrates a major leap forward in how well LLMs follow complex  instructions. In a rigorous test with 406 multi-step prompts, it significantly outperformed  previous Gemini models. The model accurately followed almost 90% of instructions and fully  completed 66% of the complex tasks.  
+Gemini Flash 是 Gemini 模型家族的新成員，也是 API 中服務速度最快的 Gemini 模型。它針對大規模、高頻率的任務進行了優化，服務成本效益更高，並具有突破性的 100 萬 token 長上下文窗口。雖然它是一個比 1.5 Pro 更輕量級的模型，但它在海量資訊的多模態推理方面能力很強，並且以其大小提供了令人印象深刻的品質。
 
-Gemini Flash is a new addition to the Gemini model family and the fastest Gemini model  served in the API. It’s optimized for high-volume, high-frequency tasks at scale, is more  cost-efficient to serve and features a breakthrough long context window of 1 million tokens.  Although it is a lighter weight model than 1.5 Pro, it is highly capable of multimodal reasoning  across vast amounts of information and delivers impressive quality for its size. 
+Gemini 2.0 代表了 Google 多模態 AI 模型的重大飛躍。它建立在 Gemini 1.0 的基礎之上，具有增強的功能，並專注於效率和新的模態。更詳細地說：
 
-Gemini 2.0 represents a significant leap forward in Google’s multimodal AI models. It builds  upon the foundation of Gemini 1.0 with enhanced capabilities and a focus on efficiency and  new modalities. In more details : 
+Gemini 2.0 Flash：此版本專為速度和效率而設計，性能超過 Gemini 1.5 Pro，同時保持了開發人員期望的響應能力。它在多模態理解、文本處理、程式碼生成、影片分析和空間推理方面均有改進。值得注意的是，它增強了空間理解能力，從而可以更準確地識別和標註物體，尤其是在複雜場景中的小物體。Gemini 2.0 Flash 於 2024 年底推出。
 
-Gemini 2.0 Flash: This version is designed for speed and efficiency, exceeding the  performance of Gemini 1.5 Pro while maintaining the responsiveness developers expect. It  showcases improvements in multimodal understanding, text processing, code generation,  video analysis, and spatial reasoning. Notably, it has enhanced spatial understanding, leading  to more accurate object identification and captioning, especially for small objects in complex  scenes. Gemini 2.0 Flash was introduced in late 2024.
+2025年2月 36日
+基礎大型語言模型與文字生成
 
-February 2025 36   
-Foundational Large Language Models & Text Generation 
+Gemini 2.0 Pro 定位為一個能夠處理廣泛任務的高性能模型。它很可能作為各種應用的主力，平衡性能和效率。它可能是原始 Gemini Pro 模型的演進版本，在多個領域都有所改進。
 
-Gemini 2.0 Pro is positioned as a highly capable model for a broad range of tasks. It likely  serves as a workhorse for various applications, balancing performance and efficiency.  It is likely an evolution of the original Gemini Pro model with improvements across  multiple domains. 
+Gemini 2.0 Nano：與上一代一樣，Nano 專注於設備端部署。它針對資源效率和速度進行了優化，可以直接在智慧型手機等設備上實現 AI 功能。
 
-Gemini 2.0 Nano: As with the previous generation, Nano focuses on on-device deployment.  It is optimized for resource efficiency and speed, enabling AI capabilities directly on devices  like smartphones.  
+Gemini 2.0 Flash Thinking Experimental 是一個快速、高性能的推理模型，透過可見的「思維過程」增強了可解釋性，尤其在複雜的科學和數學問題上表現出色；它接受文本和圖像輸入，產生文本輸出，支持 100 萬 token 的輸入上下文和 64,000 token 的輸出，利用程式碼執行，知識截止日期為 2024 年 8 月，最適合延遲不是主要考慮因素的複雜任務，可透過 Google AI Studio、Gemini API 和 Vertex AI 獲得，但目前處於實驗性部署狀態。
 
-Gemini 2.0 Flash Thinking Experimental is a fast, high-performance reasoning model,  enhanced with explainability through visible “thought processes,” particularly excelling  in complex science and math problems; it accepts text and image inputs, produces text  outputs, supports a 1 million token input context and a 64,000 token output, utilizes code  execution, has a knowledge cutoff of August 2024, is best suited for complex tasks where  latency is not a primary concern, and is available via Google AI Studio, the Gemini API, and  Vertex AI, though currently in an experimental deployment status. 
+**Gemma**
 
-**Gemma** 
+此外，最近先進的 Gemma 是一個輕量級、最先進的開放模型家族，採用與創建 Gemini 模型相同的研究和技術構建。33 Gemma 的第一個模型擁有 256,000 個單詞的龐大詞彙量，並在一個包含 6 萬億個 token 的大規模數據集上進行了訓練。這使其成為公開可用 LLM 集合中的一個寶貴補充。此外，2B 參數版本很有趣，因為它可以在單個 GPU 上高效運行。
 
-Furthermore, recently advanced Gemma is a family of lightweight, state-of-the-art open  models built from the same research and technology used to create the Gemini models.33 The  first model by Gemma boasts a large vocabulary of 256,000 words and has been trained on  a massive 6 trillion token dataset. This makes it a valuable addition to the openly-available  LLM collection. Additionally, the 2B parameter version is intriguing as it can run efficiently on  a single GPU.
+2025年2月 37日
+基礎大型語言模型與文字生成
 
-February 2025 37   
-Foundational Large Language Models & Text Generation 
+由 Google AI 開發的 Gemma 2，33 代表了開放大型語言模型領域的重大進步。該 270 億參數的模型以效率為設計重點，在標準基準測試中擁有與 Llama 3 70B33 等更大模型相當的性能。這使得 Gemma 2 成為廣大 AI 開發人員的強大且易於使用的工具。其與從雲端解決方案到流行的社群工具等多種微調工具鏈的兼容性，進一步增強了其多功能性。憑藉其強大的性能、高效的架構和易於使用的特性，Gemma 2 在推動創新和普及 AI 能力方面發揮著至關重要的作用。
 
-Gemma 2,33 developed by Google AI, represents a significant advancement in the field of  open large language models. Designed with a focus on efficiency, the 27-billion parameter  model boasts performance comparable to much larger models like Llama 3 70B33 on standard  benchmarks. This makes Gemma 2 a powerful and accessible tool for a wide range of AI  developers. Its compatibility with diverse tuning toolchains, from cloud-based solutions  to popular community tools, further enhances its versatility. With its strong performance,  efficient architecture, and accessible nature, Gemma 2 plays a vital role in driving innovation  and democratizing AI capabilities. 
+Gemma 3 代表了 Google 在其開放模型家族中的最新進展，它建立在同時為 Gemini 模型提供支持的研究和技術之上。Gemma 3 的一個關鍵特性是其多模態性，使其能夠處理文本和圖像輸入並生成文本輸出。此版本透過一個大型的 128K 上下文窗口和涵蓋 140 多種語言的廣泛多語言支持，顯著擴展了功能。為了滿足不同的硬體和性能需求，Gemma 3 提供了多種尺寸，包括 1B、4B、12B 和 27B 參數模型。這些變體允許開發人員為其特定應用選擇最合適的模型，從資源受限的設備到高性能計算環境。
 
-Gemma 3 represents Google’s latest advancement in its family of open models, built upon  the research and technology that also powers the Gemini models. A key feature of Gemma  3 is its multimodality, enabling it to process both text and image inputs and generate text  outputs. This version significantly expands capabilities with a large, 128K context window, and  broad multilingual support encompassing over 140 languages. To cater to diverse hardware  and performance needs, Gemma 3 is available in various sizes, including 1B, 4B, 12B, and 27B  parameter models. These varieties allow developers to select the most suitable model for  their specific applications, ranging from resource-constrained devices to high-performance  computing environments. 
+**LLaMA**
 
-**LLaMA** 
+Llama 模型是基於 Transformer 的語言模型，在高層架構上與 GPT 等其他大型語言模型 (LLM) 相似。它們主要基於僅解碼器架構，這意味著它們專注於在給定先前 token 的情況下預測序列中的下一個 token。
 
-Llama models are transformer-based language models, similar in high-level architecture  to other large language models (LLMs) like GPT. They are primarily based on the decoder only architecture, meaning they focus on predicting the next token in a sequence given the  preceding tokens.
+2025年2月 38日
+基礎大型語言模型與文字生成
 
-February 2025 38   
-Foundational Large Language Models & Text Generation 
+Meta 發布了幾個 Llama 的關鍵版本。最初的 Llama 1 模型有多種尺寸，從 7B 到 65B 參數不等，並以其相對於其他同等規模開源模型的強大性能而著稱。Llama 234 代表了一項重大進步，其上下文窗口擴大到 4096 個 token 以處理更長的文本，並且重要的是，它針對聊天應用進行了微調，顯著提高了其對話能力。Llama 2 提供了 7B、13B 和 70B 參數版本，與 Llama 1 不同，其發布的許可證允許商業用途。Llama 3 在這些進步的基礎上，在推理、編碼和通用知識方面都有增強的性能，並預計將包括更廣泛的尺寸。Llama 3 的一個重點是提高安全性，努力透過改進的訓練和對齊技術來減少有害輸出。Llama 2 是一個預訓練和微調的 LLM 家族，參數從 7B 到 70B 不等，改進之處包括訓練數據集擴大 40%、上下文長度加倍以及分組查詢注意力。微調版本 Llama 2-Chat 在對話方面表現出色。下一代 Llama 3.2 包括僅文本的多語言模型和視覺 LLM，並提供用於設備端部署的量化版本。Llama 3.2 使用分組查詢注意力和 128K token 的詞彙表。
 
-Meta has released several key versions of Llama. The original Llama 1 models came in various  sizes, from 7B to 65B parameters, and were notable for their strong performance compared  to other open-source models of similar size. Llama 234 represented a major advancement,  featuring a larger context window extended to 4096 tokens for handling longer texts, and  importantly, it was fine-tuned for chat applications, significantly improving its conversational  abilities. Llama 2 was offered in 7B, 13B, and 70B parameter versions and, unlike Llama 1, was  released with a license allowing commercial use. Llama 3 builds upon these advancements  with enhanced performance across reasoning, coding, and general knowledge, and is  expected to include a wider range of sizes. A key focus of Llama 3 is increased safety, with  efforts to reduce harmful outputs through improved training and alignment techniques. Llama  2 is a family of pretrained and fine-tuned LLMs, ranging from 7B to 70B parameters, with  improvements like a 40% larger training dataset, doubled context length, and grouped-query  attention. The fine-tuned version, Llama 2-Chat, excels in dialogue. The next generation,  Llama 3.2, includes multilingual text-only models and vision LLMs, with quantized versions for  on-device deployment. Llama 3.2 uses grouped-query attention and a 128K token vocabulary. 
+**Mixtral**
 
-**Mixtral** 
+由 Mistral AI35 開發的 Mixtral 8x7B 是一個稀疏專家混合 (Sparse Mixture of Experts, SMoE) 模型。雖然其總參數數為 47B，但在推論期間每個 token 僅利用 13B 的活動參數，從而實現更快的推論和更高的吞吐量。該模型在數學、程式碼生成和多語言任務方面表現出色，在這些領域通常優於 LLaMA 2 70B。Mixtral 還支持 32k token 的上下文長度，使其能夠處理更長的序列。其指令微調版本 Mixtral 8x7B-Instruct 在人類評估基準上超過了幾個閉源模型。Mistral 將其幾個模型以 Apache 2.0 許可證開源，強調對模型權重的開放訪問。此外，Mistral 還透過其 API 提供一系列模型，提供各種大小和功能以滿足不同的需求。
 
-Developed by Mistral AI35, Mixtral 8x7B is a Sparse Mixture of Experts (SMoE) model. While its  total parameter count is 47B, it utilizes only 13B active parameters per token during inference,  leading to faster inference and higher throughput. This model excels in mathematics, code  generation, and multilingual tasks, often outperforming LLaMA 2 70B in these domains.  Mixtral also supports a 32k token context length, enabling it to handle significantly longer  sequences. Its instruction-tuned version, Mixtral 8x7B- Instruct, surpasses several closed source models on human evaluation benchmarks. Mistral makes several of its models  available as open source under the Apache 2.0 license, emphasizing open access to model  weights. In addition, Mistral offers a range of models through its API, providing various sizes  and capabilities to suit diverse requirements.
+2025年2月 39日
+基礎大型語言模型與文字生成
 
-February 2025 39   
-Foundational Large Language Models & Text Generation 
+**OpenAI O1**
 
-**OpenAI O1** 
+OpenAI 新的「o1」系列代表了模型領域的重大進步，專注於透過強化學習磨練出的複雜推理能力。這些模型採用內部「思維鏈」過程，在生成回應之前進行廣泛的深思熟慮。這種深思熟慮的方法在具有挑戰性的科學推理任務上取得了卓越的性能。基準測試證明了它們的熟練程度：o1 模型在 Codeforces 編程競賽中達到第 89 百分位排名，在 AIME（美國數學奧林匹克資格賽）中得分進入全國前 500 名，並在全面的物理、生物和化學基準測試（GPQA）中超過了博士級人類的準確性。API 提供了兩種變體：o1：旗艦模型，專為解決需要廣泛、通用世界知識的難題而優化；以及 o1-mini：一個更快、更具成本效益的版本，在編碼、數學和科學任務等領域表現出色，在這些領域，深厚的專業知識比廣泛的通用知識更為關鍵。
 
-OpenAI’s new “o1” series represents a significant advancement in models, focusing on  complex reasoning abilities honed through reinforcement learning. These models employ an  internal “chain-of-thought” process, engaging in extensive deliberation before generating  a response. This deliberate approach results in exceptional performance on challenging  scientific reasoning tasks. Benchmarks demonstrate their proficiency: o1 models achieve  an 89th percentile ranking on Codeforces programming competitions, score within the top  500 nationally on the AIME (a USA Math Olympiad qualifier), and surpass PhD-level human  accuracy on a comprehensive physics, biology, and chemistry benchmark (GPQA). The API  offers two variants: o1: The flagship model, optimized for tackling difficult problems that  require broad, general world knowledge, and o1-mini: A faster, more cost-effective version,  excelling in domains like coding, mathematics, and scientific tasks where deep specialized  knowledge is more critical than extensive general knowledge. 
+**DeepSeek**
 
-**DeepSeek** 
+DeepSeek 已經證明，即使不依賴大量的標記數據，也可以透過一種新穎的強化學習方法，實現與 OpenAI 的「o1」系列相當的競爭性推理性能。他們的 DeepSeek-R1-Zero 模型就是一個例子，該模型完全使用強化學習 (RL) 進行訓練。傳統的 LLM 強化學習方法通常依賴於在標記數據上訓練的「評論家」模型來提供回饋。DeepSeek 的創新，稱為群體相對策略優化 (Group Relative Policy Optimization, GRPO)，消除了這個評論家。相反，GRPO 使用一組預定義的規則（評估連貫性、完整性和流暢性）來對模型在多輪中的輸出進行評分。模型透過將其性能與群體平均水平進行比較來學習，有效地從自己的「自我對弈」中學習，而無需明確的人類提供
 
-DeepSeek has demonstrated that competitive reasoning performance, comparable to  OpenAI’s “o1” series, can be achieved through a novel reinforcement learning approach,  even without relying on extensive labeled data. This is exemplified by their DeepSeek-R1- Zero model, trained purely with RL. Traditional RL methods for LLMs often depend on a  “critic” model, trained on labeled data, to provide feedback. DeepSeek’s innovation, called  Group Relative Policy Optimization (GRPO), eliminates this critic. Instead, GRPO uses a set  of predefined rules (assessing coherence, completeness, and fluency) to score the model’s  outputs across multiple rounds. The model learns by comparing its performance against the  group average, effectively learning from its own “self-play” without explicit human-provided 
+2025年2月 40日
+基礎大型語言模型與文字生成
 
-February 2025 40   
-Foundational Large Language Models & Text Generation 
+標籤。這種純強化學習的方法，雖然在實現高推理分數（在 2024 年 AIME 數學競賽中與「o1」持平）方面取得了成功，但最初產生的輸出可讀性差且語言混雜。
 
-labels. This pure-RL approach, while successful in achieving high reasoning scores (matching  “o1” on the AIME 2024 mathematics competition), initially resulted in outputs with poor  readability and language mixing. 
+為了克服這些缺點，DeepSeek 為其 DeepSeek-R1 模型開發了一個多階段訓練過程。該過程從在一個小的「冷啟動」數據集上進行監督式微調 (SFT) 開始，提供語言理解的基礎。接下來，應用純強化學習（使用 GRPO）來增強推理能力，類似於 R1-Zero 模型。關鍵的是，在強化學習階段接近尾聲時，採用了拒絕抽樣（例如過濾）。模型生成多個輸出，只有根據 GRPO 規則最好的輸出被選中。這創建了一個由模型自身生成的高品質「合成」數據集。然後將該合成數據與來自原始基礎模型的監督數據（涵蓋寫作和事實知識等領域）相結合。最後進行一輪微調和進一步的強化學習，利用合成數據和監督數據，完善模型的整體性能和泛化能力。這種多階段方法利用了每種訓練方法的優點：最初的 SFT 提供了基本的語言基礎；純強化學習培養了強大的推理能力；拒絕抽樣創建了高品質的訓練數據；最後的 SFT 和強化學習步驟確保了一個精良、全面的模型。其結果是 DeepSeek-R1 模型在許多領域都與 o1 模型相當或超過。推論時的思維鏈 (CoT) 推理與這種基於強化學習的訓練內在相關。模型學會在訓練期間生成中間的推理步驟，這對其在複雜任務上的強大性能至關重要。儘管提供了模型權重，但由於訓練數據、處理腳本和數據策劃方法缺乏透明度，DeepSeek 的模型實際上是閉源的。
 
-To address these shortcomings, DeepSeek developed a multi-stage training process for  their DeepSeek-R1 model. This process begins with supervised fine-tuning (SFT) on a small  “cold start” dataset, providing a basic foundation of language understanding. Next, pure-RL  (using GRPO) is applied to enhance reasoning abilities, similar to the R1-Zero model. Critically,  near the end of the RL phase, rejection sampling (e.g. filtering) is employed. The model  generates multiple outputs, and only the best, according to the GRPO rules, are selected.  This creates a high-quality “synthetic” dataset generated by the model itself. This synthetic  data is then combined with supervised data from the original base model (covering areas  like writing and factual knowledge). A final round of fine-tuning and further RL is performed,  leveraging both the synthetic and supervised data, refining the model’s overall performance  and generalization capabilities. This multi-stage approach leverages the strengths of each  training method: the initial SFT provides a basic linguistic foundation; pure-RL fosters strong  reasoning skills; rejection sampling creates high-quality training data; and the final SFT  and RL steps ensure a polished, well-rounded model. The result is the DeepSeek-R1 model  that matches or exceeds the o1 model in many areas. Chain-of-thought (CoT) reasoning at  inference time is intrinsically linked to this RL-based training. The model learns to generate  intermediate reasoning steps during training, which are essential for its strong performance  on complex tasks at inference. Despite providing model weights, DeepSeek’s models are  effectively closed-source due to the lack of transparency regarding training data, processing  scripts, and data curation methods. 
+**其他開放模型**
 
-**Other open models** 
+開放 LLM 的格局正在迅速演變，越來越多的模型的程式碼和預訓練權重都可公開訪問。下面我們重點介紹一些已知的範例：
 
-The landscape of open LLMs is rapidly evolving, with a growing number of models where  both the code and pre-trained weights are publicly accessible. Below we highlight some of  the known examples:
+2025年2月 41日
+基礎大型語言模型與文字生成
 
-February 2025 41   
-Foundational Large Language Models & Text Generation 
+• **Qwen 1.5**36: 這個來自阿里巴巴的 LLM 系列有六種尺寸：0.5B、1.8B、4B、7B、14B 和 72B。Qwen 1.5 模型統一支持高達 32k token 的上下文長度，並在各種基準測試中表現出強勁的性能。值得注意的是，Qwen 1.5-72B 在所有評估的基準測試中都優於 LLaMA2-70B，在語言理解、推理和數學方面展現出卓越的能力。
 
-• **Qwen 1.5**36: This LLM series from Alibaba comes in six sizes: 0.5B, 1.8B, 4B, 7B, 14B, and  72B. Qwen 1.5 models uniformly support a context length of up to 32k tokens and show  strong performance across various benchmarks. Notably, Qwen 1.5-72B outperforms  LLaMA2-70B on all evaluated benchmarks, demonstrating exceptional capabilities in  language understanding, reasoning, and math. 
+• **Yi**37: 由 01.AI 創建的 Yi 模型家族包括 6B 和 34B 基礎模型，這些模型在一個包含 3.1 萬億個 token 的龐大中英文數據集上進行了預訓練。Yi 透過嚴格的清理和過濾過程來強調數據品質。34B 模型在許多基準測試上達到了與 GPT-3.5 相當的性能，並且可以透過 4 位量化在消費級 GPU 上高效運行。Yi 還提供了擴展功能，如 200k 上下文模型、一個視覺語言模型（Yi-VL）和一個深度擴展的 9B 模型。
 
-• **Yi**37: Created by 01.AI, the Yi model family includes 6B and 34B base models pre-trained  on a massive 3.1 trillion token English and Chinese dataset. Yi emphasizes data quality  through rigorous cleaning and filtering processes. The 34B model achieves performance  comparable to GPT-3.5 on many benchmarks and can be efficiently served on consumer grade GPUs with 4-bit quantization. Yi also offers extensions like a 200k context model, a  vision-language model (Yi-VL), and a depth-upscaled 9B model. 
+• **Grok 3:** 由 xAI 開發的 Grok-3 分為 Grok 3 (Think) 和 Grok 3 mini (Think) 兩個版本。兩個模型都使用強化學習進行訓練。Grok 3 (Think) 學會了完善其解決問題的策略，透過回溯糾正錯誤，簡化步驟，並利用其在預訓練期間學到的知識。其上下文窗口為 100 萬個 token，是先前 Grok 模型的 8 倍。
 
-• **Grok 3:** Developed by xAI, Grok-3 is released in Grok 3 (Think) and Grok 3 mini (Think).  Both models were trained using reinforcement learning. Grok 3 (Think) learned to refine its  problem-solving strategies, correct errors through backtracking, simplify steps, and utilize  the knowledge it picked up during pretraining. With a context window of 1 million tokens its  8 times larger than previous Grok models. 
+LLM 的創新步伐一直很快，而且沒有放緩的跡象。在學術界和商業領域都有許多對該領域的貢獻。在 arxiv.org 上發表了超過 20,000 篇關於 LLM 的論文，不可能列出所有為 LLM 發展做出貢獻的模型和團隊。然而，一個簡短的感興趣的開放模型列表可以包括 EleutherAI 的 GPT-NeoX 和 GPT-J、斯坦福的 Alpaca、來自 LMSYS 的 Vicuna、來自 xAI 的 Grok、來自 TII 的 Falcon、來自微軟的 PHI、來自 Nvidia 的 NVLM、來自 Databricks 的 DBRX、來自阿里巴巴的 Qwen、來自 01.ai 的 Yi、上面提到的來自 Meta 的 Llama 等等。一些開發商業基礎 LLM 模型的著名公司包括 Anthropic、Cohere、Character.ai、Reka、AI21、Perplexity、xAI 以及除了前面提到的 Google 和 OpenAI 之外的許多其他公司。在使用模型時，確認許可證適合您的使用案例非常重要，因為許多模型都附帶了非常具體的使用條款。
 
-The pace of innovation with LLMs has been rapid and shows no signs of slowing down. There  have been many contributions to the field in both the academic and commercial settings.  With over 20,000 papers published about LLMs in arxiv.org it is impossible to name all  of the models and teams that have contributed to the development of LLMs. However, an  abbreviated list of open models of interest could include EleutherAI’s GPT-NeoX and GPT-J,  Stanford’s Alpaca, Vicuna from LMSYS, Grok from xAI, Falcon from TII, PHI from Microsoft,  NVLM from Nvidia, DBRX from Databricks, Qwen from Alibaba, Yi from 01.ai, Llama from  Meta mentioned above and many others. Some of notable companies developing commercial  foundation LLM models include Anthropic, Cohere, Character.ai, Reka, AI21, Perplexity, xAI  and many others in addition to Google and OpenAI mentioned in previous sections. It is  important when using a model to confirm that the license is appropriate for your use case as  many models are provided with very specific terms of use.
+2025年2月 42日
+基礎大型語言模型與文字生成
 
-February 2025 42   
-Foundational Large Language Models & Text Generation 
+**比較**
 
-**Comparison** 
+在本節中，我們觀察了基於 Transformer 的語言模型是如何演變的。它們從具有數億個參數並在數億個 token 上訓練的編碼器-解碼器架構開始，現已發展成為擁有數十億個參數並在數萬億個 token 上訓練的大規模僅解碼器架構。表 1 顯示了本白皮書中討論的所有模型的重要超參數是如何隨著時間演變的。數據和參數的擴展不僅提高了 LLM 在下游任務上的性能，還產生了新興行為以及對新任務的零樣本或少樣本泛化。然而，即使是這些最好的 LLM 仍然有許多局限性。例如，它們不擅長進行類人對話，它們的數學能力有限，而且它們可能不符合人類倫理（例如，它們可能有偏見或生成有毒的回應）。在下一節中，我們將學習如何解決許多這些問題。
 
-In this section, we observed how transformer-based language models have evolved. They  started as encoder-decoder architectures with hundreds of millions of parameters trained  on hundreds of millions of tokens, and have grown to be massive decoder-only architectures  with billions of parameters and trained on trillions of tokens. Table 1 shows how the  important hyperparameters for all the models discussed in this whitepaper have evolved  over time. The scaling of data and parameters has not only improved the performance of  LLMs on downstream tasks, but has also resulted in emergent behaviors and zero- or few shot generalizations to new tasks. However, even the best of these LLMs still have many  limitations. For example, they are not good at engaging in human-like conversations, their  math skills are limited, and they might not be aligned with human ethics (e.g., they might be  biased or generate toxic responses). In the next section, we learn how a lot of these issues  are being addressed.
+2025年2月 43日
+基礎大型語言模型與文字生成
+模型
 
-February 2025 43   
-Foundational Large Language Models & Text Generation   
-Model 
+| Attention (2017) | GPT (2018) | GPT-2 (2019) | GPT-3 (2020) | LaMDA (2021) | Gopher (2021) |
+| --- | --- | --- | --- | --- | --- |
+| ADAM | ADAM | ADAM | ADAM | ADAM | ADAM |
+| 213M | 117M | 1.5B | 175B | 137B | 280B |
+| ~37K | ~40K | ~50K | ~50K | ~32K | ~32K |
+| 1024 | 768 | 1600 | 12288 | 8192 | 16384 |
+| 64 | 64 | 64 | 128 | 128 | 128 |
+| 16 | 12 | 25 | 96 | 128 | 128 |
+| 6 | N/A | N/A | N/A | N/A | N/A |
+| 6 | 12 | 48 | 96 | 64 | 80 |
+| 4 * 1024 | 4 * 768 | 4 * 1600 | 4 * 12288 | 8 * 8192 | 4 * 16384 |
+| N/A | 512 | 1024 | 2048 | N/A | 2048 |
+| ~160MA | ~1.25BA | ~10B | ~300B | ~168B | ~300B |
 
-| Attention  (2017) | GPT  (2018) | GPT-2  (2019) | GPT-3  (2020) | LaMDA   (2021) | Gopher  (2021) |
-| ----- | ----- | ----- | ----- | ----- | ----- |
-| ADAM  | ADAM  | ADAM  | ADAM  | ADAM  | ADAM  |
-| 213M  | 117M  | 1.5B  | 175B  | 137B  | 280B  |
-| ~37K  | ~40K  | ~50K  | ~50K  | ~32K  | ~32K  |
-| 1024  | 768  | 1600  | 12288  | 8192  | 16384  |
-| 64  | 64  | 64  | 128  | 128  | 128  |
-| 16  | 12  | 25  | 96  | 128  | 128  |
-| 6  | N/A  | N/A  | N/A  | N/A  | N/A  |
-| 6  | 12  | 48  | 96  | 64  | 80  |
-| 4 * 1024  | 4 * 768  | 4 * 1600  | 4 * 12288  | 8 * 8192  | 4 * 16384  |
-| N/A  | 512  | 1024  | 2048  | N/A  | 2048  |
-| ~160MA  | ~1.25BA  | ~10B  | ~300B  | ~168B  | ~300B  |
+Chinchilla (2022)
 
-Chinchilla (2022) 
+優化器 ADAM-W # 參數 70B 詞彙量 ~32K 嵌入維度 8192 鍵維度 128 # 頭 (H) 64 # 編碼器層 N/A # 解碼器層 80 前饋維度 4 * 8192 上下文 Token 大小 2048 預訓練 Token ~1.4T 表 1. 基於 Transformer 的大型語言模型的重要超參數
 
-Optimizer ADAM-W # Parameters 70B Vocab size ~32K Embedding    
-dimension 8192 Key dimension 128 # heads (H) 64 # encoder    
-layers N/A # decoder    
-layers 80 Feed forward    
-dimension 4 * 8192 Context Token    
-Size 2048 Pre-Training    
-tokens ~1.4T Table 1. Important hyperparameters for transformers-based large language models 
+A. 這個數字是根據報告的數據集大小估計的。
 
-A. This number is an estimate based on the reported size of the dataset.
+2025年2月 44日
+基礎大型語言模型與文字生成
 
-February 2025 44   
-Foundational Large Language Models & Text Generation 
+**微調大型語言模型**
 
-**Fine-tuning large language models** 
+大型語言模型通常會經歷多個訓練階段。第一階段，通常稱為預訓練 (pre-training)，是基礎階段，LLM 在大型、多樣化且未標記的文本數據集上進行訓練，其任務是根據先前的上下文預測下一個 token。此階段的目標是利用大型、通用的數據分佈，並創建一個擅長從此通用分佈中採樣的模型。在語言模型預訓練之後，產生的 LLM 通常在各種不同的任務中表現出合理的語言理解和語言生成能力，這些任務通常透過零樣本 (zero-shot) 或少樣本 (few-shot) 提示（用一些範例/示範來增強指令）進行測試。就時間（從幾週到幾個月，取決於模型的大小）和所需的計算資源（GPU/TPU 小時數）而言，預訓練是最昂貴的。
 
-Large language models typically undergo multiple training stages. The first stage, often  referred to as pre-training, is the foundational stage where an LLM is trained on large,  diverse, and unlabelled text datasets where it’s tasked to predict the next token given the  previous context. The goal of this stage is to leverage a large, general distribution of data  and to create a model that is good at sampling from this general distribution. After language  model pretraining, the resulting LLM usually demonstrates a reasonable level of language  understanding and language generation skills across a variety of different tasks which  are typically tested through zero-shot or few-shot prompting (augmenting the instruction  with a few examples / demonstrations). Pretraining is the most expensive in terms of time  (from weeks to months depending on the size of the model) and the amount of required  computational resources, (GPU/TPU hours). 
+訓練完成後，模型可以透過微調進一步專業化，通常稱為指令微調 (instruction-tuning) 或簡稱為監督式微調 (supervised fine-tuning, SFT)。SFT 涉及在一組特定於任務的示範數據集上訓練 LLM，其性能也在一組特定於領域的任務上進行衡量。以下是可以使用微調來改進的一些行為範例：
 
-After training, the model can be further specialized via fine-tuning, typically called  instruction-tuning or simply supervised fine-tuning (SFT). SFT involves training an LLM on a  set of task-specific demonstration datasets where its performance is also measured across  a set of domain-specific tasks. The following are some examples of behaviors that can be  improved using fine-tuning: 
+• 指令微調/指令遵循：向 LLM 提供要遵循的指令作為輸入，其中可能包括摘要一段文本、編寫一段程式碼或以某種風格寫一首詩。17
 
-• Instruction-tuning/instruction following: The LLM is provided as input an instruction to  follow which might include summarizing a piece of text, writing a piece of code, or writing  a poem in a certain style.17 
+• 對話微調：這是指令微調的一種特殊情況，其中 LLM 在問答形式的對話數據上進行微調。這通常被稱為多輪對話。39
 
-• Dialogue-tuning: This is a special case of instruction tuning where the LLM is fine-tuned  on conversational data in the form of questions and responses. This is often called  multi-turn dialogue.39
+2025年2月 45日
+基礎大型語言模型與文字生成
 
-February 2025 45   
-Foundational Large Language Models & Text Generation 
+• 安全性微調：這對於減輕與偏見、歧視和有毒輸出相關的風險至關重要。它涉及一個多管齊下的方法，包括仔細的數據選擇、人在環路 (human-in-the-loop) 的驗證，以及納入安全護欄。像從人類回饋中進行強化學習 (RLHF)40 這樣的技術，使 LLM 能夠優先考慮安全和道德的回應。
 
-• Safety tuning: This is crucial for mitigating risks associated with bias, discrimination, and  toxic outputs. It involves a multi-pronged approach encompassing careful data selection,  human-in-the-loop validation, and incorporating safety guardrails. Techniques like  reinforcement learning with human feedback (RLHF)40 enable the LLM to prioritize safe  and ethical responses. 
+與預訓練相比，微調的成本要低得多，數據效率也更高。存在許多技術可以進一步優化成本，這些技術將在本白皮書的後面部分討論。
 
-Fine-tuning is considerably less costly and more data efficient compared to pre-training.  Numerous techniques exist to optimize the costs further which are discussed later in  this whitepaper. 
+**監督式微調 (Supervised fine-tuning)**
 
-**Supervised fine-tuning**  
+如前一節所述，SFT 是透過在特定領域的、有標籤的數據上進一步訓練 LLM，以提高其在特定任務或一組任務上的性能的過程。該數據集通常比預訓練數據集小得多，並且通常是人工策劃且品質很高。
 
-As mentioned in the previous section, SFT is the process of improving an LLM’s performance  on a specific task or set of tasks by further training it on domain-specific, labeled data. The  dataset is typically significantly smaller than the pre-training datasets, and is usually human curated and of high quality.  
+在這種設定中，每個數據點都包含一個輸入（提示）和一個示範（目標回應）。例如，問題（提示）和答案（目標回應），從一種語言（提示）到另一種語言（目標回應）的翻譯，要摘要的文件（提示）和相應的摘要（目標回應）。
 
-In this setting, each data point consists of an input (prompt) and a demonstration (target  response). For example, questions (prompt) and answers (target response), translations from  one language (prompt) to another language (target response), a document to summarize  (prompt), and the corresponding summary (target response).  
+值得注意的是，雖然微調可用於提高特定任務的性能，如上所述，但它也可以用於幫助 LLM 改善其行為，使其更安全、更少毒性、更具對話性，並且更好地遵循指令。
 
-It’s important to note that, while fine-tuning can be used to improve the performance on  particular tasks as mentioned above, it can also serve the purpose of helping the LLM  improve its behavior to be safer, less toxic, more conversational, and better at following  instructions. 
+2025年2月 46日
+基礎大型語言模型與文字生成
 
-February 2025 46   
-Foundational Large Language Models & Text Generation 
+**從人類回饋中進行強化學習 (Reinforcement learning from human feedback)**
 
-**Reinforcement learning from human feedback** 
+通常，在執行 SFT 之後，會進行第二階段的微調，稱為*從人類回饋中進行強化學習* (Reinforcement Learning from Human Feedback, RLHF)。這是一種非常強大的微調技術，它使 LLM 能夠更好地與人類偏好的回應對齊（即，使其回應更有幫助、更真實、更安全等）。
 
-Typically, after performing SFT, a second stage of fine-tuning occurs which is called  *reinforcement learning from human feedback* (RLHF). This is a very powerful fine-tuning  technique that enables an LLM to better align with human-preferred responses (i.e. making  its responses more helpful, truthful, safer, etc.).  
+![][image9]
+圖 8. 一個 RLHF 程序範例
 
-![][image9]  
-Figure 8. An example RLHF procedure  
+與 SFT 不同，在 SFT 中，LLM 只接觸到正面的範例（例如，高品質的示範數據），而 RLHF 使得也可以利用負面的輸出，從而在 LLM 生成表現出不期望特性的回應時對其進行懲罰。懲罰負面輸出使其生成無用或不安全回應的可能性降低。
 
-In contrast to SFT, where an LLM is only exposed to positive examples (e.g. high-quality  demonstration data), RLHF makes it possible to also leverage negative outputs thus  penalizing an LLM when it generates responses that exhibit undesired properties. Penalizing  negative output makes it less likely to generate unhelpful or unsafe responses.  
+為了利用 RLHF，通常需要訓練一個*獎勵模型* (Reward Model, RM)，其程序與圖 8 中的類似。RM 通常使用預訓練的 Transformer 模型進行初始化，通常也是一個經過 SFT 的模型。然後，它在人類偏好數據上進行微調，這些數據可以是單邊的（帶有提示、回應和分數），也可以由一個提示和一對回應以及一個
 
-To leverage RLHF, a *reward model* (RM) typically needs to be trained with a procedure similar  to that in Figure 8. An RM is usually initialized with a pretrained transformer model, often also  one that is SFT. Then it is tuned on human preference data which is either single sided (with a  prompt, response and a score) or composed of a prompt and a pair of responses along with 
+2025年2月 47日
+基礎大型語言模型與文字生成
 
-February 2025 47   
-Foundational Large Language Models & Text Generation 
+表示偏好哪個回應的標籤組成。例如，給定同一篇文章的兩個摘要 A 和 B，人類評分員會選擇一個偏好的摘要（依賴詳細的指導）。我們將提供的偏好標籤稱為人類回饋。偏好可以是二元形式（例如，「好」或「壞」）、李克特量表 (Likert scale)42、在評估超過 2 個候選者時的排名順序，或對摘要品質的更詳細評估。偏好信號還可以包含許多維度，以捕捉定義高品質回應的各個方面，例如安全性、有用性、公平性和真實性。
 
-a preference label indicating which of the two responses was preferred. For example, given  two summaries, A and B, of the same article, a human rater selects a preferred summary  (relying on the detailed guidance). We refer to the provided preference labels as human  feedback. Preferences can be in the binary form (e.g. ‘good’ or ‘bad’), on the Likert scale42,  rank order when more than 2 candidates are evaluated, or a more detailed assessment of the  summary quality. The preference signal can also incorporate many dimensions that capture  various aspects that define a high quality response, e.g., as safety, helpfulness, fairness, and  truthfulness.  
+圖 8 顯示了一個典型的 RLHF 流程，其中獎勵模型被初始化並在偏好對上進行微調。一旦 RM 被訓練好，它就會被強化學習 (RL)43 策略梯度演算法使用，該演算法會進一步微調先前經過指令微調的 LLM，以生成更符合人類偏好的回應。
 
-Figure 8 shows a typical RLHF pipeline where a Reward model is initialized and finetuned on  preference pairs. Once an RM has been trained, it’s then used by a Reinforcement Learning  (RL)43 policy gradient algorithm, which further finetunes a previously instruction-tuned LLM to  generate responses that are better aligned with human preferences.  
+為了更好地擴展 RLHF，從 AI 回饋中進行強化學習 (RLAIF)44 利用 AI 回饋而不是人類回饋來生成偏好標籤。也可以透過利用*直接偏好優化* (Direct Preference Optimization, DPO)45 等方法來消除訓練 RLHF 的需要。RLHF 和 RLAIF 都可以在 Google Cloud 上使用。
 
-To better scale RLHF, RL from AI Feedback (RLAIF)44 leverages AI feedback instead of human  feedback to generate preference labels. It’s also possible to remove the need for training  RLHF by leveraging approaches such as *direct preference optimization* (DPO).45 Both RLHF  and RLAIF can be used on Google Cloud.
+2025年2月 48日
+基礎大型語言模型與文字生成
 
-February 2025 48   
-Foundational Large Language Models & Text Generation 
+**參數高效微調 (Parameter Efficient Fine-Tuning)**
 
-**Parameter Efficient Fine-Tuning** 
+SFT 和 RLHF 在計算時間和所需加速器方面仍然非常昂貴，特別是在對數十億參數級別的整個 LLM 進行完全微調時。幸運的是，有一些非常有用且有效的技術可以使微調比預訓練和完全微調便宜得多、快得多。其中一類方法是*參數高效微tuning* (Parameter Efficient Fine-Tuning, PEFT) 技術。
 
-Both SFT and RLHF are still very costly in terms of compute time and accelerators required,  especially when full-fine tuning entire LLMs on the orders of billions of parameters. Luckily,  there are some really useful and effective techniques that can make fine-tuning significantly  cheaper and faster compared to pre-training and full fine-tuning. One such family of  methods is *parameter efficient fine-tuning* (PEFT) techniques.  
+在高層次上，PEFT 方法附加了一組小得多的權重（例如，數量級為數千個參數），用於「擾動」預訓練的 LLM 權重。這種擾動的效果是微調 LLM 以執行新任務或一組任務。這樣做的好處是訓練的權重集要小得多，與傳統的對整個模型進行微調相比。
 
-At a high-level, PEFT approaches append a significantly smaller set of weights (e.g., on the  order of thousands of parameters) that are used to ‘perturb’ the pre-trained LLM weights.  The perturbation has the effect of fine-tuning the LLM to perform a new task or set of tasks.  This has the benefit of training a significantly smaller set of weights, compared to traditional  fine-tuning of the entire model.  
+一些常見的 PEFT 技術包括適配器 (adapter)、低秩適應 (low-rank adaptation) 和軟提示 (soft prompting)：
 
-Some common PEFT techniques include the adapter, low-rank adaptation, and  soft prompting: 
+• *基於適配器的微調*46 在預訓練模型中採用稱為適配器的小模組。只訓練適配器參數，導致參數比傳統 SFT 少得多。
 
-• *Adapter-based fine-tuning*46 employs small modules, called adapters, to the pre trained model. Only the adapter parameters are trained, resulting in significantly fewer  parameters than traditional SFT.  
+• *低秩適應* (Low-Rank Adaptation, LoRA)47 以不同的方式解決效率問題。它使用兩個較小的矩陣來近似原始權重矩陣的更新，而不是微調整個 LLM。這種技術凍結了原始權重並訓練這些更新矩陣，顯著減少了資源需求，同時附加的推論延遲最小。此外，LoRA 還有改進的變體，如 QLoRA，48 它使用量化的權重以獲得更高的效率。LoRA 模組的一個很好的優點是它們可以即插即用，這意味著您可以訓練一個專門從事一項任務的 LoRA 模組，並輕鬆地用另一個在不同任務上訓練的 LoRA 模組替換它。這也使得轉移模型變得更容易，因為假設接收方擁有原始矩陣，只需要提供更新矩陣。
 
-• *Low-Rank Adaptation* (LoRA)47 tackles efficiency differently. It uses two smaller matrices  to approximate the original weight matrix update instead of fine-tuning the whole LLM.  This technique freezes the original weights and trains these update matrices, significantly  reducing resource requirements with minimum additional inference latency. Additionally,  LoRA has improved variants such as QLoRA,48 which uses quantized weights for even  greater efficiency. A nice advantage of LoRA modules is that they can be plug-and-play,  meaning you can train a LoRA module that specializes in one task and easily replace it with  another LoRA module trained on a different task. It also makes it easier to transfer the  model since assuming the receiver has the original matrix, only the update matrices need  to be provided.
+2025年2月 49日
+基礎大型語言模型與文字生成
 
-February 2025 49   
-Foundational Large Language Models & Text Generation 
+• *軟提示 (Soft prompting)*49 是一種使用可學習的向量來調節凍結的大型語言模型的技術，而不是手動製作的文本提示。這些向量稱為軟提示，在訓練數據上進行優化，可以少至五個 token，使其參數高效並能夠進行混合任務推論。
 
-• *Soft prompting*49 is a technique for conditioning frozen large language models with  learnable vectors instead of hand-crafted text prompts. These vectors, called soft  prompts, are optimized on the training data and can be as few as five tokens, making them  parameter-efficient and enabling mixed-task inference.  
+對於大多數任務，完全微調仍然是性能最好的，其次是 LoRA 和軟提示，但在成本方面順序相反。所有三種方法都比傳統微調更具記憶體效率，並達到相當的性能。
 
-For most tasks, full fine-tuning is still the most performant, followed by LoRA and Soft  prompting, but the order is reversed when it comes to cost. All three approaches are more  memory efficient than traditional fine-tuning and achieve comparable performance.
+2025年2月 50日
+基礎大型語言模型與文字生成
 
-February 2025 50   
-Foundational Large Language Models & Text Generation 
+**Python**
 
-**Python** 
+`# 開始之前請執行此命令：`
 
-`# Before you start run this command:` 
+`# pip install --upgrade --user --quiet google-cloud-aiplatform # 執行 pip install 後，請務必重新啟動您的核心`
 
-`# pip install --upgrade --user --quiet google-cloud-aiplatform # after running pip install make sure you restart your kernel` 
+`import vertexai`
 
-`import vertexai` 
+`from vertexai.generative_models import GenerativeModel`
 
-`from vertexai.generative_models import GenerativeModel` 
+`from vertexai.preview.tuning import sft`
 
-`from vertexai.preview.tuning import sft` 
+`# TODO: 請根據您的需求設定值`
 
-`# TODO : Set values as per your requirements` 
+`# 專案與儲存常數`
 
-`# Project and Storage Constants` 
+`PROJECT_ID = ‘<project_id>’`
 
-`PROJECT_ID = ‘<project_id>’` 
+`REGION = ‘<region>’`
 
-`REGION = ‘<region>’` 
+`vertexai.init(project=PROJECT_ID, location=REGION)`
 
-`vertexai.init(project=PROJECT_ID, location=REGION)` 
+`# 定義訓練與評估數據集`
 
-`# define training & eval dataset.` 
+`TRAINING_DATASET = ‘gs://cloud-samples-data/vertex-ai/model-evaluation/ peft_train_sample.jsonl’`
 
-`TRAINING_DATASET = ‘gs://cloud-samples-data/vertex-ai/model-evaluation/ peft_train_sample.jsonl’` 
+`# 設定基礎模型並為微調後的模型指定名稱`
 
-`# set base model and specify a name for the tuned model BASE_MODEL = ‘gemini-1.5-pro-002’` 
+`BASE_MODEL = ‘gemini-1.5-pro-002’`
 
-`TUNED_MODEL_DISPLAY_NAME = ‘gemini-fine-tuning-v1’` 
+`TUNED_MODEL_DISPLAY_NAME = ‘gemini-fine-tuning-v1’`
 
-`# start the fine-tuning job` 
+`# 開始微調工作`
 
-`sft_tuning_job = sft.train(` 
+`sft_tuning_job = sft.train(`
 
- `source_model=BASE_MODEL,` 
+ `source_model=BASE_MODEL,`
 
- `train_dataset=TRAINING_DATASET,` 
+ `train_dataset=TRAINING_DATASET,`
 
- `# # Optional:` 
+ `# # 可選:`
 
- `tuned_model_display_name=TUNED_MODEL_DISPLAY_NAME,` 
+ `tuned_model_display_name=TUNED_MODEL_DISPLAY_NAME,`
 
-`)` 
+`)`
 
-`# Get the tuning job info.` 
+`# 獲取微調工作的資訊`
 
-`sft_tuning_job.to_dict()` 
+`sft_tuning_job.to_dict()`
 
-`# tuned model endpoint name` 
+`# 微調後模型的端點名稱`
 
-`tuned_model_endpoint_name = sft_tuning_job.tuned_model_endpoint_name` 
+`tuned_model_endpoint_name = sft_tuning_job.tuned_model_endpoint_name`
 
-`# use the tuned model` 
+`# 使用微調後的模型`
 
-`tuned_genai_model = GenerativeModel(tuned_model_endpoint_name) print(tuned_genai_model.generate_content(contents=’What is a LLM?’))` 
+`tuned_genai_model = GenerativeModel(tuned_model_endpoint_name)`
 
-Snippet 1. SFT fine tuning on Google cloud
+`print(tuned_genai_model.generate_content(contents=’什麼是 LLM？’))`
 
-February 2025 51   
-Foundational Large Language Models & Text Generation 
+程式碼片段 1. 在 Google Cloud 上進行 SFT 微調
 
-**Using large language models** 
+2025年2月 51日
+基礎大型語言模型與文字生成
 
-Prompt engineering and sampling techniques have a strong influence on the performance of  LLMs. Prompt engineering is the process of designing and refining the text inputs (prompts)  that you feed into an LLM to achieve desired and relevant outputs. Sampling techniques  determine the way in which output tokens are chosen and influence the correctness,  creativity and diversity of the resulting output. We next discuss different variants of prompt  engineering and sampling techniques as well as touch on some important parameters that  can have a significant impact on LLM performance. 
+**使用大型語言模型**
 
-**Prompt engineering**  
+提示工程和採樣技術對 LLM 的性能有很大影響。提示工程是設計和改進您饋入 LLM 的文本輸入（提示）以獲得期望和相關輸出的過程。採樣技術決定了輸出 token 的選擇方式，並影響最終輸出的正確性、創造性和多樣性。接下來我們將討論提示工程和採樣技術的不同變體，並觸及一些對 LLM 性能有重大影響的重要參數。
 
-LLMs are very powerful, but they still need guidance to unleash their full potential. Prompt  engineering is a critical component in guiding an LLM to yield desired outputs. This might  include grounding the model to yield factual responses or unleashing the creativity of the  
+**提示工程 (Prompt engineering)**
 
-model to tell a story or write a song. Examples of prompt engineering include providing  clear instructions to the LLM, giving examples, using keywords, and formatting to emphasize  important information, providing additional background details etc.  
+LLM 非常強大，但它們仍然需要引導才能發揮其全部潛力。提示工程是引導 LLM 產生期望輸出的關鍵組成部分。這可能包括將模型基於事實以產生事實性回應，或釋放模型的創造力來講故事或寫歌。提示工程的例子包括向 LLM 提供清晰的指令、給出範例、使用關鍵字、以及使用格式來強調重要資訊、提供額外的背景細節等。
 
-You will often hear the terms zero-shot, few-shot, and chain-of-thought prompting in the  context of prompt engineering. We define these terms below:  
+在提示工程的背景下，您經常會聽到零樣本 (zero-shot)、少樣本 (few-shot) 和思維鏈 (chain-of-thought) 提示等術語。我們在下面定義這些術語：
 
-• Few-shot prompting: This is when you provide the LLM with a task description, as well  as a few (e.g. three to five) carefully chosen examples, that will help guide the LLM’s  response. For example, you might provide the model with the name of a few countries  and their capital cities, then ask it to generate the capital for a new country that isn’t in  the examples.
+• 少樣本提示 (Few-shot prompting): 這是指您向 LLM 提供任務描述，以及一些（例如三到五個）精心挑選的範例，以幫助引導 LLM 的回應。例如，您可能會向模型提供一些國家及其首都的名稱，然後要求它為一個不在範例中的新國家生成首都。
 
-February 2025 52   
-Foundational Large Language Models & Text Generation 
+2025年2月 52日
+基礎大型語言模型與文字生成
 
-• Zero-shot prompting: This is when you provide the LLM directly with a prompt with  instructions. You usually give the LLM a task description and the LLM relies heavily on its  existing knowledge to output the correct response. This requires no additional data or  examples, hence the name ‘Zero-shot’ but can be less reliable than few-shot prompting. 
+• 零樣本提示 (Zero-shot prompting): 這是指您直接向 LLM 提供帶有指令的提示。您通常給 LLM 一個任務描述，LLM 在很大程度上依賴其現有知識來輸出正確的回應。這不需要額外的數據或範例，因此得名「零樣本」，但可能不如少樣本提示可靠。
 
-• Chain-of-thought prompting: This technique aims to improve performance on complex  reasoning tasks. Rather than simply asking the LLM a question, you provide a prompt  that demonstrates how to solve similar problems using step-by-step reasoning. The  LLM then generates its own chain of thought for the new problem, breaking it down into  smaller steps and explaining its reasoning. Finally, it provides an answer based on its  reasoning process. 
+• 思維鏈提示 (Chain-of-thought prompting): 這種技術旨在提高複雜推理任務的性能。您不是簡單地向 LLM 提問，而是提供一個提示，示範如何使用逐步推理來解決類似問題。然後 LLM 會為新問題生成自己的思維鏈，將其分解為更小的步驟並解釋其推理。最後，它會根據其推理過程提供答案。
 
-Prompt engineering is an active area of research. 
+提示工程是一個活躍的研究領域。
 
-**Sampling Techniques and Parameters** 
+**採樣技術與參數 (Sampling Techniques and Parameters)**
 
-A variety of sampling techniques can be employed to determine how the model chooses  the next token in a sequence. They are essential for controlling the quality, creativity, and  diversity of the LLM’s output. The following is a breakdown of different sampling techniques  and their important parameters: 
+可以採用多種採樣技術來決定模型如何選擇序列中的下一個 token。它們對於控制 LLM 輸出的品質、創造力和多樣性至關重要。以下是不同採樣技術及其重要參數的分解：
 
-• *Greedy search*50: Selects the token with the highest probability at each step. This is the  simplest option but it can lead to repetitive and predictable outputs. 
+• *貪婪搜索 (Greedy search)*50: 在每一步選擇機率最高的 token。這是最簡單的選項，但可能導致重複和可預測的輸出。
 
-• *Random sampling*:50 Selects the next token according to the probability distribution, where  each token is sampled proportionally to its predicted probability. This can produce more  surprising and creative text, but also a higher chance of nonsensical output. 
+• *隨機採樣 (Random sampling)*:50 根據機率分佈選擇下一個 token，其中每個 token 的抽樣與其預測機率成正比。這可以產生更令人驚訝和富有創意的文本，但也可能產生更多無意義的輸出。
 
-• *Temperature sampling*:50 Adjusts the probability distribution by a temperature parameter.  Higher temperatures promote diversity, lower temperatures favor high-probability tokens.
+• *溫度採樣 (Temperature sampling)*:50 透過溫度參數調整機率分佈。較高的溫度促進多樣性，較低的溫度則偏好高機率的 token。
 
-February 2025 53   
-Foundational Large Language Models & Text Generation 
+2025年2月 53日
+基礎大型語言模型與文字生成
 
-• *Top-K sampling:* Randomly samples from the top K most probable tokens. The value of K  controls the degree of randomness. 
+• *Top-K 採樣:* 從機率最高的 K 個 token 中隨機抽樣。K 的值控制著隨機性的程度。
 
-• *Top-P sampling* (nucleus sampling):51 Samples from a dynamic subset of tokens whose  cumulative probability adds up to P. This allows the model to adapt the number of potential  candidates depending on its confidence, favoring more diversity when uncertain and  focusing on a smaller set of highly probable words when confident. 
+• *Top-P 採樣* (核心採樣, nucleus sampling):51 從一個動態的 token 子集中抽樣，這些 token 的累計機率加總為 P。這允許模型根據其信心程度調整潛在候選者的數量，在不確定時偏好多樣性，在有信心時則專注於一小組高機率的單詞。
 
-• *Best-of-N sampling:* Generates N separate responses and selects the one deemed best  according to a predetermined metric (e.g., a reward model or a logical consistency check).  This is particularly useful for short snippets or situations where logic and reasoning  are key. 
+• *Best-of-N 採樣:* 生成 N 個獨立的回應，並根據預定指標（例如，獎勵模型或邏輯一致性檢查）選擇最佳的一個。這對於短片段或邏輯和推理是關鍵的情況特別有用。
 
-By combining prompt engineering with sampling techniques and correctly calibrated  hyperparameters, you can greatly influence the LLM’s response, making it more relevant,  creative, and consistent for your specific needs. 
+透過將提示工程與採樣技術和正確校準的超參數相結合，您可以極大地影響 LLM 的回應，使其更具相關性、創造性和一致性，以滿足您的特定需求。
 
-Until now, we have seen the various types of LLM architectures, their underlying technology,  as well as the approaches used to train, tune, and adapt these models for various tasks. Let’s  now look at some key research about how the decoding process in LLMs can be sped up  considerably to generate faster responses. 
+到目前為止，我們已經看到了各種類型的 LLM 架構、其底層技術，以及用於訓練、調整和使這些模型適應各種任務的方法。現在讓我們來看一些關於如何大幅加速 LLM 中的解碼過程以生成更快回應的關鍵研究。
 
-**Task-based Evaluation** 
+**基於任務的評估 (Task-based Evaluation)**
 
-The emergence of LLMs has reduced the obstacles to building AI applications, but moving  from MVP to production introduces challenges such as prompt engineering, model selection,  and performance monitoring. A tailored evaluation framework is essential for navigating  LLM application development by validating functionality and user experience, identifying 
+LLM 的出現降低了建立 AI 應用的障礙，但從最小可行性產品 (MVP) 走向生產環境引入了諸如提示工程、模型選擇和性能監控等挑戰。一個量身定制的評估框架對於引導 LLM 應用開發至關重要，它可以驗證功能和使用者體驗、識別
 
-February 2025 54   
-Foundational Large Language Models & Text Generation 
+2025年2月 54日
+基礎大型語言模型與文字生成
 
-potential issues, facilitating communication about capabilities, and establishing a roadmap  for improvement. For building a tailored evaluation framework, application builders need to  provide their own evaluation data, development context, a definition of good performance.  
+潛在問題、促進關於能力的溝通，並為改進建立路線圖。為了建立一個量身定制的評估框架，應用程式建構者需要提供他們自己的評估數據、開發背景和對良好性能的定義。
 
-**• Evaluation data:** Public leaderboards that showcase LLM capabilities often fall short for  application developers who require a more tailored approach. A dedicated evaluation  dataset that mirrors the expected production traffic as closely as possible is needed.  
+**• 評估數據 (Evaluation data):** 展示 LLM 能力的公開排行榜通常無法滿足需要更量身定制方法的應用程式開發人員。需要一個專用的評估數據集，該數據集應盡可能地反映預期的生產流量。
 
-During prototyping this can be a manually curated dataset, one that is continuously  enriched with real user interactions, production logs, and synthetically generated data to  test specific scenarios. 
+在原型設計階段，這可以是一個手動策劃的數據集，一個透過真實用戶互動、生產日誌和綜合生成的數據不斷豐富的數據集，以測試特定場景。
 
-**• Development Context:** The evaluation should extend beyond just the model’s output  to analyze the entire system, including components like data augmentation (e.g.,  Retrieval Augmented Generation or RAG) and agentic workflows. This approach ensures  understanding of how all components interact and contribute to the application’s  overall performance. 
+**• 開發背景 (Development Context):** 評估應超越僅僅模型的輸出，分析整個系統，包括數據增強（例如，檢索增強生成或 RAG）和代理工作流等組件。這種方法確保了對所有組件如何互動並為應用程式的整體性能做出貢獻的理解。
 
-**• Definition of “Good”:** Traditional metrics that prioritize matching a single “correct”  answer can unfairly penalize unexpected solutions. When working with LLMs, we can  address this by moving beyond similarity to ground truth as a definition of good, but  rather establish dataset level criteria that reflect desired business outcomes or even  rubrics that capture the core elements of the desired outputs depending on the input user  instructions.  
+**• 「好」的定義 (Definition of “Good”):** 優先匹配單一「正確」答案的傳統指標可能會不公平地懲罰意想不到的解決方案。在使用 LLM 時，我們可以透過超越與地面實況的相似性作為好的定義來解決這個問題，而是建立反映期望的業務成果的數據集級別標準，甚至根據輸入的用戶指令捕捉期望輸出核心元素的評分標準。
 
-Application builders can evaluate LLM performance using three methods: 
+應用程式建構者可以使用三種方法來評估 LLM 的性能：
 
-**• Traditional Evaluation Methods:** Similar to evaluating predictive models, these methods  use quantitative metrics to compare model outputs to ideal responses, aiming to offer  objective insights. However, they may penalize creative or unexpected outputs, limiting  their effectiveness for generative tasks that have multiple possible solutions.
+**• 傳統評估方法 (Traditional Evaluation Methods):** 與評估預測模型類似，這些方法使用量化指標將模型輸出與理想回應進行比較，旨在提供客觀的見解。然而，它們可能會懲罰有創意或意想不到的輸出，限制了它們在具有多種可能解決方案的生成任務中的有效性。
 
-February 2025 55   
-Foundational Large Language Models & Text Generation 
+2025年2月 55日
+基礎大型語言模型與文字生成
 
-**• Human Evaluation:** Considered the gold standard, human judgment provides nuanced  assessment of complex generative outputs. 
+**• 人工評估 (Human Evaluation):** 被認為是黃金標準，人類的判斷為複雜的生成性輸出提供了細緻的評估。
 
-**• LLM-Powered Autoraters:** LLM-powered autoraters try to mimic human judgment,  offering scalable and efficient evaluations. Unlike computation-based methods, they  can operate with or without reference data. A basic setup involves providing the task,  criteria, and candidate responses (with optional references), which the autorater uses to  generate and parse LLM output for final evaluation results. In addition to the final outputs,  autoraters can provide rationales to explain a given decision to the user. While generative  models are common autoraters, reward and discriminative models are also used. Crucially,  like any measurement tool, autoraters require calibration. Meta-evaluation, i.e. comparing  autorater outputs to human judgments, ensures the autorater aligns with desired  preferences. This calibration typically involves agreement in terms of model preference  or correlation measures, tailored to the evaluation task. In this meta-evaluation, it is  important to keep in mind potential limitations of autorater models.69 
+**• LLM 驅動的自動評分器 (LLM-Powered Autoraters):** LLM 驅動的自動評分器試圖模仿人類的判斷，提供可擴展且高效的評估。與基於計算的方法不同，它們可以在有或沒有參考數據的情況下運作。一個基本的設置包括提供任務、標準和候選回應（可選參考），自動評分器使用這些資訊來生成和解析 LLM 輸出，以獲得最終的評估結果。除了最終輸出，自動評分器還可以提供理由來向用戶解釋給定的決定。雖然生成模型是常見的自動評分器，但獎勵模型和判別模型也被使用。至關重要的是，與任何測量工具一樣，自動評分器需要校準。元評估 (Meta-evaluation)，即將自動評分器的輸出與人類判斷進行比較，確保自動評分器與期望的偏好保持一致。這種校準通常涉及模型偏好或相關性測量方面的一致性，並根據評估任務進行調整。在這種元評估中，重要的是要記住自動評分器模型的潛在局限性。69
 
-While the basic setup described above focuses on providing autoraters with fixed criteria  that can be used to evaluate an entire dataset of examples, approaches are emerging to  leverage rubrics and multi-step processes in order to obtain interpretable evaluation metrics.  At a high level, an LLM breaks an example down into multiple evaluation subtasks and then  evaluates each subtask to give an interpretable, detailed report for this example. As the  task has been broken down, domain-specialized models can be leveraged for specific tasks  to improve reliability if necessary. Results are then aggregated for a given example to yield  an overall score, or across related subtasks to evaluate how well a model performs along a  particular axis. This setup is especially useful in media generation, where different examples  may require vastly different skills (e.g. object generation vs text generation) and a single  score obfuscates how relative strengths and weaknesses of different models contribute to  the final result.
+雖然上述基本設置側重於為自動評分器提供可用於評估整個範例數據集的固定標準，但正在出現利用評分標準和多步驟流程來獲得可解釋的評估指標的方法。在高層次上，LLM 將一個範例分解為多個評估子任務，然後評估每個子任務，為該範例提供一個可解釋、詳細的報告。由於任務已被分解，可以利用領域專業模型來處理特定任務，以在必要時提高可靠性。然後，結果會針對給定的範例進行匯總以得出總分，或跨相關子任務進行匯總，以評估模型在特定軸上的表現如何。這種設置在媒體生成中特別有用，因為不同的範例可能需要截然不同的技能（例如，物體生成與文本生成），而單一分數會掩蓋不同模型的相對優勢和劣勢如何對最終結果做出貢獻。
 
-February 2025 56   
-Foundational Large Language Models & Text Generation 
+2025年2月 56日
+基礎大型語言模型與文字生成
 
-**Accelerating inference** 
+**加速推論**
 
-The scaling laws for LLMs which were initially explored by the Kaplan et al.24 study continue  to hold today. Language models have been consistently increasing in size and this has been  a direct contributor to the vast improvement in these models’ quality and accuracy over the  last few years. As increasing the number of parameters has improved the quality of LLMs it  
+最初由 Kaplan 等人24 研究探討的 LLM 擴展定律至今仍然成立。語言模型的規模一直在持續增長，這直接促成了這些模型在過去幾年中品質和準確性的巨大提升。隨著參數數量的增加提高了 LLM 的品質，它也增加了運行它們所需的計算資源。開發人員有動力為模型使用者降低成本和延遲，因此已經使用了多種方法來嘗試提高 LLM 在不同任務上的效率。在時間、金錢、能源方面平衡服務模型的開銷被稱為成本-性能權衡，並且通常需要針對特定使用案例進行調整。
 
-has also increased the computational resources needed to run them. Numerous approaches  have been used to try and improve the efficiency of LLMs for different tasks as developers  are incentivized to reduce cost and latency for model users. Balancing the expense of  serving a model in terms of time, money, energy is known as the cost-performance tradeoff  and often needs adjusting for particular use cases. 
+LLM 使用的兩個主要資源是記憶體和計算。提高推論效率或速度的技術主要集中在這些資源上。記憶體和計算之間的連接速度也至關重要，但通常受硬體限制。隨著 LLM 的規模從數百萬擴大到數十億參數，增長了 1000 倍。額外的參數既增加了容納模型所需的記憶體大小，也增加了產生模型結果所需的計算量。
 
-Two of the main resources used by LLMs are memory and computation. Techniques for  improving the efficiency or speed of inference focus primarily on these resources. The  speed of the connection between memory and compute is also critical, but usually hardware  constrained. As LLMs have grown in size 1000x from millions to billions of parameters.  Additional parameters increase both the size of memory required to hold the model and  computations needed to produce the model results. 
+隨著 LLM 越來越多地被用於大規模和低延遲的應用場景，尋找優化其推論性能的方法已成為一個優先事項和一個活躍的研究課題，並取得了重大進展。我們將探討多種方法和一些加速推論的權衡取捨。
 
-With LLMs being increasingly adopted for large-scale and low-latency use cases, finding  ways to optimize their inference performance has become a priority and an active research  topic with significant advancements. We will explore a number of methods and a few  tradeoffs for accelerating inference.
+2025年2月 57日
+基礎大型語言模型與文字生成
 
-February 2025 57   
-Foundational Large Language Models & Text Generation 
+**權衡取捨**
 
-**Trade offs** 
+許多高收益的推論優化方法都要求在多個因素之間進行權衡，這可以根據具體情況進行調整，從而允許針對不同的推論使用案例和需求採取量身定制的方法。我們稍後將討論的一些優化方法都處於這些權衡的某個光譜上。
 
-Many of the high yielding inference optimisation methods mandate trading off a number of  factors, this can be tweaked on a case-by-case basis allowing for tailored approaches to  different inference use cases and requirements. A number of the optimization methods we  will discuss later fall somewhere on the spectrum of these tradeoffs.  
+在一個因素與另一個因素之間進行權衡（例如，延遲與品質或成本）並不意味著我們完全犧牲了該因素，這只意味著我們接受了品質、延遲或成本上可能微不足道的下降，以換取在另一個因素上實質性的改善。
 
-Trading off one factor against the other (e.g. latency vs quality or cost) doesn’t mean that  we’re completely sacrificing that factor, it just means that we’re accepting what might be  a marginal degradation in quality, latency or cost for the benefit of substantially improving  another factor. 
+**品質 vs. 延遲/成本的權衡 (The Quality vs Latency/Cost Tradeoff)**
 
-**The Quality vs Latency/Cost Tradeoff** 
+透過接受模型準確性可能微不足道甚至可以忽略不計的下降，可以顯著提高推論的速度和成本。其中一個例子是使用較小的模型來執行任務。另一個例子是量化，我們降低模型參數的精度，從而導致更快且記憶體消耗更少的計算。
 
-It is possible to improve the speed and cost of inference significantly through accepting  what might be marginal to negligible drops in the model’s accuracy. One example of this  is using a smaller model to perform the task. Another example is quantisation where we  decrease the precision of the model’s parameters thereby leading to faster and less memory  intensive calculations. 
+在處理這種權衡時，一個重要的區別在於品質損失的理論可能性與模型執行所需任務的實際能力之間。這取決於具體的使用案例，探索這一點通常可以在不以有意義或可察覺的方式犧牲品質的情況下，帶來顯著的速度提升。例如，如果我們希望模型執行的任務很簡單，那麼一個較小的模型或一個量化後的模型很可能能夠很好地執行此任務。參數容量或精度的降低並不自動意味著模型在該特定任務上的能力較差。
 
-One important distinction when approaching this trade-off is between the theoretical  possibility of a quality loss versus the practical capability of the model to perform the desired  task. This is use case specific and exploring it will often lead to significant speedups without  sacrificing quality in a meaningful or noticeable way. For example, if the task we want the  model to perform is simple, then a smaller model or a quantised one will likely be able to  perform this task well. Reduction in parametric capacity or precision does not automatically  mean that the model is less capable at that specific task.
+2025年2月 58日
+基礎大型語言模型與文字生成
 
-February 2025 58   
-Foundational Large Language Models & Text Generation 
+**延遲 vs. 成本的權衡 (The Latency vs Cost Tradeoff)**
 
-**The Latency vs Cost Tradeoff** 
+這種權衡的另一個名稱是延遲與吞吐量的權衡。其中吞吐量指的是系統有效處理多個請求的能力。在相同硬體上獲得更好的吞吐量意味著我們的 LLM 推論成本降低，反之亦然。
 
-Another name for this tradeoff is the latency vs throughput tradeoff. Where throughput refers  to the system’s ability at handling multiple requests efficiently. Better throughput on the same  hardware means that our LLM inference cost is reduced, and vice versa. 
+就像傳統的軟體系統一樣，通常有很多機會可以在延遲和 LLM 推論成本之間進行權衡。這是一個重要的權衡，因為 LLM 推論往往是整個技術棧中最慢且最昂貴的組件；有意識地平衡延遲和成本是確保我們根據其使用的產品或使用案例來調整 LLM 性能的關鍵。一個例子是批量推論使用案例（例如，離線標籤），其中成本可能是比任何特定請求的延遲更重要的因素。另一方面，一個 LLM 聊天機器人產品會更加重視請求延遲。
 
-Much like traditional software systems, there are often multiple opportunities to tradeoff  latency against the cost of LLM inference. This is an important tradeoff since LLM inference  tends to be the slowest and most expensive component in the entire stack; balancing latency  and cost intentionally is key to making sure we tailor LLM performance to the product or use  case it’s being used in. An example would be bulk inference use cases (e.g. offline labeling)  where cost can be a more important factor than the latency of any particular request. On the  other hand, an LLM chatbot product will place much higher importance on request latency. 
+現在我們已經介紹了一些在優化推論時需要考慮的重要權衡，讓我們來看看一些最有效的推論加速技術。如在權衡部分所討論的，一些優化技術可能會對模型的輸出產生影響。因此，我們將這些方法分為兩種類型：輸出近似 (output-approximating) 和輸出保持 (output-preserving)。
 
-Now that we’ve covered some of the important tradeoffs to consider when optimizing  inference, let’s examine some of the most effective inference acceleration techniques. As  discussed in the tradeoffs section, some optimization techniques can have an impact on the  model’s output. Therefore we will split the methods into two types: output-approximating  and output-preserving. 
+截至本文撰寫之時，Gemini 2.0 Flash Thinking 在品質（以其 ELO 分數衡量）和可負擔性之間提供了無與倫比的平衡，每百萬 token 的成本比同類模型低十倍；其在品質與成本圖（圖中越往右上角越優越）上的位置展示了其變革性的發展。此外，該圖還突顯了 AI 領域在推理和思維能力方面的快速進步，在過去三個月中觀察到了 27 倍的提升。
 
-As of this writing, Gemini 2.0 Flash Thinking offers an unparalleled balance of quality, as  measured by its ELO score, and affordability, with a cost per million tokens that is ten times  lower than comparable models; its position on a quality-versus-cost graph (where further  up and to the right is superior) demonstrates its transformative development. Moreover, the  picture highlights the rapid advancements in reasoning and thinking capabilities within the AI  field, with a 27-fold improvement observed in the last three months.
+2025年2月 59日
+基礎大型語言模型與文字生成
 
-February 2025 59   
-Foundational Large Language Models & Text Generation 
+**輸出近似方法 (Output-approximating methods)**
 
-**Output-approximating methods** 
+**量化 (Quantization)**
 
-**Quantization** 
+LLM 從根本上是由多個數值矩陣（即模型權重）組成的。在推論過程中，矩陣運算會應用於這些模型權重以產生數值輸出（即激活值）。量化是降低權重和激活值儲存、傳輸和運算時的數值精度的過程。權重和激活值的預設表示通常是 32 位浮點數，透過量化，我們可以將精度降低到 8 位甚至 4 位整數。
 
-LLMs are fundamentally composed of multiple numerical matrices (a.k.a the model weights).  During inference, matrix operations are then applied to these model weights to produce  numerical outputs (a.k.a activations). Quantization is the process of decreasing the numerical  precision in which weights and activations are stored, transferred and operated upon. The  default representation of weights and activations is usually 32 bits floating numbers, with  quantization we can drop the precision to 8 or even 4 bit integers.  
+量化有多種性能優勢，它減少了模型的記憶體佔用，允許在相同硬體上容納更大的模型，它還減少了在單個晶片內和分佈式推論設置中跨晶片傳輸權重和激活值的通信開銷——因此加快了推論速度，因為通信是延遲的主要貢獻者。此外，降低權重/激活值的精度可以在這些模型上實現更快的算術運算，因為一些加速器硬體（例如 TPU/GPU）原生支持某些較低精度表示的更快矩陣乘法運算。
 
-Quantization has multiple performance benefits, it reduces the memory footprint of  the model, allowing to fit larger models on the same hardware, it also reduces the  communication overhead of weights and activations within one chip and across chips in  a distributed inference setup- therefore speeding up inference as communication is a  major contributor to latency. In addition, decreasing the precision of weights/activations  can enable faster arithmetic operations on these models as some accelerator hardware  (e.g. TPUs/GPUs) natively supports faster matrix multiplication operations for some lower  precision representations. 
+量化對品質的影響可能非常輕微甚至不存在，具體取決於使用案例和模型。此外，在量化可能引入品質下降的情況下，這種下降可能與性能增益相比很小，因此允許有效的品質與延遲/成本權衡。例如，Benoit Jacob 等人55 報告稱，在 MobileNet SSD 上的 FaceDetection 任務中，準確率下降 2% 可獲得 2 倍的加速。
 
-Quantization’s impact on quality can be very mild to non-existent depending on the use  case and model. Further, in cases where quantisation might introduce a quality regression,  that regression can be small compared to the performance gain, therefore allowing for an  effective Quality vs Latency/Cost Tradeoff. For example, Benoit Jacob et al.55 reported a 2X  speed-up for a 2% drop in accuracy for the FaceDetection task on MobileNet SSD.
+2025年2月 60日
+基礎大型語言模型與文字生成
 
-February 2025 60   
-Foundational Large Language Models & Text Generation 
+量化可以作為僅推論操作應用，也可以納入訓練中（稱為量化感知訓練，Quantisation Aware Training, QAT）。QAT 通常被認為是一種更具彈性的方法，因為模型能夠在訓練期間恢復一些與量化相關的品質損失。為了確保我們獲得最佳的成本/品質權衡，我們會調整量化策略（例如，為權重與激活值選擇不同的精度）以及我們應用量化到張量 (Tensors) 的粒度（例如，通道或組別58）。
 
-Quantization can be either applied as an inference-only operation, or it can be incorporated  into the training (referred to as Quantisation Aware Training QAT). QAT is generally  considered to be a more resilient approach as the model is able to recover some of the  quantisation-related quality losses during training. To make sure we get the best cost/quality  tradeoff, we tweak the quantization strategy (e.g. select different precisions for weights  vs activations) and the granularity in which we apply quantisation to Tensors (e.g. channel  or group-wise58). 
+**蒸餾 (Distillation)**
 
-**Distillation** 
+使用較小的模型來執行任務是最有效的推論優化技術之一，然而，與較大的模型相比，較小的模型在品質上可能會出現顯著的下降。
 
-Using a smaller model to perform a task is one of the most efficient inference optimization  techniques, however, smaller models can demonstrate significant regressions on quality  compared to their larger counterparts. 
+蒸餾 (Distillation) 是一套訓練技術，旨在使用較大的模型（教師）來提高較小模型（學生）的品質。這種方法之所以有效，是因為即使兩者都在相同的數據上進行訓練，較大的模型也比小的模型表現更好，這主要是由於參數容量和訓練動態。隨著訓練數據集的增長，性能差距會持續存在，如圖 9 所示。
 
-Distillation is a set of training techniques that targets improving the quality of a smaller model  (the student) using a larger model (the teacher). This method can be effective because larger  models outperform smaller ones even if both are trained on the same data, mainly due to  parametric capacity and training dynamics. The gap in performance continues as the training  dataset grows as illustrated by Figure 9. 
+值得注意的是，即使在訓練數據量較低的情況下，大型模型也已經可以表現出比相應訓練的較小模型更好的性能，這一事實引導我們走向第一種蒸餾變體，稱為數據蒸餾或模型壓縮。56 我們使用一個在我們擁有的數據上訓練過的大型模型來生成更多的合成數據來訓練較小的學生模型，數據量的增加將有助於將學生在品質線上推得更遠，而不是僅僅在原始數據上進行訓練。對待合成數據需要小心，因為它需要是高品質的，否則可能會產生負面影響。
 
-It is worth noticing that even at low volumes of training data, large models can already  demonstrate better performance than the correspondingly trained smaller models, this fact  leads us to the first variant of distillation which is referred to as data distillation or model  compression.56 We use a large model which was trained on the data we have to generate  more synthetic data to train the smaller student model, the increase in data volume will help  move the the student further along the quality line compared to only training on the original  data. Synthetic data needs to be approached carefully as it needs to be of high quality and  can lead to negative effects otherwise.
+2025年2月 61日
+基礎大型語言模型與文字生成
 
-February 2025 61   
-Foundational Large Language Models & Text Generation 
+![][image10]
+圖 9. 不同大小模型性能隨訓練數據集大小變化的示意圖
 
-![][image10]  
-Figure 9. An illustration of the performance of models of various sizes as a function of the training  dataset’s size 
+其他蒸餾技術試圖在比僅生成合成數據更細的粒度上使學生模型更接近教師模型。一種著名的技術是知識蒸餾57，在這種方法中，我們試圖將學生模型的輸出 token 分佈與教師模型的輸出 token 分佈對齊，這比數據蒸餾的樣本效率要高得多。在策略蒸餾 (On-policy distillation)59 是另一種技術，它在強化學習設置中利用教師模型對學生生成的每個序列的回饋。
 
-Other distillation techniques attempt to bring the student model closer to the teacher  on a more granular level than just synthetic data generation. One prominent technique is  knowledge distillation57, in this approach we attempt to align the output token distribution  of the student model to that of the teacher’s, this can be much more sample efficient than  data distillation. On-policy distillation59 is another technique that leverages feedback from  the teacher model on each sequence generated by the student in a reinforcement learning  setup.  
+**輸出保持方法 (Output-preserving methods)**
 
-**Output-preserving methods** 
+這些方法保證對品質是中性的，它們不會對模型輸出造成任何改變，這通常使它們成為在面臨近似方法更細微的權衡之前優化推論的明顯第一步。
 
-These methods are guaranteed to be quality neutral, they cause no changes to the model  output which often makes them obvious first steps to optimize inference before facing the  more nuanced tradeoffs of the approximating methods
+2025年2月 62日
+基礎大型語言模型與文字生成
 
-February 2025 62   
-Foundational Large Language Models & Text Generation 
+**Flash Attention**
 
-**Flash Attention** 
+縮放點積注意力 (Scaled Dot-product Attention) 是 Transformer 架構中主要的注意力機制，它是一個關於輸入長度的二次運算。優化自我注意力計算可以帶來顯著的延遲和成本效益。
 
-Scaled Dot-product Attention, which is the predominant attention mechanism in the  transformer architecture, is a quadratic operation on the input length. Optimizing the self attention calculation can bring significant latency and cost wins. 
+由 Tri Dao 等人62 引入的 Flash Attention，透過使注意力演算法具備 IO 感知能力來優化注意力計算，特別是試圖最小化我們在慢速 HBM（高頻寬記憶體）和快速記憶體層（TPU 和 GPU 中的 SRAM/VMEM）之間移動的數據量。在計算注意力時，操作的順序會被改變，並且多個層會被融合，這樣我們就可以盡可能高效地利用更快的記憶體層。
 
-Flash Attention, introduced in by Tri Dao et al.62, optimizes the attention calculation by making  the attention algorithm IO Aware, particularly trying to minimize the amount of data we move  between the slow HBM (high bandwidth memory) to the faster memory tier (SRAM/VMEM) in  TPUs and GPUs. When calculating attention, the order of operations is changed and multiple  layers are fused so we can utilize the faster memory tiers as efficiently as possible. 
+Flash Attention 是一個精確的演算法，它保持了注意力計算的數值輸出，並且由於減少了 IO 開銷，可以產生顯著的延遲效益，Tri Dao 等人62 展示了在注意力計算中有 2-4 倍的延遲改善。
 
-Flash Attention is an exact algorithm, it maintains the numerical output of the attention  computation and can yield significant latency benefits due to reducing the IO overhead, Tri  Dao et al.62 showed 2-4X latency improvements in the attention computation. 
+**前綴快取 (Prefix Caching)**
 
-**Prefix Caching** 
+在 LLM 推論中，計算量最大、因此也最慢的操作之一是計算我們傳遞給 LLM 的輸入的注意力鍵和值分數（即 KV），這個操作通常被稱為預填充 (prefill)。預填充的最終輸出被稱為 KV 快取，它包含了 Transformer 每一層對於整個輸入的注意力鍵和值分數。這個快取在產生輸出 token 的解碼階段至關重要，KV 快取使我們能夠避免在每個自回歸解碼步驟中為輸入重新計算注意力分數。
 
-One of the most compute intensive, and thus slowest, operations in LLM inference is  calculating the attention key and value scores (a.k.a KV) for the input we’re passing to the  LLM, this operation is often referred to as prefill. The final output of prefill is what is termed  KV Cache which includes the attention key and value scores for each layer of the transformer  for the entire input. This cache is vital during the decoding phase which produces the output  tokens, the KV cache allows us to avoid recalculating attention scores for the input on each  autoregressive decode step. 
+前綴快取 (Prefix Caching) 是指在後續的推論請求之間快取 KV 快取本身，以減少預填充操作的延遲和成本。自我注意力機制的工作方式使得重複使用 KV 快取成為可能，因為 token 只會關注序列中在它們之前的 token。如果將新輸入附加到模型之前見過的輸入上，那麼我們就有可能避免為舊輸入重新計算預填充。
 
-Prefix Caching refers to the process of caching the KV Cache itself between subsequent  inference requests in order to reduce the latency and cost of the prefill operation. The way  the self-attention mechanism works makes reusing KV caches possible because tokens will 
+2025年2月 63日
+基礎大型語言模型與文字生成
 
-February 2025 63   
-Foundational Large Language Models & Text Generation 
+![][image11]圖 10. 聊天場景中前綴快取的示意圖
 
-only pay attention to tokens that came before them in the sequence. If there’s new input  being appended to input that the model has seen before, then we can potentially avoid  recalculating the prefill for the older input. 
+圖 10 說明了在帶有文件上傳的多輪場景中前綴快取是如何工作的。在第一次用戶輪次中，預填充操作必須處理整個文件，因此需要 500 毫秒，產生的 KV 快取隨後被儲存起來，以便在第二次用戶輪次中，我們可以從儲存中直接檢索快取，避免為長文件重新計算，從而節省大量的計算和延遲。
 
-![][image11]Figure 10. An illustration of Prefix Caching in a chat scenario 
+2025年2月 64日
+基礎大型語言模型與文字生成
 
-Figure 10 illustrates how prefix caching works in a multi-turn scenario with a document  upload. On the first user turn, the prefill operation has to process the entire document  therefor taking 500ms, the resulting KV cache is then stored so that on the second user turn,  we can retrieve the cache directly from storage and avoid recomputing it for the long doc,  therefore saving substantial amounts of compute and latency.
+前綴快取可以儲存在記憶體或磁碟上，並按需獲取。一個重要的考慮因素是確保輸入結構/模式對前綴快取友好，我們應避免在後續請求中更改前綴，因為這將使所有後續 token 的快取失效。例如，在每個請求的最開始放置一個新的時間戳將完全使快取失效，因為每個後續請求都會有一個新的前綴。
 
-February 2025 64   
-Foundational Large Language Models & Text Generation 
+許多 LLM 的使用案例天然適合前綴快取。例如，LLM 聊天機器人，用戶可以進行跨越數萬個 token 的多輪對話，我們可以避免為對話的先前部分重新計算 KV 快取。大型文件/程式碼上傳是另一個使用案例，用戶上傳的工件在不同請求之間保持不變。唯一改變的是用戶提出的問題，因此快取文件的 KV 快取（特別是對於較大的工件）可以節省大量的延遲和成本。
 
-Prefix caches can be stored either in memory or on disk and fetched on-demand. One  important consideration is making sure that the input structure/schema remains prefix caching friendly, we should avoid changing the prefix in subsequent requests as that will  invalidate the cache for all the tokens that follow For example, putting a fresh timestamp at  the very beginning of each request will invalidate the cache completely as every subsequent  request will have a new prefix. 
+前綴快取在 Google AI studio52 和 Google Cloud53 上的 Vertex AI 中作為一個名為 Context Caching 的服務提供。
 
-Many LLM use cases lend themselves naturally to prefix caching. For example, LLM Chatbots  where users will have a multi-turn conversation that can span 10s of 1000s of tokens and  we can avoid recalculating the KV cache for the previous parts of the conversation. Large  document/code uploads is another use case where the artifact the user uploads will remain  unchanged from one request to the next. All that’s changing are the questions the user is  asking, so caching the KV cache for the document (especially for larger artifacts) can result  in significant latency and cost savings. 
+**推測解碼 (Speculative Decoding)**
 
-Prefix caching is available as a service called Context Caching on Google AI studio52 and  Vertex AI on Google Cloud53. 
+LLM 推論的第一階段，稱為預填充 (prefill)，由於在許多 token 上並行進行大型矩陣運算，因此是計算密集型的。第二階段，稱為解碼 (decode)，通常是記憶體密集型的，因為 token 是逐個自回歸解碼的。
 
-**Speculative Decoding** 
+由於需要在生成當前 token 之後才能計算下一個 token 應該是什麼（根據自我注意力機制），因此很難簡單地使用額外的並行計算能力來加速解碼，解碼過程本質上是串行的。
 
-The first phase of LLM inference, known as prefill, is compute bound due large matrix  operations on many tokens occurring in parallel. The second phase, known as decode, is  generally memory bound as tokens are auto-regressively decoded one at a time.  
+2025年2月 65日
+基礎大型語言模型與文字生成
 
-It is not easy to naively use additional parallel compute capacity to speed up decode  given the need to wait for the current token to be produced before we can calculate what  the next token should be (as per the self-attention mechanism), the decode process is  inherently serial.
+推測解碼 (Speculative decoding) (Leviathan 等人63) 旨在透過找到一種利用閒置計算能力來加快每個解碼步驟的方法，從而克服解碼中的這一限制。主要思想是使用一個小得多的次要模型（通常稱為起草者, drafter）在主模型之前運行並預測更多的 token。（例如，提前預測 4 個 token）。這將非常快，因為起草者比主模型小得多也快得多。然後我們使用主模型並行驗證起草者的假設，針對 4 個步驟中的每一個（即第一個 token，前兩個 token，前 3 個 token，最後是所有 4 個 token），然後我們選擇具有最大 token 數的被接受的假設。例如：
 
-February 2025 65   
-Foundational Large Language Models & Text Generation 
+![][image12]圖 11. 三個 token 的推測解碼示意圖
 
-Speculative decoding (Leviathan at al.63) aims to overcome this limitation in decode by finding  a way to utilize the spare compute capacity to make each decode step faster. The main idea  is to use a much smaller secondary model (often referred to as the drafter) to run ahead of  the main model and predict more tokens. (e.g. 4 tokens ahead). This will happen very quickly  as the drafter is much faster and smaller than the main model. We then use the main model to  verify the hypotheses of the drafter in parallel for each of the 4 steps (i.e. the first token, the  first two tokens, the first 3 tokens and finally all 4 tokens), and we then select the accepted  hypothesis with the maximum number of tokens. For example: 
+請注意，這 3 個主模型步驟是並行運行的。而且因為我們在解碼中不受計算限制，所以我們可以使用閒置的計算能力來獲得更好的解碼延遲。在上面的例子中，假設一個主模型步驟需要 10 毫秒，而起草者需要 1 毫秒。如果沒有推測解碼，我們需要 3 * 10 毫秒 = 30 毫秒來產生回應，而有了推測解碼，由於並行化，關鍵路徑上只有一個主模型步驟，所以我們需要 3 * 1 毫秒 + 10 毫秒 = 13 毫秒。這是一個顯著的延遲改進。這種技術是完全
 
-![][image12]Figure 11. An illustration of speculative decoding over 3 tokens 
+2025年2月 66日
+基礎大型語言模型與文字生成
 
-Note that the 3 main model steps run in parallel. And because we are not compute bound in  decode, we can use the spare capacity to get much better decode latencies. In the example  above, let’s say a single main model step needs 10ms, while the drafter needs 1ms. Without  speculative decoding, we need 3 * 10ms = 30ms to produce the response, with speculative  decoding, there’s only one main model step on the critical path due to parallelization, so we  need 3 * 1ms + 10ms = 13ms. A significant latency improvement. This technique is completely 
+品質中立的，主模型會拒絕任何它自己本來就不會預測的 token，所以推測解碼所做的唯一事情就是提前運行並提出假設，主模型可以並行地接受或拒絕這些假設。
 
-February 2025 66   
-Foundational Large Language Models & Text Generation 
+推測解碼要有效運作的一個重要條件是，起草者模型與主模型有良好的一致性水平，否則我們將無法接受任何 token。因此，投資於起草者模型的訓練品質對於獲得更好的延遲是值得的。
 
-quality neutral, the main model will reject any tokens that it wouldn’t have predicted itself  in the first place, so the only thing speculative decoding does is run ahead and present  hypotheses that the main model can accept or reject in parallel. 
+現在我們已經看到了一些使 LLM 更快生成回應的方法，讓我們來看一些這些模型如何應用於各種任務的例子，以了解如何使用它們。
 
-One important condition for speculative decoding to work effectively is that the drafter model  has good levels of alignment with the main model, otherwise we won’t be able to accept any  of the tokens. So investing in the training quality of the drafter model is worthwhile to get  better latencies. 
+**批次處理與平行化 (Batching and Parallelization)**
 
-Now that we have seen some methods to make LLM generate their responses faster, let’s  look at some examples of how these models can be applied to various tasks to get an idea  how to use them. 
+到目前為止我們討論的大多數優化技術都特定於機器學習和 Transformer 架構。然而，就像任何軟體系統一樣，有機會透過結合 1) 對計算密集度較低的操作進行批次處理（即我們可以在同一硬體上同時運行多個請求以更好地利用閒置計算能力）和 2) 對計算密集度較高的計算部分進行平行化（即我們可以劃分計算並將其分配給更多的硬體實例以獲得更多的計算能力，從而獲得更好的延遲）來提高吞吐量和延遲。
 
-**Batching and Parallelization** 
+在 LLM 中，批次處理在解碼端最有用——正如我們在推測解碼部分所解釋的，解碼不受計算限制，因此有機會批次處理更多請求。我們需要小心，以一種能夠利用閒置計算能力的方式來批次處理計算，這在加速器（例如 TPU 和 GPU）上是可能做到的。我們還需要確保我們保持在記憶體限制內，因為解碼是一個
 
-Most of the optimization techniques we’ve discussed so far are specific to Machine Learning  and Transformer architecture in particular. However, much like any software system, there  are opportunities to improve throughput and latency through a combination of 1) batching  less compute-intensive operations (i.e. we can run multiple requests on the same hardware  simultaneously to better utilize the spare compute) and 2) parallelizing the more compute intensive parts of the computations (i.e. we can divide the computation and split it amongst  more hardware instances to get more compute capacity and therefore better latencies 
+2025年2月 67日
+基礎大型語言模型與文字生成
 
-Batching in LLMs is most useful on the decode side - as we explained in the Speculative  Decoding section, decode is not compute-bound and therefore there’s an opportunity  to batch more requests. We need to be careful that we batch computations in a way that  enables utilization of the spare capacity which is possible to do on accelerators (e.g. TPUs  and GPUs). We also need to make sure we remain within the memory limits, as decode is a 
+記憶體密集型操作，批次處理更多請求會對可用記憶體造成更大壓力。批次處理已成為大多數高吞吐量 LLM 推論設置中的重要組成部分。
 
-February 2025 67   
-Foundational Large Language Models & Text Generation 
+平行化也是一種廣泛使用的技術，因為 Transformer 在跨更多硬體實例進行水平擴展方面有各種機會。在模型輸入（序列平行化）、模型層（管線平行化）和單個層內（張量平行化）有多種平行化技術。平行化最重要的考慮因素之一是我們分佈到其他機器的不同分片之間的通信和同步成本。通信是一個顯著的開銷，如果我們不小心選擇使用哪種平行化策略，它可能會侵蝕增加更多計算能力的好處。另一方面，選擇正確的策略來平衡對額外計算的需求和通信成本，可以帶來顯著的延遲優勢。
 
-memory intensive operations, batching more requests will put more pressure on the free  memory available. Batching has become an important component in most high-throughput  LLM inference setups. 
+現在我們已經看到了一些讓 LLM 更快生成回應的方法，讓我們來看一些這些模型如何應用於各種任務的例子，以了解如何使用它們。
 
-Parallelization is also a widely used technique given the variety of opportunities in  transformers for horizontal scaling across more hardware instances. There are multiple  parallelism techniques across the model input (Sequence parallelism) the model layers  (Pipeline parallelism), and within a single layer (Tensor parallelism). One of the most important  considerations for parallelism is the cost of communication and synchronization between  the different shards that we distribute to other machines. Communication is a significant  overhead and can erode the benefits of adding more computational capacity if we’re not  careful about which parallelization strategy to use. On the other hand, selecting the right  strategy to balance the need for additional compute and the communication cost can yield  significant latency wins. 
+**應用 (Applications)**
 
-Now that we have seen some methods to make LLM generate their responses faster, let’s  look at some examples of how these models can be applied to various tasks to get an idea  how to use them. 
+大型語言模型正在徹底改變我們與資訊互動和處理資訊的方式。憑藉其前所未有的理解上下文和生成內容的能力，它們正在改變文本、程式碼、圖像、音訊和影片領域的眾多應用。這裡我們收集了一些應用領域的例子，但讀者應記住，這不是一個詳盡的列表，關於如何最好地利用這些新工具的能力，許多新想法正在不斷湧現。有關基於以下提到的使用案例最佳地建構和部署功能性應用程式的更多資訊，請參閱後續的白皮書。
 
-**Applications** 
+2025年2月 68日
+基礎大型語言模型與文字生成
 
-Large language models are revolutionizing the way we interact with and process information.  With their unprecedented ability to understand context and generate content, they’re  transforming numerous applications in the worlds of text, code, images, audio and video.  Here we collected a few examples of application areas, but the reader should keep in mind  that this is not a comprehensive list and that many new ideas are emerging continuously  about how to best utilize the capabilities of these new tools. For more information about  optimally building and deploying functioning applications based on the following mentioned  use cases, refer to the subsequent whitepapers. 
+使用 Google Cloud Vertex AI SDK 或專為開發者設計的 AI studio，為您的使用案例生成基於文本的回應也非常簡單。程式碼片段 3 顯示了使用這些 SDK，透過 Gemini 模型為文本提示生成回應的程式碼範例。請注意，Gemini 的多模態方面在其各自的專門白皮書中有所涵蓋。
 
-February 2025 68   
-Foundational Large Language Models & Text Generation 
+2025年2月 69日
+基礎大型語言模型與文字生成
 
-It is also very simple to generate text-based responses for your use case using either  the Google Cloud Vertex AI SDK or the Developer focused AI studio. Snippet 3 shows  code examples from these SDKs to generate responses to text prompts using the Gemini  model. Note that the multimodal aspects of Gemini are covered in their respective  dedicated whitepapers.
+**Python**
 
-February 2025 69   
-Foundational Large Language Models & Text Generation 
+`%pip install --upgrade --quiet google-genai`
 
-**Python** 
+`import sys`
 
-`%pip install --upgrade --quiet google-genai` 
+`if “google.colab” in sys.modules:`
+ `from google.colab import auth`
 
-`import sys`  
+`auth.authenticate_user()`
 
-`if “google.colab” in sys.modules:`   
- `from google.colab import auth`  
+`from IPython.display import HTML, Markdown, display`
+`from google import genai`
+`from google.genai.types import (`
+ `FunctionDeclaration,`
+ `GenerateContentConfig,`
+ `GoogleSearch,`
+ `HarmBlockThreshold,`
+ `HarmCategory,`
+ `MediaResolution,`
+ `Part,`
+ `Retrieval,`
+ `SafetySetting,`
+ `Tool,`
+ `ToolCodeExecution,`
+ `VertexAISearch,`
+`)`
 
-`auth.authenticate_user()` 
+`import os`
 
-`from IPython.display import HTML, Markdown, display`   
-`from google import genai`   
-`from google.genai.types import (`   
- `FunctionDeclaration,`   
- `GenerateContentConfig,`   
- `GoogleSearch,`   
- `HarmBlockThreshold,`   
- `HarmCategory,`   
- `MediaResolution,`   
- `Part,`   
- `Retrieval,`   
- `SafetySetting,`   
- `Tool,`   
- `ToolCodeExecution,`   
- `VertexAISearch,`   
-`)` 
+`PROJECT_ID = “[your-project-id]” # @param {type: “string”, placeholder: “[your-project id]”, isTemplate: true}`
 
-`import os` 
+`if not PROJECT_ID or PROJECT_ID == “[your-project-id]”:`
+ `PROJECT_ID = str(os.environ.get(“GOOGLE_CLOUD_PROJECT”))`
 
-`PROJECT_ID = “[your-project-id]” # @param {type: “string”, placeholder: “[your-project id]”, isTemplate: true}` 
+`LOCATION = os.environ.get(“GOOGLE_CLOUD_REGION”, “us-central1”)`
 
-`if not PROJECT_ID or PROJECT_ID == “[your-project-id]”:`   
- `PROJECT_ID = str(os.environ.get(“GOOGLE_CLOUD_PROJECT”))`  
+`client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)  MODEL_ID = “gemini-2.0-flash-001” # @param {type: “string”}`
 
-`LOCATION = os.environ.get(“GOOGLE_CLOUD_REGION”, “us-central1”)`  
+`response = client.models.generate_content(`
+ `model=MODEL_ID, contents=”我們太陽系中最大的行星是什麼？”  )`
 
-`client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)  MODEL_ID = “gemini-2.0-flash-001” # @param {type: “string”}`  
+`display(Markdown(response.text))`
 
-`response = client.models.generate_content(`   
- `model=MODEL_ID, contents=”What’s the largest planet in our solar system?”  )` 
+程式碼片段 2. 使用 Vertex AI 和 Google AI studio SDK 進行單模態文本生成
 
-`display(Markdown(response.text))` 
+2025年2月 70日
+基礎大型語言模型與文字生成
 
-Snippet 2. Using Vertex AI and Google AI studio SDKs for unimodal text generation 
+**程式碼與數學 (Code and mathematics)**
 
-February 2025 70   
-Foundational Large Language Models & Text Generation 
+生成式模型可以理解和生成程式碼及演算法，透過在許多應用領域協助開發人員來為他們增壓。一些熱門的程式碼使用案例包括：
 
-**Code and mathematics** 
+• **程式碼生成 (Code generation):** 可以用自然語言提示 LLM，以特定的程式語言生成程式碼來執行某些操作。輸出可以用作草稿。
 
-Generative models can comprehend and generate code and algorithms to supercharge  developers by assisting them across many application areas. Some of the popular use cases  for code include: 
+• **程式碼補全 (Code completion):** LLM 可以在使用者輸入時主動建議有用的程式碼。這可以節省開發人員的時間並提高程式碼品質。
 
-• **Code generation:** LLMs can be prompted in natural language to generate code in a  specific programming language to perform certain operations. The output can be used as  a draft. 
+• **程式碼重構與除錯 (Code refactoring and debugging):** LLM 可以透過重構和除錯程式碼來幫助減少技術債，以提高品質、效率和正確性。
 
-• **Code completion:** LLMS can proactively suggest useful code as the user types it. This  can save developers time and improve code quality. 
+• **程式碼翻譯 (Code translation):** LLM 可以透過幫助將程式碼從一種程式語言轉換為另一種程式語言，顯著幫助開發人員節省時間和精力。例如，LLM 可能會將 Python 程式碼轉換為 Java。
 
-• **Code refactoring and debugging:** LLMs can help reduce technical debt by refactoring  and debugging code to improve quality, efficiency and correctness. 
+• **測試案例生成 (Test case generation):** 可以提示 LLM 為提供的程式碼庫生成單元測試，這可以節省大量時間並減少錯誤。
 
-• **Code translation:** LLMs can significantly help developer time and effort by helping to  convert code from one programming language to another. For example, an LLM might  convert Python code to Java. 
+• **程式碼文件與理解 (Code documentation and understanding):** LLM 可以以對話的方式使用，進行自然語言聊天以幫助您理解程式碼庫。它們還可以生成適當的註釋、理解版權狀態並創建發行說明。
 
-• **Test case generation:** LLMs can be prompted to generate unit tests for a provided  codebase which saves considerable time and reduces errors. 
+最近，在競技編程和數學領域取得了一些令人興奮的進展。*AlphaCode 2*64 結合了 Gemini 的推理能力、搜索和工具的使用來解決競技編程問題。它接收一個要解決的問題的描述作為輸入，並輸出一個解決該問題的程式碼解決方案。它
 
-• **Code documentation and understanding:** LLMs can be used in a conversational manner  to engage in a natural language chat to help you understand a codebase. They can also  generate appropriate comments, understand copyright status, and create release notes. 
+2025年2月 71日
+基礎大型語言模型與文字生成
 
-Recently, a number of exciting advancements have been made in the space of competitive  coding and mathematics. *AlphaCode 2*,64 combines Gemini’s reasoning capabilities with  search and the use of tools to solve competitive coding problems. It receives as input a  description of a problem to solve, and outputs a code solution that solves the problem. It 
+現在在流行的 Codeforces 競技編程平台上排名前 15% 的競技程式員之列。*FunSearch*65 使用一種基於將預訓練的 LLM 與系統性評估器配對的進化程序。它解決了數學中的一個開放問題——帽子集合問題 (cap set problem)66，並且還發現了更有效的裝箱演算法，這些演算法被用於許多應用中，例如提高數據中心的效率。另一個最近的方法叫做 *AlphaGeometry*，它解決了為複雜幾何定理尋找證明的問題。它由一個神經符號系統組成，該系統由一個神經語言模型和一個符號演繹引擎組成。AlphaGeometry 成功解決了 30 個奧林匹克幾何問題中的 25 個，而人類金牌得主的平均得分為 25.9 分。67
 
-February 2025 71   
-Foundational Large Language Models & Text Generation 
+**機器翻譯 (Machine translation)**
 
-now ranks among the top 15% competitive coders on the popular Codeforces competitive  coding platform. *FunSearch*65 uses an evolutionary procedure which is based on pairing  a pre-trained LLM with a systematic evaluator. It solved the cap set problem66, an open  problem in mathematics, and also discovered more efficient bin-packing algorithms which  are used in many applications such as making data centers more efficient. Another recent  approach called *AlphaGeometry* tackles the problem of finding proofs for complex geometric  theorems. It comprises a neuro-symbolic system made up of a neural language model and  a symbolic deduction engine. AlphaGeometry managed to solve 25 out of 30 Olympiad  geometry problems, where the average human gold medalist scores on average 25.9. 67 
+LLM 能夠生成流暢、高品質且上下文準確的翻譯。這得益於 LLM 對語言細微差別、慣用語和上下文的深刻理解。以下是一些可能的實際應用案例：
 
-**Machine translation** 
+• **即時通訊應用 (Instant messaging apps):** 在訊息平台中，LLM 可以提供感覺自然的即時翻譯。與以往可能逐字翻譯的演算法不同，LLM 理解俚語、口語和地區差異，增強了跨語言交流。
 
-LLMs are capable of generating fluid, high-quality and contextually accurate translations.  This is possible due to the LLM’s deep understanding of linguistic nuances, idioms, and  context. The following are some possible real world use cases: 
+• **電子商務 (E-commerce):** 在像全球速賣通 (AliExpress) 這樣的全球平台上，產品描述會自動翻譯。LLM 有助於確保產品細節中的文化細微差別和慣用語得到適當翻譯，從而減少誤解。
 
-• **Instant messaging apps:** In messaging platforms, LLMs can provide on-the-fly  translations that feel natural. Unlike previous algorithms that might translate word for-word, LLMs understand slang, colloquialisms, and regional differences, enhancing  cross-language communication. 
+• **旅遊應用 (Travel apps):** 在像 Google 翻譯這樣的應用中，旅行者可以獲得即時的口語翻譯。有了 LLM，翻譯的對話更加流暢，使在國外的互動更加輕鬆。
 
-• **E-commerce:** On global platforms like AliExpress, product descriptions are automatically  translated. LLMs help with ensuring cultural nuances and idiomatic expressions in product  details are appropriately translated, leading to fewer misunderstandings. 
+2025年2月 72日
+基礎大型語言模型與文字生成
 
-• **Travel apps:** In apps like Google Translate, travelers get real-time spoken translations.  With LLMs, the translated conversations are smoother, making interactions in foreign  countries more effortless.
+**文字摘要 (Text summarization)**
 
-February 2025 72   
-Foundational Large Language Models & Text Generation 
+文字摘要是本白皮書中提到的許多 LLM 的核心能力。有許多自然的潛在使用案例，包括：
 
-**Text summarization** 
+• **新聞聚合器 (News aggregators):** LLM 可以製作不僅捕捉主要事件，還能捕捉文章情感和語氣的摘要，為讀者提供更全面的理解。
 
-Text summarization is a core capability of many of the LLMs mentioned in this whitepaper.  There are a number of natural potential use cases which include: 
+• **研究數據庫 (Research databases):** LLM 可以幫助研究人員生成能概括科學論文核心發現和意義的摘要。
 
-• **News aggregators:** LLMs could craft summaries that capture not only the main  events but also the sentiment and tone of the article, providing readers with a more  holistic understanding. 
+• **聊天管理 (Chat management):** 在像 Google Chat 這樣的平台中，基於 LLM 的系統可以生成能捕捉緊迫性和語氣的對話串摘要，幫助用戶確定回應的優先級。
 
-• **Research databases:** LLMs could help researchers generate abstracts that encapsulate  the core findings and implications of scientific papers. 
+**問答 (Question-answering)**
 
-• **Chat management:** In platforms like Google Chat, LLM-based systems could generate  thread summaries that capture the urgency and tone, aiding users in prioritizing  their responses. 
+老一代的問答系統通常透過關鍵字匹配工作，常常忽略了用戶查詢的上下文深度。然而，LLM 深入研究上下文。它們可以推斷用戶意圖，遍歷龐大的資訊庫，並提供上下文豐富且精確的答案。這方面的一些應用範例包括：
 
-**Question-answering** 
+• **虛擬助理 (Virtual assistants):** LLM 可以提供詳細的天氣預報解釋，考慮到用戶的位置、一年中的時間和最近的天氣趨勢。
 
-The older generation of QA systems often worked by keyword matching, frequently missing  out on the contextual depth of user queries. LLMs, however, dive deep into context. They can  infer user intent, traverse vast information banks, and provide answers that are contextually  rich and precise. Some of the examples where this could be used include: 
+• **客戶支援 (Customer support):** 在商業平台中，基於 LLM 的機器人可以提供考慮到用戶購買歷史、過去的查詢和潛在問題的答案，提供個人化的協助。
 
-• **Virtual assistants:** LLMs can offer detailed explanations of a weather forecast  considering the user’s location, time of year, and recent weather trends. 
+2025年2月 73日
+基礎大型語言模型與文字生成
 
-• **Customer support:** In business platforms, LLM-based bots could provide answers that  take into account the user’s purchase history, past queries, and potential issues, offering  personalized assistance.
+• **學術平台 (Academic platforms):** 在像 Wolfram Alpha 這樣的學術平台上，LLM 可以透過理解學術問題的深度和背景來滿足用戶的查詢，提供適合從高中生到研究生的各種答案。
 
-February 2025 73   
-Foundational Large Language Models & Text Generation 
+透過使用先進的搜索系統（例如基於檢索增強生成 (Retrieval Augmented Generation, RAG) 架構的系統）來擴展提示的相關資訊，以及在生成回應後進行事後核實，可以顯著提高生成答案的品質以及相應的引文和來源。清晰的指令、關於應該和不應該用什麼來回答問題的角色，以及先進的提示工程方法（例如思維鏈和搜索/RAG 架構），再結合較低的溫度值等，也大有幫助。
 
-• **Academic platforms:** On academic platforms like Wolfram Alpha, LLMs could cater to  user queries by understanding the depth and context of academic questions, offering  answers that suit everyone from a high school student to a postgraduate researcher. 
+**聊天機器人 (Chatbots)**
 
-The quality of the generated answers, as well as the corresponding citations and sources  can be significantly improved by using advanced search systems (such as those based on  Retrieval Augmented Generation (RAG) architectures) to expand the prompt with relevant  information, as well as post-hoc grounding after the response has been generated. Clear  
+早期的聊天機器人遵循腳本化的路徑，導致「機械式」的對話。LLM 透過提供動態、類人的互動來改變這個領域。它們可以分析情感、上下文，甚至幽默，使數位對話感覺更真實。這方面的一些應用範例包括：
 
-instructions, roles of what should and should not be used to answer the question, and  advanced prompt engineering approaches (such as chain of thought and search/RAG  architectures), combined with a lower temperature value amongst other things can also  help greatly. 
+• **客戶服務 (Customer service):** 像 Zara 這樣的零售平台上的聊天機器人不僅可以回答與產品相關的查詢，還可以根據當前趨勢提供時尚建議。
 
-**Chatbots** 
+• **娛樂 (Entertainment):** 在媒體上，LLM 驅動的聊天機器人可以與用戶動態互動，對直播中的事件做出反應，並以上下文理解來主持聊天。
 
-Earlier chatbots followed scripted pathways, leading to ‘mechanical’ conversations. LLMs  transform this space by offering dynamic, human-like interactions. They can analyze  sentiment, context, and even humor, making digital conversations feel more authentic. Some  examples of where this can be used include: 
+2025年2月 74日
+基礎大型語言模型與文字生成
 
-• **Customer service:** A chatbot on retail platforms like Zara could not only answer product related queries but also offer fashion advice based on current trends. 
+**內容生成 (Content generation)**
 
-• **Entertainment:** On Media LLM-driven chatbots could engage with users dynamically,  reacting to live events in the stream and moderating chats with contextual understanding.
+文本生成並不是新鮮事，但 LLM 帶來的是前所未有的生成類人文本的能力，這些文本上下文相關且細節豐富。早期的模型通常會在較長的段落中失去上下文或連貫性。LLM 憑藉其廣泛的知識和細緻的理解，可以創作涵蓋各種風格、語氣和複雜性的文本，有效地將事實性與創造性（取決於上下文）結合起來，彌合了機器生成和人類書寫內容之間的差距。以下是一些實際例子：
 
-February 2025 74   
-Foundational Large Language Models & Text Generation 
+• **內容創作 (Content creation):** 平台可以利用 LLM 幫助行銷人員製作廣告。LLM 可以生成有創意、有針對性且針對特定受眾的訊息，而不是通用的內容。
 
-**Content generation** 
+• **劇本寫作 (Scriptwriting):** LLM 可能有助於為電影或電視節目製作劇本。編劇可以輸入主題或情節點，模型可以建議對話或場景描述，從而增強創作過程。
 
-Text generation isn’t new, but what LLMs bring to the table is the unprecedented ability  to generate human-like text that’s contextually relevant and rich in detail. Earlier models  would often lose context or coherence over longer passages. LLMs, with their vast  knowledge and nuanced understanding, can craft text spanning various styles, tones, and  complexities, mixing factuality with creativity (depending on the context) effectively bridging  the gap between machine-generated and human-written content. The following are some  real-world examples: 
+文本生成是一個廣泛的任務，包含各種使用案例，其範圍可能從生成輸出的正確性比其語言的創造性/多樣性或多或少重要的情況。應相應地調整採樣方法和溫度等參數。有關更多資訊，請參閱提示工程和 LLM 應用架構白皮書。
 
-• **Content creation:** Platforms could utilize LLMs to help marketers develop advertisements.  Instead of generic content, the LLMs could generate creative, targeted, and  audience-specific messages. 
+**自然語言推論 (Natural language inference)**
 
-• **Scriptwriting:** LLMs could potentially assist with producing scripts for movies or TV  shows. Writers could input themes or plot points, and the model can suggest dialogues or  scene descriptions, enhancing the creative process. 
+*自然語言推論* (Natural Language Inference, NLI) 是確定一個給定的文本假設是否可以從一個文本前提中邏輯推斷出來的任務。
 
-Text generation is a wide task encompassing a variety of use cases that might range from  those where correctness of the generated output is more or less important than its creativity/ diversity of the language. The sampling methods and parameters like temperature should be  tuned accordingly. For more information, see the prompt engineering and architecting for  LLM applications whitepapers. 
+2025年2月 75日
+基礎大型語言模型與文字生成
 
-**Natural language inference** 
+傳統模型難以處理細微的關係或需要更深層次上下文理解的關係。LLM 憑藉其對語義和上下文的複雜掌握，在諸如此類的任務中表現出色，準確率接近人類水平。以下是一些實際例子：
 
-*Natural language inference* (NLI) is the task of determining whether a given textual  hypothesis can be logically inferred from a textual premise.
+• **情感分析 (Sentiment analysis):** 企業可以利用 LLM 從產品評論中推斷客戶情感。它們不僅可以提取基本的正面或負面標籤，還可以提取諸如「滿意」、「失望」或「興高采烈」等細微的情感。
 
-February 2025 75   
-Foundational Large Language Models & Text Generation 
+• **法律文件審查 (Legal document review):** 律師事務所可以利用 LLM 推斷合約中的含義和意圖，確保沒有矛盾或潛在有問題的條款。
 
-Traditional models struggled with nuanced relationships or those that require a deeper  understanding of context. LLMs, with their intricate grasp of semantics and context, excel  at tasks like these, bringing accuracy levels close to human performance. The following are  some real-world examples: 
+• **醫療診斷 (Medical diagnoses):** 透過分析患者描述和病史，LLM 可以協助醫生推斷潛在的診斷或健康風險，確保早期干預。
 
-• **Sentiment analysis:** Businesses could utilize LLMs to infer customer sentiment from  product reviews. Instead of just basic positive or negative tags, they could extract  nuanced emotions like ‘satisfaction,’ ‘disappointment,’ or ‘elation’. 
+關於特定領域 LLM、提示工程和 LLM 應用架構的白皮書對這些使用案例有更深入的見解。
 
-• **Legal document review:** Law firms could employ LLMs to infer implications  and intentions in contracts, ensuring there are no contradictions or potentially  problematic clauses. 
+**文字分類 (Text classification)**
 
-• **Medical diagnoses:** By analyzing patient descriptions and histories, LLMs could assist  doctors in inferring potential diagnoses or health risks, ensuring early intervention. 
+文字分類涉及將文本分類到預定義的組中。雖然傳統演算法效率很高，但它們常常難以處理模稜兩可或重疊的類別。LLM 憑藉其對上下文的深刻理解，可以更高精度地對文本進行分類，即使面對細微的區別也是如此。這方面的一些例子包括：
 
-The whitepapers on domain specific LLMs, prompt engineering, and architecting for LLM  applications give further insight into these use cases. 
+• **垃圾郵件檢測 (Spam detection):** 電子郵件服務可以利用 LLM 將電子郵件分類為垃圾郵件或合法郵件。模型不僅基於關鍵字檢測，還能理解上下文和意圖，從而可能減少誤報。
 
-**Text classification** 
+2025年2月 76日
+基礎大型語言模型與文字生成
 
-Text classification involves categorizing text into predefined groups. While traditional  algorithms were efficient, they often struggled with ambiguous or overlapping categories.  LLMs, given their deep understanding of context, can classify text with higher precision, even  when faced with subtle distinctions. Some examples of this include: 
+• **新聞分類 (News categorization):** 新聞平台可以利用 LLM 將文章分類到「科技」、「政治」或「體育」等主題，即使文章模糊了類別之間的界線。
 
-• **Spam detection:** Email services could utilize LLMs to classify emails as spam or  legitimate. Instead of just keyword-based detection, the models understand the context  and intent, potentially reducing false positives.
+• **客戶回饋分類 (Customer feedback sorting):** 企業可以透過 LLM 分析客戶回饋，將其分類到「產品設計」、「客戶服務」或「定價」等領域，確保有針對性的回應。
 
-February 2025 76   
-Foundational Large Language Models & Text Generation 
+• **評估 LLM 作為自動評分器 (Evaluating LLMs as autorater):** LLM 也可以用來評分、比較和排名其他 LLM 生成的輸出。
 
-• **News categorization:** News platforms could employ LLMs to categorize articles into  topics like ‘technology,’ ‘politics,’ or ‘sports,’ even when articles blur the boundaries  between categories. 
+**文字分析 (Text analysis)**
 
-• **Customer feedback sorting:** Businesses could analyze customer feedback through  LLMs to categorize them into areas like ‘product design,’ ‘customer service,’ or ‘pricing,’  ensuring targeted responses. 
+LLM 擅長深度文本分析——從龐大的文本數據集中提取模式、理解主題和收集見解。傳統工具只能觸及表面，而 LLM 則能深入挖掘，提供豐富且可操作的見解。一些潛在的實際例子是：
 
-• **Evaluating LLMs as autorater:** LLMs could be used to rate, compare and rank the  generated outputs of other LLMs as well. 
+• **市場研究 (Market research):** 公司可以利用 LLM 分析社交媒體上的消費者對話，提取趨勢、偏好和新興需求。
 
-**Text analysis** 
+• **文學分析 (Literary analysis):** 學者可以利用 LLM 來理解文學作品中的主題、母題和人物發展，為經典和當代文學提供新的視角。
 
-LLMs excel at deep text analysis – extracting patterns, understanding themes, and gleaning  insights from vast textual datasets. Where traditional tools would scratch the surface, LLMs  delve deep, offering rich and actionable insights. Some potential real-world examples are: 
+2025年2月 77日
+基礎大型語言模型與文字生成
 
-• **Market research:** Companies could leverage LLMs to analyze consumer conversations on  social media, extracting trends, preferences, and emerging needs. 
+**多模態應用 (Multimodal applications)**
 
-• **Literary analysis:** Academics could employ LLMs to understand themes, motifs, and  character developments in literary works, offering fresh perspectives on classic and  contemporary literature.
+能夠處理和生成文本、圖像、音訊和影片的多模態 LLM，在 AI 領域開闢了新的前沿，為各個行業提供了一系列令人興奮和創新的應用。以下是一些例子：
 
-February 2025 77   
-Foundational Large Language Models & Text Generation 
+創意內容生成：
 
-**Multimodal applications** 
+• **講故事 (Storytelling):** 一個 AI 系統可以觀看圖像或影片，並編織一個引人入勝的敘事，將視覺細節與其知識庫相結合。
 
-Multimodal LLMs, capable of processing and generating text, images, audio, and video, have  opened up a new frontier in AI, offering a range of exciting and innovative applications across  various sectors. The following are some examples:  
+• **廣告與行銷 (Advertising and marketing):** 根據產品照片或影片生成有針對性且情感共鳴的廣告。
 
-Creative content generation: 
+教育與無障礙：
 
-• **Storytelling:** An AI system could watch an image or video and spin a captivating narrative,  integrating details from the visual with its knowledge base. 
+• **個人化學習 (Personalized learning):** 透過將文本與互動式視覺和音訊元素相結合，為個人學習風格量身定制教育材料。
 
-• **Advertising and marketing:** Generating targeted and emotionally resonant  advertisements based on product photos or videos. 
+• **輔助技術 (Assistive technology):** 多模態 LLM 可以為視障或聽障人士提供描述圖像、影片和音訊的工具。
 
-Education and accessibility: 
+商業與工業：
 
-• **Personalized learning:** Tailoring educational materials to individual learning styles by  combining text with interactive visual and audio elements. 
+• **文件理解與摘要 (Document understanding and summarization):** 自動從複雜文件中提取關鍵資訊，結合文本和視覺效果，如發票和合約。
 
-• **Assistive technology:** Multimodal LLMs could power tools that describe images, videos,  and audio for visually or hearing-impaired individuals. 
+• **客戶服務 (Customer service):** 多模態聊天機器人可以理解並回應結合文本和圖像的客戶查詢，提供更豐富、更個人化的體驗。
+科學與研究：
 
-Business and industry: 
+2025年2月 78日
+基礎大型語言模型與文字生成
 
-• **Document understanding and summarization:** Automatically extracting key information  from complex documents, combining text and visuals like invoices and contracts. 
+• **醫療診斷 (Medical diagnosis):** 結合分析醫療掃描和報告，識別潛在問題並為醫生提供見解。
 
-• **Customer service:** Multimodal chatbots can understand and respond to customer  queries combining text and images, offering a richer and more personalized experience.  Science and research:
+• **生物資訊學與藥物發現 (Bioinformatics and drug discovery):** 整合來自不同數據源的知識，如醫學影像、蛋白質結構和研究論文，以加速研究。
 
-February 2025 78   
-Foundational Large Language Models & Text Generation 
+這些例子只是冰山一角。隨著研究的進展，多模態 LLM 的應用預計只會不斷增長，以多樣化和深刻的方式改變我們的日常生活。多模態 LLM 也極大地受益於單模態 LLM（即基於文本的 LLM）的現有方法論。
 
-• **Medical diagnosis:** Analyzing medical scans and reports together, identifying potential  issues and providing insights for doctors. 
+LLM 憑藉其理解和處理語言的能力，正在重塑我們在不同領域與文本互動、生成和分析文本的方式。隨著它們的不斷發展，其應用將只會越來越多，從而增強機器和人類進行豐富自然語言互動的能力。
 
-• **Bioinformatics and drug discovery:** Integrating knowledge from diverse data sources  like medical images, protein structures, and research papers to accelerate research. 
+2025年2月 79日
+基礎大型語言模型與文字生成
 
-These examples are just the tip of the iceberg. As research progresses, the applications  of multimodal LLMs are only expected to grow, transforming our daily lives in diverse and  profound ways. Multimodal LLMs also benefit greatly from the existing methodologies of  Unimodal LLMs ( i.e., text based LLMs). 
+**總結**
 
-LLMs, thanks to their ability to understand and process language, are reshaping how we  interact with, generate, and analyze text across diverse sectors. As they continue to evolve,  their applications will only grow, boosting the ability for machines and humans to have rich  natural language interactions.
+在本白皮書中，我們討論了 Transformer 的基礎知識，所有現代 LLM 都基於此。我們詳細介紹了各種 LLM 模型架構及其組件的演進。我們還看到了可用於高效且有效地訓練和微調模型的各種方法。我們簡要討論了對 LLM 輸出有很大影響的提示工程和採樣技術，並觸及了該技術的可能應用。有幾個關鍵要點需要記住：
 
-February 2025 79   
-Foundational Large Language Models & Text Generation 
+• Transformer 架構是所有現代 LLM 的基礎。在本白皮書中提到的各種架構中，我們看到不僅僅是為模型增加更多參數很重要，數據集的組成也同樣重要。
 
-**Summary** 
+• 微調的順序和策略很重要，可能包括多個步驟，如指令微調、安全性微調等。監督式微調 (SFT) 對於捕捉任務的本質很重要。RLHF，以及潛在的 RLAIF，可以透過獎勵函數的力量，將分佈從預訓練分佈轉移到更期望的分佈，獎勵函數可以獎勵期望的行為並懲罰不期望的行為。
 
-In this whitepaper we have discussed the basics of transformers, upon which all modern-day  LLMs are based. We detailed the evolution of the various LLM model architectures and their  components. We’ve also seen the various methodologies you can use to train and fine-tune  models efficiently and effectively. We briefly discussed prompt engineering and sampling  techniques that greatly influence the output of an LLM, and also touched on possible  applications of this technology. There are a number of key takeaways to keep in mind: 
+• 使神經模型的推論變得高效是一個重要的問題，也是一個活躍的研究領域。存在許多方法可以在對模型性能影響最小的情況下降低服務成本和延遲，並且一些精確的加速方法可以保證相同的模型輸出。
 
-• The transformer architecture is the basis for all modern-day LLMs. Across the various  architectures mentioned in this whitepaper we see that it’s important not only to add more  parameters to the model, but the composition of the dataset is equally important.  
-
-• The order and strategies used for fine-tuning is important and may include multiple steps  such as Instruction Tuning, Safety Tuning, etc. Supervised Fine Tuning (SFT) is important  in capturing the essence of a task. RLHF, and potentially RLAIF, can be used to shift the  distribution from the pretraining distribution to a more desired one through the power of  the reward function, that can reward desirable behaviors and penalize undesirable ones. 
-
-• Making inference from neural models efficient is an important problem and an active  field of research. Many methods exist to reduce serving costs and latency with minimal  impact to model performance, and some exact acceleration methods guarantee identical  model outputs. 
-
-• Large language models can be used for a variety of tasks including summarization,  translation, question answering, chat, code generation, and many more. You can  create your own tasks using the Vertex and Makersuite text generation services which  leverage Google’s latest language models. After the model has been trained and tuned,  it is important to experiment with engineering prompts. You should use the technique  most appropriate for the task-at-hand because LLMs can be sensitive to prompts k. 
+• 大型語言模型可用於各種任務，包括摘要、翻譯、問答、聊天、程式碼生成等等。您可以使用 Vertex 和 Makersuite 文本生成服務創建自己的任務，這些服務利用了 Google 最新的語言模型。在模型經過訓練和調整後，重要的是要試驗工程提示。您應該使用最適合手頭任務的技術，因為 LLM 可能對提示很敏感。k.
