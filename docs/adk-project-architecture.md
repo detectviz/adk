@@ -1,34 +1,34 @@
-# ADK Project Overview and Architecture
+# ADK 專案總覽與架構
 
-reference: https://github.com/google/adk-python/blob/main/contributing/adk_project_overview_and_architecture.md
+參考資料：https://github.com/google/adk-python/blob/main/contributing/adk_project_overview_and_architecture.md
 
 Google Agent Development Kit (ADK) for Python
 
-## Core Philosophy & Architecture
+## 核心哲學與架構
 
-- Code-First: Everything is defined in Python code for versioning, testing, and IDE support. Avoid GUI-based logic.
+- **程式碼優先 (Code-First)**：所有東西都在 Python 程式碼中定義，以便於版本控制、測試和 IDE 支援。避免使用圖形化介面 (GUI) 來定義邏輯。
 
-- Modularity & Composition: We build complex multi-agent systems by composing multiple, smaller, specialized agents.
+- **模組化與組合 (Modularity & Composition)**：我們透過組合多個更小、更專業的 Agent 來建立複雜的多 Agent 系統。
 
-- Deployment-Agnostic: The agent's core logic is separate from its deployment environment. The same agent.py can be run locally for testing, served via an API, or deployed to the cloud.
+- **部署環境無關 (Deployment-Agnostic)**：Agent 的核心邏輯與其部署環境分離。同一個 `agent.py` 可以在本機執行以進行測試、透過 API 提供服務，或部署到雲端。
 
-## Foundational Abstractions (Our Vocabulary)
+## 基礎抽象層 (我們的詞彙)
 
-- Agent: The blueprint. It defines an agent's identity, instructions, and tools. It's a declarative configuration object.
+- **Agent**：藍圖。它定義了 Agent 的身份、指令和工具。它是一個宣告式的設定物件。
 
-- Tool: A capability. A Python function an agent can call to interact with the world (e.g., search, API call).
+- **Tool (工具)**：一種能力。一個 Agent 可以呼叫來與世界互動的 Python 函式 (例如，搜尋、API 呼叫)。
 
-- Runner: The engine. It orchestrates the "Reason-Act" loop, manages LLM calls, and executes tools.
+- **Runner (執行器)**：引擎。它負責協調「思考-行動」(Reason-Act) 的循環、管理大型語言模型 (LLM) 的呼叫，並執行工具。
 
-- Session: The conversation state. It holds the history for a single, continuous dialogue.
+- **Session (會話)**：對話狀態。它為單一、連續的對話保留歷史記錄。
 
-- Memory: Long-term recall across different sessions.
+- **Memory (記憶)**：跨不同會話的長期記憶。
 
-- Artifact Service: Manages non-textual data like files.
+- **Artifact Service (產物服務)**：管理非文字資料，如檔案。
 
-## Canonical Project Structure
+## 標準專案結構
 
-Adhere to this structure for compatibility with ADK tooling.
+請遵守此結構，以確保與 ADK 工具的相容性。
 
 ```bash
 my_adk_project/
@@ -36,79 +36,69 @@ my_adk_project/
     └── my_app/
         ├── agents/
         │   ├── my_agent/
-        │   │   ├── __init__.py   # Must contain: from. import agent \
-        │   │   └── agent.py      # Must contain: root_agent = Agent(...) \
+        │   │   ├── __init__.py   # 必須包含: from . import agent \
+        │   │   └── agent.py      # 必須包含: root_agent = Agent(...) \
         │   └── another_agent/
         │       ├── __init__.py
         │       └── agent.py\
 ```
 
-agent.py: Must define the agent and assign it to a variable named root_agent. This is how ADK's tools find it.
+`agent.py`：必須定義 Agent 並將其指派給名為 `root_agent` 的變數。這是 ADK 工具找到它的方式。
 
-`__init__.py`: In each agent directory, it must contain from. import agent to make the agent discoverable.
+`__init__.py`：在每個 Agent 目錄中，它必須包含 `from . import agent` 以便讓 Agent 可以被發現。
 
-## Local Development & Debugging
+## 本機開發與除錯
 
-Interactive UI (adk web): This is our primary debugging tool. It's a decoupled system:
+- **互動式介面 (adk web)**：這是我們主要的除錯工具。它是一個解耦的系統：
+    - **後端**：一個用 `adk api_server` 啟動的 FastAPI 伺服器。
+    - **前端**：一個連接到後端的 Angular 應用程式。
+    - 使用「Events」分頁來檢查完整的執行追蹤 (提示、工具呼叫、回應)。
 
-Backend: A FastAPI server started with adk api_server.
+- **命令列介面 (adk run)**：用於在終端機中進行快速、無狀態的功能檢查。
 
-Frontend: An Angular app that connects to the backend.
+- **程式化 (pytest)**：用於編寫自動化的單元和整合測試。
 
-Use the "Events" tab to inspect the full execution trace (prompts, tool calls, responses).
+## API 層 (FastAPI)
 
-CLI (adk run): For quick, stateless functional checks in the terminal.
+我們使用 FastAPI 將 Agent 作為生產級 API 公開。
 
-Programmatic (pytest): For writing automated unit and integration tests.
+- `get_fast_api_app`：這是 `google.adk.cli.fast_api` 中的關鍵輔助函式，可以從我們的 Agent 目錄建立一個 FastAPI 應用程式。
 
-## The API Layer (FastAPI)
+- **標準端點**：產生的應用程式包含標準路由，如 `/list-apps` 和 `/run_sse` (用於串流回應)。網路傳輸格式為駝峰式命名 (camelCase)。
 
-We expose agents as production APIs using FastAPI.
+- **自訂端點**：我們可以將自己的路由 (例如 `/health`) 添加到輔助函式返回的 app 物件中。
 
-- get_fast_api_app: This is the key helper function from google.adk.cli.fast_api that creates a FastAPI app from our agent directory.
-
-- Standard Endpoints: The generated app includes standard routes like /list-apps and /run_sse for streaming responses. The wire format is camelCase.
-
-- Custom Endpoints: We can add our own routes (e.g., /health) to the app object returned by the helper.
-
-Python
-
+```python
 from google.adk.cli.fast_api import get_fast_api_app
 app = get_fast_api_app(agent_dir="./agents")
 
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+```
 
+## 部署到生產環境
 
-## Deployment to Production
+`adk cli` 提供了 `adk deploy` 命令，可以部署到 Google Vertex Agent Engine、Google Cloud Run、Google GKE。
 
-The adk cli provides the "adk deploy" command to deploy to Google Vertex Agent Engine, Google CloudRun, Google GKE.
+## 測試與評估策略
 
-## Testing & Evaluation Strategy
+測試是分層的，像金字塔一樣。
 
-Testing is layered, like a pyramid.
+### 第一層：單元測試 (底層)
 
-### Layer 1: Unit Tests (Base)
+- **測試什麼**：獨立測試單個 `Tool` 函式。
+- **如何測試**：在 `tests/test_tools.py` 中使用 `pytest`。驗證確定性邏輯。
 
-What: Test individual Tool functions in isolation.
+### 第二層：整合測試 (中層)
 
-How: Use pytest in tests/test_tools.py. Verify deterministic logic.
+- **測試什麼**：測試 Agent 的內部邏輯以及與工具的互動。
+- **如何測試**：在 `tests/test_agent.py` 中使用 `pytest`，通常會模擬 (mock) LLM 或外部服務。
 
-### Layer 2: Integration Tests (Middle)
+### 第三層：評估測試 (頂層)
 
-What: Test the agent's internal logic and interaction with tools.
-
-How: Use pytest in tests/test_agent.py, often with mocked LLMs or services.
-
-### Layer 3: Evaluation Tests (Top)
-
-What: Assess end-to-end performance with a live LLM. This is about quality, not just pass/fail.
-
-How: Use the ADK Evaluation Framework.
-
-Test Cases: Create JSON files with input and a reference (expected tool calls and final response).
-
-Metrics: tool_trajectory_avg_score (does it use tools correctly?) and response_match_score (is the final answer good?).
-
-Run via: adk web (UI), pytest (for CI/CD), or adk eval (CLI).
+- **測試什麼**：使用真實的 LLM 評估端到端的表現。這關乎品質，而不僅僅是通過/失敗。
+- **如何測試**：使用 ADK 評估框架。
+    - **測試案例**：建立包含輸入和參考 (預期的工具呼叫和最終回應) 的 JSON 檔案。
+    - **指標**：`tool_trajectory_avg_score` (它是否正確使用工具？) 和 `response_match_score` (最終答案是否良好？)。
+- **如何執行**：透過 `adk web` (UI)、`pytest` (用於 CI/CD) 或 `adk eval` (CLI) 執行。
