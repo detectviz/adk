@@ -1,12 +1,12 @@
 # `setup-cicd`
 
-The `setup-cicd` command is a powerful utility that automates the deployment of your complete CI/CD infrastructure, configuring your Google Cloud projects and GitHub repository in a single operation. It intelligently adapts to your project's configuration, supporting both **Google Cloud Build** and **GitHub Actions** as CI/CD runners.
+`setup-cicd` 指令是一個強大的工具，它可以自動化部署您完整的 CI/CD 基礎設施，透過單一操作即可設定您的 Google Cloud 專案和 GitHub 儲存庫。它能智慧地適應您專案的設定，支援 **Google Cloud Build** 和 **GitHub Actions** 作為 CI/CD 執行器。
 
-**⚡️ Quick Start Example:**
+**⚡️ 快速入門範例：**
 
-Getting started is straightforward. From the root of your generated agent project, run the following command. The tool will guide you through the process.
+入門非常簡單。在您產生的代理專案根目錄下，執行以下指令。該工具將引導您完成整個過程。
 
-You can use the `pip` workflow for a traditional setup, or `uvx` to create a project in a single command without a permanent install.
+您可以使用 `pip` 工作流程進行傳統設定，或使用 `uvx` 在單一指令中建立專案而無需永久安裝。
 
 ```bash [uvx]
 uvx agent-starter-pack setup-cicd
@@ -16,9 +16,9 @@ uvx agent-starter-pack setup-cicd
 agent-starter-pack setup-cicd
 ```
 
-*(You will be prompted for Staging and Production project IDs)*
+*(系統將提示您輸入預備 (Staging) 和生產 (Production) 專案 ID)*
 
-Alternatively, you can provide the project IDs and other details directly as flags:
+或者，您可以直接以旗標形式提供專案 ID 和其他詳細資訊：
 
 ```bash
 uvx agent-starter-pack setup-cicd \
@@ -28,42 +28,42 @@ uvx agent-starter-pack setup-cicd \
 ```
 
 
-**⚠️ Important Considerations:**
+**⚠️ 重要注意事項：**
 
-*   **Run from Project Root:** This command must be executed from the root directory of your generated agent project (the directory containing `pyproject.toml`).
-*   **Production Use:** This command is designed to set up a production-ready CI/CD pipeline. However, for highly customized or complex production environments, you may want to review the generated Terraform configuration in `deployment/terraform` before applying.
+*   **從專案根目錄執行：** 此指令必須從您產生的代理專案的根目錄 (包含 `pyproject.toml` 的目錄) 執行。
+*   **生產環境使用：** 此指令旨在設定一個可用於生產的 CI/CD 管線。然而，對於高度客製化或複雜的生產環境，您可能希望在應用前檢閱 `deployment/terraform` 中產生的 Terraform 設定。
 
-## Prerequisites
+## 先決條件
 
-1.  **Required Tools:**
-    *   **`uvx` or `agent-starter-pack`:** The command is part of the starter pack CLI.
-    *   **Terraform:** Required for infrastructure provisioning.
-    *   **`gh` CLI (GitHub CLI):** The tool uses the GitHub CLI to interact with your repository.
-        *   **Authentication:** You must be authenticated. Run `gh auth login`.
-        *   **Required Scopes:** Your GitHub token needs the **`repo`** and **`workflow`** scopes to create repositories and set up CI/CD. The tool will check for these scopes and guide you if they are missing.
-    *   **`gcloud` CLI (Google Cloud SDK):** Required for interacting with Google Cloud.
-        *   **Authentication:** You must be authenticated. Run `gcloud auth application-default login`.
+1.  **必要工具：**
+    *   **`uvx` 或 `agent-starter-pack`：** 該指令是入門套件 CLI 的一部分。
+    *   **Terraform：** 基礎設施配置所需。
+    *   **`gh` CLI (GitHub CLI)：** 該工具使用 GitHub CLI 與您的儲存庫互動。
+        *   **驗證：** 您必須經過驗證。請執行 `gh auth login`。
+        *   **必要範圍：** 您的 GitHub 權杖需要 **`repo`** 和 **`workflow`** 範圍，才能建立儲存庫和設定 CI/CD。如果缺少這些範圍，該工具會檢查並引導您。
+    *   **`gcloud` CLI (Google Cloud SDK)：** 與 Google Cloud 互動所需。
+        *   **驗證：** 您必須經過驗證。請執行 `gcloud auth application-default login`。
 
-2.  **Google Cloud Projects:** You need at least two Google Cloud projects: one for `staging` and one for `production`. You also need a project to host the CI/CD resources (e.g., Cloud Build, Artifact Registry, Terraform state). You can specify this using `--cicd-project`. If omitted, the production project will be used for CI/CD resources.
+2.  **Google Cloud 專案：** 您至少需要兩個 Google Cloud 專案：一個用於 `staging`，一個用於 `production`。您還需要一個專案來託管 CI/CD 資源 (例如 Cloud Build、Artifact Registry、Terraform 狀態)。您可以使用 `--cicd-project` 指定此專案。如果省略，將使用生產專案來託管 CI/CD 資源。
 
-3.  **Permissions:** The user or service account running this command must have the `Owner` role on the specified Google Cloud projects. This is necessary for creating resources and assigning IAM roles.
+3.  **權限：** 執行此指令的使用者或服務帳戶必須在指定的 Google Cloud 專案上擁有 `Owner` (擁有者) 角色。這是建立資源和指派 IAM 角色所必需的。
 
-## How it Works
+## 運作方式
 
-The `setup-cicd` command performs the following steps automatically:
+`setup-cicd` 指令會自動執行以下步驟：
 
-1.  **CI/CD Runner Detection:** It inspects your project's structure to automatically detect whether you are using **Google Cloud Build** or **GitHub Actions**.
-2.  **GitHub Integration:** It prompts you to create a new private GitHub repository or connect to an existing one.
-3.  **Project ID Confirmation:** It prompts for Staging and Production project IDs if they are not provided as flags.
-4.  **Infrastructure Setup (Terraform):**
-    *   It configures and applies the Terraform scripts located in `deployment/terraform`.
-    *   **For Google Cloud Build:** It sets up a Cloud Build connection to your GitHub repository, either interactively or programmatically (if a GitHub PAT is provided).
-    *   **For GitHub Actions:** It configures Workload Identity Federation (WIF) to allow GitHub Actions to securely authenticate with Google Cloud without service account keys. It also creates the necessary secrets and variables in your GitHub repository.
-    *   By default, it sets up remote Terraform state management using a Google Cloud Storage (GCS) bucket. Use `--local-state` to opt-out.
-5.  **Resource Deployment:** It runs `terraform apply` to create all the necessary resources in your Google Cloud projects.
-6.  **Local Git Setup:** It initializes a Git repository locally (if needed) and adds your GitHub repository as the `origin` remote.
+1.  **CI/CD 執行器偵測：** 它會檢查您的專案結構，以自動偵測您是使用 **Google Cloud Build** 還是 **GitHub Actions**。
+2.  **GitHub 整合：** 它會提示您建立一個新的私有 GitHub 儲存庫或連接到現有的儲存庫。
+3.  **專案 ID 確認：** 如果未透過旗標提供，它會提示輸入預備和生產專案 ID。
+4.  **基礎設施設定 (Terraform)：**
+    *   它會設定並應用位於 `deployment/terraform` 中的 Terraform 腳本。
+    *   **對於 Google Cloud Build：** 它會設定一個到您 GitHub 儲存庫的 Cloud Build 連接，可以透過互動方式或程式化方式 (如果提供了 GitHub PAT)。
+    *   **對於 GitHub Actions：** 它會設定 Workload Identity Federation (WIF)，以允許 GitHub Actions 安全地向 Google Cloud 進行驗證，而無需服務帳戶金鑰。它還會在您的 GitHub 儲存庫中建立必要的密鑰和變數。
+    *   預設情況下，它會使用 Google Cloud Storage (GCS) 儲存桶設定遠端 Terraform 狀態管理。使用 `--local-state` 可選擇退出。
+5.  **資源部署：** 它會執行 `terraform apply` 來在您的 Google Cloud 專案中建立所有必要的資源。
+6.  **本地 Git 設定：** 它會在本地初始化一個 Git 儲存庫 (如果需要)，並將您的 GitHub 儲存庫新增為 `origin` 遠端。
 
-## Running the Command
+## 執行指令
 
 ```bash
 uvx agent-starter-pack setup-cicd \
@@ -79,22 +79,22 @@ uvx agent-starter-pack setup-cicd \
     [--debug]
 ```
 
-**Key Options:**
+**主要選項：**
 
-*   `--staging-project`, `--prod-project`: **Required Information.** Your Google Cloud project IDs for staging and production environments. The command will prompt for these if the flags are omitted.
-*   `--cicd-project`: (Optional) Project ID for hosting CI/CD resources. If omitted, defaults to the production project ID.
-*   `--dev-project`: (Optional) Project ID for a dedicated development environment.
-*   `--region`: (Optional) GCP region for resources (default: `us-central1`).
-*   `--repository-name`, `--repository-owner`: (Optional) Details for your GitHub repository. If omitted, you'll be prompted.
-*   `--local-state`: (Optional) Use local files for Terraform state instead of the default GCS backend.
-*   `--auto-approve`: (Optional) Skip all interactive prompts.
-*   `--debug`: (Optional) Enable verbose logging for troubleshooting.
+*   `--staging-project`, `--prod-project`：**必要資訊。** 您用於預備和生產環境的 Google Cloud 專案 ID。如果省略旗標，該指令將提示輸入。
+*   `--cicd-project`：(可選) 用於託管 CI/CD 資源的專案 ID。如果省略，預設為生產專案 ID。
+*   `--dev-project`：(可選) 用於專用開發環境的專案 ID。
+*   `--region`：(可選) 資源的 GCP 區域 (預設：`us-central1`)。
+*   `--repository-name`, `--repository-owner`：(可選) 您的 GitHub 儲存庫的詳細資訊。如果省略，將會提示您。
+*   `--local-state`：(可選) 使用本地檔案作為 Terraform 狀態，而不是預設的 GCS 後端。
+*   `--auto-approve`：(可選) 跳過所有互動式提示。
+*   `--debug`：(可選) 啟用詳細日誌以進行疑難排解。
 
-*(For advanced programmatic use with Google Cloud Build, see options like `--github-pat`, `--github-app-installation-id`, and `--host-connection-name` by running `uvx agent-starter-pack setup-cicd --help`)*
+*(對於與 Google Cloud Build 的進階程式化使用，請參閱 `uvx agent-starter-pack setup-cicd --help` 中的 `--github-pat`、`--github-app-installation-id` 和 `--host-connection-name` 等選項)*
 
-## After Running the Command
+## 執行指令後
 
-To trigger your new CI/CD pipeline, you need to commit and push your code:
+要觸發您的新 CI/CD 管線，您需要提交並推送您的程式碼：
 
 ```bash
 git add .
@@ -102,4 +102,4 @@ git commit -m "Initial commit of agent starter pack"
 git push -u origin main
 ```
 
-After pushing, you can verify the created resources and running pipelines in your GitHub repository and Google Cloud projects.
+推送後，您可以在您的 GitHub 儲存庫和 Google Cloud 專案中驗證已建立的資源和正在運行的管線。

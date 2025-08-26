@@ -1,155 +1,155 @@
-# Development Guide
+# 開發指南
 
-This guide walks you through the entire lifecycle of creating, developing, deploying, and monitoring your agent project.
+本指南將引導您完成建立、開發、部署和監控您的代理專案的整個生命週期。
 
-::: tip Our Philosophy: "Bring Your Own Agent"
-This starter pack provides the scaffolding for UI, infrastructure, deployment, and monitoring. You focus on building your unique agent logic, and we handle the rest.
+::: tip 我們的理念：「帶上你自己的代理 (Bring Your Own Agent)」
+這個入門套件提供了 UI、基礎設施、部署和監控的腳手架。您專注於建構您獨特的代理邏輯，剩下的由我們來處理。
 :::
 
-::: details Create Your Project
-You can use the `pip` workflow for a traditional setup, or `uvx` to create a project in a single command without a permanent install.
+::: details 建立您的專案
+您可以使用 `pip` 工作流程進行傳統設定，或使用 `uvx` 在單一指令中建立專案而無需永久安裝。
 
 ::: code-group
 ```bash [pip]
-# 1. Create and activate a virtual environment
+# 1. 建立並啟用虛擬環境
 python -m venv .venv
 source .venv/bin/activate
 
-# 2. Install the package
+# 2. 安裝套件
 pip install agent-starter-pack
 
-# 3. Run the create command
+# 3. 執行 create 指令
 agent-starter-pack create my-awesome-agent
 ```
 
 ```bash [⚡ uvx]
-# This single command downloads and runs the latest version
+# 這個單一指令會下載並執行最新版本
 uvx agent-starter-pack create my-awesome-agent
 ```
 :::
 
-## 1. Local Development & Iteration
+## 1. 本地開發與迭代
 
-Navigate into your new project to begin development.
+進入您的新專案以開始開發。
 
 ```bash
 cd my-awesome-agent
 ```
 
-Inside, you'll find a complete project structure:
+在裡面，您會找到一個完整的專案結構：
 
-*   `app/`: Backend agent code (prompts, tools, business logic). Directory name is configurable via the `--agent-directory` parameter.
-*   `.cloudbuild/`: CI/CD pipeline configurations for Google Cloud Build (if you selected Cloud Build as your CI/CD runner).
-*   `.github/`: CI/CD pipeline configurations for GitHub Actions (if you selected GitHub Actions as your CI/CD runner).
-*   `deployment/`: Terraform infrastructure-as-code files.
-*   `tests/`: Unit, integration, and load tests.
-*   `notebooks/`: Jupyter notebooks for prototyping and evaluation.
-*   `frontend/`: (If applicable) Web UI for interacting with your agent.
-*   `README.md`: **Project-specific instructions for your chosen template.**
-*   `GEMINI.md`: Use this file with AI tools (like [Gemini CLI](https://github.com/google-gemini/gemini-cli)) to ask questions about the template, ADK concepts, or project structure.
+*   `app/`: 後端代理程式碼 (提示、工具、業務邏輯)。目錄名稱可透過 `--agent-directory` 參數設定。
+*   `.cloudbuild/`: Google Cloud Build 的 CI/CD 管線設定 (如果您選擇 Cloud Build 作為您的 CI/CD 執行器)。
+*   `.github/`: GitHub Actions 的 CI/CD 管線設定 (如果您選擇 GitHub Actions 作為您的 CI/CD 執行器)。
+*   `deployment/`: Terraform 基礎設施即程式碼檔案。
+*   `tests/`: 單元、整合和負載測試。
+*   `notebooks/`: 用於原型設計和評估的 Jupyter 筆記本。
+*   `frontend/`: (如果適用) 與您的代理互動的 Web UI。
+*   `README.md`: **您所選模板的專案特定說明。**
+*   `GEMINI.md`: 將此檔案與 AI 工具 (如 [Gemini CLI](https://github.com/google-gemini/gemini-cli)) 搭配使用，以詢問有關模板、ADK 概念或專案結構的問題。
 
-Your development loop will look like this:
+您的開發循環如下所示：
 
-1.  **Prototype:** Use the notebooks in `notebooks/` for rapid experimentation with your agent's core logic. This is ideal for trying new prompts or tools before integrating them.
-2.  **Integrate:** Edit `app/agent.py` and other files in the agent directory (usually `app/`, but configurable) to incorporate your new logic into the main application.
-3.  **Test:** Run the interactive UI playground to test your changes. It features hot-reloading, chat history, and user feedback.
+1.  **原型設計：** 使用 `notebooks/` 中的筆記本快速實驗您代理的核心邏輯。這是在整合新提示或工具之前進行嘗試的理想方式。
+2.  **整合：** 編輯 `app/agent.py` 和代理目錄中的其他檔案 (通常是 `app/`，但可設定)，將您的新邏輯整合到主應用程式中。
+3.  **測試：** 執行互動式 UI 遊樂場來測試您的變更。它具有熱重載、聊天歷史和使用者回饋功能。
 
 ```bash
-# Install dependencies and launch the local playground
+# 安裝依賴項並啟動本地遊樂場
 make install && make playground
 ```
-> Note: The specific UI playground launched by `make playground` depends on the agent template you selected during creation.
+> 注意：`make playground` 啟動的特定 UI 遊樂場取決於您在建立過程中選擇的代理模板。
 
-## 2. Deploy to the Cloud
+## 2. 部署到雲端
 
-Once you're satisfied with local testing, you are ready to deploy your agent to Google Cloud. The process involves two main stages: first, deploying to a hands-on development environment for quick iteration, and second, setting up a formal CI/CD pipeline for staging and production.
+一旦您對本地測試感到滿意，就可以將您的代理部署到 Google Cloud。此過程包括兩個主要階段：首先，部署到一個用於快速迭代的實作開發環境；其次，為預備 (staging) 和生產環境建立一個正式的 CI/CD 管線。
 
-*All `make` commands should be run from the root of your agent project (`my-awesome-agent`).*
+*所有 `make` 指令都應從您的代理專案根目錄 (`my-awesome-agent`) 執行。*
 
-### Stage 1: Deploy to a Cloud Development Environment
+### 階段 1：部署到雲端開發環境
 
-This initial stage is for provisioning a non-production environment in the cloud for remote testing and iteration.
+這個初始階段是為了在雲端中配置一個非生產環境，以進行遠端測試和迭代。
 
-**i. Set Google Cloud Project**
+**i. 設定 Google Cloud 專案**
 
-Configure `gcloud` to target your development project.
+設定 `gcloud` 以指定您的開發專案。
 ```bash
-# Replace YOUR_DEV_PROJECT_ID with your actual Google Cloud Project ID
+# 將 YOUR_DEV_PROJECT_ID 替換為您實際的 Google Cloud 專案 ID
 gcloud config set project YOUR_DEV_PROJECT_ID
 ```
 
-**ii. Provision Cloud Resources**
+**ii. 配置雲端資源**
 
-This command uses Terraform to set up the necessary cloud resources for your dev environment.
+此指令使用 Terraform 為您的開發環境設定必要的雲端資源。
 
-::: tip Optional Step
-This step is recommended to create a development environment that closely mirrors production (including dedicated service accounts and IAM permissions). However, for simple deployments, you can consider this step optional and proceed directly to deploying the backend if you have sufficient permissions.
+::: tip 可選步驟
+建議執行此步驟以建立一個與生產環境高度相似的開發環境 (包括專用的服務帳戶和 IAM 權限)。但是，對於簡單的部署，如果您有足夠的權限，可以考慮將此步驟視為可選，並直接部署後端。
 :::
 
 ```bash
 make setup-dev-env
 ```
 
-**iii. Deploy Agent Backend**
+**iii. 部署代理後端**
 
-Build and deploy your agent's backend to the dev environment.
+建置並將您的代理後端部署到開發環境。
 ```bash
 make backend
 ```
 
-### Stage 2: Set Up the Path to Production with CI/CD
+### 階段 2：使用 CI/CD 建立通往生產的路徑
 
-Once you've refined your agent in the development environment, the next stage is to set up a fully automated CI/CD pipeline for seamless deployment through staging and into production.
+在開發環境中完善您的代理後，下一階段是建立一個完全自動化的 CI/CD 管線，以實現從預備到生產的無縫部署。
 
-#### Option 1: Automated CI/CD Setup
+#### 選項 1：自動化 CI/CD 設定
 
-From the root of your agent project (`my-awesome-agent`), run:
+從您的代理專案根目錄 (`my-awesome-agent`) 執行：
 ```bash
 agent-starter-pack setup-cicd
 ```
-This single command handles everything:
-- Creates a GitHub repository.
-- Connects it to your chosen CI/CD provider (Google Cloud Build or GitHub Actions).
-- Provisions all necessary infrastructure for your **staging and production environments** using Terraform.
-- Configures the deployment triggers.
+這個單一指令處理所有事情：
+- 建立一個 GitHub 儲存庫。
+- 將其連接到您選擇的 CI/CD 提供者 (Google Cloud Build 或 GitHub Actions)。
+- 使用 Terraform 為您的**預備和生產環境**配置所有必要的基礎設施。
+- 設定部署觸發器。
 
-For a detailed walkthrough, see the [**`setup-cicd` CLI reference**](../cli/setup_cicd).
+有關詳細的演練，請參閱 [**`setup-cicd` CLI 參考**](../cli/setup_cicd)。
 
-#### Option 2: Manual CI/CD Setup
+#### 選項 2：手動 CI/CD 設定
 
-For full control or for use with other Git providers, refer to the [manual deployment setup guide](./deployment.md).
+要完全控制或與其他 Git 提供者一起使用，請參閱[手動部署設定指南](./deployment.md)。
 
-#### Trigger Your First Deployment
+#### 觸發您的首次部署
 
-After the CI/CD setup is complete, commit and push your code to trigger the pipeline. This will deploy your agent to the staging environment first.
+CI/CD 設定完成後，提交並推送您的程式碼以觸發管線。這將首先將您的代理部署到預備環境。
 ```bash
 git add -A
-git config --global user.email "you@example.com" # If not already configured
-git config --global user.name "Your Name"     # If not already configured
+git config --global user.email "you@example.com" # 如果尚未設定
+git config --global user.name "Your Name"     # 如果尚未設定
 git commit -m "Initial commit of agent code"
 git push --set-upstream origin main
 ```
 
 
-## 3. Monitor Your Deployed Agent
+## 3. 監控您已部署的代理
 
-Track your agent's performance using integrated observability tools. OpenTelemetry events are automatically sent to Google Cloud services.
+使用整合的可觀測性工具追蹤您代理的效能。OpenTelemetry 事件會自動傳送到 Google Cloud 服務。
 
-*   **Cloud Trace & Logging**: Inspect request flows, analyze latencies, and review prompts/outputs. Access traces at: `https://console.cloud.google.com/traces/list?project=YOUR_PROD_PROJECT_ID`
-*   **BigQuery**: Route trace and log data to BigQuery for long-term storage and advanced analytics.
-*   **Looker Studio Dashboards**: Visualize agent performance with pre-built templates:
-    *   ADK Agents: [Looker Studio ADK Dashboard](https://lookerstudio.google.com/c/reporting/46b35167-b38b-4e44-bd37-701ef4307418/page/tEnnC)
-    *   Non-ADK Agents: [Looker Studio Non-ADK Dashboard](https://lookerstudio.google.com/c/reporting/fa742264-4b4b-4c56-81e6-a667dd0f853f/page/tEnnC)
-    *(Remember to follow the "Setup Instructions" within the dashboards to connect your data sources).*
+*   **Cloud Trace & Logging**：檢查請求流程、分析延遲並審查提示/輸出。在以下位置存取追蹤：`https://console.cloud.google.com/traces/list?project=YOUR_PROD_PROJECT_ID`
+*   **BigQuery**：將追蹤和日誌資料路由到 BigQuery 以進行長期儲存和進階分析。
+*   **Looker Studio 儀表板**：使用預建模板將代理效能視覺化：
+    *   ADK 代理：[Looker Studio ADK 儀表板](https://lookerstudio.google.com/c/reporting/46b35167-b38b-4e44-bd37-701ef4307418/page/tEnnC)
+    *   非 ADK 代理：[Looker Studio 非 ADK 儀表板](https://lookerstudio.google.com/c/reporting/fa742264-4b4b-4c56-81e6-a667dd0f853f/page/tEnnC)
+    *(請記得遵循儀表板內的「設定說明」以連接您的資料來源)。*
 
-➡️ For details, see the [Observability Guide](./observability.md).
+➡️ 有關詳細資訊，請參閱[可觀測性指南](./observability.md)。
 
-## 4. Advanced Customization
+## 4. 進階客製化
 
-Tailor the starter pack further to meet your specific requirements.
+進一步調整入門套件以滿足您的特定需求。
 
-*   **RAG Data Ingestion**: For Retrieval Augmented Generation (RAG) agents, configure data pipelines to process your information and load embeddings into Vertex AI Search or Vector Search.
-    ➡️ See the [Data Ingestion Guide](./data-ingestion.md).
-*   **Custom Terraform**: Modify Terraform configurations in `deployment/terraform/` for unique infrastructure needs.
-    ➡️ Refer to the [Deployment Guide](./deployment.md).
-*   **CI/CD Pipelines**: The CI/CD workflow definitions are located in the `.github/workflows` or `.cloudbuild` directories. You can customize these YAML files to add new steps, change triggers, or modify deployment logic.
+*   **RAG 資料擷取**：對於檢索增強生成 (RAG) 代理，設定資料管線以處理您的資訊並將嵌入載入到 Vertex AI Search 或 Vector Search 中。
+    ➡️ 請參閱[資料擷取指南](./data-ingestion.md)。
+*   **自訂 Terraform**：修改 `deployment/terraform/` 中的 Terraform 設定以滿足獨特的基礎設施需求。
+    ➡️ 請參閱[部署指南](./deployment.md)。
+*   **CI/CD 管線**：CI/CD 工作流程定義位於 `.github/workflows` 或 `.cloudbuild` 目錄中。您可以客製化這些 YAML 檔案以新增新步驟、變更觸發器或修改部署邏輯。

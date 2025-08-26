@@ -24,50 +24,50 @@ LOCATION = "global"
 LLM = "gemini-2.5-flash"
 
 
-# 1. Define tools
+# 1. 定義工具
 @tool
 def search(query: str) -> str:
-    """Simulates a web search. Use it get information on weather"""
+    """模擬網路搜尋。用它來獲取天氣資訊"""
     if "sf" in query.lower() or "san francisco" in query.lower():
-        return "It's 60 degrees and foggy."
-    return "It's 90 degrees and sunny."
+        return "現在是華氏 60 度，有霧。"
+    return "現在是華氏 90 度，晴天。"
 
 
 tools = [search]
 
-# 2. Set up the language model
+# 2. 設定語言模型
 llm = ChatVertexAI(
     model=LLM, location=LOCATION, temperature=0, max_tokens=1024, streaming=True
 ).bind_tools(tools)
 
 
-# 3. Define workflow components
+# 3. 定義工作流程元件
 def should_continue(state: MessagesState) -> str:
-    """Determines whether to use tools or end the conversation."""
+    """決定是使用工具還是結束對話。"""
     last_message = state["messages"][-1]
     return "tools" if last_message.tool_calls else END
 
 
 def call_model(state: MessagesState, config: RunnableConfig) -> dict[str, BaseMessage]:
-    """Calls the language model and returns the response."""
-    system_message = "You are a helpful AI assistant."
+    """呼叫語言模型並返回回應。"""
+    system_message = "你是一個樂於助人的 AI 助理。"
     messages_with_system = [{"type": "system", "content": system_message}] + state[
         "messages"
     ]
-    # Forward the RunnableConfig object to ensure the agent is capable of streaming the response.
+    # 轉發 RunnableConfig 物件以確保代理能夠串流回應。
     response = llm.invoke(messages_with_system, config)
     return {"messages": response}
 
 
-# 4. Create the workflow graph
+# 4. 建立工作流程圖
 workflow = StateGraph(MessagesState)
 workflow.add_node("agent", call_model)
 workflow.add_node("tools", ToolNode(tools))
 workflow.set_entry_point("agent")
 
-# 5. Define graph edges
+# 5. 定義圖的邊
 workflow.add_conditional_edges("agent", should_continue)
 workflow.add_edge("tools", "agent")
 
-# 6. Compile the workflow
+# 6. 編譯工作流程
 agent = workflow.compile()

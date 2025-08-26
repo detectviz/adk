@@ -1,34 +1,34 @@
-# CrewAI Coding Crew Agent
+# CrewAI 編碼團隊代理
 
-This agent combines CrewAI's collaborative AI capabilities with LangGraph to provide an interactive coding assistant that can understand requirements and generate code solutions through conversation.
+此代理結合了 CrewAI 的協作式 AI 功能與 LangGraph，提供一個互動式的編碼助理，能夠透過對話理解需求並產生程式碼解決方案。
 
-## Architecture
+## 架構
 
-The agent implements a conversational interface using LangGraph that coordinates with a CrewAI development team. The workflow consists of:
+該代理使用 LangGraph 實現了一個對話式介面，與 CrewAI 開發團隊協調。工作流程包括：
 
-1. A conversational agent that:
-   - Gathers requirements through natural dialogue
-   - Clarifies ambiguities by asking follow-up questions
-   - Delegates actual coding work to the CrewAI development team
+1. 一個對話式代理，負責：
+   - 透過自然對話收集需求
+   - 透過提出後續問題來澄清模糊之處
+   - 將實際的編碼工作委派給 CrewAI 開發團隊
 
-2. A CrewAI development team consisting of:
-   - Senior Engineer: Responsible for implementing the code solution
-   - Chief QA Engineer: Evaluates and validates the implemented code
+2. 一個 CrewAI 開發團隊，由以下人員組成：
+   - 資深工程師：負責實作程式碼解決方案
+   - 首席品保工程師：評估並驗證已實作的程式碼
 
-## Key Features
+## 主要功能
 
-- **Interactive Requirements Gathering**: Uses LangGraph to maintain a natural conversation flow while collecting and clarifying coding requirements
-- **Collaborative AI Development**: Leverages CrewAI's multi-agent system to divide work between specialized AI agents
-- **Sequential Processing**: Tasks are processed in order, from requirements gathering to implementation to quality assurance
+- **互動式需求收集**：使用 LangGraph 維持自然的對話流程，同時收集和澄清編碼需求
+- **協作式 AI 開發**：利用 CrewAI 的多代理 (Multi-Agent) 系統，在專業的 AI 代理之間分配工作
+- **順序處理**：任務按順序處理，從需求收集到實作再到品質保證
 
-## How It Works
+## 運作方式
 
-1. The LangGraph workflow manages the conversation state and determines when to:
-   - Continue the conversation to gather more requirements
-   - Delegate work to the CrewAI development team
-   - Return results to the user
+1. LangGraph 工作流程管理對話狀態，並決定何時：
+   - 繼續對話以收集更多需求
+   - 將工作委派給 CrewAI 開發團隊
+   - 將結果返回給使用者
 
-2. When coding is needed, the CrewAI team is activated through a custom tool that:
-   - Passes requirements to the Senior Engineer agent
-   - Routes the implementation to the QA Engineer for validation
-   - Returns the final, validated solution
+2. 當需要編碼時，會透過一個自訂工具啟動 CrewAI 團隊，該工具會：
+   - 將需求傳遞給資深工程師代理
+   - 將實作路由給品保工程師進行驗證
+   - 返回最終經過驗證的解決方案

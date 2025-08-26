@@ -1,97 +1,97 @@
-# Troubleshooting
+# 疑難排解
 
-This guide helps resolve common issues with the Agent Starter Pack.
+本指南幫助解決 Agent Starter Pack 的常見問題。
 
-## Authentication Issues
+## 驗證問題
 
-For detailed information on authentication with Vertex AI, visit the [official documentation](https://cloud.google.com/vertex-ai/docs/authentication).
+有關 Vertex AI 驗證的詳細資訊，請參閱[官方文件](https://cloud.google.com/vertex-ai/docs/authentication)。
 
-### "Could not find credentials" or "Could not find project" Error
+### 「找不到憑證 (Could not find credentials)」或「找不到專案 (Could not find project)」錯誤
 
-**Problem**: Missing credentials error with Vertex AI.
+**問題**：使用 Vertex AI 時出現缺少憑證的錯誤。
 
-**Solution**:
+**解決方案**：
 
-1.  Log in to Google Cloud: `gcloud auth login --update-adc`
-2.  Set the correct project:
+1.  登入 Google Cloud：`gcloud auth login --update-adc`
+2.  設定正確的專案：
     ```bash
     gcloud config set project YOUR_PROJECT_ID
     gcloud auth application-default set-quota-project YOUR_PROJECT_ID
     ```
 
-### Vertex AI API Not Enabled
+### Vertex AI API 未啟用
 
-**Problem**: Operations fail because the Vertex AI API is not enabled in your project.
+**問題**：由於您的專案中未啟用 Vertex AI API，導致操作失敗。
 
-**Solution**:
+**解決方案**：
 
-1. Enable the Vertex AI API:
+1. 啟用 Vertex AI API：
    ```bash
    gcloud services enable aiplatform.googleapis.com
    ```
 
-2. Verify the API is enabled:
+2. 驗證 API 是否已啟用：
    ```bash
    gcloud services list --filter=aiplatform.googleapis.com
    ```
 
-### Permission Denied Errors
-**Problem**: "Permission denied" errors with Google Cloud APIs.
+### 權限被拒絕錯誤
+**問題**：使用 Google Cloud API 時出現「權限被拒絕 (Permission denied)」錯誤。
 
-**Solution**: Ensure your user or service account has the necessary IAM roles.  For example, for Vertex AI, you often need `roles/aiplatform.user`.  Grant roles using the `gcloud projects add-iam-policy-binding` command or the Cloud Console.
+**解決方案**：確保您的使用者或服務帳戶具有必要的 IAM 角色。例如，對於 Vertex AI，您通常需要 `roles/aiplatform.user`。使用 `gcloud projects add-iam-policy-binding` 指令或 Cloud Console 授予角色。
 
-### Command Not Found: agent-starter-pack
+### 找不到指令：agent-starter-pack
 
-**Problem**: "Command not found" error after installation.
+**問題**：安裝後出現「找不到指令 (Command not found)」錯誤。
 
-**Solution**:
+**解決方案**：
 
-1. Verify installation:
+1. 驗證安裝：
    ```bash
    pip list | grep agent-starter-pack
    ```
-2. Check PATH:
+2. 檢查 PATH：
    ```bash
    echo $PATH
    ```
-3. Reinstall if needed:
+3. 如果需要，重新安裝：
    ```bash
    pip install --user agent-starter-pack
    ```
-4. For pipx:
+4. 對於 pipx：
    ```bash
    pipx ensurepath
-   source ~/.bashrc  # or ~/.zshrc
+   source ~/.bashrc  # 或 ~/.zshrc
    ```
 
-## Project Creation Issues
+## 專案建立問題
 
-### Project Creation Fails
+### 專案建立失敗
 
-**Problem**: `agent-starter-pack create` fails.
+**問題**：`agent-starter-pack create` 失敗。
 
-**Solution**:
+**解決方案**：
 
-1.  **Check Error Messages:** Examine output for clues.
-2.  **Write Permissions:** Ensure write access to the directory.
-3.  **Project Name:** Use lowercase letters, numbers and hyphens only.
-4.  **Debug Mode:** Consider using debug mode to get more detailed error information:
+1.  **檢查錯誤訊息：** 檢查輸出以尋找線索。
+2.  **寫入權限：** 確保對目錄具有寫入權限。
+3.  **專案名稱：** 僅使用小寫字母、數字和連字號。
+4.  **除錯模式：** 考慮使用除錯模式以獲取更詳細的錯誤資訊：
     ```bash
     agent-starter-pack create my-project-name --debug
     ```
 
-### Issues with Agent Engine
+### Agent Engine 相關問題
 
-Consider leveraging the [public product documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/troubleshooting/set-up)
+考慮利用[公開產品文件](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/troubleshooting/set-up)
 
-## Getting More Help
+## 取得更多協助
 
-If issues persist:
+如果問題仍然存在：
 
-1.  **Check GitHub Issues:** Search for existing Github issues in the `agent-starter-pack` Github repository.
-2.  **File a New Issue:** Provide:
+1.  **檢查 GitHub Issues：** 在 `agent-starter-pack` 的 GitHub 儲存庫中搜尋現有的 Github issue。
+2.  **提出新的 Issue：** 提供：
 
-    *   Problem description.
-    *   Steps to reproduce.
-    *   Error messages (preferably run with `--debug` flag for detailed logs).
-    *   Environment: OS, Python version, `agent-starter-pack` version, installation method, shell.
+    *   問題描述。
+    *   重現問題的步驟。
+    *   錯誤訊息 (最好使用 `--debug` 旗標執行以獲得詳細日誌)。
+    *   環境：作業系統、Python 版本、`agent-starter-pack` 版本、安裝方法、shell。

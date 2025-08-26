@@ -19,12 +19,12 @@ import vertexai
 from google import genai
 from google.genai import types
 
-# Constants
+# 常數
 VERTEXAI = os.getenv("VERTEXAI", "true").lower() == "true"
 LOCATION = "us-central1"
 MODEL_ID = "gemini-live-2.5-flash-preview-native-audio"
 
-# Initialize Google Cloud clients
+# 初始化 Google Cloud 用戶端
 credentials, project_id = google.auth.default()
 vertexai.init(project=project_id, location=LOCATION)
 
@@ -32,25 +32,25 @@ vertexai.init(project=project_id, location=LOCATION)
 if VERTEXAI:
     genai_client = genai.Client(project=project_id, location=LOCATION, vertexai=True)
 else:
-    # API key should be set using GOOGLE_API_KEY environment variable
+    # API 金鑰應使用 GOOGLE_API_KEY 環境變數設定
     genai_client = genai.Client(http_options={"api_version": "v1alpha"})
 
 
 def get_weather(query: str) -> dict:
-    """Simulates a web search. Use it get information on weather.
+    """模擬網路搜尋。用它來獲取天氣資訊。
 
     Args:
-        query: A string containing the location to get weather information for.
+        query: 一個包含要查詢天氣資訊地點的字串。
 
     Returns:
-        A string with the simulated weather information for the queried location.
+        一個包含所查詢地點模擬天氣資訊的字串。
     """
     if "sf" in query.lower() or "san francisco" in query.lower():
-        return {"output": "It's 60 degrees and foggy."}
-    return {"output": "It's 90 degrees and sunny."}
+        return {"output": "現在是華氏 60 度，有霧。"}
+    return {"output": "現在是華氏 90 度，晴天。"}
 
 
-# Configure tools available to the agent and live connection
+# 設定代理可用的工具和即時連線
 tool_functions = {"get_weather": get_weather}
 
 live_connect_config = types.LiveConnectConfig(
@@ -59,7 +59,7 @@ live_connect_config = types.LiveConnectConfig(
     system_instruction=types.Content(
         parts=[
             types.Part(
-                text="""You are a helpful AI assistant designed to provide accurate and useful information. You are able to accommodate different languages and tones of voice."""
+                text="""你是一個樂於助人的 AI 助理，旨在提供準確且有用的資訊。你能夠適應不同的語言和語氣。"""
             )
         ]
     ),

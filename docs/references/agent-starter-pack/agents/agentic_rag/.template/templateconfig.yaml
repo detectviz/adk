@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-description: "ADK RAG agent for document retrieval and Q&A. Includes a data pipeline for ingesting and indexing documents into Vertex AI Search or Vector Search."
-example_question: "How to save a pandas dataframe to CSV?"
+description: "用於文件檢索和問答的 ADK RAG 代理。包含一個資料管線，用於將文件擷取和索引到 Vertex AI Search 或 Vector Search。"
+example_question: "如何將 pandas dataframe 儲存為 CSV？"
 settings:
   requires_data_ingestion: true
   requires_session: true

@@ -1,74 +1,74 @@
 
-# Why an Agent Starter Pack?
+# 為什麼需要 Agent Starter Pack？
 
-Many developers successfully build initial Generative AI agent prototypes quickly – creating a basic chatbot or RAG system can feel straightforward. 
-**However, the journey from that prototype to a robust, reliable, production-ready agent is where significant challenges arise.**
+許多開發者能快速成功地建構出生成式 AI 代理的初始原型——建立一個基本的聊天機器人或 RAG 系統感覺可能很直接。
+**然而，從那個原型到一個穩健、可靠、可用於生產的代理的過程，才是重大挑戰的開始。**
 
-## The Production Gap: By the Numbers
+## 生產差距：數據會說話
 
-Let's look at the reality of deploying GenAI agents:
+讓我們看看部署生成式 AI 代理的現實情況：
 
-*   **3 Months:** The time it took *us* – experienced GCP developers – to take even a *dummy* GenAI agent to a production-ready state.
-*   **3-9 Months:** The typical timeframe we see developers to launch their *actual* GenAI agents into production (and this doesn't even account for projects that are ultimately abandoned).
+*   **3 個月：** 這是*我們*——經驗豐富的 GCP 開發者——將一個*虛擬的*生成式 AI 代理推向生產就緒狀態所花費的時間。
+*   **3-9 個月：** 這是我們觀察到開發者將他們*實際的*生成式 AI 代理推向生產的典型時間範圍 (這甚至還不包括最終被放棄的專案)。
 
-**Why such a significant time investment?**
+**為什麼需要如此大量的時間投入？**
 
-## The "Last Mile" Challenges
+## 「最後一哩路」的挑戰
 
 
-Based on our experience and feedback from developers, the real challenge isn't in the initial AI experimentation, but rather in meeting the comprehensive requirements for production deployment – the "last mile" that ultimately delivers business value:
+根據我們的經驗和開發者的回饋，真正的挑戰不在於最初的 AI 實驗，而在於滿足生產部署的全面要求——也就是最終能交付商業價值的「最後一哩路」：
 
 ![why_starter_pack](../images/why_starter_pack.png)
 
 
-1.  **Customization & Integration:**
-    *   **Business Logic:** Tailoring the agent's behaviour to specific business needs and processes.
-    *   **Data Grounding:** Securely connecting the agent to relevant, high-quality, and fresh company data.
-    *   **Security & Compliance:** Implementing robust data privacy controls, access management, and safeguards against adversarial attacks.
+1.  **客製化與整合：**
+    *   **業務邏輯：** 根據特定的業務需求和流程，調整代理的行為。
+    *   **資料基礎：** 將代理安全地連接到相關、高品質且最新的公司資料。
+    *   **安全性與合規性：** 實施穩健的資料隱私控制、存取管理以及防範對抗性攻擊的保護措施。
 
-2.  **Rigorous Evaluation:**
-    *   **Performance Measurement:** Defining metrics and systematically assessing the agent's quality, accuracy, and safety *before* it goes live.
-    *   **Dataset Generation:** Often requiring the creation of synthetic or curated datasets for thorough evaluation and fine-tuning.
+2.  **嚴格的評估：**
+    *   **效能衡量：** 在代理上線*之前*，定義指標並系統性地評估其品質、準確性和安全性。
+    *   **資料集生成：** 通常需要建立合成或精選的資料集，以進行徹底的評估和微調。
 
-3.  **Deployment & Operations (MLOps/LLMOps):**
-    *   **Infrastructure:** Building scalable, resilient, and cost-effective cloud infrastructure to host the agent.
-    *   **CI/CD & Testing:** Establishing automated pipelines for continuous integration, delivery, comprehensive testing (unit, integration, load), and enabling rapid iteration and safe rollbacks.
-    *   **UI Integration:** Seamlessly embedding the agent into user-facing applications for a consistent experience.
+3.  **部署與維運 (MLOps/LLMOps)：**
+    *   **基礎設施：** 建構可擴展、有彈性且具成本效益的雲端基礎設施來託管代理。
+    *   **CI/CD 與測試：** 建立自動化管線，用於持續整合、交付、全面測試 (單元、整合、負載)，並實現快速迭代和安全的回滾。
+    *   **UI 整合：** 將代理無縫嵌入到面向使用者的應用程式中，以提供一致的體驗。
 
-4.  **Observability & Monitoring:**
-    *   **Performance Monitoring:** Tracking the agent's operational health, latency, and resource consumption in real-time.
-    *   **Data Collection:** Capturing user interactions and agent responses for ongoing monitoring, evaluation, and fine-tuning.
-    *   **User Feedback:** Implementing mechanisms to collect and process user feedback for continuous improvement.
+4.  **可觀測性與監控：**
+    *   **效能監控：** 即時追蹤代理的運作狀況、延遲和資源消耗。
+    *   **資料收集：** 擷取使用者互動和代理回應，以進行持續的監控、評估和微調。
+    *   **使用者回饋：** 實施機制以收集和處理使用者回饋，以實現持續改進。
 
-## Bridging the Gap with the Agent Starter Pack
-Recognizing these common, time-consuming hurdles, we created the **Agent Starter Pack**.
+## 使用 Agent Starter Pack 縮小差距
+意識到這些常見且耗時的障礙，我們建立了 **Agent Starter Pack**。
 
-The core idea is simple: **You focus on your core Agent code** – the unique logic, prompts, and tools that define *your* specific AI application – while **we provide the template foundation** for everything else needed to run it reliably in production.
+核心理念很簡單：**您專注於您的核心代理程式碼**——定義*您的*特定 AI 應用程式的獨特邏輯、提示和工具——而**我們提供模板基礎**，以支援在生產中可靠地運行它所需的一切。
 
 
 ![why_starter_pack](../images/why_sp_edited.png)
 
 
-Think of it like this:
+可以這樣想：
 
-*   **Your Focus (The Core Agent):**
-    *   Prompts and LLM interactions
-    *   Business logic integration
-    *   Agent orchestration (LangGraph, CrewAI, Google ADK)
-    *   Tools and data source definitions
+*   **您的焦點 (核心代理)：**
+    *   提示和 LLM 互動
+    *   業務邏輯整合
+    *   代理協調 (LangGraph, CrewAI, Google ADK)
+    *   工具和資料來源定義
 
-*   **Our Foundation (The Starter Pack Template):**
-    *   **Deployment & Operations:** API server, serving options, CI/CD pipelines, IaC, testing
-    *   **Observability:** Logging, tracing, and monitoring dashboards
-    *   **Evaluation:** Vertex AI Evaluation integration
-    *   **Data & UI:** Storage connections, vector stores, UI playground
-    *   **Security:** GCP security best practices
+*   **我們的基礎 (入門套件模板)：**
+    *   **部署與維運：** API 伺服器、服務選項、CI/CD 管線、IaC、測試
+    *   **可觀測性：** 日誌記錄、追蹤和監控儀表板
+    *   **評估：** Vertex AI 評估整合
+    *   **資料與 UI：** 儲存連接、向量儲存、UI 遊樂場
+    *   **安全性：** GCP 安全性最佳實踐
 
 
-## How the Agent Starter Pack Helps:
+## Agent Starter Pack 如何提供幫助：
 
 ![prototype_to_prod](../images/prototype_to_prod.png)
 
 
-*   **Faster Setup with Production Patterns:** Get a head start with pre-built components for API serving, CI/CD, and observability based on common Google Cloud practices, saving significant setup time.
-*   **Focus on Core Agent Logic:** Spend less time on infrastructure and MLOps, allowing your team to concentrate more on refining the unique prompts, tools, and capabilities of your agent.
+*   **使用生產模式加速設定：** 透過基於常見 Google Cloud 實踐的預建元件 (用於 API 服務、CI/CD 和可觀測性) 取得領先優勢，節省大量的設定時間。
+*   **專注於核心代理邏輯：** 花更少的時間在基礎設施和 MLOps 上，讓您的團隊能更專注於完善代理的獨特提示、工具和功能。

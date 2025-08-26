@@ -1,9 +1,9 @@
-# LangGraph Base React Agent
+# LangGraph 基礎 ReAct 代理
 
-A minimal example demonstrating how to build a ReAct agent using LangGraph. This agent serves as an excellent starting point for developers looking to implement LangGraph-based solutions.
+一個展示如何使用 LangGraph 建構 ReAct 代理的最小範例。此代理為希望實作基於 LangGraph 的解決方案的開發人員提供了一個極佳的起點。
 
-## Key Features
+## 主要功能
 
-- **Simple Architecture**: Shows the basic building blocks of a LangGraph agent
-- **Streaming Support**: Includes streaming response capability using Vertex AI
-- **Sample Tool Integration**: Includes a basic search tool to demonstrate tool usage
+- **簡單架構**：展示 LangGraph 代理的基本建構模組
+- **串流支援**：包含使用 Vertex AI 的串流回應功能
+- **範例工具整合**：包含一個基本的搜尋工具以展示工具用法

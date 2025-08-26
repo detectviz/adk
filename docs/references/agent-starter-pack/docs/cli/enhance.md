@@ -1,180 +1,180 @@
 # enhance
 
-The `enhance` command adds agent-starter-pack capabilities to existing projects without creating a new directory. It's designed for upgrading prototypes to production-ready agents in-place.
+`enhance` 指令可將 agent-starter-pack 的功能新增至現有專案，而無需建立新目錄。它專為將原型就地升級為可用於生產的代理而設計。
 
-## Usage
+## 使用方式
 
 ```bash
 uvx agent-starter-pack enhance [TEMPLATE_PATH] [OPTIONS]
 ```
 
-## Arguments
+## 參數
 
-- `TEMPLATE_PATH` (optional): Can be:
-  - `.` (default) - Use current directory as template
-  - Local directory path - Use another local directory as template  
-  - Agent name - Use a built-in agent (e.g., `adk_base`)
-  - Remote template - Use a remote template (e.g., `adk@gemini-fullstack`)
+- `TEMPLATE_PATH` (可選)：可以是：
+  - `.` (預設) - 使用目前目錄作為模板
+  - 本地目錄路徑 - 使用另一個本地目錄作為模板
+  - 代理名稱 - 使用內建代理 (例如 `adk_base`)
+  - 遠端模板 - 使用遠端模板 (例如 `adk@gemini-fullstack`)
 
-## Options
+## 選項
 
-The `enhance` command supports all the same options as [`create`](./create.md), plus:
+`enhance` 指令支援與 [`create`](./create.md) 相同的所有選項，外加：
 
 ### `--base-template` TEMPLATE
-Override the base template for inheritance when enhancing your existing project. Available base templates include:
-- `adk_base` - Basic agent template (default)
-- `langgraph_base_react` - LangGraph-based ReAct agent
-- `agentic_rag` - RAG-enabled agent template
+在增強您現有專案時，覆寫用於繼承的基礎模板。可用的基礎模板包括：
+- `adk_base` - 基本代理模板 (預設)
+- `langgraph_base_react` - 基於 LangGraph 的 ReAct 代理
+- `agentic_rag` - 啟用 RAG 的代理模板
 
-### Other Options
-- `--name, -n` - Project name (defaults to current directory name)
-- `--deployment-target, -d` - Deployment target (`agent_engine`, `cloud_run`)
-- `--include-data-ingestion, -i` - Include data ingestion pipeline
-- `--session-type` - Session storage type
-- `--auto-approve` - Skip confirmation prompts
-- And all other `create` command options
+### 其他選項
+- `--name, -n` - 專案名稱 (預設為目前目錄名稱)
+- `--deployment-target, -d` - 部署目標 (`agent_engine`, `cloud_run`)
+- `--include-data-ingestion, -i` - 包含資料擷取管線
+- `--session-type` - 會話儲存類型
+- `--auto-approve` - 跳過確認提示
+- 以及所有其他 `create` 指令選項
 
-## Examples
+## 範例
 
-### Basic Enhancement
+### 基本增強
 
 ```bash
-# Enhance current project with default template
+# 使用預設模板增強目前專案
 uvx agent-starter-pack enhance
 
-# Enhance with a specific agent template
+# 使用特定的代理模板增強
 uvx agent-starter-pack enhance adk@gemini-fullstack
 
-# Enhance with custom project name
+# 使用自訂專案名稱增強
 uvx agent-starter-pack enhance --name my-enhanced-agent
 ```
 
-### Advanced Options
+### 進階選項
 
 ```bash
-# Enhance with specific deployment target
+# 使用特定的部署目標增強
 uvx agent-starter-pack enhance adk@data-science --deployment-target cloud_run
 
-# Enhance with data ingestion capabilities
+# 增強資料擷取功能
 uvx agent-starter-pack enhance --include-data-ingestion --datastore alloydb
 
-# Enhance with custom session storage
+# 使用自訂會話儲存增強
 uvx agent-starter-pack enhance --session-type alloydb
 ```
 
-### Base Template Inheritance
+### 基礎模板繼承
 
 ```bash
-# Enhance current project with LangGraph capabilities
+# 使用 LangGraph 功能增強目前專案
 uvx agent-starter-pack enhance . --base-template langgraph_base_react
 
-# Enhance with RAG-enabled base template
+# 使用啟用 RAG 的基礎模板增強
 uvx agent-starter-pack enhance . --base-template agentic_rag
 ```
 
-## Project Structure Validation
+## 專案結構驗證
 
-The enhance command validates your project structure and provides guidance:
+enhance 指令會驗證您的專案結構並提供指引：
 
-**✅ Ideal Structure:**
+**✅ 理想結構：**
 ```
 your-project/
 ├── app/
-│   └── agent.py    # Your agent code
+│   └── agent.py    # 您的代理程式碼
 ├── tests/
 └── README.md
 ```
 
-**⚠️ Missing /app Folder:**
-If your project doesn't have an `/app` folder, the command will:
-1. Display a warning about project structure
-2. Explain the expected structure
-3. Ask for confirmation to proceed (unless `--auto-approve` is used)
+**⚠️ 缺少 /app 資料夾：**
+如果您的專案沒有 `/app` 資料夾，該指令將：
+1. 顯示有關專案結構的警告
+2. 解釋預期的結構
+3. 要求確認以繼續 (除非使用 `--auto-approve`)
 
-## How It Works
+## 運作方式
 
-The `enhance` command is essentially an alias for:
+`enhance` 指令基本上是以下指令的別名：
 ```bash
 uvx agent-starter-pack create PROJECT_NAME --agent TEMPLATE --in-folder
 ```
 
-It automatically:
-- Uses the current directory name as the project name (unless `--name` is specified)
-- Enables `--in-folder` mode to template directly into the current directory
-- Validates the project structure for compatibility
-- Applies the same file merging logic as the `create` command
+它會自動：
+- 使用目前目錄名稱作為專案名稱 (除非指定了 `--name`)
+- 啟用 `--in-folder` 模式以直接在目前目錄中進行模板化
+- 驗證專案結構的相容性
+- 應用與 `create` 指令相同的檔案合併邏輯
 
-### Base Template Inheritance
+### 基礎模板繼承
 
-When enhancing your existing project (using `local@.` or `local@/path/to/project`), the enhance command will:
+在增強您現有的專案時 (使用 `local@.` 或 `local@/path/to/project`)，enhance 指令將：
 
-1. **Show current inheritance**: Display which base template your project inherits from
-2. **Provide guidance**: Show available alternative base templates and how to use them
-3. **Support CLI override**: Use `--base-template` to override the base template specified in `pyproject.toml`
+1. **顯示目前繼承**：顯示您的專案繼承自哪個基礎模板
+2. **提供指引**：顯示可用的替代基礎模板以及如何使用它們
+3. **支援 CLI 覆寫**：使用 `--base-template` 覆寫 `pyproject.toml` 中指定的基礎模板
 
-The inheritance hierarchy works as follows:
+繼承層次結構如下：
 ```
-Your Existing Project
-    ↓ (inherits from)
-Base Template (adk_base, langgraph_base_react, etc.)
-    ↓ (provides)
-Core Infrastructure & Capabilities
+您現有的專案
+    ↓ (繼承自)
+基礎模板 (adk_base, langgraph_base_react 等)
+    ↓ (提供)
+核心基礎設施與功能
 ```
 
-## Use Cases
+## 使用案例
 
-**Prototype to Production:**
+**從原型到生產：**
 ```bash
-# You have a prototype agent in /app/agent.py
+# 您在 /app/agent.py 中有一個原型代理
 uvx agent-starter-pack enhance adk@production-ready
 ```
 
-**Add Infrastructure:**
+**新增基礎設施：**
 ```bash
-# Add Terraform and deployment capabilities
+# 新增 Terraform 和部署功能
 uvx agent-starter-pack enhance --deployment-target cloud_run
 ```
 
-**Add Data Pipeline:**
+**新增資料管線：**
 ```bash
-# Add data ingestion to existing agent
+# 為現有代理新增資料擷取
 uvx agent-starter-pack enhance --include-data-ingestion --datastore alloydb
 ```
 
-**Upgrade Agent Base:**
+**升級代理基礎：**
 ```bash
-# Upgrade from basic to advanced agent template
+# 從基本升級到進階代理模板
 uvx agent-starter-pack enhance adk@gemini-fullstack
 
-# Or change base template inheritance
+# 或變更基礎模板繼承
 uvx agent-starter-pack enhance . --base-template langgraph_base_react
 ```
 
-## Automatic Backup
+## 自動備份
 
-The `enhance` command automatically creates a complete backup of your project before making any changes:
+`enhance` 指令在進行任何變更之前會自動建立您專案的完整備份：
 
-- **Location:** `.backup_[dirname]_[timestamp]` in the parent directory
-- **Contents:** Complete copy of your entire project directory
-- **Timing:** Created before any template files are applied
+- **位置：** 父目錄中的 `.backup_[dirname]_[timestamp]`
+- **內容：** 您整個專案目錄的完整副本
+- **時機：** 在應用任何模板檔案之前建立
 
-## Best Practices
+## 最佳實踐
 
-1. **Review Backup:** Check that the backup was created successfully
-2. **Follow Structure:** Organize your agent code in `/app/agent.py` for best compatibility  
-3. **Test Locally:** Use `--auto-approve` in CI/CD but test interactively first
-4. **Review Changes:** After enhancement, review the generated files and configuration
+1. **檢閱備份：** 檢查備份是否已成功建立
+2. **遵循結構：** 將您的代理程式碼組織在 `/app/agent.py` 中以獲得最佳相容性
+3. **本地測試：** 在 CI/CD 中使用 `--auto-approve`，但先進行互動式測試
+4. **檢閱變更：** 增強後，檢閱產生的檔案和設定
 
-## Troubleshooting
+## 疑難排解
 
-**"Project structure warning"**
-- Organize your agent code in an `/app` folder
-- Use `--auto-approve` to skip the confirmation prompt
+**「專案結構警告」**
+- 將您的代理程式碼組織在 `/app` 資料夾中
+- 使用 `--auto-approve` 跳過確認提示
 
-**"Enhancement cancelled"**
-- Create an `/app` folder with your `agent.py` file
-- Re-run the command
+**「增強已取消」**
+- 建立一個帶有您的 `agent.py` 檔案的 `/app` 資料夾
+- 重新執行指令
 
-**"Dependency conflicts"**
-- Review and resolve conflicts in your `pyproject.toml`
-- Consider using a virtual environment
+**「依賴衝突」**
+- 檢閱並解決您 `pyproject.toml` 中的衝突
+- 考慮使用虛擬環境

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-description: "An agent implementing a base ReAct agent using LangGraph"
+description: "一個使用 LangGraph 實現基礎 ReAct 代理的代理"
 settings:
   requires_data_ingestion: false
   deployment_targets: ["agent_engine", "cloud_run"]
@@ -25,4 +25,4 @@ settings:
     "langchain-community~=0.3.17",
     "langchain-openai~=0.3.5",
   ]
-example_question: "What's the weather in San Francisco?"
+example_question: "舊金山的天氣如何？"
