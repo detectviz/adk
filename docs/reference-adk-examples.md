@@ -73,3 +73,21 @@
 
 - ### **檔案路徑**: `docs/references/adk-examples/workflow_structured_output/`
   - **參考原因**: 為了確保複雜工作流輸出的可靠性和一致性，我們需要一個標準化的方式來定義其數據結構。此範例展示了如何使用 Pydantic 模型來定義工作流的最終輸出。這與 `spec_driven_development` 範例相輔相成，共同確保了從單個工具到整個工作流的端到端數據一致性。
+
+---
+
+## 進階工作流與工程實踐 (Advanced Workflow & Engineering Practices)
+
+這些範例專注於提升 SRE Assistant 的智能、彈性和工程品質，是實現 Phase 2 和 Phase 3 路線圖中複雜功能與長期穩定性的關鍵。
+
+- ### **檔案路徑**: `docs/references/adk-examples/code_execution/`
+  - **參考原因**: 直接賦予 Agent **執行自動化修復腳本**的能力，是 `SPEC.md` 中定義的 `KubernetesOperationTool` 和 `TerraformTool` 等操作工具的基礎。此範例提供了在安全的沙箱環境中執行程式碼的標準模式，是將 SRE Assistant 從“分析者”變為“行動者”的核心技術，對實現真正的**監控閉環 (Monitoring Closed-Loop)** 至關重要。
+
+- ### **檔案路徑**: `docs/references/adk-examples/workflow_chain_of_thought/`
+  - **參考原因**: 要實現 `SPEC.md` 中複雜的**根因分析 (Root Cause Analysis)**，Agent 不能只靠單一工具的輸出，而需要進行多步驟的推理。此範例展示了如何構建一個具備“思維鏈”能力的 Agent，它能自我提問、分解問題、並依序執行工具來得出結論。這是提升我們 `IncidentHandlerAgent` 智能水平的關鍵。
+
+- ### **檔案路徑**: `docs/references/adk-examples/workflow_conditional_routing/`
+  - **參考原因**: 這是實現 **`TASK-P2-REFACTOR-01: 智慧分診系統`** 的核心技術藍圖。SRE Assistant 需要根據事件的類型和嚴重性，將任務分派給不同的專家 Agent。此範例提供了實現**條件路由 (Conditional Routing)** 的標準方法，讓 `SREWorkflow` 能夠根據上下文動態決策，是構建聯邦化系統的關鍵一步。
+
+- ### **檔案路徑**: `docs/references/adk-examples/testing_mock_api/`
+  - **參考原因**: 隨著工具集的擴展，我們的整合測試會變得越來越慢且不穩定。此範例是完成 **`TASK-P1-DEBT-01`** 並保證長期工程品質的**必備實踐**。它演示瞭如何使用 `httpx-mock` 來模擬外部 API，使我們能夠在不依賴網路或第三方服務的情況下，快速、可靠地測試工具和 Agent 的核心邏輯。
