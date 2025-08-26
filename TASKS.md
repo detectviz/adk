@@ -15,6 +15,37 @@
 
 ---
 
+## Phase 0: 優先技術債修正 (Priority Tech-Debt Remediation)
+
+### P0 - 新功能 (New Features)
+- [ ] **TASK-P0-FEAT-01**: **實現標準化的人類介入工具 (HITL)**
+    - **來源**: `review.md` (P0)
+    - **任務**: 根據 `SPEC.md` 的定義，使用 ADK 的 `LongRunningFunctionTool` 實現 `HumanApprovalTool`。
+    - **依賴**: 無
+    - **驗收標準**:
+        - [ ] 工具能夠暫停工作流程，等待外部回調。
+        - [ ] 能夠正確處理批准、拒絕和超時三種情況。
+        - [ ] 有對應的單元測試。
+
+### P0 - 重構 (Refactoring)
+- [ ] **TASK-P0-REFACTOR-01**: **重構 AuthManager 為無狀態工具**
+    - **來源**: `review.md` (P0)
+    - **任務**: 將 `src/sre_assistant/auth/auth_manager.py` 重構為一個或多個符合 ADK 規範的、無狀態的 `FunctionTool`。
+    - **依賴**: 無
+    - **驗收標準**:
+        - [ ] 新的 `AuthenticationTool` 是無狀態的。
+        - [ ] 憑證和令牌等狀態通過 `tool_context.session_state` 進行管理。
+        - [ ] 舊的 `AuthManager` 被移除。
+- [ ] **TASK-P0-REFACTOR-02**: **為關鍵代理實現結構化輸出**
+    - **來源**: `review.md` (P2, 提升為 P0)
+    - **任務**: 為核心的診斷代理（如 `MetricsAnalyzer`, `LogAnalyzer`）定義 Pydantic `output_schema`。
+    - **依賴**: 無
+    - **驗收標準**:
+        - [ ] 代理的輸出是可預測的、有固定結構的 Pydantic 模型。
+        - [ ] `SREWorkflow` 中的下游代理可以安全地依賴此結構。
+
+---
+
 ## 目標目錄結構 (Target Directory Structure)
 
 所有開發任務應朝著以下目標目錄結構進行，此結構符合 ADK 最佳實踐並反映了我們的聯邦化架構。
@@ -135,15 +166,13 @@
     - [ ] **TASK-P1-SVC-01**: 實現核心 `SREAssistant` Agent 服務
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
+        - **主要藍圖**: `review.md` 中的 `EnhancedSREWorkflow` 程式碼範例。
         - [How to build a simple multi-agentic system using Google’s ADK](https://cloud.google.com/blog/products/ai-machine-learning/build-multi-agentic-systems-using-google-adk)
-        - [ADK Agent Samples: dice_agent_rest](docs/reference-adk-agent-samples.md#1-基礎入門與核心概念-getting-started--core-concepts)
-        - [Google SRE Book: Chapter 12](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
-        - [ADK Snippets: Main Workflow Implementation](docs/reference-snippets.md#21-主要工作流程實現-main-workflow-implementation)
         - [ADK Examples: simple_sequential_agent](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook)
         - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
       - **驗收標準**:
         - [ ] 服務能成功啟動並監聽指定端口。
-        - [ ] `SREWorkflow` 能夠接收請求並返回基礎回應。
+        - [ ] `SREWorkflow` 的結構遵循 `EnhancedSREWorkflow` 的模式，包含並行診斷、自定義聚合、條件回呼等。
     - [ ] **TASK-P1-SVC-02**: 實現無認證模式
       - **依賴**: [TASK-P1-SVC-01]
       - **驗收標準**:
@@ -214,13 +243,25 @@
     - [ ] **TASK-P1-CORE-03**: 實現 `AuthProvider` (OAuth 2.0)
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
+        - **核心實踐**: `review.md` 關於 AuthManager 的重構建議。
         - [ADK Agent Samples: headless_agent_auth](docs/reference-adk-agent-samples.md#4-安全與認證-security--authentication)
-        - [ADK Docs: Auth](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
-        - [ADK Snippets: Authentication Provider Implementation](docs/reference-snippets.md#22-認證提供者實現-authentication-provider-implementation)
+        - [ADK Docs: Auth](docs/reference-adk-docs.md#核心框架與自訂擴證-core-framework--custom-extensions)
       - **驗收標準**:
+        - [ ] 實現一個**無狀態**的 `AuthProvider`，而不是一個有狀態的管理器。
         - [ ] 能夠與一個 OIDC Provider (如 Google) 完成認證流程。
         - [ ] 成功獲取並驗證 `id_token` 和 `access_token`。
         - [ ] 有整合測試（可使用 mock OIDC server）。
+    - [ ] **TASK-P1-CORE-04**: **實現工作流程回調機制**
+      - **來源**: `review.md` (P1)
+      - **任務**: 為 `SREWorkflow` 實現 `before_agent_callback` 和 `after_agent_callback`，用於執行前置檢查（權限、速率限制）和後處理（審計、指標更新）。
+      - **依賴**: [TASK-P1-SVC-01]
+      - **參考**:
+          - `review.md` 中的 `_workflow_pre_check` 和 `_workflow_post_process` 範例。
+          - [ADK Docs: Callbacks](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
+          - [ADK Snippets: callback_basic.py](docs/reference-snippets.md#23-回呼與生命週期-callbacks--lifecycle)
+      - **驗收標準**:
+          - [ ] 前置檢查失敗時，能夠提前終止工作流程。
+          - [ ] 工作流程結束後，能夠觸發後處理邏輯。
 
 ### P1 - 重構 (Refactoring)
 
@@ -271,10 +312,12 @@
     - [ ] **TASK-P2-DEVOPS-01**: 實現 `TerraformTool`，用於基礎設施即代碼的管理。
         - **參考**: [ADK Examples: code_execution](docs/reference-adk-examples.md#進階工作流與工程實踐-advanced-workflow--engineering-practices)
 - **修復後驗證 (Post-Remediation Verification)**
-    - [ ] **TASK-P2-VERIFY-01**:
-        - **來源**: `TASKS.md` (舊)
-        - **任務**: 在工作流程中新增 `VerificationPhase`，包含 `HealthCheckAgent` 和 `VerificationCriticAgent`，確保修復操作的有效性。
-        - **參考**: [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration), [ADK Agent Samples: qa-test-planner-agent](docs/reference-adk-agent-samples.md#14-文件驅動的規劃與生成-documentation-driven-planning)
+    - [ ] **TASK-P2-VERIFY-01**: **實現修復後驗證代理 (Verification Agent)**
+        - **來源**: `review.md`, `ARCHITECTURE.md`
+        - **任務**: 根據 `ARCHITECTURE.md` 中 `VerificationAgent` 的定義，實現一個 `Self-Critic` 模式的驗證代理，確保修復操作的有效性。
+        - **參考**:
+            - `review.md` 中的 `VerificationAgent` 類別範例。
+            - [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration) (SelfCriticAgent)
 - **事件管理 (Incident Management)**
     - [ ] **TASK-P2-INCIDENT-01**:
         - **來源**: `TASKS.md` (舊)
@@ -294,14 +337,13 @@
 
 ### P2 - 重構 (Refactoring)
 
-- [ ] **TASK-P2-REFACTOR-01**: **智慧分診系統**:
-    - **來源**: `REFACTOR_PLAN.md`
-    - **任務**: 使用基於 LLM 的 `SREIntelligentDispatcher` 替換靜態的條件判斷邏輯，以動態選擇最合適的專家代理。
+- [ ] **TASK-P2-REFACTOR-01**: **實現智能分診器 (Intelligent Dispatcher)**:
+    - **來源**: `review.md`, `ARCHITECTURE.md`
+    - **任務**: 根據 `ARCHITECTURE.md` 中 `IntelligentDispatcher` 的定義，使用基於 LLM 的路由器替換靜態的條件判斷邏輯，以動態選擇最合適的專家代理。
     - **參考**:
+        - `review.md` 中的 `IntelligentDispatcher` 類別範例。
         - [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration)
-        - [ADK Agent Samples: brand-search-optimization](docs/reference-adk-agent-samples.md#16-進階工作流程與整合-advanced-workflows--integrations)
         - [ADK Examples: workflow_triage](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references)
-        - `docs/agents-companion-v2-zh-tw.md` (多代理互動模式)
     - **驗收標準**: 系統能夠根據診斷摘要，動態調度在 `SPEC.md` 中定義的專家代理。
 
 ### P2 - 技術債 (Technical Debt)

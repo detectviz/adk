@@ -19,27 +19,65 @@ SRE Assistant 是一個基於 **Google Agent Development Kit (ADK)** 構建的�
 ## 系統架構
 
 ```mermaid
-graph TB
-    subgraph "Grafana 統一平台"
-        UI[Grafana Dashboard]
-        Plugin[SRE Assistant Plugin]
+graph TD
+    subgraph "使用者介面 (User Interface)"
+        GrafanaUI[Grafana OSS/Cloud<br/>統一儀表板]
     end
-    
-    subgraph "智能後端"
-        API[SRE Assistant API<br/>Google ADK]
-        Agents[專業化代理群]
+
+    subgraph "Grafana 插件 (Grafana Plugins)"
+        SREPlugin[SRE Assistant Plugin<br/>(ChatOps, Automation)]
+        GrafanaNative[原生功能<br/>(Dashboards, Alerting, Explore)]
     end
-    
-    subgraph "數據層"
-        Memory[(統一記憶庫)]
-        Observability[LGTM Stack]
+
+    subgraph "後端服務 (Backend Services)"
+        SREBackend[SRE Assistant API<br/>(Python / Google ADK)]
+        Orchestrator[聯邦協調器 (SREIntelligentDispatcher)<br/>(未來)]
     end
-    
-    UI --> Plugin
-    Plugin --> API
-    API --> Agents
-    Agents --> Memory
-    API --> Observability
+
+    subgraph "專業化代理 (Specialized Agents) - 未來"
+        IncidentAgent[事件處理代理]
+        PredictiveAgent[預測維護代理]
+        CostAgent[成本優化代理]
+        VerificationAgent[驗證代理 (Self-Critic)]
+        OtherAgents[...]
+    end
+
+    subgraph "數據與基礎設施 (Data & Infrastructure)"
+        subgraph "統一記憶庫 (Unified Memory)"
+            VectorDB[向量數據庫<br/>Weaviate / Vertex AI]
+            DocDB[關係型數據庫<br/>PostgreSQL]
+            Cache[快取<br/>Redis]
+        end
+        subgraph "可觀測性 (Observability) - LGTM Stack"
+            Loki[Loki (日誌)]
+            Tempo[Tempo (追蹤)]
+            Mimir[Mimir (指標)]
+        end
+        Auth[認證服務<br/>OAuth 2.0 Provider]
+        EventBus[事件總線<br/>(未來)]
+    end
+
+    %% Connections
+    User([User]) --> GrafanaUI
+    GrafanaUI --> SREPlugin
+    GrafanaUI --> GrafanaNative
+
+    SREPlugin -- WebSocket/REST --> SREBackend
+    GrafanaNative -- Queries --> Loki & Tempo & Mimir
+
+    SREBackend --> VectorDB & DocDB & Cache
+    SREBackend --> Auth
+    SREBackend -- Telemetry --> Tempo & Loki
+
+    %% Future Connections
+    SREBackend -.-> Orchestrator
+    Orchestrator -. A2A Protocol .-> IncidentAgent
+    Orchestrator -. A2A Protocol .-> PredictiveAgent
+    Orchestrator -. A2A Protocol .-> CostAgent
+    Orchestrator -.-> VerificationAgent
+
+    IncidentAgent --> VectorDB & DocDB
+    PredictiveAgent --> Mimir
 ```
 
 ## ✨ 核心功能
@@ -192,16 +230,23 @@ sre-assistant/
 
 ## 發展路線圖
 
+### Phase 0: 優先技術債修正 (近期) 修正中
+- [ ] AuthManager 重構為無狀態 ADK Tool
+- [ ] 實現標準化的 HITL (Human-in-the-Loop)
+- [ ] 為核心代理實現結構化輸出
+
 ### Phase 1: MVP (當前) 🚧
 - [x] 核心 Agent 服務
 - [x] 基礎診斷工具
 - [x] RAG 記憶體系統
-- [ ] OAuth 2.0 認證
+- [ ] OAuth 2.0 認證 (符合 ADK 規範)
 
 ### Phase 2: Grafana 原生體驗
 - [ ] Grafana 插件開發
 - [ ] ChatOps 介面
 - [ ] 深度整合功能
+- [ ] 實現智能分診器 (`IntelligentDispatcher`)
+- [ ] 實現修復後驗證 (`VerificationAgent`)
 
 ### Phase 3: 主動預防
 - [ ] 異常檢測
@@ -236,8 +281,10 @@ sre-assistant/
 
 ## 相關連結
 
+- [**SRE Assistant 參考資料庫 (docs/README.md)**](docs/README.md) - **(推薦閱讀)** 專案所有參考資料的統一入口。
 - [Google SRE Book](https://sre.google/sre-book/table-of-contents/)
 - [ADK Documentation](https://google.github.io/adk-docs/)
+- [Agent Starter Pack](https://github.com/GoogleCloudPlatform/agent-starter-pack) - 用於快速啟動新代理專案的工具。
 - [Grafana Plugin Development](https://grafana.com/docs/grafana/latest/developers/plugins/)
 
 ---

@@ -21,6 +21,17 @@
 
 ---
 
+## Phase 0: 優先技術債修正 (Priority Tech-Debt Remediation)
+
+- **時間**: 1-2 週
+- **主題**: 根據 ADK 首席架構師的審查 (`review.md`)，立即修正對系統穩定性和安全性影響最高的 P0 級技術債，確保專案建立在穩固的基礎之上。
+- **主要成果**:
+    - ✅ **AuthManager 重構**: 將有狀態的 `AuthManager` 重構為符合 ADK 規範的無狀態 `AuthenticationTool`，以提高可測試性和可靠性。
+    - ✅ **標準化 HITL**: 使用 ADK 的 `LongRunningFunctionTool` 重新實現「人類介入」審批流程，確保與框架的無縫整合。
+    - ✅ **結構化輸出**: 為核心的 `DiagnosticAgent` 實現 Pydantic `output_schema`，確保輸出格式的穩定性和可靠性。
+
+---
+
 ## 風險評估 (Risk Assessment)
 
 | 階段 (Phase) | 風險 (Risk) | 可能性 (Likelihood) | 影響 (Impact) | 緩解策略 (Mitigation) |
@@ -94,8 +105,10 @@
         - 🔍 確保每次工具調用、LLM 請求都被捕獲為追蹤中的一個跨度 (Span)。
     - **2.5.2. 可觀測性儀表板**:
         - 📊 建立一個 Grafana 儀表板，用於視覺化 Agent 的執行流程、延遲和成本（Token 使用量）。
-    - **2.5.3. 自動化評估框架 v1**:
-        - 📝 建立一個初步的評估腳本，能夠針對一組黃金測試案例，自動比較代理人的輸出與預期結果，並計算成功率。
+    - **2.5.3. 自動化評估框架 v1 (基於 ADK Eval)**:
+        - 📝 **整合 ADK 評估框架**: 根據 `review.md` 的建議，採用官方的 `google.adk.eval.EvaluationFramework` 來建立評估管線。
+        - 🧪 定義一組黃金測試案例 (`test_cases`)。
+        - 📈 追蹤核心指標，如準確性 (`accuracy`)、延遲 (`latency`) 和成本 (`cost`)。
 - **參考**:
     - [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/)
     - `docs/agents-companion-v2-zh-tw.md`

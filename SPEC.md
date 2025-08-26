@@ -62,6 +62,14 @@
     - **功能**: `create_issue(title: str, body: str)`, `get_commit_details(sha: str)`
     - **配置**: GitHub API Token.
 
+### 2.4 工作流程與安全工具 (Workflow & Safety Tools)
+
+- **`HumanApprovalTool`**:
+    - **描述**: 根據 `review.md` 的建議，這是一個實現**人類介入 (Human-in-the-Loop)** 審批流程的標準工具。它用於在執行高風險操作（如生產環境變更）前，暫停工作流程並請求人類用戶的明確批准。
+    - **ADK 實現**: **必須**使用 `LongRunningFunctionTool` 來實現，以符合 ADK 的非同步操作模式。
+    - **功能**: `request_approval(reason: str, approvers: list[str], timeout: int) -> bool`
+    - **配置**: 通知機制（如 Slack Webhook, Email API）。
+
 ---
 
 ## 3. 核心功能與規格 (Core Features & Specifications)
@@ -183,11 +191,15 @@ curl -X POST https://api.sre-assistant.io/v1/incidents/analyze \
 
 根據 [ROADMAP.md](ROADMAP.md) 的規劃，SRE Assistant 將逐步演進為一個由以下專業化代理組成的聯邦。
 
-## 4. 標準化介面與錯誤處理 (Standardized Interface & Error Handling)
+**核心實踐要求**:
+- **結構化輸出 (Structured Output)**: 根據 `review.md` 的建議，所有關鍵的決策型或分析型代理（如 `IncidentHandlerAgent`）都**必須**使用 Pydantic `BaseModel` 作為其 `output_schema`。這確保了代理之間數據交換的可靠性和可預測性。
+- **工作流程設計**: 代理的內部工作流程應優先採用 `review.md` 中推薦的 `EnhancedSREWorkflow` 模式，包含並行診斷、智能分診、自我驗證和回呼等機制。
+
+## 4. 標準化介面、錯誤處理與版本管理
 
 ### 4.1. 工具介面規格 (Tool Interface Specification)
 
-所有工具的 `execute` 方法都必須遵循以下標準化輸入與輸出格式，以確保系統的穩定性和可預測性。
+所有工具的 `execute` 方法都**必須**遵循以下標準化輸入與輸出格式，以確保系統的穩定性和可預測性。
 
 ```python
 from typing import Dict, Any, Optional, Protocol
@@ -195,7 +207,7 @@ from pydantic import BaseModel
 
 class ToolError(BaseModel):
     """標準化的工具錯誤模型"""
-    code: str  # e.g., "RATE_LIMIT_EXCEEDED", "API_AUTH_ERROR"
+    code: str  # e.g., "RATE_LIMIT_EXCEEDED", "API_AUTH_ERROR", "HUMAN_APPROVAL_REJECTED"
     message: str
     details: Optional[Dict[str, Any]] = None
 
@@ -232,27 +244,21 @@ class BaseTool(Protocol):
     - `TIMEOUT`: 操作超時。
     - `NOT_FOUND`: 請求的資源未找到。
     - `EXTERNAL_API_ERROR`: 外部 API 調用失敗。
+    - `HUMAN_APPROVAL_REJECTED`: 人類介入環節被拒絕。
+    - `RATE_LIMIT_EXCEEDED`: 超出速率限制。
 
-## 5. 版本管理策略 (Versioning Strategy)
+### 4.3. 版本管理策略 (Versioning Strategy)
 
-### 5.1. 總體策略 (Overall Strategy)
-- **代理版本**: 遵循語義化版本（SemVer, `MAJOR.MINOR.PATCH`）。`MAJOR` 版本變更表示有破壞性 API 變更。
-- **工具版本**: 工具的版本應與其所屬的代理或共享庫的版本保持一致。
+根據 `review.md` 的建議，我們必須為所有工具和代理實現明確的版本管理。
+
+- **總體策略**:
+    - **代理版本**: 遵循語義化版本（SemVer, `MAJOR.MINOR.PATCH`）。`MAJOR` 版本變更表示有破壞性 API 變更。
+    - **工具版本**: 工具的版本應與其所屬的代理或共享庫的版本保持一致。
 - **相容性**:
     - `MINOR` 和 `PATCH` 版本的更新必須向後相容。
     - 協調器（Orchestrator）在調用專業化代理時，應檢查其 `MAJOR` 版本號是否相容。
 - **文檔**: 所有破壞性變更都必須在 `CHANGELOG.md` 中有清晰的記錄和遷移指南。
-
-### 5.2. API 版本控制策略 (API Versioning Strategy)
-
-為了確保 API 的穩定性和可預測性，我們採用以下版本控制策略：
-
-```yaml
-api_versioning:
-  strategy: URL_path  # /v1/tools, /v2/tools
-  deprecation_period: 6_months
-  backward_compatibility: 2_major_versions
-```
+- **API 版本控制**: 後端 API 應採用 URL 路徑進行版本控制 (e.g., `/api/v1/incident`, `/api/v2/incident`)。
 
 ### 6.1 代理類別總覽 (Agent Categories)
 
@@ -273,6 +279,12 @@ api_versioning:
     - `root_cause_analysis`: 根因分析
     - `automated_remediation`: 自動化修復
     - `postmortem_generation`: 事後檢討報告生成
+- **工作流程**:
+    - 其工作流程將遵循 `ARCHITECTURE.md` 中定義的進階模式，包含：
+        - **並行診斷**: 使用 `ParallelAgent` 同時分析指標、日誌和追蹤。
+        - **智能分診**: 使用 `IntelligentDispatcher` 根據診斷結果選擇修復策略。
+        - **安全執行**: 在執行高風險修復前，調用 `HumanApprovalTool` 請求批准。
+        - **修復後驗證**: 使用 `VerificationAgent` 進行自我審查，確保問題已解決。
 - **所需工具**:
     - `PrometheusQueryTool`
     - `LokiLogQueryTool`
@@ -280,6 +292,7 @@ api_versioning:
     - `GrafanaIntegrationTool`
     - `GrafanaOnCallTool`
     - `GitHubTool`
+    - `HumanApprovalTool`
 - **記憶體集合 (Memory Collections)**:
     - `incident_history`: 存儲過去所有事件的詳細資訊。
     - `runbook_library`: 存儲用於修復的標準化執行手冊。
