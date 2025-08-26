@@ -144,16 +144,16 @@ curl -X POST https://api.sre-assistant.io/v1/incidents/analyze \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "alert": {
-      "name": "HighErrorRate",
-      "service": "payment-api",
-      "severity": "P1"
-    },
-    "context": {
-      "dashboard_url": "https://grafana.example.com/d/abc123",
-      "time_range": "last_1h"
-    }
-  }'
+        "alert": {
+        "name": "HighErrorRate",
+        "service": "payment-api",
+        "severity": "P1"
+        },
+        "context": {
+        "dashboard_url": "https://grafana.example.com/d/abc123",
+        "time_range": "last_1h"
+        }
+      }'
 
 # Response
 {

@@ -36,7 +36,7 @@ docker-compose up -d
 pytest
 ```
 
-- **測試策略與指南**: 詳細的測試方法請參閱 [TESTING.md](TESTING.md)。
+- **測試策略與指南**: 詳細的測試方法請參閱 [TESTING.md](docs/TESTING.md)。
 - **CI/CD**: 持續整合流程定義於 `.github/workflows/` 目錄中，會在每次提交時自動運行測試。
 
 ---

@@ -223,14 +223,6 @@ sre_assistant/
 
 ---
 
-## 支援與社群 (Support & Community)
-
-- **文件 (Documentation)**: https://docs.sre-assistant.io
-- **GitHub Issues**: https://github.com/your-org/sre-assistant/issues
-- **Slack 社群 (Slack Community)**: https://sre-assistant.slack.com
-- **辦公時間 (Office Hours)**: Thursdays 10am PST
-- **企業支援 (Enterprise Support)**: enterprise@sre-assistant.io
-
 ## 如何引用 (Citation)
 
 ```bibtex
