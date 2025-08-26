@@ -15,7 +15,12 @@
 
 1.  **Grafana 中心化 (Grafana-Centric)**: 以 Grafana 為所有 SRE 工作流的統一入口和介面，最大化利用其生態系統能力。
 2.  **後端即服務，前端即插件 (BaaS, FaaP)**: SRE Assistant 核心能力由基於 Google ADK 的後端服務提供，使用者主要透過 Grafana 插件與之互動。
-2.  **聯邦化設計 (Federated Design)**: 後端架構遵循「一個代理，一個專業領域」的原則，為多代理協同工作設計。這支持了關注點分離、獨立演進和可組合性。上層的協調器應將專業化代理視為可調用的「工具 (Agent-as-Tool)」，並支援循序和並行執行，以應對複雜的工作流程。
+2.  **聯邦化設計 (Federated Design)**: 後端架構遵循「一個代理，一個專業領域」的原則，為多代理協同工作設計。這支持了關注點分離、獨立演進和可組合性。上層的協調器應將專業化代理視為可調用的「工具 (Agent-as-Tool)」，並支援循序和並行執行，以應對複雜的工作流程。此設計的理論基礎源於《代理人指南》中闡述的多代理人系統優勢，包括：
+    - **增強準確性 (Enhanced Accuracy)**: 專業化代理人可以交叉驗證彼此的工作。
+    - **提高效率 (Improved Efficiency)**: 代理人可以並行工作，加速複雜任務的完成。
+    - **更好地處理複雜任務 (Better Handling of Complex Tasks)**: 大型任務可以被分解為更小、更易於管理的子任務。
+    - **增加可擴展性 (Increased Scalability)**: 可以透過增加新的專業代理人來輕鬆擴展系統能力。
+    - **提高容錯性 (Improved Fault Tolerance)**: 單個代理人的故障不會導致整個系統癱瘓。
 4.  **可觀測性驅動 (Observability-Driven)**: 深度整合 LGTM (Loki, Grafana, Tempo, Mimir) 技術棧，確保系統自身的每一個決策和行動都高度可觀測。
 5.  **ADK 原生擴展 (ADK-Native Extensibility)**: 充分利用 ADK 的 Provider 模型，以符合框架最佳實踐的方式實現認證、記憶體和會話管理等核心功能。
 - **應用程式為中心診斷 (Application-Centric Diagnosis)**: 診斷流程必須以「應用程式」為單位，理解其拓撲結構與依賴關係，而非僅僅處理單一、孤立的警報。診斷的起點應基於對「四大黃金訊號」的分析。
@@ -84,6 +89,8 @@ graph TD
     IncidentAgent --> VectorDB & DocDB
     PredictiveAgent --> Mimir
 ```
+
+此架構圖描繪了一個**分層模式 (Hierarchical Pattern)** 的多代理人系統，其中 `SREBackend`（或未來的 `Orchestrator`）作為中央協調器，將任務路由到下游的專業化代理。這種模式的詳細討論，以及其他如協作模式 (Collaborative Pattern) 和點對點模式 (Peer-to-Peer)，請參閱《代理人指南》。
 
 ## 4. 系統組件 (System Components)
 
