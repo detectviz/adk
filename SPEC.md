@@ -366,3 +366,58 @@ api_versioning:
 - **記憶體集合**:
     - `cost_and_usage_reports`: 歷史成本和用量報告。
     - `optimization_playbooks`: 成本優化劇本庫。
+
+---
+
+## 7. 架構藍圖與設計模式 (Architectural Blueprints & Design Patterns)
+
+本章節旨在記錄從外部最佳實踐和參考文章中提煉出的、對 SRE Assistant 至關重要的架構藍圖和設計模式。這些模式應作為開發具體功能時的核心指導原則。
+
+### 7.1 狀態與記憶體管理 (State and Memory Management)
+
+- **核心原則**: 系統必須明確區分「短期記憶體（會話狀態）」和「長期記憶體（知識庫）」。
+- **短期記憶體 (Session State)**:
+    - **用途**: 用於在單一對話流程中，追蹤任務進度、臨時變數和上下文。它扮演著代理的「臨時記事本」角色。
+    - **技術實現**: 必須使用持久化的 `SessionService`。根據 ADK 的最佳實踐，我們將採用 `DatabaseSessionService`，並以後端 PostgreSQL 作為儲存，以支援生產環境下的多實例部署和服務重啟。此決策直接支持 `TASK-P1-CORE-02`。
+- **長期記憶體 (Long-term Memory)**:
+    - **用途**: 存儲跨會話的、具有長期價值的資訊，如事件歷史、解決方案、SOPs 等。這是 RAG 功能的核心。
+    - **技術實現**: 透過自定義的 `MemoryProvider` 實現，後端對接 Weaviate 向量數據庫。數據的寫入可參考 `VertexAIMemoryBankService` 的模式，使用 `after-agent` 回呼函式 (Callback) 自動、異步地將有價值的對話資訊存入長期記憶體。
+
+### 7.2 多代理互動模式 (Multi-Agent Interaction Patterns)
+
+- **核心原則**: 避免建立單一、龐大的「超級代理」，而是遵循「一個代理，一個專業領域」的原則，建立由多個小型、專業的代理組成的聯邦。
+- **互動模式**:
+    - **代理即工具 (Agent-as-Tool)**: 專業化代理（如 `PostmortemAgent`）應被封裝為 `AgentTool`，供上層的協調器（`SREWorkflow` 或 `SREIntelligentDispatcher`）作為工具來調用。這確保了協調器可以管理多步驟工作流，而不是在第一次路由後就失去控制權。
+    - **並行執行 (Parallel Execution)**: 對於無依賴關係的診斷任務（例如，同時查詢指標、日誌和追蹤），應使用 ADK 的 `ParallelAgent` 來並行執行，以最大限度地縮短診斷時間 (MTTD)。
+    - **回饋循環 (Feedback Loop)**: 對於需要品質保證的任務（如覆盤報告生成、修復方案建議），應建立一個「審查者」代理（如 `VerificationCriticAgent`），對「生成者」代理的輸出進行評估和驗證。此模式透過共享的會話 `state` 實現。
+
+### 7.3 核心診斷策略 (Core Diagnostic Strategy)
+
+- **核心原則**: 所有自動化診斷流程都必須基於一個結構化的、可預測的框架。
+- **診斷基礎**:
+    - **黃金四訊號 (The Four Golden Signals)**: 任何事件的初步診斷，都**必須**從查詢和評估受影響服務的「黃金四訊號」開始：
+        1.  **延遲 (Latency)**: 檢查 p99、p95 和 p50 請求延遲。
+        2.  **流量 (Traffic)**: 檢查請求速率（RPS）。
+        3.  **錯誤 (Errors)**: 檢查錯誤率（特別是 HTTP 5xx）。
+        4.  **飽和度 (Saturation)**: 檢查最關鍵資源（如 CPU、記憶體）的使用率。
+    - **應用程式上下文**: 在查詢指標之前，系統應首先嘗試獲取「應用程式」的拓撲結構（參考 `TASK-P2-TOOL-04: AppHubTool`），以理解服務之間的依賴關係。
+    - **外部訊號優先**: 診斷流程應首先查詢外部依賴的健康狀態（參考 `TASK-P2-TOOL-05: GoogleCloudHealthTool`），以快速排除或確認底層平台問題。
+
+### 7.4 使用者體驗與互動模型 (User Experience and Interaction Model)
+
+- **核心原則**: SRE Assistant 的互動應模仿一個經驗豐富的 SRE 的思考過程，為使用者提供清晰、引導式的體驗。
+- **三階段對話流程**:
+    1.  **發現與分診 (Discovery and Triage)**: 使用者可以提問「Is it Google or is it me?」，系統應首先檢查外部依賴，然後確認內部影響。
+    2.  **調查與影響評估 (Investigation and Impact Evaluation)**: 使用者可以進一步提問「Tell me more about this incident.」，系統應深入分析黃金四訊號，並從日誌、追蹤中提取證據。
+    3.  **緩解與恢復 (Mitigation and Recovery)**: 系統應根據分析結果，主動建議可行的修復方案或操作手冊（「What are the workarounds?」）。
+
+### 7.5 LLM 可觀測性 (LLM Observability)
+
+- **核心原則**: SRE Assistant 本身作為一個 LLM 應用，其內部的決策過程必須是完全可觀測的。
+- **技術實現**:
+    - **端到端追蹤**: 每個使用者請求都應被捕獲為一個端到端的分散式追蹤 (Trace)。
+    - **跨度 (Span) 明細**: 追蹤應包含代表以下操作的詳細跨度 (Span)：
+        - `SREWorkflow` 的整體執行。
+        - 每次 `AgentTool` 的調用。
+        - 每次對 LLM 的 API 調用。
+    - **關鍵元數據**: 每個跨度都應附加上下文元數據，包括但不限於：LLM 成本（Token 數）、延遲、工具的輸入參數、LLM 的具體提示（Prompt）和回應。

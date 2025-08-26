@@ -23,24 +23,24 @@
 ### Part II: 事件處理與可靠性實踐 (Incident Handling & Reliability Practices)
 
 4.  **檔案路徑**: `docs/references/google-sre-book/Chapter-06-Monitoring-Distributed-Systems.md`
-    -   **參考原因**: SRE Assistant 是可觀測性數據的**消費者**和**分析者**。本章詳細闡述了監控的「為什麼」和「什麼」，而不僅僅是「如何」。這對於我們設計 `PrometheusQueryTool` 和 `LokiLogQueryTool` (`SPEC.md`) 至關重要，確保我們的代理能夠提出有意義的問題，而不僅僅是抓取數據。
+    -   **參考原因**: SRE Assistant 是可觀測性數據的**消費者**和**分析者**。本章詳細闡述了監控的「為什麼」和「什麼」，而不僅僅是「如何」。這對於我們設計 **`TASK-P1-TOOL-01` (PrometheusQueryTool)** 和 **`TASK-P1-TOOL-02` (LokiLogQueryTool)** 至關重要，確保我們的代理能夠提出有意義的問題，而不僅僅是抓取數據。
 
 5.  **檔案路徑**: `docs/references/google-sre-book/Chapter-10-Practical-Alerting.md`
-    -   **參考原因**: `Incident Handler` 代理需要處理告警。本章節提供了關於如何設計**有效且可操作**告警的黃金標準。SRE Assistant 在分析告警時，應能區分哪些是噪音，哪些是真正的信號。這將直接影響我們在 Phase 2 中實現告警靜音、聚合和智慧分診等功能的設計。
+    -   **參考原因**: `Incident Handler` 代理需要處理告警。本章節提供了關於如何設計**有效且可操作**告警的黃金標準。SRE Assistant 在分析告警時，應能區分哪些是噪音，哪些是真正的信號。這將直接影響我們在 **`TASK-P2-REFACTOR-01` (智慧分診系統)** 等功能的設計。
 
 6.  **檔案路徑**: `docs/references/google-sre-book/Chapter-12-Effective-Troubleshooting.md`
-    -   **參考原因**: 本章系統性地介紹了 SRE 的故障排除方法論。SRE Assistant 在執行根因分析 (RCA) 時，其內部的推理邏輯和工作流程應模仿甚至自動化這裡描述的步驟。這為我們設計 `SREWorkflow` (`TASKS.md`) 中的診斷與修復流程提供了清晰的藍圖。
+    -   **參考原因**: 本章系統性地介紹了 SRE 的故障排除方法論。SRE Assistant 在執行根因分析 (RCA) 時，其內部的推理邏輯和工作流程應模仿甚至自動化這裡描述的步驟。這為我們設計 **`TASK-P1-SVC-01` (SREWorkflow)** 中的診斷與修復流程提供了清晰的藍圖。
 
 7.  **檔案路徑**: `docs/references/google-sre-book/Chapter-13-Emergency-Response.md`
-    -   **參考原因**: `Incident Handler` 代理的核心職責之一是輔助甚至領導事件響應。本章詳細描述了事件響應中的角色（如：事件指揮官）、溝通協調和決策過程。我們的 `GrafanaOnCallTool` 和與 ChatOps 的整合，都應以支援和簡化此流程為目標。
+    -   **參考原因**: `Incident Handler` 代理的核心職責之一是輔助甚至領導事件響應。本章詳細描述了事件響應中的角色（如：事件指揮官）、溝通協調和決策過程。我們的 **`TASK-P2-INTEG-03` (GrafanaOnCallTool)** 和與 ChatOps (`TASK-P2-PLUGIN-02`) 的整合，都應以支援和簡化此流程為目標。
 
 8.  **檔案路徑**: `docs/references/google-sre-book/Chapter-15-Postmortem-CultureLearning-from-Failure.md`
-    -   **參考原因**: 這是 Phase 3 規劃中 `PostmortemAgent` 的直接理論來源。`TASKS.md` 中明確提到了覆盤報告生成功能。本章不僅提供了覆盤報告的結構，更重要的是強調了「無指責 (Blameless)」文化。我們的代理在生成報告初稿時，其語言和結構必須遵循這一核心原則。
+    -   **參考原因**: 這是 **`TASK-P3-AGENT-01` (PostmortemAgent)** 的直接理論來源。`TASKS.md` 中明確提到了覆盤報告生成功能。本章不僅提供了覆盤報告的結構，更重要的是強調了「無指責 (Blameless)」文化。我們的代理在生成報告初稿時，其語言和結構必須遵循這一核心原則。
 
 ### Part III: 附錄與範本 (Appendices & Templates)
 
 9.  **檔案路徑**: `docs/references/google-sre-book/Appendix-D-Example-Postmortem.md`
-    -   **參考原因**: 這是 `PostmortemAgent` 功能的具體實現範本。當代理從 `PrometheusQueryTool`、`LokiLogQueryTool` 和 `GitHubTool` 收集到事件數據後，需要將這些零散的信息組合成一篇結構化的覆盤報告。此附錄提供了一個絕佳的、可直接參考的目標格式。
+    -   **參考原因**: 這是 **`TASK-P3-AGENT-01` (PostmortemAgent)** 功能的具體實現範本。當代理從 `PrometheusQueryTool`、`LokiLogQueryTool` 和 `GitHubTool` 收集到事件數據後，需要將這些零散的信息組合成一篇結構化的覆盤報告。此附錄提供了一個絕佳的、可直接參考的目標格式。
 
 ---
 **結論**:

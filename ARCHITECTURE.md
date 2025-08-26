@@ -18,6 +18,8 @@
 3.  **聯邦化設計 (Federated Design)**: 後端架構從長遠來看是為多代理協同工作設計的，支持關注點分離、獨立演進和可組合性。
 4.  **可觀測性驅動 (Observability-Driven)**: 深度整合 LGTM (Loki, Grafana, Tempo, Mimir) 技術棧，確保系統自身的每一個決策和行動都高度可觀測。
 5.  **ADK 原生擴展 (ADK-Native Extensibility)**: 充分利用 ADK 的 Provider 模型，以符合框架最佳實踐的方式實現認證、記憶體和會話管理等核心功能。
+- **應用程式為中心診斷 (Application-Centric Diagnosis)**: 診斷流程必須以「應用程式」為單位，理解其拓撲結構與依賴關係，而非僅僅處理單一、孤立的警報。
+- **LLM 可觀測性 (LLM Observability)**: Agent 自身的決策過程（例如，工具選擇、提示生成）必須是完全可追蹤和可觀測的，以確保系統的可靠性和可維護性。
 6.  **漸進式演進 (Phased Evolution)**: 優先交付價值最高的 Grafana 整合功能，並在此基礎上逐步、平滑地向聯邦化生態系統演進。
 
 ## 3. 總體架構 (Overall Architecture)
