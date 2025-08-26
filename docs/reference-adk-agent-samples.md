@@ -281,41 +281,7 @@
 
 ---
 
-### 15. 企業級工具整合模式 (Enterprise Tooling Patterns)
-
-#### 範例: `jira_agent`
-
-- **簡介**: 此範例揭示了一種與 `github-agent`（直接呼叫 API）完全不同的、更強大的工具創建模式。它不直接與 Jira API 互動，而是使用 ADK 內建的 `ApplicationIntegrationToolset`，透過 **Google Cloud Application Integration** 這個受管的中介層來連接到 Jira。
-- **與 SRE Assistant 的關聯性**:
-    - **`Tool Registry` 的雙重策略**: 此範例為 `tool_registry.py` 的實現提供了第二種關鍵策略。開發團隊現在可以根據情況選擇：對於沒有 Google Cloud 連接器的服務，採用 `github-agent` 的直接 API 呼叫模式；對於像 Jira、Salesforce、SAP 等受支援的企業級應用，則採用此範例的**連接器模式**，以實現更快速、更穩健、更易於治理的整合。
-    - **抽象與治理**: 將認證和底層 API 的複雜性抽象到 Google Cloud 的連接器中，大大簡化了工具本身的程式碼，並有助於實現統一的安全和稽核策略。
-
----
-
-### 16. 動態程式碼執行與自動化修復 (Dynamic Code Execution & Automated Remediation)
-
-#### 範例: `code_execution`
-
-- **簡介**: 此範例雖然簡單，但展示了 ADK 一項極其強大的核心功能：透過將 `BuiltInCodeExecutor` 傳遞給代理，使其能夠安全地執行由 LLM 動態產生的 Python 程式碼。
-- **與 SRE Assistant 的關聯性**:
-    - **自動化修復的基石**: 這是 SRE Assistant 實現**自動化修復**願景的**基礎模式**。當需要執行的操作（例如，分析日誌後重啟特定 Pod）沒有現成的靜態工具時，代理可以動態生成一段 Python 腳本（使用 `kubernetes` 客戶端函式庫）並透過此機制執行它。
-    - **超越靜態工具**: 此模式將代理的能力從「使用預定義工具」提升到了「即時創造臨時工具」。它允許代理編寫腳本來組合多個操作（例如，查詢指標、處理數據、然後根據結果呼叫 API），實現了真正意義上的動態問題解決能力。
-    - **安全參考**: 提醒我們，安全執行的關鍵在於 `CodeExecutor` 的實現。對於需要執行高權限操作的 SRE Assistant，此範例為未來創建一個在隔離環境中（如臨時容器）運行的、更安全的自定義 Code Executor 提供了起點。
-
----
-
-### 17. 異步操作與人工批准 (Asynchronous Operations & Human Approval)
-
-#### 範例: `a2a_human_in_loop`
-
-- **簡介**: 此範例是一個專注於展示**異步人工批准**流程的黃金標準。它透過一個「報銷」場景，清晰地展示了一個根代理如何將需要批准的操作，透過 A2A 委派給一個遠端的批准代理，並利用 `LongRunningFunctionTool` 來「暫停」工作流程，直到獲得人工確認為止。
-- **與 SRE Assistant 的關聯性**:
-    - **高風險操作的標準流程**: 這是為 SRE Assistant 實現**高風險操作前須經批准**（如 `TASK-P2-DEBT-01` 中所述）的**完美藍圖**。相較於 `gemini-fullstack` 的全端複雜性，此範例專注於代理之間的通訊和狀態管理，讓開發者能快速理解和實現此核心安全功能。
-    - **`LongRunningFunctionTool` 的應用**: 清楚地演示了 `LongRunningFunctionTool` 的生命週期：發出請求 -> 收到 `pending` 回應 -> 等待外部更新 -> 完成執行。這個模式不僅適用於人工批准，也適用於任何耗時較長的異步任務，例如觸發一次完整的 CI/CD 流水線或執行一次資料庫備份。
-
----
-
-### 18. 自我對抗與韌性測試 (Self-Adversarial & Resilience Testing)
+### 15. 自我對抗與韌性測試 (Self-Adversarial & Resilience Testing)
 
 #### 範例: `any_agent_adversarial_multiagent`
 
@@ -327,7 +293,7 @@
 
 ---
 
-### 19. 進階工作流程與整合 (Advanced Workflows & Integrations)
+### 16. 進階工作流程與整合 (Advanced Workflows & Integrations)
 
 #### 範例: `brand-search-optimization`
 
@@ -340,7 +306,7 @@
 
 ---
 
-### 20. 即時 UI 串流 (Real-time UI Streaming)
+### 17. 即時 UI 串流 (Real-time UI Streaming)
 
 #### 範例: `navigoAI_voice_agent_adk`
 
@@ -352,7 +318,7 @@
 
 ---
 
-### 21. 韌性與時間序列分析 (Resilience & Time-Series Analysis)
+### 18. 韌性與時間序列分析 (Resilience & Time-Series Analysis)
 
 #### 範例: `fomc-research`
 
