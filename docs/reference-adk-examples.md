@@ -29,6 +29,9 @@
 - ### **檔案路徑**: `docs/references/adk-examples/adk_answering_agent/`
   - **參考原因**: 這是一個將**記憶體 (RAG)** 和**工具**結合的綜合性範例。它展示了一個完整的 Agent 如何利用 RAG (`upload_docs_to_vertex_ai_search.py`) 來增強其知識，並透過工具 (`tools.py`) 與外部服務互動。這為我們設計 `SREWorkflow`，使其能同時協調 RAG 檢索和工具調用提供了寶貴的架構參考。
 
+- ### **檔案路徑**: `docs/references/adk-examples/google_search_agent/`
+  - **參考原因**: 此範例是 Agent **獲取即時資訊能力**的基礎。它極其簡潔地展示了如何將 ADK 內建的 `google_search` 工具直接整合到 Agent 中。這對於 SRE Assistant 在進行根因分析時，能夠查詢最新的技術文檔、CVE 漏洞資訊或外部服務狀態至關重要，是 RAG 系統的重要補充。
+
 ## 部署與測試 (Deployment & Testing)
 
 這些範例是確保專案工程品質和可交付性的關鍵。
@@ -47,6 +50,9 @@
 - ### **檔案路徑**: `docs/references/adk-examples/tool_auth_gcp/`
   - **參考原因**: SRE Assistant 需要與多個 Google Cloud 服務（如 BigQuery, Vertex AI）互動。此範例演示了如何為工具配置和管理 GCP 服務的認證憑據。這為我們實現一個安全、統一的 Google Cloud 工具集提供了範本。
 
+- ### **檔案路徑**: `docs/references/adk-examples/hello_world_ollama/`
+  - **參考原因**: 此範例是實現**模型可配置性**的關鍵。它展示了如何透過 ADK 的 `LiteLlm` 封裝，輕易地將預設的 Gemini 模型替換為本地運行的 Ollama 模型（如 Mistral）。這為我們在開發環境中降低成本、離線運行、以及未來支援更多元的 LLM 後端提供了直接的技術路徑。
+
 ---
 
 ## Phase 1 & 2: 核心能力與 Grafana 整合 (Core Capabilities & Grafana Integration)
@@ -62,6 +68,9 @@
 
 - ### **檔案例項**: `docs/references/adk-examples/tool_auth_gcp/`
   - **參考原因**: SRE Assistant 需要與多個 Google Cloud 服務（如 BigQuery, Vertex AI）互動。此範例演示了如何為工具配置和管理 GCP 服務的認證憑據。這為我們實現一個安全、統一的 Google Cloud 工具集提供了範本。
+
+- ### **檔案路徑**: `docs/references/adk-examples/mcp_sse_agent/`
+  - **參考原因**: 此範例與 `live_bidi_streaming_tools_agent` 互為補充，展示了另一種關鍵的**網頁串流技術：Server-Sent Events (SSE)**。SSE 是單向的、從伺服器到客戶端的串流，非常適合將 Agent 的執行日誌、狀態更新推送到前端（如 Grafana 插件）。理解此模式有助於我們為 Phase 2 選擇最適合的串流解決方案。
 
 ## Phase 3 & 4: 聯邦化與進階工作流 (Federation & Advanced Workflows)
 
@@ -91,6 +100,12 @@
 
 - ### **檔案路徑**: `docs/references/adk-examples/testing_mock_api/`
   - **參考原因**: 隨著工具集的擴展，我們的整合測試會變得越來越慢且不穩定。此範例是完成 **`TASK-P1-DEBT-01`** 並保證長期工程品質的**必備實踐**。它演示瞭如何使用 `httpx-mock` 來模擬外部 API，使我們能夠在不依賴網路或第三方服務的情況下，快速、可靠地測試工具和 Agent 的核心邏輯。
+
+- ### **檔案路徑**: `docs/references/adk-examples/artifact_save_text/`
+  - **參考原因**: 此範例對於實現**覆盤報告 (`Postmortem`) 自動生成**至關重要。它展示了 Agent 如何將其最終的思考過程或生成內容，透過 `save_artifact` 函數保存為一個文字檔案。這是將 Agent 的內部狀態或工作成果持久化為外部可訪問資源（如報告、日誌、配置檔）的基礎。
+
+- ### **檔案路徑**: `docs/references/adk-examples/workflow_tool_selection/`
+  - **參考原因**: 此範例與 `workflow_conditional_routing` 共同為 **`TASK-P2-REFACTOR-01: 智慧分診系統`** 提供了另一種設計思路。它展示了如何完全透過 **YAML 設定檔**來定義工具的選擇邏輯，而不是在程式碼中硬編碼 `if/else` 或 `switch` 語句。這種**設定驅動**的方法，讓我們可以更容易地在不修改程式碼的情況下，調整和擴展 Agent 的決策行為。
 
 ---
 
