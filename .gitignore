@@ -20,7 +20,7 @@ profile.cov
 # Dependency directories (remove the comment below to include it)
 # vendor/
 tmp/
-
+docs-bak/
 # Go workspace file
 go.work
 go.work.sum
