@@ -1,17 +1,25 @@
 # ARCHITECTURE.md - SRE Assistant 統一架構設計
 
-**版本**: 4.0.0
-**狀態**: 草案
+**版本**: 2.0.0
+**狀態**: 生效中 (Active)
 **維護者**: SRE Platform Team
 
-## 1. 架構願景 (Architectural Vision)
+## 1. 核心理念 (Core Philosophy)
+
+SRE Assistant 的核心是一個以 **Grafana 為統一操作介面**、由**多個專業化智能代理協同工作**的**聯邦化 SRE 生態系統**。我們的目標是打造一個不僅能自動化解決問題，更能預測和預防未來故障的智能平台。
+
+- **程式碼優先 (Code-First)**: 所有代理、工具和工作流程都在 Python 程式碼中定義。
+- **模組化與聯邦化 (Modularity & Federation)**: 複雜的 SRE 工作流程由一個主協調器 (`SREWorkflow`) 調用多個小型、專業的子代理來完成。
+- **可擴展的服務 (Extensible Services)**: 認證、記憶體和會話管理等核心服務被設計為可插拔的提供者 (Provider) 模式，以適應不同的生產環境。
+
+## 2. 架構願景 (Architectural Vision)
 
 本架構旨在將 SRE Assistant 從一個單體智能代理，演進為一個以 **Grafana 為統一指揮中心**、由**多個專業化智能代理協同工作**的**聯邦化 SRE 生態系統**。我們的目標是打造一個不僅能自動化解決當前問題，更能預測和預防未來故障的智能平台，同時為 SRE 團隊提供無縫、統一的操作體驗。
 
 - **短期目標 (Tactical Goal)**: 透過深度整合 Grafana，提供一個集監控、告警、日誌、追蹤和 ChatOps 於一體的單一操作平台，快速提升 SRE 工作效率，減少上下文切換。
 - **長期願景 (Strategic Vision)**: 建立一個開放、可擴展的代理聯邦，每個代理都是特定領域（如事件處理、成本優化、混沌工程）的專家，它們可以獨立演進、自由組合，共同應對複雜的可靠性挑戰。
 
-## 2. 核心設計原則 (Core Design Principles)
+## 3. 核心設計原則 (Core Design Principles)
 
 1.  **Grafana 中心化 (Grafana-Centric)**: 以 Grafana 為所有 SRE 工作流的統一入口和介面，最大化利用其生態系統能力。
 2.  **後端即服務，前端即插件 (BaaS, FaaP)**: SRE Assistant 核心能力由基於 Google ADK 的後端服務提供，使用者主要透過 Grafana 插件與之互動。
@@ -27,7 +35,7 @@
 - **LLM 可觀測性 (LLM Observability)**: Agent 自身的決策過程（例如，工具選擇、提示生成、Token 消耗、成本、延遲）必須是完全可追蹤和可觀測的，以確保系統的可靠性和可維護性。這是一個關鍵的非功能性需求。
 6.  **漸進式演進 (Phased Evolution)**: 優先交付價值最高的 Grafana 整合功能，並在此基礎上逐步、平滑地向聯邦化生態系統演進。
 
-## 3. 總體架構 (Overall Architecture)
+## 4. 總體架構 (Overall Architecture)
 
 ```mermaid
 graph TD
@@ -92,24 +100,24 @@ graph TD
 
 此架構圖描繪了一個**分層模式 (Hierarchical Pattern)** 的多代理人系統，其中 `SREBackend`（或未來的 `Orchestrator`）作為中央協調器，將任務路由到下游的專業化代理。這種模式的詳細討論，以及其他如協作模式 (Collaborative Pattern) 和點對點模式 (Peer-to-Peer)，請參閱《代理人指南》。
 
-## 4. 系統組件 (System Components)
+## 5. 系統組件 (System Components)
 
-### 4.1 介面層 (Interface Layer)
+### 5.1 介面層 (Interface Layer)
 - **Grafana**: 作為整個系統的基礎平台，提供儀表板、告警、探索等原生功能。
 - **SRE Assistant Grafana Plugin**: 一個自定義的 Grafana 應用插件，是人機交互的核心。
   - **職責**: 提供 ChatOps 介面、自動化工作流觸發器、與 Grafana 原生功能（如圖表嵌入、註解創建）的深度整合。
   - **技術**: TypeScript, React, Grafana Plugin SDK。
 
-### 4.2 後端服務層 (Backend Service Layer)
+### 5.2 後端服務層 (Backend Service Layer)
 - **SRE Assistant API**: 系統的核心大腦，一個無狀態的後端服務。
   - **職責**: 處理來自 Grafana 插件的請求，執行核心業務邏輯（診斷、修復、覆盤），管理工具，協調對記憶庫的訪問。
   - **技術**: Python, Google Agent Development Kit (ADK)。
 - **聯邦協調器 (Orchestrator)**: (未來階段) 負責將複雜任務分解並路由到不同專業化代理的服務。在初期，其部分職責由 SRE Assistant API 承擔。
 
-### 4.3 專業化代理層 (Specialized Agent Layer)
+### 5.3 專業化代理層 (Specialized Agent Layer)
 - (未來階段) 一系列獨立的、專注於特定領域的智能代理。例如：`IncidentHandlerAgent`, `PredictiveMaintenanceAgent`, `ChaosEngineeringAgent` 等。它們將透過 A2A 協議與協調器通訊。
 
-### 4.4 數據與基礎設施層 (Data & Infrastructure Layer)
+### 5.4 數據與基礎設施層 (Data & Infrastructure Layer)
 - **統一記憶庫 (Unified Memory)**: 為所有代理提供短期、長期、程序和語義記憶。
   - **短期記憶體 (會話狀態)**: 採用 ADK 的 `DatabaseSessionService`，後端使用 PostgreSQL，以支持生產環境下的多實例部署和可靠性。這確保了在單一調查流程中的上下文不會因服務重啟而丟失。
   - **長期記憶體 (知識庫)**: 採用類似 `VertexAIMemoryBankService` 的模式，將歷史事件、解決方案和文檔存儲在 Weaviate 向量數據庫中，用於 RAG。
@@ -120,13 +128,13 @@ graph TD
   - **Mimir/Prometheus**: 指標的長期存儲與查詢。
 - **認證服務 (Authentication)**: 採用基於 OAuth 2.0/OIDC 的標準化認證流程，與 Grafana 的認證機制整合。
 
-### 4.5 代理詳細資訊 (Agent Details)
+### 5.5 代理詳細資訊 (Agent Details)
 - **類型 (Type)**: Workflow Orchestrator
 - **框架 (Framework)**: Google Agent Development Kit (ADK)
 - **模型 (LLM)**: Gemini Pro / GPT-4
 - **部署目標 (Deployment)**: Kubernetes / Cloud Run / Local Docker
 
-## 5. 技術棧 (Technology Stack)
+## 6. 技術棧 (Technology Stack)
 
 | 類別 | 技術選型 | 備註 |
 |---|---|---|
@@ -142,14 +150,14 @@ graph TD
 | **A2A 通訊** | gRPC + Protocol Buffers | 未來階段 |
 | **認證授權** | OAuth 2.0 / OIDC / None | `None` 選項方便本地無認證測試 |
 
-## 6. ADK 擴展性應用 (ADK Extensibility)
+## 7. ADK 擴展性應用 (ADK Extensibility)
 
 為了確保架構與框架的最佳實踐一致，並構建一個生產級的、可靠的代理系統，我們將充分利用 ADK 的可擴展性介面：
 - **`session_service_builder`**: 這是實現**可靠的短期記憶體**的關鍵。預設的 `InMemorySessionService` 在服務重啟或擴展時會丟失所有上下文。因此，我們將實現一個基於 `DatabaseSessionService` 的自定義會話服務，使用 PostgreSQL 作為後端。這確保了即使用戶的請求被路由到不同的實例，或者服務發生重啟，進行中的調查任務狀態也能被完整保留。
 - **`MemoryProvider`**: 這是實現**可擴展的長期記憶體**的關鍵。我們將實現一個自定義的 `MemoryProvider`，它橋接到 Weaviate 向量數據庫。此提供者將模仿 `VertexAIMemoryBankService` 的行為模式，允許代理透過語義搜索從過去的事件和文檔中學習，同時將記憶體管理的複雜性與代理的核心邏輯分離。
 - **`AuthProvider`**: 將實現一個 OAuth 2.0/OIDC 提供者，與 Grafana 的用戶身份驗證和組織架構進行對接，實現單點登錄 (SSO) 和基於角色的訪問控制 (RBAC)。
 
-## 7. 安全架構 (Security Architecture)
+## 8. 安全架構 (Security Architecture)
 
 安全是系統設計的基石，採用縱深防禦策略：
 - **認證**: Grafana 和 SRE Assistant 後端共享同一個 OAuth 2.0/OIDC 身份提供者。
@@ -160,16 +168,16 @@ graph TD
 - **稽核日誌 (Audit Logging)**: 所有代理執行的操作都有完整的稽核追蹤。
 - **合規性 (Compliance)**: 系統設計符合 SOC 2, GDPR, HIPAA 等規範。
 
-## 8. 部署與配置 (Deployment & Configuration)
+## 9. 部署與配置 (Deployment & Configuration)
 
-### 8.1 Grafana 插件安裝
+### 9.1 Grafana 插件安裝
 
 ```bash
 grafana-cli plugins install sre-assistant-app
 systemctl restart grafana-server
 ```
 
-### 8.2 配置範例 (Configuration Example)
+### 9.2 配置範例 (Configuration Example)
 
 ```yaml
 # src/sre_assistant/config/production.yaml
@@ -199,7 +207,7 @@ agents:
     forecast_horizon: "7d"
 ```
 
-## 9. 韌性與故障處理 (Resilience and Fault Tolerance)
+## 10. 韌性與故障處理 (Resilience and Fault Tolerance)
 
 系統的韌性是確保服務可靠性的關鍵。我們將採用以下機制來處理故障：
 
@@ -216,7 +224,7 @@ agents:
     - `degraded_mode`: 提供功能受限的回應（例如，只提供基於日誌的分析，而不查詢指標）。
     - `manual_override`: 允許操作員手動覆蓋自動化決策。
 
-## 10. 性能基準 (Performance Targets)
+## 11. 性能基準 (Performance Targets)
 
 為了量化和追蹤系統的性能，我們定義以下服務水平目標 (SLO)：
 
@@ -227,7 +235,7 @@ agents:
 
 這些目標將通過 Grafana 儀表板進行監控。
 
-## 10.1. 監控告警規則 (Monitoring and Alerting Rules)
+## 12. 監控告警規則 (Monitoring and Alerting Rules)
 
 為了確保 SLO/SLI 被有效監控，我們定義以下告警規則範例。這些規則將在 Prometheus/Mimir 中實現。
 
@@ -244,7 +252,7 @@ alerting_rules:
     severity: critical
 ```
 
-## 11. 數據一致性 (Data Consistency)
+## 13. 數據一致性 (Data Consistency)
 
 在多個數據存儲之間保持一致性至關重要：
 
@@ -254,7 +262,7 @@ alerting_rules:
   - **異步更新**: 下游消費者（如 Weaviate 的向量化服務）訂閱這些事件，並異步更新其數據。
   - **冪等性**: 所有更新操作都設計為冪等的，以處理重複的事件消息。
 
-## 8. 實施路線圖 (Implementation Roadmap)
+## 14. 實施路線圖 (Implementation Roadmap)
 
 本架構將分階段實施，詳細的時程、里程碑和交付物，請參閱我們的官方路線圖文件：
 [**ROADMAP.md**](ROADMAP.md)

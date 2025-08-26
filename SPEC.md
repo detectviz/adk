@@ -1,7 +1,7 @@
 # SPEC.md - SRE Assistant 功能與代理規格
 
-**版本**: 1.1.0
-**狀態**: 草案
+**版本**: 2.0.0
+**狀態**: 生效中 (Active)
 **關聯架構**: [ARCHITECTURE.md](ARCHITECTURE.md)
 **關聯路線圖**: [ROADMAP.md](ROADMAP.md)
 
@@ -179,11 +179,11 @@ curl -X POST https://api.sre-assistant.io/v1/incidents/analyze \
 
 ---
 
-## 4. 專業化代理規格 (Specialized Agent Specifications)
+## 6. 專業化代理規格 (Specialized Agent Specifications)
 
 根據 [ROADMAP.md](ROADMAP.md) 的規劃，SRE Assistant 將逐步演進為一個由以下專業化代理組成的聯邦。
 
-## 5. 標準化介面與錯誤處理 (Standardized Interface & Error Handling)
+## 4. 標準化介面與錯誤處理 (Standardized Interface & Error Handling)
 
 ### 4.1. 工具介面規格 (Tool Interface Specification)
 
@@ -233,7 +233,7 @@ class BaseTool(Protocol):
     - `NOT_FOUND`: 請求的資源未找到。
     - `EXTERNAL_API_ERROR`: 外部 API 調用失敗。
 
-## 6. 版本管理策略 (Versioning Strategy)
+## 5. 版本管理策略 (Versioning Strategy)
 
 ### 5.1. 總體策略 (Overall Strategy)
 - **代理版本**: 遵循語義化版本（SemVer, `MAJOR.MINOR.PATCH`）。`MAJOR` 版本變更表示有破壞性 API 變更。
@@ -254,7 +254,7 @@ api_versioning:
   backward_compatibility: 2_major_versions
 ```
 
-### 4.1 代理類別總覽 (Agent Categories)
+### 6.1 代理類別總覽 (Agent Categories)
 
 | 代理名稱 (Agent Name) | 使用案例 (Use Case) | 標籤 (Tag) | 互動類型 (Interaction Type) | 複雜度 (Complexity) | 代理類型 (Agent Type) | 垂直領域 (Vertical) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -265,7 +265,7 @@ api_versioning:
 | 容量規劃 Assistant | 分析資源使用並提供擴展建議 | `Capacity`, `Scaling`, `Resource Optimization` | 請求/回應 (Request/Response) | 中等 (Intermediate) | 單一代理 (Single Agent) | SRE/FinOps |
 | 成本優化 Assistant | 監控雲成本並提供優化方案 | `FinOps`, `Cost`, `Cloud`, `Optimization` | 請求/回應 (Request/Response) | 中等 (Intermediate) | 單一代理 (Single Agent) | FinOps/Cloud Governance |
 
-### 4.2 事件處理 Assistant (Incident Handler)
+### 6.2 事件處理 Assistant (Incident Handler)
 
 - **目標**: 負責對生產環境中發生的事件進行端到端的偵測、分析、修復和覆盤。
 - **核心能力**:
@@ -291,7 +291,7 @@ api_versioning:
     default_on_call_user: "sre-team"
     ```
 
-### 4.3 預測維護 Assistant (Predictive Maintenance)
+### 6.3 預測維護 Assistant (Predictive Maintenance)
 
 - **目標**: 基於歷史數據預測潛在的系統問題，並在問題發生前發出預警或採取預防措施。
 - **核心能力**:
@@ -309,7 +309,7 @@ api_versioning:
     - `metrics_time_series_db`: 長期存儲的指標數據。
     - `anomaly_patterns`: 已識別的異常模式庫。
 
-### 4.4 部署管理 Assistant (Deployment)
+### 6.4 部署管理 Assistant (Deployment)
 
 - **目標**: 輔助和自動化軟體部署的全過程，確保部署的穩定性和可靠性。
 - **核心能力**:
@@ -326,7 +326,7 @@ api_versioning:
     - `deployment_history`: 部署歷史記錄。
     - `dependency_graph`: 服務間依賴關係圖。
 
-### 4.5 混沌工程 Assistant (Chaos Engineering)
+### 6.5 混沌工程 Assistant (Chaos Engineering)
 
 - **目標**: 透過主動注入故障來測試系統的韌性，並找出潛在的弱點。
 - **核心能力**:
@@ -340,7 +340,7 @@ api_versioning:
     - `chaos_experiment_templates`: 混沌實驗範本庫。
     - `experiment_result_archive`: 歷史實驗結果歸檔。
 
-### 4.6 容量規劃 Assistant (Capacity Planning)
+### 6.6 容量規劃 Assistant (Capacity Planning)
 
 - **目標**: 分析當前資源使用情況和未來增長趨勢，提供科學的容量規劃建議。
 - **核心能力**:
@@ -353,7 +353,7 @@ api_versioning:
 - **記憶體集合**:
     - `historical_usage_data`: 歷史資源使用數據。
 
-### 4.7 成本優化 Assistant (FinOps)
+### 6.7 成本優化 Assistant (FinOps)
 
 - **目標**: 持續監控雲資源成本，識別浪費，並提供或執行優化建議（FinOps）。
 - **核心能力**:

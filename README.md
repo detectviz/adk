@@ -127,25 +127,39 @@ python -m sre_assistant.main --config=production
 
 ## 專案結構
 
-詳細參考依照 [project-architecture.md](project-architecture.md) 文件。
-
 ```bash
 sre-assistant/
 .
-├── src/
-│   └── sre_assistant/        # 主要的 Python 套件
-│       ├── __init__.py
-│       ├── workflow.py       # 核心工作流程協調器
-│       ├── contracts.py      # Pydantic 資料模型
-│       ├── tool_registry.py  # 共享工具註冊表
-│       ├── auth/             # 認證提供者
-│       ├── memory/           # 長期記憶體提供者
-│       ├── session/          # 會話狀態提供者
-│       └── sub_agents/       # 專業化子代理
-├── tests/                # 測試套件
-├── deployment/           # 部署腳本 (Terraform, Docker)
+├── .github/              # CI/CD 工作流程 (例如 GitHub Actions)
+├── .gitignore
+├── AGENT.md
+├── ARCHITECTURE.md
+├── Dockerfile            # 用於將最終應用程式容器化
+├── LICENSE               # 專案授權條款
+├── Makefile              # 用於自動化常用指令 (例如 setup, test, run)
+├── README.md
+├── ROADMAP.md
+├── SPEC.md
+├── TASKS.md
+├── config/               # 外部基礎設施設定 (例如 Prometheus, Grafana)
+├── deployment/           # 部署相關設定 (例如 Kubernetes, Cloud Run)
+├── docker-compose.yml    # 用於一鍵啟動本地開發環境
 ├── docs/                 # 專案文件
-└── pyproject.toml        # 專案依賴
+├── eval/                 # 程式化的評估腳本
+├── pyproject.toml        # Python 專案定義與依賴管理
+├── src/sre_assistant/    # 主要的原始碼目錄
+│   ├── __init__.py
+│   ├── workflow.py       # 核心工作流程協調器
+│   ├── contracts.py      # Pydantic 資料模型
+│   ├── prompts.py        # Prompt 模板
+│   ├── tool_registry.py  # 共享工具註冊表
+│   ├── auth/             # 認證提供者模組
+│   ├── config/           # 應用程式自身的設定管理
+│   ├── memory/           # 長期記憶體 (RAG) 提供者模組
+│   ├── session/          # 會話 (短期記憶體) 提供者模組
+│   └── sub_agents/       # 未來的專業化子代理 (聯邦化階段)
+└── tests/                # 測試套件 (應與 src 平行)
+ 
 ```
 
 ## 技術棧
