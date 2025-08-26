@@ -262,6 +262,7 @@ sre_assistant/
         - [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration)
         - [ADK Agent Samples: brand-search-optimization](docs/reference-adk-agent-samples.md#16-進階工作流程與整合-advanced-workflows--integrations)
         - [ADK Examples: workflow_triage](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references)
+        - `docs/agents-companion-v2-zh-tw.md` (多代理互動模式)
     - **驗收標準**: 系統能夠根據診斷摘要，動態調度在 `SPEC.md` 中定義的專家代理。
 
 ### P2 - 技術債 (Technical Debt)
@@ -296,13 +297,17 @@ sre_assistant/
         - [ ] 每個使用者請求都會生成一個包含多個跨度 (Span) 的完整追蹤 (Trace)。
         - [ ] 追蹤中應清晰地標示出 `SREWorkflow` 的執行、每次工具調用、以及每次對 LLM 的 API 調用。
         - [ ] 關鍵元數據（如 Token 數、工具參數、LLM 回應）應作為屬性 (Attribute) 附加到對應的跨度上。
-    - **參考**: [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/)
+    - **參考**:
+        - [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/)
+        - `docs/agents-companion-v2-zh-tw.md` (代理人評估)
 - [ ] **TASK-P3-OBSERVE-02**: **建立 LLM 可觀測性儀表板**
     - **描述**: 根據 `TASK-P3-OBSERVE-01` 收集到的追蹤數據，在 Grafana 中建立一個專門的儀表板，用於監控 SRE Assistant 自身的健康狀況。
     - **驗收標準**:
         - [ ] 儀表板應包含以下面板：總請求數、錯誤率、p90/p95/p99 延遲。
         - [ ] 儀表板應包含按工具或代理名稱分類的成本（Token 使用量）面板。
         - [ ] 能夠下鑽到單個追蹤，以查看詳細的執行流程。
+    - **參考**:
+        - `docs/agents-companion-v2-zh-tw.md` (代理人成功指標與評估)
 
 - [ ] **TASK-P4-ORCH-01**: **(P4) 聯邦協調器**: 開發功能完備的 SRE Orchestrator 服務。
     - **參考**: [ADK Agent Samples: a2a_mcp](docs/reference-adk-agent-samples.md#3-聯邦化架構與服務發現-federated-architecture--service-discovery)

@@ -83,17 +83,22 @@
 
 ---
 
-## Phase 2.5: Agent 可觀測性 (Agent Observability)
+## Phase 2.5: Agent 可觀測性與評估 (Agent Observability & Evaluation)
 - **預計時間**: 1-2 個月
-- **主題**: 為 SRE Assistant 自身建立深度可觀測性，確保其決策過程透明、可追蹤。此階段的設計應參考 [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/) 的行業最佳實踐。
-- **關鍵目標**: 實現 `SPEC.md` 中定義的 LLM 可觀測性規格。
+- **主題**: 為 SRE Assistant 自身建立深度可觀測性與系統化的評估框架，確保其決策過程透明、可追蹤且品質可控。
+- **理論基礎**: 此階段的設計與實踐，應深度參考 **`docs/agents-companion-v2-zh-tw.md`** 中關於「代理人評估 (Agent Evaluation)」的章節。開發團隊應將其中闡述的最佳實踐，如**軌跡評估 (Trajectory Evaluation)**、**最終回應評估 (Final Response Evaluation)** 和**人在環路評估 (Human-in-the-Loop Evaluation)**，作為設計評估框架的核心指導原則。
+- **關鍵目標**: 實現 `SPEC.md` 中定義的 LLM 可觀測性規格，並建立初步的自動化評估管線。
 - **主要交付物**:
     - **2.5.1. 端到端追蹤**:
         - 📦 實現對 `SREWorkflow` 的 OpenTelemetry 自動化埋點。
         - 🔍 確保每次工具調用、LLM 請求都被捕獲為追蹤中的一個跨度 (Span)。
     - **2.5.2. 可觀測性儀表板**:
         - 📊 建立一個 Grafana 儀表板，用於視覺化 Agent 的執行流程、延遲和成本（Token 使用量）。
-- **參考**: [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/)
+    - **2.5.3. 自動化評估框架 v1**:
+        - 📝 建立一個初步的評估腳本，能夠針對一組黃金測試案例，自動比較代理人的輸出與預期結果，並計算成功率。
+- **參考**:
+    - [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/)
+    - `docs/agents-companion-v2-zh-tw.md`
 
 ---
 
