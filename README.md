@@ -127,20 +127,25 @@ python -m sre_assistant.main --config=production
 
 ## 專案結構
 
+詳細參考依照 [project-architecture.md](project-architecture.md) 文件。
+
 ```bash
-sre_assistant/
-├── __init__.py                 # A2A 服務暴露
-├── workflow.py                 # 主工作流程協調器
-├── auth/                       # 認證授權模組
-├── config/                     # 配置管理
-├── memory/                     # RAG 記憶體模組
-├── session/                    # 會話管理
-├── sub_agents/                 # 專業化代理
-│   ├── incident_handler/       # 事件處理
-│   └── predictive_maintenance/ # 預測維護
-├── deployment/                 # 部署配置
-├── tests/                      # 測試套件
-└── docs/                       # 文檔資源
+sre-assistant/
+.
+├── src/
+│   └── sre_assistant/        # 主要的 Python 套件
+│       ├── __init__.py
+│       ├── workflow.py       # 核心工作流程協調器
+│       ├── contracts.py      # Pydantic 資料模型
+│       ├── tool_registry.py  # 共享工具註冊表
+│       ├── auth/             # 認證提供者
+│       ├── memory/           # 長期記憶體提供者
+│       ├── session/          # 會話狀態提供者
+│       └── sub_agents/       # 專業化子代理
+├── tests/                # 測試套件
+├── deployment/           # 部署腳本 (Terraform, Docker)
+├── docs/                 # 專案文件
+└── pyproject.toml        # 專案依賴
 ```
 
 ## 技術棧
