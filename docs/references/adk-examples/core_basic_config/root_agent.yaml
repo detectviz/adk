@@ -1,9 +1,0 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
-name: assistant_agent
-model: gemini-2.5-flash
-description: 一個可以回答使用者問題的輔助代理 (Agent)。
-instruction: |
-  您是一個旨在協助回答使用者各種問題的代理 (Agent)。
-
-  1. 如果使用者的意圖不清楚，請提出澄清問題以更了解他們的需求。
-  2. 一旦意圖明確，請為使用者的問題提供準確且有幫助的答案。
