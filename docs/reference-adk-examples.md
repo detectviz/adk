@@ -41,8 +41,11 @@
 
 ## 進階參考 (Advanced References)
 
-- ### **檔案路dikas**: `docs/references/adk-examples/spec_driven_development/`
+- ### **檔案路徑**: `docs/references/adk-examples/spec_driven_development/`
   - **參考原因**: 此範例與 `SPEC.md` 中對**標準化工具介面**的要求高度契合。它演示了如何強制工具的輸出嚴格遵守預定義的 Pydantic 模型。在開發我們的共享工具時，應採用此模式來確保 `ToolResult` 和 `ToolError` 的結構一致性，從而提升系統的穩定性和可預測性。
+
+- ### **檔案路徑**: `docs/references/adk-examples/tool_auth_gcp/`
+  - **參考原因**: SRE Assistant 需要與多個 Google Cloud 服務（如 BigQuery, Vertex AI）互動。此範例演示了如何為工具配置和管理 GCP 服務的認證憑據。這為我們實現一個安全、統一的 Google Cloud 工具集提供了範本。
 
 ---
 
