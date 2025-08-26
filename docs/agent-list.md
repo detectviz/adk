@@ -14,7 +14,25 @@
 
 ## 核心範例精選
 
-### 1. 工作流程與協調模式 (Workflow & Orchestration)
+### 1. 基礎入門與核心概念 (Getting Started & Core Concepts)
+
+#### 範例: `helloworld`
+
+- **簡介**: **最精簡的 ADK 代理 (Agent)**。它不包含任何工具或複雜的邏輯，只會回應一個「Hello, World!」訊息。
+- **與 SRE Assistant 的關聯性**:
+    - **開發的「第 0 步」**: 對於初次接觸 ADK 的開發者而言，此範例是理解代理服務最基本結構的完美起點。在深入 `dice_agent_rest`（第一個工具）或更複雜的工作流程之前，開發者可以透過此範例快速掌握一個 ADK 服務的最小樣板 (boilerplate)。
+    - **基礎知識**: 有助於鞏固對 ADK 核心元件（如 `agent_executor`）和基本配置的理解，為後續學習奠定堅實基礎。
+
+#### 範例: `dice_agent_rest`
+
+- **簡介**: 此範例是 `dice_agent_grpc` 的 REST/HTTP 對應版本，展示了**以最簡潔的方式建立一個標準的 ADK REST 服務**。
+- **與 SRE Assistant 的關聯性**:
+    - **Phase 1 的「Hello, World!」**: 雖然長期目標是 gRPC，但 Phase 1 和 2 的核心是 RESTful 通訊 (例如，Grafana 插件與後端)。此範例為 `TASK-P1-SVC-01` (實現核心 SRE Assistant Agent 服務) 提供了一個**最精簡、最無干擾的起點**。開發團隊可以從這裡開始，逐步疊加認證、資料庫整合等複雜功能，而不是一開始就被更複雜的範例所淹沒。
+    - **基礎知識**: 與 `dice_agent_grpc` 並列學習，可以幫助開發者清晰地理解 ADK 如何同時支援兩種主流的通訊協定，鞏固對框架基礎的理解。
+
+---
+
+### 2. 工作流程與協調模式 (Workflow & Orchestration)
 
 #### 範例: `google-adk-workflows`
 
@@ -27,7 +45,7 @@
 
 ---
 
-### 2. 聯邦化架構與服務發現 (Federated Architecture & Service Discovery)
+### 3. 聯邦化架構與服務發現 (Federated Architecture & Service Discovery)
 
 #### 範例: `a2a_mcp`
 
@@ -38,7 +56,7 @@
 
 ---
 
-### 3. 安全與認證 (Security & Authentication)
+### 4. 安全與認證 (Security & Authentication)
 
 #### 範例: `headless_agent_auth`
 
@@ -51,7 +69,7 @@
 
 ---
 
-### 4. 檢索增強生成 (RAG) 與記憶體
+### 5. 檢索增強生成 (RAG) 與記憶體
 
 #### 範例: `RAG`
 
@@ -71,7 +89,7 @@
 
 ---
 
-### 5. 可觀測性與追蹤 (Observability & Tracing)
+### 6. 可觀測性與追蹤 (Observability & Tracing)
 
 #### 範例: `a2a_telemetry`
 
@@ -83,7 +101,7 @@
 
 ---
 
-### 6. 部署與雲端整合 (Deployment & Cloud Integration)
+### 7. 部署與雲端整合 (Deployment & Cloud Integration)
 
 #### 範例: `adk_cloud_run`
 
@@ -95,7 +113,7 @@
 
 ---
 
-### 7. 工具開發 (Tool Development)
+### 8. 工具開發 (Tool Development)
 
 #### 範例: `github-agent`
 
@@ -106,7 +124,7 @@
 
 ---
 
-### 8. 領域特定工作流程 (Domain-Specific Workflows)
+### 9. 領域特定工作流程 (Domain-Specific Workflows)
 
 #### 範例: `software-bug-assistant`
 
@@ -141,7 +159,7 @@
 
 ---
 
-### 9. A2A 通訊協定 (A2A Communication Protocols)
+### 10. A2A 通訊協定 (A2A Communication Protocols)
 
 #### 範例: `dice_agent_grpc`
 
@@ -150,16 +168,9 @@
     - **Phase 3 的核心技術**: `ROADMAP.md` 和 `ARCHITECTURE.md` 明確指出，Phase 3 的聯邦化架構將採用 gRPC 作為 A2A (Agent-to-Agent) 通訊協定。此範例是實現 `TASK-P3-A2A-01` 的**直接樣板**。
     - **高效能通訊**: 為團隊提供了如何在 ADK 中設定和使用 gRPC Server 的基礎知識，這對於實現低延遲、高效能的內部代理通訊至關重要。
 
-#### 範例: `dice_agent_rest`
-
-- **簡介**: 此範例是 `dice_agent_grpc` 的 REST/HTTP 對應版本，展示了**以最簡潔的方式建立一個標準的 ADK REST 服務**。
-- **與 SRE Assistant 的關聯性**:
-    - **Phase 1 的「Hello, World!」**: 雖然長期目標是 gRPC，但 Phase 1 和 2 的核心是 RESTful 通訊 (例如，Grafana 插件與後端)。此範例為 `TASK-P1-SVC-01` (實現核心 SRE Assistant Agent 服務) 提供了一個**最精簡、最無干擾的起點**。開發團隊可以從這裡開始，逐步疊加認證、資料庫整合等複雜功能，而不是一開始就被更複雜的範例所淹沒。
-    - **基礎知識**: 與 `dice_agent_grpc` 並列學習，可以幫助開發者清晰地理解 ADK 如何同時支援兩種主流的通訊協定，鞏固對框架基礎的理解。
-
 ---
 
-### 10. 全端整合與前端開發 (Full-Stack & Frontend Integration)
+### 11. 全端整合與前端開發 (Full-Stack & Frontend Integration)
 
 #### 範例: `gemini-fullstack`
 
@@ -178,7 +189,7 @@
 
 ---
 
-### 11. 機器學習與預測分析 (Machine Learning & Predictive Analysis)
+### 12. 機器學習與預測分析 (Machine Learning & Predictive Analysis)
 
 #### 範例: `machine-learning-engineering`
 
@@ -190,7 +201,7 @@
 
 ---
 
-### 12. 關鍵模式與第三方框架整合 (Key Patterns & 3rd-Party Framework Integration)
+### 13. 關鍵模式與第三方框架整合 (Key Patterns & 3rd-Party Framework Integration)
 
 #### 範例: `marvin`
 
@@ -231,7 +242,7 @@
 
 ---
 
-### 13. 文件驅動的規劃與生成 (Documentation-Driven Planning)
+### 14. 文件驅動的規劃與生成 (Documentation-Driven Planning)
 
 #### 範例: `qa-test-planner-agent`
 
@@ -242,7 +253,7 @@
 
 ---
 
-### 14. 企業級工具整合模式 (Enterprise Tooling Patterns)
+### 15. 企業級工具整合模式 (Enterprise Tooling Patterns)
 
 #### 範例: `jira_agent`
 
@@ -253,7 +264,7 @@
 
 ---
 
-### 15. 動態程式碼執行與自動化修復 (Dynamic Code Execution & Automated Remediation)
+### 16. 動態程式碼執行與自動化修復 (Dynamic Code Execution & Automated Remediation)
 
 #### 範例: `code_execution`
 
@@ -265,7 +276,7 @@
 
 ---
 
-### 16. 異步操作與人工批准 (Asynchronous Operations & Human Approval)
+### 17. 異步操作與人工批准 (Asynchronous Operations & Human Approval)
 
 #### 範例: `a2a_human_in_loop`
 
@@ -276,7 +287,7 @@
 
 ---
 
-### 17. 自我對抗與韌性測試 (Self-Adversarial & Resilience Testing)
+### 18. 自我對抗與韌性測試 (Self-Adversarial & Resilience Testing)
 
 #### 範例: `any_agent_adversarial_multiagent`
 
@@ -285,3 +296,16 @@
     - **混沌工程的哲學基礎**: 這是 Phase 4 `ChaosEngineeringAgent` 的一個絕佳的哲學和架構參考。它不僅僅是注入隨機故障，而是模擬一個「智慧對手」來主動測試系統的邊界和弱點。
     - **強化系統韌性**: 可以借鑒此模式，創建一個內部的「Red Team Agent」，其任務是定期挑戰 SRE Assistant 的診斷和修復邏輯。例如，它可以構造一個看起來像 A 問題但實際上是 B 問題的場景，來測試 SRE Assistant 的根因分析能力是否足夠強大。這有助於建立一個更可靠、更能抵抗誤判的自進化系統。
     - **安全性測試**: 此模式也可以擴展到安全性領域，用於測試 SRE Assistant 的防護措施，確保其不會被惡意輸入所利用來執行未經授權的操作。
+
+---
+
+### 19. 進階工作流程與整合 (Advanced Workflows & Integrations)
+
+#### 範例: `brand-search-optimization`
+
+- **簡介**: 一個高度複雜的多代理系統，它結合了**資料庫查詢**與**自動化網頁瀏覽**，以實現一個完整的業務流程。此代理首先從 BigQuery 獲取產品數據，然後使用一個「電腦使用」代理（透過 Selenium）自動瀏覽購物網站，執行搜尋，並分析結果以提出產品標題的優化建議。
+- **與 SRE Assistant 的關聯性**:
+    - **進階工具 - 自動化網頁瀏覽**: SRE Assistant 時常需要與**沒有提供 API 的系統**互動（例如：舊版的監控儀表板、雲端供應商的狀態頁面、非結構化的 Web Log）。此範例中的 `computer_use` 子代理提供了一個功能強大且可重用的模式，展示如何將 Selenium 操作（如 `go_to_url`, `click_element`, `get_page_source`）封裝成代理可以使用的工具。這是實現 `TASK-P2-TOOL-04` (開發 Web UI 互動工具) 的**關鍵參考**。
+    - **真實世界的路由器模式**: 此範例包含一個根據任務需求，在 `bigquery_agent` 和 `computer_use_agent` 之間進行選擇的路由器。這為 `SREIntelligentDispatcher` 提供了一個比 `google-adk-workflows` 更貼近實際應用場景的、更具體的實現範例。
+    - **資料庫驅動的工作流程**: 整個流程由 BigQuery 中的初始資料觸發。這與 SRE Assistant 需要從 PostgreSQL 中查詢告警歷史或事件上下文，然後再決定下一步行動的核心工作流程完全一致，為 `SREWorkflow` 的設計提供了寶貴的實踐經驗。
+    - **端到端設置**: 範例中包含了 `run.sh` 和 `eval.sh` 等腳本，用於自動化環境設定、資料庫填充和評估，這與 SRE Assistant 專案對**基礎設施即代碼 (IaC)** 的要求 (`TASK-P1-INFRA-01`) 高度契合。
