@@ -50,20 +50,21 @@ graph TD
 
     subgraph "後端服務 (Backend Services)"
         SREBackend[SRE Assistant API<br/>(Python / Google ADK)]
-        Orchestrator[聯邦協調器<br/>(未來)]
+        Orchestrator[聯邦協調器 (SREIntelligentDispatcher)<br/>(未來)]
     end
 
     subgraph "專業化代理 (Specialized Agents) - 未來"
         IncidentAgent[事件處理代理]
         PredictiveAgent[預測維護代理]
         CostAgent[成本優化代理]
+        VerificationAgent[驗證代理 (Self-Critic)]
         OtherAgents[...]
     end
 
     subgraph "數據與基礎設施 (Data & Infrastructure)"
         subgraph "統一記憶庫 (Unified Memory)"
-            VectorDB[向量數據庫<br/>Weaviate]
-            DocDB[文檔/關係型數據庫<br/>PostgreSQL]
+            VectorDB[向量數據庫<br/>Weaviate / Vertex AI]
+            DocDB[關係型數據庫<br/>PostgreSQL]
             Cache[快取<br/>Redis]
         end
         subgraph "可觀測性 (Observability) - LGTM Stack"
@@ -92,7 +93,7 @@ graph TD
     Orchestrator -. A2A Protocol .-> IncidentAgent
     Orchestrator -. A2A Protocol .-> PredictiveAgent
     Orchestrator -. A2A Protocol .-> CostAgent
-    Orchestrator -. A2A Protocol .-> OtherAgents
+    Orchestrator -.-> VerificationAgent
 
     IncidentAgent --> VectorDB & DocDB
     PredictiveAgent --> Mimir
@@ -114,7 +115,19 @@ graph TD
   - **技術**: Python, Google Agent Development Kit (ADK)。
 - **聯邦協調器 (Orchestrator)**: (未來階段) 負責將複雜任務分解並路由到不同專業化代理的服務。在初期，其部分職責由 SRE Assistant API 承擔。
 
-### 5.3 專業化代理層 (Specialized Agent Layer)
+### 5.3 核心工作流程代理 (Core Workflow Agents)
+
+根據 `review.md` 的建議，SRE Assistant 的核心工作流程將由以下關鍵的、符合 ADK 最佳實踐的代理組成：
+
+- **`IntelligentDispatcher` (智能分診器)**:
+    - **職責**: 作為修復階段的入口，取代簡單的 `if/else` 邏輯。它使用一個 LLM 來分析診斷階段的輸出，並動態地選擇一個或多個最合適的下游專家代理（如 `KubernetesRemediationAgent`）來執行修復。
+    - **ADK 模式**: `Agent-as-Tool`, `LLM-as-a-Router`。
+
+- **`VerificationAgent` (驗證代理)**:
+    - **職責**: 在修復操作執行後，自動化地驗證問題是否已真正解決。它會執行一系列健康檢查（如 `HealthCheckAgent`, `SLOValidationAgent`）來確認系統狀態。
+    - **ADK 模式**: `Self-Criticism` (自我審查)。如果驗證失敗，它可以觸發一個回呼函式 (`on_failure_callback`) 來啟動回滾程序。
+
+### 5.4 專業化代理層 (Specialized Agent Layer)
 - (未來階段) 一系列獨立的、專注於特定領域的智能代理。例如：`IncidentHandlerAgent`, `PredictiveMaintenanceAgent`, `ChaosEngineeringAgent` 等。它們將透過 A2A 協議與協調器通訊。
 
 ### 5.4 數據與基礎設施層 (Data & Infrastructure Layer)
@@ -150,21 +163,32 @@ graph TD
 | **A2A 通訊** | gRPC + Protocol Buffers | 未來階段 |
 | **認證授權** | OAuth 2.0 / OIDC / None | `None` 選項方便本地無認證測試 |
 
-## 7. ADK 擴展性應用 (ADK Extensibility)
+## 7. ADK 原生擴展性 (ADK-Native Extensibility)
 
-為了確保架構與框架的最佳實踐一致，並構建一個生產級的、可靠的代理系統，我們將充分利用 ADK 的可擴展性介面：
-- **`session_service_builder`**: 這是實現**可靠的短期記憶體**的關鍵。預設的 `InMemorySessionService` 在服務重啟或擴展時會丟失所有上下文。因此，我們將實現一個基於 `DatabaseSessionService` 的自定義會話服務，使用 PostgreSQL 作為後端。這確保了即使用戶的請求被路由到不同的實例，或者服務發生重啟，進行中的調查任務狀態也能被完整保留。
-- **`MemoryProvider`**: 這是實現**可擴展的長期記憶體**的關鍵。我們將實現一個自定義的 `MemoryProvider`，它橋接到 Weaviate 向量數據庫。此提供者將模仿 `VertexAIMemoryBankService` 的行為模式，允許代理透過語義搜索從過去的事件和文檔中學習，同時將記憶體管理的複雜性與代理的核心邏輯分離。
-- **`AuthProvider`**: 將實現一個 OAuth 2.0/OIDC 提供者，與 Grafana 的用戶身份驗證和組織架構進行對接，實現單點登錄 (SSO) 和基於角色的訪問控制 (RBAC)。
+為了構建一個**生產級、可擴展、可維護**的代理系統，我們必須**強制**遵循 ADK 的原生擴展模式，而非自行實現類似功能。這確保了我們能充分利用框架的內建能力、未來的優化和標準化的行為。
+
+- **`session_service_builder` (短期記憶體)**: 這是實現**可靠的短期記憶體**的**唯一正確方式**。
+    - **問題**: 預設的 `InMemorySessionService` **絕對不能用於生產**，因為它會在服務重啟或水平擴展時丟失所有對話上下文，導致任務中斷和用戶體驗不佳。
+    - **解決方案**: 我們將實現一個基於 `DatabaseSessionService` 的自定義會話服務，使用 PostgreSQL 或 Redis 作為後端。這確保了即使用戶的請求被路由到不同的 Pod，或者服務發生重啟，進行中的調查任務狀態也能被完整保留。
+
+- **`MemoryProvider` (長期記憶體 / RAG)**: 這是實現**可擴展的長期記憶體**的標準模式。
+    - **問題**: 將 RAG 邏輯直接寫在代理內部會導致程式碼耦合，難以測試和替換。
+    - **解決方案**: 我們將實現一個自定義的 `MemoryProvider`，它橋接到 Weaviate 或 Vertex AI Vector Search。此提供者將模仿 `VertexAIMemoryBankService` 的行為模式，允許代理透過標準化的 `search_memory` 接口，從過去的事件和文檔中學習，同時將記憶體管理的複雜性與代理的核心邏輯分離。
+
+- **`AuthProvider` (認證)**: 這是**整合認證**的標準介面。
+    - **問題**: 自行實現的認證邏輯（如 `review.md` 中指出的舊版 `AuthManager`）容易出錯，且無法與 ADK 的生態系統（如 UI、工具）無縫協作。
+    - **解決方案**: 我們將實現一個符合 `AuthProvider` 協議的 OAuth 2.0/OIDC 提供者。這確保了與 Grafana 的用戶身份驗證和組織架構的正確對接，實現單點登錄 (SSO) 和基於角色的訪問控制 (RBAC)。
 
 ## 8. 安全架構 (Security Architecture)
 
 安全是系統設計的基石，採用縱深防禦策略：
-- **認證**: Grafana 和 SRE Assistant 後端共享同一個 OAuth 2.0/OIDC 身份提供者。
-- **授權**: 利用 Grafana 的團隊和角色，在 SRE Assistant 後端實現細粒度的 RBAC。
-- **通訊加密**: 所有外部通訊使用 TLS 1.3。服務間通訊（K8s 內部）將利用 Service Mesh (如 Istio) 實現 mTLS。
-- **秘密管理**: 所有密鑰、API Token 等敏感資訊都將存儲在 HashiCorp Vault 或雲提供商的 Secret Manager 中。
-- **數據安全**: 敏感數據在靜態時使用 AES-256 加密，並在日誌和追蹤中進行 PII 遮罩。
+- **認證 (Authentication)**:
+    - **協議**: 系統將強制使用 OAuth 2.0 / OIDC 作為標準協議。
+    - **實現**: Grafana 和 SRE Assistant 後端共享同一個身份提供者。認證流程將由標準的 `AuthProvider` 擴展和符合 ADK 規範的**無狀態 `AuthenticationTool`** 來處理，取代任何有狀態的自定義管理器。
+- **授權 (Authorization)**: 利用 Grafana 的團隊和角色，在 SRE Assistant 後端實現細粒度的 RBAC。
+- **通訊加密 (Communication)**: 所有外部通訊使用 TLS 1.3。服務間通訊（K8s 內部）將利用 Service Mesh (如 Istio) 實現 mTLS。
+- **秘密管理 (Secrets Management)**: 所有密鑰、API Token 等敏感資訊都將存儲在 HashiCorp Vault 或雲提供商的 Secret Manager 中。**Refresh Token 等敏感憑證絕不能直接存儲在會話狀態中**。
+- **數據安全 (Data Security)**: 敏感數據在靜態時使用 AES-256 加密，並在日誌和追蹤中進行 PII 遮罩。
 - **稽核日誌 (Audit Logging)**: 所有代理執行的操作都有完整的稽核追蹤。
 - **合規性 (Compliance)**: 系統設計符合 SOC 2, GDPR, HIPAA 等規範。
 
