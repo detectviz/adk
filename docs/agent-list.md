@@ -309,3 +309,32 @@
     - **真實世界的路由器模式**: 此範例包含一個根據任務需求，在 `bigquery_agent` 和 `computer_use_agent` 之間進行選擇的路由器。這為 `SREIntelligentDispatcher` 提供了一個比 `google-adk-workflows` 更貼近實際應用場景的、更具體的實現範例。
     - **資料庫驅動的工作流程**: 整個流程由 BigQuery 中的初始資料觸發。這與 SRE Assistant 需要從 PostgreSQL 中查詢告警歷史或事件上下文，然後再決定下一步行動的核心工作流程完全一致，為 `SREWorkflow` 的設計提供了寶貴的實踐經驗。
     - **端到端設置**: 範例中包含了 `run.sh` 和 `eval.sh` 等腳本，用於自動化環境設定、資料庫填充和評估，這與 SRE Assistant 專案對**基礎設施即代碼 (IaC)** 的要求 (`TASK-P1-INFRA-01`) 高度契合。
+
+---
+
+### 20. 即時 UI 串流 (Real-time UI Streaming)
+
+#### 範例: `navigoAI_voice_agent_adk`
+
+- **簡介**: 一個專門展示**即時、雙向串流**的語音助理範例。它清晰地展示了前端 (`client/stream_manager.js`) 如何透過 WebSocket 與後端 (`server/streaming_service.py`) 建立持續性連線，並即時串流音訊數據。
+- **與 SRE Assistant 的關聯性**:
+    - **Phase 2 Grafana 插件的關鍵模式**: 為了在 Grafana ChatOps 介面中提供流暢的使用者體驗，SRE Assistant 不能讓使用者在執行一個耗時幾秒鐘的診斷任務時，只能看到一個靜態的加載圖示。此範例為**如何將代理的「思考過程」或中間步驟即時串流回前端**提供了完美的架構藍圖。
+    - **WebSocket 實踐**: 它提供了一個比 `gemini-fullstack` 或 `personal-expense-assistant-adk` 更專注、更簡潔的 WebSocket 實現範例，讓開發者可以快速掌握在 ADK 後端設定 WebSocket 伺服器以及在 JavaScript 前端與之互動的最佳實踐。
+    - **雙向通訊**: 雖然 SRE Assistant 的主要需求是從後端到前端的串流，但此範例的雙向模式（前端串流音訊到後端）為未來可能出現的更複雜互動（例如，允許使用者在任務執行中途發送「取消」指令）提供了基礎。
+
+---
+
+### 21. 韌性與時間序列分析 (Resilience & Time-Series Analysis)
+
+#### 範例: `fomc-research`
+
+- **簡介**: 一個複雜的多代理工作流程，它查詢外部資料庫 (BigQuery) 中的**時間序列數據**，並使用**回呼函式**來實現**速率限制**，以產生金融分析報告。
+- **與 SRE Assistant 的關聯性**:
+    - **韌性模式的具體實現**: `ARCHITECTURE.md` 將「韌性」列為核心要求，但其他範例很少提供具體實現。此範例中的 `rate_limit_callback` 是 SRE Assistant 在與外部 API（如 Prometheus, Loki, GitHub）互動時，為避免因請求過於頻繁而被節流或封鎖，可以實施的**速率限制/背壓模式**的直接程式碼參考。
+    - **時間序列數據查詢的架構藍圖**: SRE Assistant 的核心診斷流程，就是查詢**時間序列數據**（來自 Mimir 的指標、來自 Loki 的日誌）並進行分析。雖然此範例使用 BigQuery，但其**架構模式是 100% 可轉移的**。它展示了一個代理如何：
+        1.  接收一個時間範圍作為輸入。
+        2.  連接到一個外部時間序列資料庫。
+        3.  擷取相關數據。
+        4.  將數據用於其分析和推理過程。
+      這為 `DiagnosticAgent` 如何與 LGTM 技術棧互動提供了黃金標準。
+    - **非對話式工作流程**: 此範例展示了一個主要由代理內部驅動、很少需要使用者輸入的複雜工作流程。這與 SRE Assistant 在接收到告警後，應能**自主完成大部分診斷和修復步驟**的設計理念高度一致。
