@@ -62,6 +62,13 @@
     - **數據注入**: `prepare_corpus_and_data.py` 腳本為我們如何建立自己的數據注入管道以填充 Weaviate 向量數據庫提供了良好範本。
     - **可信度**: 強調**引文 (Citation)** 的重要性，這對於確保 SRE Assistant 的回答是可信且可驗證的至關重要。
 
+#### 範例: `llama_index_file_chat`
+
+- **簡介**: 此範例展示了另一種常見的 RAG 模式：**基於用戶上傳的檔案進行即時問答**。
+- **與 SRE Assistant 的關聯性**:
+    - **特定場景的 RAG**: 完美補充了 `RAG` 範例所代表的「基於永久知識庫」的模式。SRE Assistant 需要處理大量臨時性、一次性的診斷任務，例如：「幫我分析這個剛從 Pod 拉下來的 50MB 的日誌檔案」或「這是這次事件的 Slack 匯出，幫我總結一下」。此範例展示了如何實現這種**基於臨時、非結構化檔案的即時 RAG**，這對於提升 SRE 的日常工作效率至關重要。
+    - **LlamaIndex 整合**: 雖然 ADK 有自己的 `MemoryProvider`，但此範例展示了與 LlamaIndex 這個流行的 RAG 框架的直接整合，為開發團隊在實現複雜的擷取、索引和查詢策略時提供了額外的思路和選項。
+
 ---
 
 ### 5. 可觀測性與追蹤 (Observability & Tracing)
@@ -142,6 +149,13 @@
 - **與 SRE Assistant 的關聯性**:
     - **Phase 3 的核心技術**: `ROADMAP.md` 和 `ARCHITECTURE.md` 明確指出，Phase 3 的聯邦化架構將採用 gRPC 作為 A2A (Agent-to-Agent) 通訊協定。此範例是實現 `TASK-P3-A2A-01` 的**直接樣板**。
     - **高效能通訊**: 為團隊提供了如何在 ADK 中設定和使用 gRPC Server 的基礎知識，這對於實現低延遲、高效能的內部代理通訊至關重要。
+
+#### 範例: `dice_agent_rest`
+
+- **簡介**: 此範例是 `dice_agent_grpc` 的 REST/HTTP 對應版本，展示了**以最簡潔的方式建立一個標準的 ADK REST 服務**。
+- **與 SRE Assistant 的關聯性**:
+    - **Phase 1 的「Hello, World!」**: 雖然長期目標是 gRPC，但 Phase 1 和 2 的核心是 RESTful 通訊 (例如，Grafana 插件與後端)。此範例為 `TASK-P1-SVC-01` (實現核心 SRE Assistant Agent 服務) 提供了一個**最精簡、最無干擾的起點**。開發團隊可以從這裡開始，逐步疊加認證、資料庫整合等複雜功能，而不是一開始就被更複雜的範例所淹沒。
+    - **基礎知識**: 與 `dice_agent_grpc` 並列學習，可以幫助開發者清晰地理解 ADK 如何同時支援兩種主流的通訊協定，鞏固對框架基礎的理解。
 
 ---
 
@@ -259,3 +273,15 @@
 - **與 SRE Assistant 的關聯性**:
     - **高風險操作的標準流程**: 這是為 SRE Assistant 實現**高風險操作前須經批准**（如 `TASK-P2-DEBT-01` 中所述）的**完美藍圖**。相較於 `gemini-fullstack` 的全端複雜性，此範例專注於代理之間的通訊和狀態管理，讓開發者能快速理解和實現此核心安全功能。
     - **`LongRunningFunctionTool` 的應用**: 清楚地演示了 `LongRunningFunctionTool` 的生命週期：發出請求 -> 收到 `pending` 回應 -> 等待外部更新 -> 完成執行。這個模式不僅適用於人工批准，也適用於任何耗時較長的異步任務，例如觸發一次完整的 CI/CD 流水線或執行一次資料庫備份。
+
+---
+
+### 17. 自我對抗與韌性測試 (Self-Adversarial & Resilience Testing)
+
+#### 範例: `any_agent_adversarial_multiagent`
+
+- **簡介**: 此範例展示了一種迷人的**對抗式多代理**模式。它設置了一個「紅隊」代理，其目標是主動尋找另一個「藍隊」代理的弱點或欺騙它，而「藍隊」代理則需要學會識別和抵禦這些對抗性攻擊。
+- **與 SRE Assistant 的關聯性**:
+    - **混沌工程的哲學基礎**: 這是 Phase 4 `ChaosEngineeringAgent` 的一個絕佳的哲學和架構參考。它不僅僅是注入隨機故障，而是模擬一個「智慧對手」來主動測試系統的邊界和弱點。
+    - **強化系統韌性**: 可以借鑒此模式，創建一個內部的「Red Team Agent」，其任務是定期挑戰 SRE Assistant 的診斷和修復邏輯。例如，它可以構造一個看起來像 A 問題但實際上是 B 問題的場景，來測試 SRE Assistant 的根因分析能力是否足夠強大。這有助於建立一個更可靠、更能抵抗誤判的自進化系統。
+    - **安全性測試**: 此模式也可以擴展到安全性領域，用於測試 SRE Assistant 的防護措施，確保其不會被惡意輸入所利用來執行未經授權的操作。
