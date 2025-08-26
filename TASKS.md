@@ -19,55 +19,7 @@
 
 所有開發任務應朝著以下目標目錄結構進行，此結構符合 ADK 最佳實踐並反映了我們的聯邦化架構。
 
-```bash
-sre_assistant/
-├── __init__.py                 # A2A 服務暴露與註冊
-├── workflow.py                 # SREWorkflow - 主工作流程協調器
-├── contracts.py                # Pydantic 資料模型 (Events, Incidents, etc.)
-├── prompts.py                  # 全域/共享的 Prompt 模板
-├── tool_registry.py            # 全域共享工具的註冊與管理
-│
-├── auth/                       # 認證與授權模組
-│   ├── __init__.py
-│   ├── auth_factory.py         # 根據配置創建 AuthProvider
-│   └── auth_manager.py         # 統一管理認證流程
-│
-├── config/                     # 配置管理模組
-│   ├── config_manager.py
-│   └── environments/
-│       ├── development.yaml
-│       └── production.yaml
-│
-├── memory/                     # 長期記憶體 (RAG) 模組
-│   └── backend_factory.py      # 根據配置創建 MemoryProvider
-│
-├── session/                    # 會話 (短期記憶) 管理模組
-│   └── backend_factory.py      # 根據配置創建 SessionProvider
-│
-├── sub_agents/                 # 專業化代理 (聯邦化階段)
-│   ├── __init__.py
-│   ├── incident_handler/       # 事件處理 Assistant
-│   │   ├── __init__.py
-│   │   ├── agent.py
-│   │   ├── prompts.py
-│   │   └── tools.py            # incident_handler 專用工具
-│   └── predictive_maintenance/ # 預測維護 Assistant
-│       ├── __init__.py
-│       ├── agent.py
-│       └── ...
-│
-├── deployment/                 # 部署相關配置 (Docker, K8s, etc.)
-│   ├── Dockerfile
-│   └── cloud_run/
-│
-├── eval/                       # 評估框架與腳本
-│   └── evaluation.py
-│
-└── tests/                      # 測試套件
-    ├── test_workflow.py
-    ├── test_auth.py
-    └── ...
-```
+參考[project-architecture.md](project-architecture.md)
 
 ---
 

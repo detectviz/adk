@@ -1,8 +1,0 @@
-# config/environments/development.yaml
-deployment:
-  platform: "local"
-  debug: true
-
-memory:
-  backend: "postgresql"
-  postgres_connection_string: "postgresql://localhost/sre_dev"

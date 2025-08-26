@@ -1,4 +1,6 @@
-# 文字生成
+# 基礎大型語言模型與文本生成白皮書
+
+https://drive.google.com/file/d/1rYu-mIcsTrAeCuH-xHPofrI1i1qNVzqO/view
 
 **作者: Mohammadamin Barektain,**
 
