@@ -83,6 +83,20 @@
 
 ---
 
+## Phase 2.5: Agent 可觀測性 (Agent Observability)
+- **預計時間**: 1-2 個月
+- **主題**: 為 SRE Assistant 自身建立深度可觀測性，確保其決策過程透明、可追蹤。
+- **關鍵目標**: 實現 `SPEC.md` 中定義的 LLM 可觀測性規格。
+- **主要交付物**:
+    - **2.5.1. 端到端追蹤**:
+        - 📦 實現對 `SREWorkflow` 的 OpenTelemetry 自動化埋點。
+        - 🔍 確保每次工具調用、LLM 請求都被捕獲為追蹤中的一個跨度 (Span)。
+    - **2.5.2. 可觀測性儀表板**:
+        - 📊 建立一個 Grafana 儀表板，用於視覺化 Agent 的執行流程、延遲和成本（Token 使用量）。
+- **參考**: [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/)
+
+---
+
 ## Phase 3: 邁向聯邦化 - 主動與自動 (Towards Federation - Proactive & Automated)
 
 - **預計時間**: 3-6 個月
