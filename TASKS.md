@@ -81,6 +81,7 @@ sre_assistant/
       - **參考**:
         - [ADK Agent Samples: a2a_telemetry](docs/reference-adk-agent-samples.md#6-可觀測性與追蹤-observability--tracing)
         - [ADK Agent Samples: brand-search-optimization](docs/reference-adk-agent-samples.md#16-進階工作流程與整合-advanced-workflows--integrations)
+        - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
       - **驗收標準**:
         - [ ] 能夠透過 `docker-compose up` 成功啟動所有服務。
         - [ ] 服務之間網絡互通。
@@ -100,6 +101,7 @@ sre_assistant/
         - [Google SRE Book: Chapter 12](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
         - [ADK Snippets: Main Workflow Implementation](docs/reference-snippets.md#21-主要工作流程實現-main-workflow-implementation)
         - [ADK Examples: simple_sequential_agent](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook)
+        - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
       - **驗收標準**:
         - [ ] 服務能成功啟動並監聽指定端口。
         - [ ] `SREWorkflow` 能夠接收請求並返回基礎回應。
@@ -163,6 +165,7 @@ sre_assistant/
       - **參考**:
         - [Remember this: Agent state and memory with ADK](https://cloud.google.com/blog/topics/developers-practitioners/remember-this-agent-state-and-memory-with-adk)
         - [ADK Agent Samples: customer-service](docs/reference-adk-agent-samples.md#9-領域特定工作流程-domain-specific-workflows)
+        - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
         - [ADK Docs: Sessions](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
         - [ADK Examples: history_management](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience)
       - **驗收標準**:
@@ -241,10 +244,14 @@ sre_assistant/
 - **雲端整合工具 (Cloud Integration Tools)**
     - [ ] **TASK-P2-TOOL-04**: **實現 AppHubTool**
         - **描述**: 實現一個工具，用於查詢 Google Cloud App Hub，以獲取應用程式的拓撲結構（例如，一個應用程式包含哪些服務和負載均衡器）。這是實現「以應用程式為中心的診斷」的前提。
-        - **參考**: [Application monitoring in Google Cloud](https://cloud.google.com/blog/products/management-tools/get-to-know-cloud-observability-application-monitoring)
+        - **參考**:
+          - [Application monitoring in Google Cloud](https://cloud.google.com/blog/products/management-tools/get-to-know-cloud-observability-application-monitoring)
+          - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
     - [ ] **TASK-P2-TOOL-05**: **實現 GoogleCloudHealthTool**
         - **描述**: 實現一個工具，用於查詢 Google Cloud 的 Personalized Service Health (PSH) API。在診斷流程開始時，應首先調用此工具，以檢查是否存在已知的、可能影響當前專案的 Google Cloud 平台事件。
-        - **參考**: [Personalized Service Health integrated with Gemini Cloud Assist](https://cloud.google.com/blog/products/devops-sre/gemini-cloud-assist-integrated-with-personalized-service-health)
+        - **參考**:
+          - [Personalized Service Health integrated with Gemini Cloud Assist](https://cloud.google.com/blog/products/devops-sre/gemini-cloud-assist-integrated-with-personalized-service-health)
+          - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
 
 ### P2 - 重構 (Refactoring)
 
