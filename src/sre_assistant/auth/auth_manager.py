@@ -1,4 +1,4 @@
-# sre_assistant/auth/auth_manager.py
+# src/sre_assistant/auth/auth_manager.py
 """
 統一的認證授權管理器 (Stateless Refactored)
 整合多種認證方式和授權策略

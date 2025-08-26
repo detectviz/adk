@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/diagnostic/agent.py
+# src/sre_assistant/sub_agents/diagnostic/agent.py
 # 說明：此檔案定義了診斷專家 (DiagnosticExpert) 代理。
 # 這個代理使用大型語言模型 (LLM) 和一系列專用工具 (如 PromQLQueryTool)
 # 來分析系統問題的根本原因。它整合了 prompts.py 中定義的提示模板

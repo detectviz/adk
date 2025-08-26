@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/config/agent.py
+# src/sre_assistant/sub_agents/config/agent.py
 # 說明：(預留位置) 配置專家 (ConfigExpert) 代理。
 # 未來的實作將包含生成和優化監控儀表板、警報規則等配置的工具。
 

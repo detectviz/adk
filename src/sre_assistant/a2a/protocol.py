@@ -1,4 +1,4 @@
-# sre_assistant/a2a/protocol.py
+# src/sre_assistant/a2a/protocol.py
 # 說明：此檔案定義了 A2A (Agent-to-Agent) Streaming 的標準化資料契約。
 # 參考 ARCHITECTURE.md 第 6.1 節的 StreamingChunk 設計。
 # **技術債務改進**: 根據 `purchasing-concierge` 範例，引入了完整的 A2A Task 協議。

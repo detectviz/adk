@@ -1,4 +1,4 @@
-# sre_assistant/auth/auth_factory.py
+# src/sre_assistant/auth/auth_factory.py
 """
 認證授權工廠模式實現
 支援多種認證提供者的動態切換

@@ -1,4 +1,4 @@
-# sre_assistant/memory/backend_factory.py
+# src/sre_assistant/memory/backend_factory.py
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 import weaviate

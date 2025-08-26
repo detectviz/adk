@@ -1,4 +1,4 @@
-# sre_assistant/citation_manager.py
+# src/sre_assistant/citation_manager.py
 # 說明：此檔案定義了 SRE Assistant 的引用格式化系統。
 # SRECitationFormatter 負責將來自不同來源（如文件、設定檔、日誌、知識庫）的
 # 原始引用資料，轉換為標準化、人類可讀的引用格式。

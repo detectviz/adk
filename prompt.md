@@ -27,7 +27,7 @@ graph LR
 ```markdown
 你是 Google ADK 專家。請根據以下要求重構 AuthManager：
 
-**當前代碼路徑**: `sre_assistant/auth/auth_manager.py`
+**當前代碼路徑**: `src/sre_assistant/auth/auth_manager.py`
 
 **重構要求**:
 1. 將 AuthManager 從獨立類重構為 ADK FunctionTool
@@ -96,7 +96,7 @@ class HumanApprovalTool(LongRunningFunctionTool):
         pass
 ```
 
-**整合點**: `sre_assistant/sub_agents/remediation/`
+**整合點**: `src/sre_assistant/sub_agents/remediation/`
 
 請提供完整實現和整合方案。
 ```
@@ -110,7 +110,7 @@ class HumanApprovalTool(LongRunningFunctionTool):
 ```markdown
 你是 Google ADK 工作流程專家。請增強 SREWorkflow 實現：
 
-**當前代碼**: `sre_assistant/workflow.py`
+**當前代碼**: `src/sre_assistant/workflow.py`
 
 **增強要求**:
 1. 為 ParallelAgent 添加自定義聚合策略
@@ -154,7 +154,7 @@ LoopAgent(
 ```markdown
 你是 ADK 動態路由專家。請實現智慧分診系統：
 
-**目標**: 替換 `sre_assistant/sub_agents/remediation/` 中的靜態條件邏輯
+**目標**: 替換 `src/sre_assistant/sub_agents/remediation/` 中的靜態條件邏輯
 
 **實現規格**（基於 SPEC.md）:
 ```python
@@ -195,7 +195,7 @@ class SREIntelligentDispatcher(BaseAgent):
 ```markdown
 你是 ADK Memory 專家。請整合 Vertex AI Memory Bank：
 
-**當前實現**: `sre_assistant/memory/`
+**當前實現**: `src/sre_assistant/memory/`
 
 **升級要求**:
 1. 從自定義實現遷移到 ADK Memory Service
@@ -286,7 +286,7 @@ memory_config = {
 ```markdown
 你是 ADK 測試專家。請完善測試套件：
 
-**當前測試**: `sre_assistant/tests/`
+**當前測試**: `src/sre_assistant/tests/`
 
 **擴展要求**:
 1. 為所有新增功能添加單元測試

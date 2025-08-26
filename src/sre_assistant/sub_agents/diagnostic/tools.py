@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/diagnostic/tools.py
+# src/sre_assistant/sub_agents/diagnostic/tools.py
 # 說明：此檔案包含了診斷專家 (DiagnosticExpert) 所使用的工具。
 # 根據 ADK 的設計模式，這些工具被實作為獨立的 Python 函數。
 # 每個函數都有清晰的類型提示 (type hints) 和文檔字串 (docstring)，

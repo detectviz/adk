@@ -1,4 +1,4 @@
-# sre_assistant/main.py
+# src/sre_assistant/main.py
 """
 此檔案包含 SRE Assistant 的主應用程式伺服器 (FastAPI)。
 它負責設定 A2A (Agent-to-Agent) 伺服器並定義 API 端點。

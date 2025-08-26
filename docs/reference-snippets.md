@@ -18,7 +18,7 @@
 
 - **檔案路徑**: `docs/references/snippets/agents/workflow-agents/sequential_agent_code_development_agent.py`
 - **參考原因**:
-    - **直接對應**: 此範例是 `SREWorkflow` (`sre_assistant/workflow.py`) 的核心參考。它展示了如何使用 `SequentialAgent` 將多個獨立的子代理（`LlmAgent`）串聯起來，形成一個有序的工作流程。
+    - **直接對應**: 此範例是 `SREWorkflow` (`src/sre_assistant/workflow.py`) 的核心參考。它展示了如何使用 `SequentialAgent` 將多個獨立的子代理（`LlmAgent`）串聯起來，形成一個有序的工作流程。
     - **狀態管理**: 清楚地演示了代理之間如何透過共享的 `state` 傳遞資訊（例如，一個代理的 `output_key` 成為下一個代理的輸入）。這對於在我們的診斷 -> 修復 -> 覆盤流程中傳遞事件上下文至關重要。
     - **任務關聯**: 直接支援 **`TASK-P1-SVC-01` (實現核心 SREAssistant Agent 服務)** 的開發。
 
@@ -28,7 +28,7 @@
 - **參考原因**:
     - **關鍵任務**: 這是實現 **`TASK-P1-CORE-03` (實現 AuthProvider (OAuth 2.0))** 的權威指南。
     - **框架整合**: 展示了如何使用 `OpenIdConnectWithConfig` 和 `AuthCredential` 來定義 OIDC/OAuth2 認證流程，並將其與 `OpenAPIToolset` 或其他工具集綁定。
-    - **自動化流程**: 該範例揭示了 ADK 框架如何自動處理令牌獲取、刷新和附加到 API 請求的流程，這將極大地簡化我們在 `sre_assistant/auth/` 模組中的開發工作。
+    - **自動化流程**: 該範例揭示了 ADK 框架如何自動處理令牌獲取、刷新和附加到 API 請求的流程，這將極大地簡化我們在 `src/sre_assistant/auth/` 模組中的開發工作。
 
 ### 2.3. 安全的自動化修復模式 (Safe Automated Remediation Pattern)
 

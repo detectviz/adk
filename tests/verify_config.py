@@ -1,4 +1,4 @@
-# sre_assistant/tests/verify_config.py
+# src/sre_assistant/tests/verify_config.py
 # 說明：此腳本用於驗證 ConfigManager 的功能是否如預期。
 import os
 import sys

@@ -41,7 +41,7 @@
     - **`DispatcherAgent`**: 完美對應了 `TASK-P2-REFACTOR-01 (智慧分診系統)`。它展示瞭如何根據使用者請求，智慧地將任務路由到最合適的工具或子代理。
     - **`ParallelAgent`**: 展示了如何並行執行獨立任務（如同時預訂航班和飯店）。此模式可直接應用於 SRE Assistant 的診斷流程，例如**同時查詢指標 (Prometheus) 和日誌 (Loki)**，以縮短回應時間。
     - **`SelfCriticAgent`**: 實現了一個內建的審查與驗證循環。這為 `TASK-P2-VERIFY-01 (修復後驗證)` 提供了絕佳的參考。
-    - **程式碼結構**: 其將專業化子代理放在 `subagent.py` 中，並為每種協調策略建立獨立資料夾的模式，是 `sre_assistant/sub_agents/` 模組可以效仿的最佳實踐。
+    - **程式碼結構**: 其將專業化子代理放在 `subagent.py` 中，並為每種協調策略建立獨立資料夾的模式，是 `src/sre_assistant/sub_agents/` 模組可以效仿的最佳實踐。
 
 ---
 
@@ -96,7 +96,7 @@
   - **檢索工具模式**: 儘管它使用 Vertex AI 的 RAG 引擎，但其建立專用檢索工具 (`VertexAiRagRetrieval`) 並將其整合到代理推理過程的核心模式，可直接轉移到專案計劃使用的 Weaviate 後端。
   - **最佳實踐**: 其專案結構包含了專用的 `deployment` 和 `eval` 目錄，可作為 SRE Assistant 自身儲存庫結構和 CI/CD 流程的最佳實踐模型。
   - **架構對齊**: 這些範例是實現 `ARCHITECTURE.md` 中定義的「統一記憶庫 (Unified Memory)」的基礎，特別是與 Weaviate 的互動部分。
-  - **實踐指南**: 提供了從文檔加載、向量化到檢索的完整流程，是開發 `sre_assistant/memory/` 模組的關鍵參考。
+  - **實踐指南**: 提供了從文檔加載、向量化到檢索的完整流程，是開發 `src/sre_assistant/memory/` 模組的關鍵參考。
 
 
 #### 範例: `llama_index_file_chat`

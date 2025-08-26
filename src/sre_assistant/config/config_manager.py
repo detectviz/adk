@@ -1,4 +1,4 @@
-# sre_assistant/config/config_manager.py
+# src/sre_assistant/config/config_manager.py
 # 說明：此檔案實作了一個多層次的配置管理系統，用於 SRE Assistant。
 # 它能夠從基礎設定檔、特定環境設定檔和環境變數中載入、合併和驗證配置，
 # 為系統提供極大的靈活性。
@@ -184,10 +184,10 @@ class ConfigManager:
         env = os.getenv("ENVIRONMENT", "development")
 
         # 2. 載入基礎配置
-        base_config = self._load_yaml("sre_assistant/config/base.yaml")
+        base_config = self._load_yaml("src/sre_assistant/config/base.yaml")
 
         # 3. 載入環境特定配置
-        env_config_path = f"sre_assistant/config/environments/{env}.yaml"
+        env_config_path = f"src/sre_assistant/config/environments/{env}.yaml"
         env_config = self._load_yaml(env_config_path)
 
         # 4. 合併配置

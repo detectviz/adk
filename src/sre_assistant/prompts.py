@@ -1,4 +1,4 @@
-# sre_assistant/prompts.py
+# src/sre_assistant/prompts.py
 # 說明：此檔案存放 SRE Assistant 所有代理使用的提示 (Prompt) 模板。
 # 將提示集中管理有助於維護、審查和版本控制，並確保所有代理的行為一致。
 

@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/diagnostic/prompts.py
+# src/sre_assistant/sub_agents/diagnostic/prompts.py
 # 說明：此檔案定義了診斷專家 (DiagnosticExpert) 所使用的提示模板。
 # 這些模板指導大型語言模型 (LLM) 如何進行結構化的診斷分析，
 # 包括資料收集、異常識別、根因分析和報告產出。

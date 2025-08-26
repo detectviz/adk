@@ -1,4 +1,4 @@
-# sre_assistant/slo_manager.py
+# src/sre_assistant/slo_manager.py
 # 說明：此檔案負責管理服務等級目標 (SLO) 和錯誤預算。
 # 它提供了計算錯誤預算燃燒率和根據預算消耗觸發警報的功能。
 # 參考 ARCHITECTURE.md 第 12.2 節 和 Google SRE Book 第 4 章。

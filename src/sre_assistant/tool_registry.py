@@ -1,4 +1,4 @@
-# sre_assistant/tools.py
+# src/sre_assistant/tools.py
 # 說明：此檔案定義了版本化的工具註冊表，用於管理 SRE Assistant 的所有工具。
 # 它支援工具的版本控制、相容性檢查和按類別獲取工具。
 # 參考 ARCHITECTURE.md 第 5 節。

@@ -1,4 +1,4 @@
-# sre_assistant/memory.py
+# src/sre_assistant/memory.py
 from typing import Dict, List
 from .config.config_manager import config_manager
 from .memory.backend_factory import MemoryBackendFactory

@@ -1,4 +1,4 @@
-# sre_assistant/contracts.py - v1.2.1 標準化 API 契約
+# src/sre_assistant/contracts.py - v1.2.1 標準化 API 契約
 # 說明：此檔案定義了 SRE Assistant 所有介面的資料模型（契約），
 # 使用 Pydantic 進行類型驗證，確保資料的一致性和可靠性。
 # 這些模型被用於 API 請求/回應、代理之間的資料傳遞以及狀態管理。

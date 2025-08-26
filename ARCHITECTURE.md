@@ -172,7 +172,7 @@ systemctl restart grafana-server
 ### 8.2 配置範例 (Configuration Example)
 
 ```yaml
-# config/production.yaml
+# src/sre_assistant/config/production.yaml
 deployment:
   platform: kubernetes
   replicas: 3

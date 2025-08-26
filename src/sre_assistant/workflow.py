@@ -1,4 +1,4 @@
-# sre_assistant/workflow.py
+# src/sre_assistant/workflow.py
 """
 定義 SRE Assistant 的主工作流程協調器。
 

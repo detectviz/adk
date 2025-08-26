@@ -1,4 +1,4 @@
-# sre_assistant/tests/test_e2e_workflow.py
+# src/sre_assistant/tests/test_e2e_workflow.py
 
 import pytest
 import asyncio

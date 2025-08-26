@@ -1,4 +1,4 @@
-# sre_assistant/utils/a2a_client.py
+# src/sre_assistant/utils/a2a_client.py
 """
 A2A 客戶端：消費外部代理，符合 2025 I/O A2A 增強協議
 參考 ARCHITECTURE.md 第 6.3 節

@@ -1,4 +1,4 @@
-# sre_assistant/tests/test_agent.py
+# src/sre_assistant/tests/test_agent.py
 """
 Contains integration tests for the main SRE Assistant workflow.
 This version uses a standard import and includes debugging for import errors.

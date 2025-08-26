@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/remediation/prompts.py
+# src/sre_assistant/sub_agents/remediation/prompts.py
 # 說明：此檔案定義了修復專家 (RemediationExpert) 所使用的提示模板。
 # 這些提示指導 LLM 如何根據診斷結果，安全、準確地選擇和執行修復操作。
 

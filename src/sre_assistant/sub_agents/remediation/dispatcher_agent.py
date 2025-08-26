@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/remediation/dispatcher_agent.py
+# src/sre_assistant/sub_agents/remediation/dispatcher_agent.py
 """
 This module defines the SREIntelligentDispatcher agent, which uses an LLM
 to dynamically select an expert remediation agent based on diagnostic data.

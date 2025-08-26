@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/remediation/agent.py
+# src/sre_assistant/sub_agents/remediation/agent.py
 # 說明：(預留位置) 修復專家 (RemediationExpert) 代理。
 # 未來的實作將包含執行修復操作 (如重啟服務、回滾配置) 的工具。
 

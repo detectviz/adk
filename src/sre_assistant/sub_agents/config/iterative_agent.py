@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/config/iterative_agent.py
+# src/sre_assistant/sub_agents/config/iterative_agent.py
 """
 此模組定義了 IterativeOptimization 代理，該代理使用循環
 重複應用一個子代理，直到滿足終止條件。

@@ -1,4 +1,4 @@
-# sre_assistant/session/firestore_task_store.py
+# src/sre_assistant/session/firestore_task_store.py
 # 說明：此檔案提供了基於 Google Cloud Firestore 的 TaskStore/SessionService 持久化實現。
 # 這取代了預設的 InMemoryTaskStore，使得會話和任務狀態能夠在應用程式重啟後依然存在。
 

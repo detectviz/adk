@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/postmortem/agent.py
+# src/sre_assistant/sub_agents/postmortem/agent.py
 # 說明：(預留位置) 覆盤專家 (PostmortemExpert) 代理。
 # 未來的實作將包含生成結構化事後檢討報告的工具。
 

@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/diagnostic/citing_agent.py
+# src/sre_assistant/sub_agents/diagnostic/citing_agent.py
 """
 此模組定義了 CitingParallelDiagnosticsAgent。
 該代理協調各種診斷子代理並行運行，

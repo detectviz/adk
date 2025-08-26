@@ -1,4 +1,4 @@
-# sre_assistant/sub_agents/remediation/conditional_agent.py
+# src/sre_assistant/sub_agents/remediation/conditional_agent.py
 """
 此模組定義了 ConditionalRemediation 代理及其佔位符依賴項。
 該代理根據事件的嚴重性選擇修復策略。
