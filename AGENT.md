@@ -1,99 +1,51 @@
-# AGENT.md
+# AGENT.md - SRE Assistant 使用指南
 
-## SRE Assistant - Intelligent Site Reliability Engineering Agent
+本文件為 AI 代理提供操作此程式碼庫的具體、可執行的指南。人類使用者請參閱 `README.md`。
 
-Production-grade intelligent agent that automates incident response, performs root cause analysis, and optimizes system reliability through deep Grafana integration and Google ADK-powered workflows.
+## 專案概覽
 
-### Features
+SRE Assistant 是一個智慧型網站可靠性工程 (SRE) 代理，旨在自動化事件回應、執行根本原因分析，並透過與 Grafana 的深度整合來優化系統可靠性。
 
-- **Parallel Diagnostics**: Simultaneously analyzes metrics, logs, and traces to identify issues 98% faster than manual investigation
-- **Intelligent Triage**: LLM-driven decision engine that dynamically selects appropriate remediation strategies based on incident severity and context
-- **Automated Remediation**: Executes pre-approved fixes for P2 incidents with human-in-the-loop approval for critical P0 events
-- **Postmortem Generation**: Automatically creates comprehensive incident reports with root cause analysis and improvement recommendations
-- **Grafana Native**: Seamlessly integrates with Grafana dashboards, providing ChatOps capabilities directly in your monitoring platform
-- **RAG-Enhanced**: Leverages historical incident data and runbooks for context-aware decision making
-- **Federated Architecture**: Designed to evolve into a multi-agent ecosystem with specialized agents for different SRE domains
+- **詳細功能規格**: 請參閱 [SPEC.md](SPEC.md)
+- **系統架構**: 請參閱 [ARCHITECTURE.md](ARCHITECTURE.md)
+- **實施路線圖**: 請參閱 [ROADMAP.md](ROADMAP.md)
 
-### URL
+---
 
-https://github.com/your-org/sre-assistant
+## 開發環境設置
 
-### Agent Details
-
-**Type**: Workflow Orchestrator  
-**Framework**: Google Agent Development Kit (ADK)  
-**LLM**: Gemini Pro / GPT-4  
-**Deployment**: Kubernetes / Cloud Run / Local Docker
-
-#### Core Capabilities
-
-```yaml
-capabilities:
-  - incident_detection
-  - root_cause_analysis
-  - automated_remediation
-  - postmortem_generation
-  - capacity_planning
-  - cost_optimization
-  - chaos_engineering
-```
-
-#### Integration Points
-
-- **Monitoring**: Prometheus, Grafana, Loki, Tempo
-- **Infrastructure**: Kubernetes, Terraform, Helm
-- **Incident Management**: PagerDuty, Grafana OnCall
-- **Version Control**: GitHub, GitLab
-- **Cloud Providers**: GCP, AWS, Azure
-
-### System Architecture
-
-```mermaid
-graph LR
-    A[Alert Triggered] --> B[SRE Assistant]
-    B --> C{Diagnostic Phase}
-    C -->|Parallel| D[Metrics Analysis]
-    C -->|Parallel| E[Log Analysis]
-    C -->|Parallel| F[Trace Analysis]
-    D & E & F --> G{Triage Decision}
-    G -->|P0| H[Human Approval]
-    G -->|P1-P2| I[Auto Remediation]
-    H --> J[Execute Fix]
-    I --> J
-    J --> K[Verification]
-    K --> L[Postmortem]
-    L --> M[Optimization]
-```
-
-### Key Differentiators
-
-1. **10-15 Second Diagnosis**: From alert to root cause identification in seconds, not minutes
-2. **75% Auto-Resolution Rate**: Majority of P2 incidents resolved without human intervention
-3. **Unified Experience**: All SRE workflows accessible through Grafana, eliminating context switching
-4. **Production-Proven**: Built on Google SRE principles and battle-tested patterns
-5. **Extensible**: Plugin architecture allows custom tool integration and workflow modification
-
-### Performance Metrics
-
-| Metric | Target | Actual |
-|--------|--------|--------|
-| Mean Time to Detect (MTTD) | < 30s | 15s |
-| Mean Time to Resolve (MTTR) | < 15min | 12min |
-| Auto-remediation Success Rate | > 75% | 78% |
-| False Positive Rate | < 5% | 3% |
-| Diagnosis Accuracy | > 95% | 97% |
-
-### Deployment Options
-
-#### Quick Start (Docker Compose)
+使用 Docker Compose 快速啟動本地開發環境，其中包含所有必要的依賴項（例如 PostgreSQL, Grafana, Loki 等）。
 
 ```bash
+# 克隆程式碼庫
 git clone https://github.com/your-org/sre-assistant
 cd sre-assistant
+
+# 啟動開發環境
 docker-compose up -d
 ```
 
-#### Production Deployment (Kubernetes)
+---
+
+## 測試指令
+
+本專案的測試套件對於確保程式碼品質至關重要。在提交任何變更之前，請務必運行相關測試。
+
+```bash
+# 運行所有單元測試和整合測試
+pytest
+```
+
+- **測試策略與指南**: 詳細的測試方法請參閱 [TESTING.md](TESTING.md)。
+- **CI/CD**: 持續整合流程定義於 `.github/workflows/` 目錄中，會在每次提交時自動運行測試。
+
+---
+
+## 部署
+
+### 生產環境部署 (Kubernetes)
+
+建議使用 Helm 來部署 SRE Assistant 到生產環境的 Kubernetes 集群。
 
 ```bash
 helm repo add sre-assistant https://charts.sre-assistant.io
@@ -103,217 +55,35 @@ helm install sre-assistant sre-assistant/sre-assistant \
   --set memory.backend=weaviate
 ```
 
-#### Grafana Plugin Installation
-
-```bash
-grafana-cli plugins install sre-assistant-app
-systemctl restart grafana-server
-```
-
-### Configuration Example
-
-```yaml
-# config/production.yaml
-deployment:
-  platform: kubernetes
-  replicas: 3
-  
-auth:
-  provider: oauth2
-  oidc_issuer: "https://accounts.google.com"
-  
-memory:
-  backend: weaviate
-  weaviate_url: "https://weaviate.example.com"
-  
-observability:
-  prometheus_url: "http://prometheus:9090"
-  loki_url: "http://loki:3100"
-  
-agents:
-  incident_handler:
-    auto_remediation_threshold: "P2"
-    escalation_timeout: 300s
-    
-  predictive_maintenance:
-    anomaly_detection_enabled: true
-    forecast_horizon: "7d"
-```
-
-### Tool Registry
-
-```python
-# Observability Tools
-PrometheusQueryTool     # Execute PromQL queries
-LokiLogQueryTool        # Search and analyze logs
-GrafanaIntegrationTool  # Create annotations, embed panels
-GrafanaOnCallTool       # Manage alerts and on-call schedules
-
-# Infrastructure Tools  
-KubernetesOperationTool # Pod operations, deployments, scaling
-TerraformTool           # Infrastructure as Code management
-HelmOperationTool       # Helm chart deployments
-
-# Collaboration Tools
-GitHubTool              # Create issues, manage PRs
-SlackNotificationTool   # Send alerts and reports
-```
-
-### Security & Compliance
-
-- **Authentication**: OAuth 2.0 / OIDC with MFA support
-- **Authorization**: RBAC with Grafana team integration
-- **Encryption**: TLS 1.3 for transit, AES-256 for rest
-- **Audit Logging**: Complete audit trail of all actions
-- **Compliance**: SOC 2, GDPR, HIPAA ready
-- **Secret Management**: HashiCorp Vault / Google Secret Manager integration
-
-### Roadmap
-
-#### Current (Phase 1) - MVP
-- ✅ Core workflow orchestration
-- ✅ Basic diagnostic tools
-- ✅ RAG memory system
-- 🚧 OAuth authentication
-
-#### Next (Phase 2) - Grafana Native
-- 📅 Custom Grafana plugin
-- 📅 ChatOps interface
-- 📅 Deep dashboard integration
-
-#### Future (Phase 3-4) - Federation
-- 🔮 Predictive maintenance agent
-- 🔮 Cost optimization agent
-- 🔮 Chaos engineering agent
-- 🔮 Multi-agent coordination (A2A)
-
-### API Examples
-
-#### Python SDK
-
-```python
-from sre_assistant import SREClient
-
-# Initialize client
-client = SREClient(
-    api_key="your-api-key",
-    grafana_url="https://grafana.example.com"
-)
-
-# Analyze an incident
-result = await client.analyze_incident(
-    alert_id="alert-123",
-    severity="P1",
-    services=["payment-api", "user-service"]
-)
-
-# Execute remediation
-if result.confidence > 0.8:
-    fix = await client.execute_remediation(
-        incident_id=result.incident_id,
-        strategy=result.recommended_action,
-        require_approval=(result.severity == "P0")
-    )
-```
-
-#### REST API
-
-```bash
-# Trigger incident analysis
-curl -X POST https://api.sre-assistant.io/v1/incidents/analyze \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "alert": {
-      "name": "HighErrorRate",
-      "service": "payment-api",
-      "severity": "P1"
-    },
-    "context": {
-      "dashboard_url": "https://grafana.example.com/d/abc123",
-      "time_range": "last_1h"
-    }
-  }'
-
-# Response
-{
-  "incident_id": "inc-20250826-001",
-  "diagnosis": {
-    "root_cause": "Database connection pool exhaustion",
-    "confidence": 0.92,
-    "evidence": [
-      "Connection timeout errors in logs",
-      "Database CPU at 95%",
-      "Similar pattern in incident #1247"
-    ]
-  },
-  "recommended_actions": [
-    {
-      "action": "scale_connection_pool",
-      "risk_level": "low",
-      "estimated_recovery_time": "2m"
-    }
-  ]
-}
-```
-
-#### Grafana Plugin Usage
-
-```javascript
-// In Grafana Dashboard
-const sreAssistant = grafana.plugins.get('sre-assistant');
-
-// Chat interface
-sreAssistant.chat.send("What caused the spike in latency at 2pm?");
-
-// Automated annotation
-sreAssistant.annotate({
-  dashboardId: 'webapp-overview',
-  text: 'Incident resolved: Database connection pool scaled',
-  tags: ['auto-remediation', 'database']
-});
-
-// Embed diagnostic panel
-const diagnosticPanel = sreAssistant.createDiagnosticPanel({
-  timeRange: 'last_1h',
-  services: ['api-gateway', 'payment-service']
-});
-```
-
-### Support & Community
-
-- **Documentation**: https://docs.sre-assistant.io
-- **GitHub Issues**: https://github.com/your-org/sre-assistant/issues
-- **Slack Community**: https://sre-assistant.slack.com
-- **Office Hours**: Thursdays 10am PST
-- **Enterprise Support**: enterprise@sre-assistant.io
-
-### License
-
-Apache License 2.0 - See [LICENSE](LICENSE) for details.
-
-### Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Citation
-
-```bibtex
-@software{sre_assistant_2025,
-  title = {SRE Assistant: Intelligent Site Reliability Engineering Agent},
-  author = {SRE Platform Team},
-  year = {2025},
-  url = {https://github.com/your-org/sre-assistant},
-  version = {1.0.0}
-}
-```
+- **詳細部署指南**: 更多關於部署和配置的選項，請參閱 [ARCHITECTURE.md](ARCHITECTURE.md) 中的部署章節。
 
 ---
 
-**Tags**: `sre`, `incident-response`, `grafana`, `monitoring`, `automation`, `google-adk`, `reliability`, `devops`, `aiops`, `observability`
+## 程式碼風格與規範
 
-**Category**: Infrastructure & Operations
+為保持程式碼庫的一致性和可讀性，請遵循以下規範：
 
-**Maturity**: Production (Phase 1), Beta (Phase 2 features)
+- **Python**:
+    - 使用 [Black](https://github.com/psf/black) 進行程式碼格式化。
+    - 遵循 PEP 8 編碼風格。
+    - 使用類型提示 (Type Hinting)。
+- **提交訊息**:
+    - 遵循 [Conventional Commits](https://www.conventionalcommits.org/) 規範。
 
-**Dependencies**: Google ADK, Grafana 10+, Python 3.11+, Kubernetes 1.26+
+---
+
+## 安全性注意事項
+
+- **認證與授權**: 系統採用 OAuth 2.0 / OIDC 進行身份驗證，並整合 Grafana 的 RBAC 進行授權。
+- **秘密管理**: 所有敏感資訊（如 API 金鑰）都應透過 HashiCorp Vault 或 Google Secret Manager 進行管理。
+- **詳細安全架構**: 完整的安全設計，請參閱 [ARCHITECTURE.md](ARCHITECTURE.md) 中的安全架構章節。
+
+---
+
+## 技術棧與核心依賴
+
+- **核心框架**: Google Agent Development Kit (ADK)
+- **後端**: Python 3.11+
+- **前端**: Grafana Plugin SDK, TypeScript, React
+- **可觀測性**: Grafana LGTM Stack (Loki, Grafana, Tempo, Mimir)
+- **數據庫**: PostgreSQL (結構化數據), Weaviate (向量數據)
