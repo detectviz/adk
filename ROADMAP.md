@@ -62,7 +62,7 @@
 ## Phase 2: Grafana 原生體驗 (The Grafana-Native Experience)
 
 - **預計時間**: 3-4 個月
-- **主題**: 將 SRE Assistant 的強大能力無縫嵌入到 SRE 的日常工作平台 Grafana 中。
+- **主題**: 將 SRE Assistant 的強大能力無縫嵌入到 SRE 的日常工作平台 Grafana 中，提供類似 Gemini Cloud Assist 的整合式、對話式體驗。
 - **關鍵目標**: 開發自定義 Grafana 插件，提供一站式的 ChatOps 和自動化體驗。
 - **使用者互動介面**: **SRE Assistant Grafana Plugin**。
 
@@ -85,7 +85,7 @@
 
 ## Phase 2.5: Agent 可觀測性 (Agent Observability)
 - **預計時間**: 1-2 個月
-- **主題**: 為 SRE Assistant 自身建立深度可觀測性，確保其決策過程透明、可追蹤。
+- **主題**: 為 SRE Assistant 自身建立深度可觀測性，確保其決策過程透明、可追蹤。此階段的設計應參考 [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/) 的行業最佳實踐。
 - **關鍵目標**: 實現 `SPEC.md` 中定義的 LLM 可觀測性規格。
 - **主要交付物**:
     - **2.5.1. 端到端追蹤**:
@@ -104,14 +104,16 @@
 - **關鍵目標**: 孵化第一個專業化代理，並實現主動型（Proactive）SRE 能力。
 
 ### 主要交付物 (Key Deliverables):
-- **3.1. 第一個專業化代理**:
+- **3.1. 主動式事件感知 (Proactive Incident Awareness)**:
+    - 🌐 **整合 Personalized Service Health**: 實現 `GoogleCloudHealthTool`，使 Assistant 能夠主動查詢並告知使用者是否存在影響其專案的 Google Cloud 平台事件。
+- **3.2. 第一個專業化代理**:
     - 📄 將後端服務中的**覆盤報告生成 (Postmortem Generation)** 功能重構為一個獨立的、可單獨部署的 `PostmortemAgent`。
-- **3.2. A2A 通訊協議 v1**:
+- **3.3. A2A 通訊協議 v1**:
     - 📡 實現 `ARCHITECTURE.md` 中定義的 gRPC Agent-to-Agent (A2A) 通訊協議。
     - 🔗 SRE Assistant 主服務將作為協調器（Orchestrator），透過 A2A 協議調用新的 `PostmortemAgent` 來完成覆盤報告任務。
-- **3.3. 主動預防能力**:
+- **3.4. 主動預防能力**:
     - 🔮 在主服務中整合基於機器學習的**異常檢測**和**趨勢預測**能力，用於主動發現潛在問題。
-- **3.4. 進階自動化**:
+- **3.5. 進階自動化**:
     - 📜 實現更複雜的、跨多個工具的多步驟**自動化修復工作流 (Runbooks)**。
 
 ### 成功指標 (Success Metrics):

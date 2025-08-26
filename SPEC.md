@@ -393,31 +393,36 @@ api_versioning:
 
 ### 7.3 核心診斷策略 (Core Diagnostic Strategy)
 
-- **核心原則**: 所有自動化診斷流程都必須基於一個結構化的、可預測的框架。
-- **診斷基礎**:
-    - **黃金四訊號 (The Four Golden Signals)**: 任何事件的初步診斷，都**必須**從查詢和評估受影響服務的「黃金四訊號」開始：
-        1.  **延遲 (Latency)**: 檢查 p99、p95 和 p50 請求延遲。
-        2.  **流量 (Traffic)**: 檢查請求速率（RPS）。
-        3.  **錯誤 (Errors)**: 檢查錯誤率（特別是 HTTP 5xx）。
-        4.  **飽和度 (Saturation)**: 檢查最關鍵資源（如 CPU、記憶體）的使用率。
-    - **應用程式上下文**: 在查詢指標之前，系統應首先嘗試獲取「應用程式」的拓撲結構（參考 `TASK-P2-TOOL-04: AppHubTool`），以理解服務之間的依賴關係。
-    - **外部訊號優先**: 診斷流程應首先查詢外部依賴的健康狀態（參考 `TASK-P2-TOOL-05: GoogleCloudHealthTool`），以快速排除或確認底層平台問題。
+- **核心原則**: 所有自動化診斷流程都必須基於一個結構化的、可預測的框架，以確保結果的可靠性和一致性。
+- **診斷流程**:
+    1.  **步驟一：檢查外部依賴 (Is it Google?)**: 在分析內部指標之前，診斷流程的**第一步**是必須調用 `GoogleCloudHealthTool`，查詢 Personalized Service Health (PSH)。這能立刻回答「是不是 Google Cloud 的問題？」，避免在已知的平台問題上浪費調查時間。
+    2.  **步驟二：定義應用程式邊界**: 調用 `AppHubTool` 來獲取受影響服務的拓撲結構和依賴關係。這確保了診斷是以「應用程式」為中心，而不是孤立的。
+    3.  **步驟三：分析黃金四訊號**: 針對已定義的應用程式邊界，系統地查詢和評估「黃金四訊號」：
+        - **延遲 (Latency)**: 檢查成功請求和失敗請求的 p99、p95、p50 延遲分佈。
+        - **流量 (Traffic)**: 檢查服務的請求速率 (RPS) 或其他高階業務指標。
+        - **錯誤 (Errors)**: 檢查顯式錯誤（如 HTTP 5xx）和隱式錯誤（如成功響應但內容錯誤）的速率。
+        - **飽和度 (Saturation)**: 檢查最受限制的資源（CPU、記憶體、磁碟 I/O）的使用率，並將高延遲視為飽和度的前導指標。
 
 ### 7.4 使用者體驗與互動模型 (User Experience and Interaction Model)
 
-- **核心原則**: SRE Assistant 的互動應模仿一個經驗豐富的 SRE 的思考過程，為使用者提供清晰、引導式的體驗。
+- **核心原則**: SRE Assistant 的互動應模仿一個經驗豐富的 SRE 的思考過程，為使用者提供清晰、引導式的體驗。此互動模型深受 [Gemini Cloud Assist](https://cloud.google.com/blog/products/devops-sre/gemini-cloud-assist-integrated-with-personalized-service-health) 的啟發。
 - **三階段對話流程**:
-    1.  **發現與分診 (Discovery and Triage)**: 使用者可以提問「Is it Google or is it me?」，系統應首先檢查外部依賴，然後確認內部影響。
-    2.  **調查與影響評估 (Investigation and Impact Evaluation)**: 使用者可以進一步提問「Tell me more about this incident.」，系統應深入分析黃金四訊號，並從日誌、追蹤中提取證據。
-    3.  **緩解與恢復 (Mitigation and Recovery)**: 系統應根據分析結果，主動建議可行的修復方案或操作手冊（「What are the workarounds?」）。
+    1.  **發現與分診 (Discovery and Triage)**: 允許使用者用自然語言查詢當前是否存在已知的平台問題。例如：「`Are there any ongoing incidents impacting my project?`」。系統應首先調用 `GoogleCloudHealthTool`。
+    2.  **調查與影響評估 (Investigation and Impact Evaluation)**: 當一個內部或外部事件被確認後，使用者可以深入調查。例如：「`Tell me more about incident #12345`」或「`What is the impact of this GKE issue on my services?`」。系統應在此階段執行完整的診斷流程（7.3節）。
+    3.  **緩解與恢復 (Mitigation and Recovery)**: 系統應根據分析結果，主動建議可行的修復方案或操作手冊。例如：「`What are the recommended workarounds?`」或「`Suggest a command to restart the affected deployment.`」。
 
 ### 7.5 LLM 可觀測性 (LLM Observability)
 
-- **核心原則**: SRE Assistant 本身作為一個 LLM 應用，其內部的決策過程必須是完全可觀測的。
+- **核心原則**: SRE Assistant 本身作為一個 LLM 應用，其內部的決策過程必須是完全可觀測的，以確保其可靠性、成本效益和性能。此規格參考了 [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/) 的行業最佳實踐。
 - **技術實現**:
     - **端到端追蹤**: 每個使用者請求都應被捕獲為一個端到端的分散式追蹤 (Trace)。
     - **跨度 (Span) 明細**: 追蹤應包含代表以下操作的詳細跨度 (Span)：
         - `SREWorkflow` 的整體執行。
         - 每次 `AgentTool` 的調用。
         - 每次對 LLM 的 API 調用。
-    - **關鍵元數據**: 每個跨度都應附加上下文元數據，包括但不限於：LLM 成本（Token 數）、延遲、工具的輸入參數、LLM 的具體提示（Prompt）和回應。
+    - **關鍵元數據**: 每個跨度都應附加上下文元數據，包括但不限於：
+        - **成本 (Cost)**: 提示 (Prompt) 和完成 (Completion) 的 Token 數量。
+        - **延遲 (Latency)**: 從請求到收到第一個 Token 的時間 (TTFT) 和總延遲。
+        - **品質 (Quality)**: 代理的回應是否滿足要求，是否有幻覺或錯誤。
+        - **錯誤 (Errors)**: 任何在工作流程中發生的錯誤。
+        - **上下文 (Context)**: 用於偵錯的工具輸入參數、LLM 的具體提示和原始回應。

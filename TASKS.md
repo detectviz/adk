@@ -95,11 +95,11 @@ sre_assistant/
     - [ ] **TASK-P1-SVC-01**: 實現核心 `SREAssistant` Agent 服務
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
+        - [How to build a simple multi-agentic system using Google’s ADK](https://cloud.google.com/blog/products/ai-machine-learning/build-multi-agentic-systems-using-google-adk)
         - [ADK Agent Samples: dice_agent_rest](docs/reference-adk-agent-samples.md#1-基礎入門與核心概念-getting-started--core-concepts)
         - [Google SRE Book: Chapter 12](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
         - [ADK Snippets: Main Workflow Implementation](docs/reference-snippets.md#21-主要工作流程實現-main-workflow-implementation)
         - [ADK Examples: simple_sequential_agent](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook)
-        - [How to build a simple multi-agentic system using Google’s ADK](https://cloud.google.com/blog/products/ai-machine-learning/build-multi-agentic-systems-using-google-adk)
       - **驗收標準**:
         - [ ] 服務能成功啟動並監聽指定端口。
         - [ ] `SREWorkflow` 能夠接收請求並返回基礎回應。
@@ -120,6 +120,7 @@ sre_assistant/
     - [ ] **TASK-P1-TOOL-01**: 實現 `PrometheusQueryTool`
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
+        - [SRE 的四大黃金訊號](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)
         - [ADK Docs: Creating a tool](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
         - [Google SRE Book: Chapter 6](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
         - [ADK Examples: jira_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration)
@@ -160,10 +161,10 @@ sre_assistant/
     - [ ] **TASK-P1-CORE-02**: 實現 `session_service_builder` (持久化會話)
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
+        - [Remember this: Agent state and memory with ADK](https://cloud.google.com/blog/topics/developers-practitioners/remember-this-agent-state-and-memory-with-adk)
         - [ADK Agent Samples: customer-service](docs/reference-adk-agent-samples.md#9-領域特定工作流程-domain-specific-workflows)
         - [ADK Docs: Sessions](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
         - [ADK Examples: history_management](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience)
-        - [Remember this: Agent state and memory with ADK](https://cloud.google.com/blog/topics/developers-practitioners/remember-this-agent-state-and-memory-with-adk)
       - **驗收標準**:
         - [ ] 多輪對話的上下文能夠被正確保存和讀取。
         - [ ] 服務重啟後，可以從 Redis/Postgres 中恢復會話狀態。
@@ -289,6 +290,12 @@ sre_assistant/
         - [ ] 追蹤中應清晰地標示出 `SREWorkflow` 的執行、每次工具調用、以及每次對 LLM 的 API 調用。
         - [ ] 關鍵元數據（如 Token 數、工具參數、LLM 回應）應作為屬性 (Attribute) 附加到對應的跨度上。
     - **參考**: [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/)
+- [ ] **TASK-P3-OBSERVE-02**: **建立 LLM 可觀測性儀表板**
+    - **描述**: 根據 `TASK-P3-OBSERVE-01` 收集到的追蹤數據，在 Grafana 中建立一個專門的儀表板，用於監控 SRE Assistant 自身的健康狀況。
+    - **驗收標準**:
+        - [ ] 儀表板應包含以下面板：總請求數、錯誤率、p90/p95/p99 延遲。
+        - [ ] 儀表板應包含按工具或代理名稱分類的成本（Token 使用量）面板。
+        - [ ] 能夠下鑽到單個追蹤，以查看詳細的執行流程。
 
 - [ ] **TASK-P4-ORCH-01**: **(P4) 聯邦協調器**: 開發功能完備的 SRE Orchestrator 服務。
     - **參考**: [ADK Agent Samples: a2a_mcp](docs/reference-adk-agent-samples.md#3-聯邦化架構與服務發現-federated-architecture--service-discovery)

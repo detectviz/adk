@@ -15,11 +15,11 @@
 
 1.  **Grafana 中心化 (Grafana-Centric)**: 以 Grafana 為所有 SRE 工作流的統一入口和介面，最大化利用其生態系統能力。
 2.  **後端即服務，前端即插件 (BaaS, FaaP)**: SRE Assistant 核心能力由基於 Google ADK 的後端服務提供，使用者主要透過 Grafana 插件與之互動。
-3.  **聯邦化設計 (Federated Design)**: 後端架構從長遠來看是為多代理協同工作設計的，支持關注點分離、獨立演進和可組合性。
+2.  **聯邦化設計 (Federated Design)**: 後端架構遵循「一個代理，一個專業領域」的原則，為多代理協同工作設計。這支持了關注點分離、獨立演進和可組合性。上層的協調器應將專業化代理視為可調用的「工具 (Agent-as-Tool)」，並支援循序和並行執行，以應對複雜的工作流程。
 4.  **可觀測性驅動 (Observability-Driven)**: 深度整合 LGTM (Loki, Grafana, Tempo, Mimir) 技術棧，確保系統自身的每一個決策和行動都高度可觀測。
 5.  **ADK 原生擴展 (ADK-Native Extensibility)**: 充分利用 ADK 的 Provider 模型，以符合框架最佳實踐的方式實現認證、記憶體和會話管理等核心功能。
-- **應用程式為中心診斷 (Application-Centric Diagnosis)**: 診斷流程必須以「應用程式」為單位，理解其拓撲結構與依賴關係，而非僅僅處理單一、孤立的警報。
-- **LLM 可觀測性 (LLM Observability)**: Agent 自身的決策過程（例如，工具選擇、提示生成）必須是完全可追蹤和可觀測的，以確保系統的可靠性和可維護性。
+- **應用程式為中心診斷 (Application-Centric Diagnosis)**: 診斷流程必須以「應用程式」為單位，理解其拓撲結構與依賴關係，而非僅僅處理單一、孤立的警報。診斷的起點應基於對「四大黃金訊號」的分析。
+- **LLM 可觀測性 (LLM Observability)**: Agent 自身的決策過程（例如，工具選擇、提示生成、Token 消耗、成本、延遲）必須是完全可追蹤和可觀測的，以確保系統的可靠性和可維護性。這是一個關鍵的非功能性需求。
 6.  **漸進式演進 (Phased Evolution)**: 優先交付價值最高的 Grafana 整合功能，並在此基礎上逐步、平滑地向聯邦化生態系統演進。
 
 ## 3. 總體架構 (Overall Architecture)
@@ -104,9 +104,9 @@ graph TD
 
 ### 4.4 數據與基礎設施層 (Data & Infrastructure Layer)
 - **統一記憶庫 (Unified Memory)**: 為所有代理提供短期、長期、程序和語義記憶。
-  - **Weaviate**: 存儲向量化數據，用於語義搜索和 RAG。
-  - **PostgreSQL**: 存儲結構化數據，如事件歷史、Runbook 定義、審計日誌。
-  - **Redis**: 用於高速快取和短期會話管理。
+  - **短期記憶體 (會話狀態)**: 採用 ADK 的 `DatabaseSessionService`，後端使用 PostgreSQL，以支持生產環境下的多實例部署和可靠性。這確保了在單一調查流程中的上下文不會因服務重啟而丟失。
+  - **長期記憶體 (知識庫)**: 採用類似 `VertexAIMemoryBankService` 的模式，將歷史事件、解決方案和文檔存儲在 Weaviate 向量數據庫中，用於 RAG。
+  - **快取**: Redis 用於高速快取常用數據和短期會話資訊。
 - **可觀測性 (Observability)**: 採用 Grafana LGTM Stack。
   - **Loki**: 集中化日誌聚合。
   - **Tempo**: 分散式追蹤。
@@ -137,9 +137,9 @@ graph TD
 
 ## 6. ADK 擴展性應用 (ADK Extensibility)
 
-為了確保架構與框架的最佳實踐一致，我們將充分利用 ADK 的可擴展性介面：
-- **`session_service_builder`**: 將實現自定義的會話服務，以整合 PostgreSQL（存儲任務狀態）和 Redis（快取會話上下文），提供一個高效且持久化的會話層。
-- **`MemoryProvider`**: 將根據配置，橋接到底層的 Weaviate 和 PostgreSQL，為代理提供統一的記憶體訪問介面，將記憶體管理的複雜性與代理的核心邏輯分離。
+為了確保架構與框架的最佳實踐一致，並構建一個生產級的、可靠的代理系統，我們將充分利用 ADK 的可擴展性介面：
+- **`session_service_builder`**: 這是實現**可靠的短期記憶體**的關鍵。預設的 `InMemorySessionService` 在服務重啟或擴展時會丟失所有上下文。因此，我們將實現一個基於 `DatabaseSessionService` 的自定義會話服務，使用 PostgreSQL 作為後端。這確保了即使用戶的請求被路由到不同的實例，或者服務發生重啟，進行中的調查任務狀態也能被完整保留。
+- **`MemoryProvider`**: 這是實現**可擴展的長期記憶體**的關鍵。我們將實現一個自定義的 `MemoryProvider`，它橋接到 Weaviate 向量數據庫。此提供者將模仿 `VertexAIMemoryBankService` 的行為模式，允許代理透過語義搜索從過去的事件和文檔中學習，同時將記憶體管理的複雜性與代理的核心邏輯分離。
 - **`AuthProvider`**: 將實現一個 OAuth 2.0/OIDC 提供者，與 Grafana 的用戶身份驗證和組織架構進行對接，實現單點登錄 (SSO) 和基於角色的訪問控制 (RBAC)。
 
 ## 7. 安全架構 (Security Architecture)
