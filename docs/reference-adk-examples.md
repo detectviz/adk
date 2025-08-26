@@ -91,3 +91,21 @@
 
 - ### **檔案路徑**: `docs/references/adk-examples/testing_mock_api/`
   - **參考原因**: 隨著工具集的擴展，我們的整合測試會變得越來越慢且不穩定。此範例是完成 **`TASK-P1-DEBT-01`** 並保證長期工程品質的**必備實踐**。它演示瞭如何使用 `httpx-mock` 來模擬外部 API，使我們能夠在不依賴網路或第三方服務的情況下，快速、可靠地測試工具和 Agent 的核心邏輯。
+
+---
+
+## 工程實踐與開發體驗 (Engineering Practices & Developer Experience)
+
+這些範例專注於改善開發流程、提升使用者體驗和增強系統的工程品質，是確保專案可維護性和擴展性的關鍵。
+
+- ### **檔案路徑**: `docs/references/adk-examples/providers_http_endpoint/`
+  - **參考原因**: 此範例是實現 **`TASK-P1-SVC-01: 實現核心 SREAssistant Agent 服務`** 的基礎。`ARCHITECTURE.md` 明確後端服務將透過 HTTP 與 Grafana 插件通訊。此範例展示了如何配置 ADK 以啟動一個 HTTP 服務端點，這是讓 Agent 能夠被外部（如 Grafana 插件或 curl）呼叫的第一步。
+
+- ### **檔案路徑**: `docs/references/adk-examples/history_management/`
+  - **參考原因**: 此範例是對 **`TASK-P1-CORE-02: 實現持久化會話`** 的重要補充。`providers_session_config` 範例展示了如何**實現**一個持久化會話的後端，而此範例則展示了如何在**應用層面**有效**使用和管理**對話歷史。這對於處理 LLM 的上下文視窗限制、實現長期對話記憶至關重要。
+
+- ### **檔案路徑**: `docs/references/adk-examples/live_tool_callbacks_agent/`
+  - **參考原因**: 這是實現 **Phase 2 Grafana 原生體驗**中**即時反饋**功能的關鍵。`live_bidi_streaming_tools_agent` 範例展示了如何流式返回**最終結果**，而此範例則展示了如何在工具執行過程中，透過回調**即時串流中間日誌和進度**。這將極大地提升用戶在 Grafana UI 上執行長時間任務（如日誌分析）時的體驗。
+
+- ### **檔案路徑**: `docs/references/adk-examples/testing_advanced/`
+  - **參考原因**: 為了達成 **`TASK-P1-DEBT-01`** 中 >80% 的測試覆蓋率目標，僅有基礎測試是不夠的。此範例是對 `testing_basic` 和 `testing_mock_api` 的進階補充，它可能涵蓋了如何測試複雜的工作流、多 Agent 交互或非同步操作等高級場景，為我們建立全面且可靠的測試套件提供了範本。
