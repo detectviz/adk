@@ -1,7 +1,7 @@
 # ROADMAP.md - SRE Assistant 實施路線圖
 
-**版本**: 1.0.0
-**狀態**: 生效中
+**版本**: 2.0.0
+**狀態**: 生效中 (Active)
 **關聯架構**: [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ## 總體目標
