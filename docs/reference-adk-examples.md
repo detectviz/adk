@@ -41,5 +41,32 @@
 
 ## 進階參考 (Advanced References)
 
-- ### **檔案路徑**: `docs/references/adk-examples/spec_driven_development/`
+- ### **檔案路dikas**: `docs/references/adk-examples/spec_driven_development/`
   - **參考原因**: 此範例與 `SPEC.md` 中對**標準化工具介面**的要求高度契合。它演示了如何強制工具的輸出嚴格遵守預定義的 Pydantic 模型。在開發我們的共享工具時，應採用此模式來確保 `ToolResult` 和 `ToolError` 的結構一致性，從而提升系統的穩定性和可預測性。
+
+---
+
+## Phase 1 & 2: 核心能力與 Grafana 整合 (Core Capabilities & Grafana Integration)
+
+- ### **檔案路徑**: `docs/references/adk-examples/callbacks/`
+  - **參考原因**: 此範例對於**提升系統可觀測性**和**實現 Phase 2 的 Grafana ChatOps 介面**至關重要。它展示了如何註冊回調函數來監聽 Agent 的內部事件（如工具調用、LLM 請求）。我們能藉此將詳細的執行追蹤實時推送到 Loki，並在 Grafana UI 中為用戶提供透明的進度更新。
+
+- ### **檔案路徑**: `docs/references/adk-examples/live_bidi_streaming_tools_agent/`
+  - **參考原因**: 這是實現**無縫 Grafana ChatOps 體驗**的關鍵技術。範例展示了如何將工具執行的中間輸出以流式（Streaming）方式傳回客戶端。這將允許用戶在 Grafana 介面中實時看到長時間運行任務（如日誌分析、數據庫查詢）的進展，而不是長時間的等待，極大地提升了用戶體驗。
+
+- ### **檔案路徑**: `docs/references/adk-examples/human_in_loop/`
+  - **參考原因**: 直接對應 `ARCHITECTURE.md` 中定義的 **P0 級事件需要人類介入** 的核心安全要求。此範例提供了實現手動審批環節的標準模式。我們將參考它來設計 SRE Assistant 在執行高風險修復操作前的“請求人類批准”工作流。
+
+- ### **檔案例項**: `docs/references/adk-examples/tool_auth_gcp/`
+  - **參考原因**: SRE Assistant 需要與多個 Google Cloud 服務（如 BigQuery, Vertex AI）互動。此範例演示了如何為工具配置和管理 GCP 服務的認證憑據。這為我們實現一個安全、統一的 Google Cloud 工具集提供了範本。
+
+## Phase 3 & 4: 聯邦化與進階工作流 (Federation & Advanced Workflows)
+
+- ### **檔案路徑**: `docs/references/adk-examples/a2a_basic/` 和 `a2a_auth/`
+  - **參考原因**: 這兩個範例是實現 **Phase 3 聯邦化架構**的基石。`a2a_basic` 演示了 Agent-to-Agent (A2A) 通信的基礎，而 `a2a_auth` 則在其之上增加了認證機制。這為我們將 `PostmortemAgent` 等專業化代理從主服務中分離出來，並透過安全的 gRPC 協議進行協同工作提供了清晰的實現路徑。
+
+- ### **檔案路徑**: `docs/references/adk-examples/multi_agent_seq_config/` 和 `multi_agent_loop_config/`
+  - **參考原因**: 隨著 SRE Assistant 功能的擴展，我們需要編排由多個 Agent 參與的複雜工作流。這兩個範例分別展示了**順序執行**和**循環執行**兩種多 Agent 協作模式。這對於實現 `ROADMAP.md` 中提到的多步驟自動化修復流程 (Runbooks) 和需要迭代優化的任務（如報告生成）至關重要。
+
+- ### **檔案路徑**: `docs/references/adk-examples/workflow_structured_output/`
+  - **參考原因**: 為了確保複雜工作流輸出的可靠性和一致性，我們需要一個標準化的方式來定義其數據結構。此範例展示了如何使用 Pydantic 模型來定義工作流的最終輸出。這與 `spec_driven_development` 範例相輔相成，共同確保了從單個工具到整個工作流的端到端數據一致性。
