@@ -124,3 +124,27 @@
 
 - ### **檔案路徑**: `docs/references/adk-examples/testing_advanced/`
   - **參考原因**: 為了達成 **`TASK-P1-DEBT-01`** 中 >80% 的測試覆蓋率目標，僅有基礎測試是不夠的。此範例是對 `testing_basic` 和 `testing_mock_api` 的進階補充，它可能涵蓋了如何測試複雜的工作流、多 Agent 交互或非同步操作等高級場景，為我們建立全面且可靠的測試套件提供了範本。
+
+---
+
+## 開發者實踐補充範例 (Developer's Cookbook)
+
+本章節旨在補充首席架構師挑選的宏觀範例，提供一系列更貼近日常開發任務的、精簡且專注的「食譜式」程式碼範例。開發者在實現 `TASKS.md` 中的具體功能時，可以優先參考此處的模式。
+
+- ### **檔案路徑**: `docs/references/adk-examples/tool_functions_config/`
+  - **參考原因**: 這是實現 **`TASK-P1-TOOL-01/02/03`** 的**最簡起點**。相較於 `jira_agent` 的複雜性，此範例展示了如何用最少的程式碼，將一個標準的 Python 函數 (`def add(a: int, b: int): ...`) 直接轉換為一個 ADK 工具。這對於快速創建和測試工具的原型非常有幫助。
+
+- ### **檔案路徑**: `docs/references/adk-examples/output_schema_with_tools/`
+  - **參考原因**: 此範例是實現 **`SPEC.md` 中 4.1 節 `ToolResult` 標準化介面**的**直接程式碼實現**。它演示了如何定義一個 Pydantic `BaseModel` 作為工具的輸出綱要 (Output Schema)，並強制工具的返回結果遵循此結構。所有工具的開發都應遵循此模式，以確保數據一致性。
+
+- ### **檔案路徑**: `docs/references/adk-examples/history_management/`
+  - **參考原因**: 這是對 **`TASK-P1-CORE-02: 實現持久化會話`** 的重要**應用層補充**。`providers_session_config` 展示了如何**配置**一個持久化後端，而此範例則展示了 Agent 如何在程式碼中**實際讀取和操作**對話歷史 (`use_history=True`)。這對於構建真正具備上下文理解能力的 Agent 至關重要。
+
+- ### **檔案路徑**: `docs/references/adk-examples/session_state_agent/`
+  - **參考原因**: 此範例同樣是對 **`TASK-P1-CORE-02`** 的關鍵補充，它展示了如何**在會話中讀寫自定義狀態** (`context.state`)。這對於在多個對話輪次之間傳遞非聊天記錄的數據（例如，用戶偏好、已獲取的事件 ID）非常有用，是構建複雜工作流的基礎。
+
+- ### **檔案路徑**: `docs/references/adk-examples/simple_sequential_agent/`
+  - **參考原因**: 此範例是實現 **`TASK-P1-SVC-01` 中核心 `SREWorkflow`** 的一個**簡化藍圖**。它清晰地展示了如何定義一個由多個步驟組成的順序工作流 (Sequential Workflow)，其中每一步都可以是一個 LLM 調用或一個工具調用。這為我們構建結構清晰、可擴展的 SRE 自動化流程提供了基礎模式。
+
+- ### **檔案路徑**: `docs/references/adk-examples/bigquery/`
+  - **參考原因**: 雖然我們的目標是 Prometheus 和 Loki，但此範例是實現 **`TASK-P1-TOOL-01` 和 `TASK-P1-TOOL-02`** 的一個**絕佳的通用模式參考**。它展示了一個工具如何處理與**需要認證的外部數據源**的連接、查詢和錯誤處理。開發者可以借鑒其結構，將 `bigquery_client` 替換為 `prometheus_client` 或 `loki_client`。
