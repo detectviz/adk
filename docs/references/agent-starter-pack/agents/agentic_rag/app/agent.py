@@ -80,34 +80,34 @@ compressor = get_compressor(
 
 def retrieve_docs(query: str) -> str:
     """
-    Useful for retrieving relevant documents based on a query.
-    Use this when you need additional information to answer a question.
+    用於根據查詢檢索相關文件。
+    當您需要額外資訊來回答問題時使用此工具。
 
     Args:
-        query (str): The user's question or search query.
+        query (str): 使用者的問題或搜尋查詢。
 
     Returns:
-        str: Formatted string containing relevant document content retrieved and ranked based on the query.
+        str: 包含根據查詢檢索和排序的相關文件內容的格式化字串。
     """
     try:
-        # Use the retriever to fetch relevant documents based on the query
+        # 使用檢索器根據查詢擷取相關文件
         retrieved_docs = retriever.invoke(query)
-        # Re-rank docs with Vertex AI Rank for better relevance
+        # 使用 Vertex AI Rank 重新排序文件以獲得更好的相關性
         ranked_docs = compressor.compress_documents(
             documents=retrieved_docs, query=query
         )
-        # Format ranked documents into a consistent structure for LLM consumption
+        # 將排序後的文件格式化為一致的結構以供大型語言模型使用
         formatted_docs = format_docs.format(docs=ranked_docs)
     except Exception as e:
-        return f"Calling retrieval tool with query:\n\n{query}\n\nraised the following error:\n\n{type(e)}: {e}"
+        return f"使用查詢呼叫檢索工具時：\n\n{query}\n\n引發了以下錯誤：\n\n{type(e)}: {e}"
 
     return formatted_docs
 
 
-instruction = """You are an AI assistant for question-answering tasks.
-Answer to the best of your ability using the context provided.
-Leverage the Tools you are provided to answer questions.
-If you already know the answer to a question, you can respond directly without using the tools."""
+instruction = """你是一個用於問答任務的 AI 助理。
+請使用提供的上下文盡力回答。
+利用提供給您的工具來回答問題。
+如果您已經知道問題的答案，可以直接回應而無需使用工具。"""
 
 root_agent = Agent(
     name="root_agent",

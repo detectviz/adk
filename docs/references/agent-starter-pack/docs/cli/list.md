@@ -1,36 +1,36 @@
 # list
 
-List available agents and templates.
+列出可用的代理和模板。
 
-## Usage
+## 使用方式
 
 ```bash
 uvx agent-starter-pack list [OPTIONS]
 ```
 
-## Options
+## 選項
 
-- `--source URL` - List templates from a specific repository
-- `--adk` - List official ADK samples
+- `--source URL` - 從特定的儲存庫列出模板
+- `--adk` - 列出官方的 ADK 範例
 
-## Examples
+## 範例
 
 ```bash
-# List built-in agents
+# 列出內建代理
 uvx agent-starter-pack list
 
-# List ADK samples  
+# 列出 ADK 範例
 uvx agent-starter-pack list --adk
 
-# List templates from repository
+# 從儲存庫列出模板
 uvx agent-starter-pack list --source https://github.com/user/templates
 ```
 
-## Notes
+## 注意事項
 
-Only templates with `[tool.agent-starter-pack]` configuration in `pyproject.toml` appear in listings. Templates without this configuration still work with `create` but aren't discoverable.
+只有在 `pyproject.toml` 中具有 `[tool.agent-starter-pack]` 設定的模板才會出現在清單中。沒有此設定的模板仍然可以與 `create` 一起使用，但無法被發現。
 
-## Related
+## 相關指令
 
-- [`create`](./create.md) - Create agents from templates
-- [Remote Templates](../remote-templates/) - Template documentation
+- [`create`](./create.md) - 從模板建立代理
+- [遠端模板](../remote-templates/) - 模板文件

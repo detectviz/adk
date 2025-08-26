@@ -14,24 +14,24 @@
 
 code_task:
   description: >
-    You are helping writing python code. These are the instructions:
+    您正在協助編寫 python 程式碼。以下是說明：
     
-    Instructions ------------ {code_instructions}
+    說明 ------------ {code_instructions}
 
 
   expected_output: >
-    Your Final answer must be the full python code, only the python code and nothing else.
+    您的最終答案必須是完整的 python 程式碼，只有 python 程式碼，沒有其他內容。
 
 
 evaluate_task:
   description: >
-    You are helping writing python code. These are the instructions:
+    您正在協助編寫 python 程式碼。以下是說明：
     
-    Instructions ------------ {code_instructions}
+    說明 ------------ {code_instructions}
     
-    You will look over the code to insure that it is complete and does the job that it is supposed to do. You will also check for logic error, syntax errors, missing imports, variable declarations, mismatched brackets and missing test cases. If you find any issue in the code, ask the Senior Software Engineer to fix it by providing them the code and the instructions. Don't fix it yourself.
+    您將檢查程式碼以確保其完整並能完成預期工作。您還將檢查邏輯錯誤、語法錯誤、缺少匯入、變數宣告、括號不匹配和缺少測試案例。如果您在程式碼中發現任何問題，請將程式碼和說明提供給資深軟體工程師，請他們修復。不要自己修復。
 
 
   expected_output: >
-    Your Final answer must be the full python code, only the python code and nothing else.
+    您的最終答案必須是完整的 python 程式碼，只有 python 程式碼，沒有其他內容。
 

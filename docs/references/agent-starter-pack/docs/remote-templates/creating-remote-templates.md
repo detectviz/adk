@@ -1,102 +1,102 @@
-# Creating Remote Templates
+# 建立遠端模板
 
-This guide is for developers who want to create and share their own remote templates. Remote templates let you package your custom agent logic, dependencies, and infrastructure definitions into a reusable Git repository that others can use to generate production-ready agents.
+本指南適用於想要建立和分享自己的遠端模板的開發者。遠端模板讓您可以將自訂的代理邏輯、依賴項和基礎設施定義打包到一個可重複使用的 Git 儲存庫中，其他人可以使用它來產生可用於生產的代理。
 
-## Requirements for Template Creators
+## 模板建立者的要求
 
-When creating a remote template, you need to consider:
+在建立遠端模板時，您需要考慮：
 
-### Dependencies (`pyproject.toml`)
-**Required for custom dependencies:** If your agent has custom Python dependencies, you **must** include a `pyproject.toml` file at the template root with those dependencies listed.
+### 依賴項 (`pyproject.toml`)
+**對於自訂依賴項為必需：** 如果您的代理有自訂的 Python 依賴項，您**必須**在模板根目錄中包含一個 `pyproject.toml` 檔案，並列出這些依賴項。
 
-For guidance on the structure and content of your `pyproject.toml`, you can reference the [base template pyproject.toml](https://github.com/GoogleCloudPlatform/agent-starter-pack/blob/main/src/base_template/pyproject.toml) as an example of the expected format and common dependencies.
+有關 `pyproject.toml` 的結構和內容的指導，您可以參考[基礎模板的 pyproject.toml](https://github.com/GoogleCloudPlatform/agent-starter-pack/blob/main/src/base_template/pyproject.toml) 作為預期格式和常見依賴項的範例。
 
-### Configuration (`[tool.agent-starter-pack]`)
-**Optional but recommended:** Add this section to your `pyproject.toml` for:
-- **Discoverability:** Templates with this section appear in `uvx agent-starter-pack list` commands
-- **Customization:** Override default behaviors like base template, deployment targets, etc.
-- **Metadata:** Provide clear name and description for your template
+### 設定 (`[tool.agent-starter-pack]`)
+**可選但建議：** 將此部分新增到您的 `pyproject.toml` 中，以：
+- **可發現性：** 帶有此部分的模板會出現在 `uvx agent-starter-pack list` 指令中
+- **客製化：** 覆寫預設行為，如基礎模板、部署目標等。
+- **元資料：** 為您的模板提供清晰的名稱和描述
 
-### Smart Defaults
-Templates work even without explicit configuration thanks to intelligent defaults based on your repository structure.
+### 智慧預設值
+由於基於您儲存庫結構的智慧預設值，即使沒有明確的設定，模板也能運作。
 
-## Quick Start: Creating Your First Template
+## 快速入門：建立您的第一個模板
 
-Let's build a simple remote template that customizes the built-in `adk_base` agent.
+讓我們建構一個簡單的遠端模板，來自訂內建的 `adk_base` 代理。
 
-### Step 1: Create the Template Structure
+### 步驟 1：建立模板結構
 
-A remote template mirrors a standard agent codebase:
+遠端模板反映了一個標準的代理程式碼庫：
 
 ```
 my-first-remote-template/
-├── pyproject.toml           # Dependencies and configuration
+├── pyproject.toml           # 依賴項和設定
 ├── app/
-│   └── agent.py             # Your custom agent logic
-└── README.md                # Template documentation
+│   └── agent.py             # 您的自訂代理邏輯
+└── README.md                # 模板文件
 ```
 
-### Step 2: Configure Dependencies and Settings
+### 步驟 2：設定依賴項和設定
 
-Create a `pyproject.toml` file:
+建立一個 `pyproject.toml` 檔案：
 
 ```toml
 [project]
 name = "my-first-remote-template"
 version = "0.1.0"
-description = "A simple template that says hello"
+description = "一個會打招呼的簡單模板"
 dependencies = [
     "google-adk>=1.8.0",
 ]
 
 [tool.agent-starter-pack]
-# The built-in agent to use as a foundation
+# 作為基礎的內建代理
 base_template = "adk_base"
 
-# Template metadata (optional - falls back to [project] section)
-name = "My First Remote Template"
-description = "A simple template that demonstrates custom greetings"
+# 模板元資料 (可選 - 會退回到 [project] 部分)
+name = "我的第一個遠端模板"
+description = "一個展示自訂問候語的簡單模板"
 
-# Override settings from the base template
+# 覆寫基礎模板的設定
 [tool.agent-starter-pack.settings]
-# This template will only support the 'agent_engine' deployment target
+# 此模板僅支援 'agent_engine' 部署目標
 deployment_targets = ["agent_engine"]
-# Optional: Customize the directory name for agent files (default: "app")
+# 可選：自訂代理檔案的目錄名稱 (預設："app")
 agent_directory = "app"
 
 ```
 
-### Step 3: Create Your Custom Agent Logic
+### 步驟 3：建立您的自訂代理邏輯
 
-Create your custom agent logic in `app/agent.py`:
+在 `app/agent.py` 中建立您的自訂代理邏輯：
 
 ```python
 from google.adk.agents import Agent
 
 def get_greeting(name: str = "World") -> str:
-    """Returns a friendly greeting from the remote template."""
-    return f"Hello, {name}! This greeting comes from a remote template."
+    """從遠端模板返回友好的問候語。"""
+    return f"你好，{name}！這個問候來自遠端模板。"
 
 root_agent = Agent(
     name="root_agent",
     model="gemini-2.5-flash",
-    instruction="You are a helpful AI assistant. Use your tools to answer questions.",
+    instruction="你是一個有幫助的 AI 助理。使用你的工具來回答問題。",
     tools=[get_greeting],
 )
 ```
 
-### Step 4: Test Locally
+### 步驟 4：本地測試
 
-Test your template locally before publishing:
+在發布之前，在本地測試您的模板：
 
 ```bash
-# Run from the parent directory of 'my-first-remote-template'
+# 從 'my-first-remote-template' 的父目錄執行
 uvx agent-starter-pack create my-test-agent -a local@./my-first-remote-template
 ```
 
-### Step 5: Publish and Share
+### 步驟 5：發布和分享
 
-Initialize a Git repository and push to GitHub:
+初始化一個 Git 儲存庫並推送到 GitHub：
 
 ```bash
 cd my-first-remote-template
@@ -107,114 +107,114 @@ git remote add origin https://github.com/your-username/my-first-remote-template
 git push -u origin main
 ```
 
-Now anyone can use your template:
+現在任何人都可以使用您的模板：
 ```bash
 uvx agent-starter-pack create my-remote-agent -a https://github.com/your-username/my-first-remote-template
 ```
 
-## Template Structure Details
+## 模板結構詳情
 
-### Required Files
+### 必要檔案
 
-**pyproject.toml (Required for custom dependencies):**
-- Must be at the root of your repository
-- Defines your agent's Python dependencies  
-- Contains optional `[tool.agent-starter-pack]` configuration
+**pyproject.toml (對於自訂依賴項為必需)：**
+- 必須位於您儲存庫的根目錄
+- 定義您代理的 Python 依賴項
+- 包含可選的 `[tool.agent-starter-pack]` 設定
 
-### Recommended Structure
+### 建議結構
 
 ```
 my-awesome-template/
-├── pyproject.toml           # Dependencies and configuration
-├── uv.lock                  # (Recommended) Locked dependencies  
+├── pyproject.toml           # 依賴項和設定
+├── uv.lock                  # (建議) 鎖定的依賴項
 ├── app/
-│   └── agent.py             # Your custom agent logic
+│   └── agent.py             # 您的自訂代理邏輯
 ├── tests/
-│   └── test_agent.py        # Your custom tests
+│   └── test_agent.py        # 您的自訂測試
 ├── deployment/
 │   └── terraform/
-│       └── custom.tf        # Custom infrastructure
-└── README.md                # Template documentation
+│       └── custom.tf        # 自訂基礎設施
+└── README.md                # 模板文件
 ```
 
-### Configuration Format
+### 設定格式
 
 ```toml
 [project]
 name = "my-awesome-template"
-description = "An awesome AI agent template"
+description = "一個很棒的 AI 代理模板"
 dependencies = ["google-adk>=1.8.0", "custom-lib"]
 
 [tool.agent-starter-pack]
 base_template = "adk_base"
-name = "My Awesome Template"  # Optional: falls back to [project].name
-description = "Custom description"  # Optional: falls back to [project].description
+name = "我的超讚模板"  # 可選：會退回到 [project].name
+description = "自訂描述"  # 可選：會退回到 [project].description
 
 [tool.agent-starter-pack.settings]
 deployment_targets = ["cloud_run", "agent_engine"]
 frontend_type = "adk_streamlit"
-# Optional: Customize the directory name for agent files (default: "app")
+# 可選：自訂代理檔案的目錄名稱 (預設："app")
 agent_directory = "app"
 ```
 
-## Configuration Reference
+## 設定參考
 
-### Configuration Fallback Behavior
+### 設定的退回行為
 
-The system intelligently falls back between configuration sources:
+系統會智慧地在設定來源之間進行退回：
 
-1. **`[tool.agent-starter-pack]` section** (highest priority)
-2. **`[project]` section** (fallback for `name` and `description`)  
-3. **Smart defaults** (based on repository structure)
+1. **`[tool.agent-starter-pack]` 部分** (最高優先級)
+2. **`[project]` 部分** (`name` 和 `description` 的退回選項)
+3. **智慧預設值** (基於儲存庫結構)
 
-**Example with fallbacks:**
+**帶有退回的範例：**
 ```toml
 [project]
 name = "my-agent-template"
-description = "A template for building chatbots"
+description = "一個用於建構聊天機器人的模板"
 
-# This section is optional - without it, falls back to [project] + defaults
+# 此部分是可選的 - 沒有它，會退回到 [project] + 預設值
 [tool.agent-starter-pack]
-base_template = "adk_base"  # Override default
-# name and description will use [project] values
+base_template = "adk_base"  # 覆寫預設值
+# name 和 description 將使用 [project] 的值
 ```
 
-### Agent Directory Configuration
+### 代理目錄設定
 
-By default, agent files are expected to be in an `app/` directory. You can customize this using the `agent_directory` setting:
+預設情況下，代理檔案應位於 `app/` 目錄中。您可以使用 `agent_directory` 設定來自訂此項：
 
 ```toml
 [tool.agent-starter-pack.settings]
-agent_directory = "my_agent"  # Custom directory name
+agent_directory = "my_agent"  # 自訂目錄名稱
 ```
 
-This is useful when:
-- You want to use a different directory name for consistency with your project structure
-- You're creating specialized templates with domain-specific naming (e.g., `chatbot/`, `assistant/`, `agent/`)
-- You need to avoid conflicts with existing codebases that use `app/` for other purposes
+這在以下情況下很有用：
+- 您希望使用不同的目錄名稱以與您的專案結構保持一致
+- 您正在建立具有領域特定命名的專業模板 (例如 `chatbot/`, `assistant/`, `agent/`)
+- 您需要避免與使用 `app/` 於其他目的的現有程式碼庫發生衝突
 
-**Important:** When using a custom `agent_directory`, ensure your Python imports and Docker configurations match the new directory name.
+**重要提示：** 當使用自訂的 `agent_directory` 時，請確保您的 Python 匯入和 Docker 設定與新的目錄名稱相符。
 
-For complete configuration options, see the [Template Config Reference](../guide/template-config-reference.md).
+有關完整的設定選項，請參閱[模板設定參考](../guide/template-config-reference.md)。
 
 
-## How File Merging Works
+## 檔案合併如何運作
 
-When someone uses your template, files are copied and overlaid in this order (later steps overwrite earlier ones):
+當有人使用您的模板時，檔案會按以下順序複製和覆蓋 (後面的步驟會覆寫前面的步驟)：
 
-1. **Base Template Files**: The foundational files from the starter pack
-2. **Deployment Target Files**: Files for the chosen deployment target (e.g., `cloud_run`)
-3. **Frontend Files** (Optional): If a `frontend_type` is specified
-4. **Base Agent Files**: The application logic from the `base_template` (e.g., `adk_base`)
-5. **Remote Template Files** (Highest Precedence): All files from your repository root
+1. **基礎模板檔案**：來自入門套件的基礎檔案
+2. **部署目標檔案**：所選部署目標的檔案 (例如 `cloud_run`)
+3. **前端檔案** (可選)：如果指定了 `frontend_type`
+4. **基礎代理檔案**：來自 `base_template` 的應用程式邏輯 (例如 `adk_base`)
+5. **遠端模板檔案** (最高優先級)：來自您儲存庫根目錄的所有檔案
 
-This means your template files will override any conflicting files from the base system.
+這意味著您的模板檔案將覆寫來自基礎系統的任何衝突檔案。
 
-## Managing Dependencies
+## 管理依賴項
 
-### Python Dependencies
+### Python 依賴項
 
-**pyproject.toml (Required for custom deps):**
+**pyproject.toml (對於自訂依賴項為必需)：**
 ```toml
 [project]
 dependencies = [
@@ -224,133 +224,133 @@ dependencies = [
 ]
 ```
 
-**uv.lock (Strongly Recommended):**
-- Run `uv lock` after changing dependencies
-- Commit the resulting `uv.lock` file for reproducibility
-- If present, it guarantees exact dependency versions for users
+**uv.lock (強烈建議)：**
+- 在變更依賴項後執行 `uv lock`
+- 提交產生的 `uv.lock` 檔案以確保可重現性
+- 如果存在，它能保證使用者的依賴項版本完全相同
 
-**Best Practice:** Always include a `uv.lock` file for reproducible builds.
+**最佳實踐：** 始終包含一個 `uv.lock` 檔案以實現可重現的建置。
 
-### Makefile Customization
+### Makefile 客製化
 
-If your template includes a `Makefile`, it will be intelligently merged:
-- **Your commands take precedence**: If a command exists in both makefiles, yours is kept
-- **New commands are added**: Any unique commands from your Makefile are included
-- **Base commands are preserved**: Essential commands from the base Makefile are appended
+如果您的模板包含一個 `Makefile`，它將被智慧地合併：
+- **您的指令優先**：如果一個指令同時存在於兩個 makefile 中，則保留您的
+- **新增新指令**：您的 Makefile 中的任何唯一指令都會被包含
+- **保留基礎指令**：來自基礎 Makefile 的必要指令會被附加
 
-This lets you customize the build process while preserving starter pack functionality.
+這讓您可以在保留入門套件功能的同時客製化建置過程。
 
-## Customizing Infrastructure
+## 客製化基礎設施
 
-### Terraform Overrides
+### Terraform 覆寫
 
-You can customize the generated agent's infrastructure by adding or replacing Terraform files:
+您可以透過新增或替換 Terraform 檔案來自訂產生的代理的基礎設施：
 
-- **Adding New Files**: Place new `.tf` files in the appropriate directory
-- **Overriding Base Files**: Create files with the same name to completely replace base files
+- **新增新檔案**：將新的 `.tf` 檔案放置在適當的目錄中
+- **覆寫基礎檔案**：建立同名檔案以完全替換基礎檔案
 
-### Environment-Specific Configuration
+### 特定環境的設定
 
-**Production/Staging Configuration:**
+**生產/預備環境設定：**
 ```
 deployment/terraform/
-├── service.tf      # Replaces base service.tf for 'staging' and 'prod'
-└── variables.tf    # Custom variables
+├── service.tf      # 替換 'staging' 和 'prod' 的基礎 service.tf
+└── variables.tf    # 自訂變數
 ```
 
-**Development Configuration:**
+**開發環境設定：**
 ```
 deployment/terraform/dev/
-├── service.tf      # Replaces base service.tf ONLY for 'dev'
-└── variables.tf    # Dev-specific variables
+├── service.tf      # 僅替換 'dev' 的基礎 service.tf
+└── variables.tf    # 開發特定變數
 ```
 
-**Example Structure:**
+**範例結構：**
 ```
 my-terraform-template/
 ├── pyproject.toml
 └── deployment/
     └── terraform/
-        ├── service.tf      # Production/staging override
+        ├── service.tf      # 生產/預備環境覆寫
         └── dev/
-            └── service.tf  # Development override
+            └── service.tf  # 開發環境覆寫
 ```
 
-For complete infrastructure customization options, see the [Deployment guide](../guide/deployment.md).
+有關完整的基礎設施客製化選項，請參閱[部署指南](../guide/deployment.md)。
 
-## Testing Your Template
+## 測試您的模板
 
-### Local Testing
+### 本地測試
 ```bash
-# Test from parent directory
+# 從父目錄測試
 uvx agent-starter-pack create test-project -a local@./your-template
 
-# Test with different options
+# 使用不同選項測試
 uvx agent-starter-pack create test-project -a local@./your-template --deployment-target cloud_run
 ```
 
-### Validation Checklist
+### 驗證檢查清單
 
-Before publishing, verify:
-- [ ] `pyproject.toml` has all required dependencies
-- [ ] Agent code is in appropriate directory structure (usually `/app` or configured `agent_directory`)
-- [ ] `uv lock` generates without errors
-- [ ] Local testing creates working agent
-- [ ] README documents usage and requirements
-- [ ] Configuration section enables discoverability
+在發布之前，請驗證：
+- [ ] `pyproject.toml` 包含所有必要的依賴項
+- [ ] 代理程式碼位於適當的目錄結構中 (通常是 `/app` 或設定的 `agent_directory`)
+- [ ] `uv lock` 能無誤地產生
+- [ ] 本地測試能建立可運作的代理
+- [ ] README 文件說明了用法和要求
+- [ ] 設定部分啟用了可發現性
 
-## Publishing Best Practices
+## 發布最佳實踐
 
-### Repository Organization
-- Use clear, descriptive repository names
-- Include comprehensive README with usage examples
-- Tag releases for stable versions
-- Document any special requirements or setup
+### 儲存庫組織
+- 使用清晰、描述性的儲存庫名稱
+- 包含帶有用法範例的完整 README
+- 為穩定版本標記發行版
+- 記錄任何特殊要求或設定
 
-### Versioning
+### 版本控制
 ```bash
-# Tag stable releases
+# 標記穩定版本
 git tag v1.0.0
 git push origin v1.0.0
 
-# Users can reference specific versions
+# 使用者可以引用特定版本
 uvx agent-starter-pack create my-agent -a github.com/user/template@v1.0.0
 ```
 
-### Documentation
-Include in your template's README:
-- Purpose and use case of the template
-- Usage examples
-- Configuration options
-- Prerequisites or special requirements
-- Changelog for updates
+### 文件
+在您的模板的 README 中包含：
+- 模板的用途和使用案例
+- 用法範例
+- 設定選項
+- 先決條件或特殊要求
+- 更新的變更日誌
 
-## Troubleshooting for Template Authors
+## 模板作者疑難排解
 
-### "Template works but doesn't show up in `list`"
-- Add `[tool.agent-starter-pack]` section to your `pyproject.toml`
-- The `list` command only shows templates with explicit configuration
+### 「模板可運作但未顯示在 `list` 中」
+- 將 `[tool.agent-starter-pack]` 部分新增到您的 `pyproject.toml`
+- `list` 指令僅顯示具有明確設定的模板
 
-### "Template fails with dependency errors" 
-- Ensure your `pyproject.toml` includes all required dependencies
-- Run `uv lock` to generate a `uv.lock` file for reproducibility
-- Test locally: `uvx agent-starter-pack create test -a local@./your-template`
+### 「模板因依賴錯誤而失敗」
+- 確保您的 `pyproject.toml` 包含所有必要的依賴項
+- 執行 `uv lock` 以產生 `uv.lock` 檔案以確保可重現性
+- 本地測試：`uvx agent-starter-pack create test -a local@./your-template`
 
-### "Template uses wrong base or missing features"
-- Check your `[tool.agent-starter-pack]` configuration
-- Verify `base_template` is set correctly (defaults to "adk_base")
-- Review available settings in the [Template Config Reference](../guide/template-config-reference.md)
+### 「模板使用錯誤的基礎或缺少功能」
+- 檢查您的 `[tool.agent-starter-pack]` 設定
+- 驗證 `base_template` 是否設定正確 (預設為 "adk_base")
+- 在[模板設定參考](../guide/template-config-reference.md)中檢閱可用的設定
 
-### "Users report missing dependencies"
-- Your `pyproject.toml` may be incomplete
-- Consider providing a more comprehensive dependency list
-- Include usage instructions in your README
+### 「使用者回報缺少依賴項」
+- 您的 `pyproject.toml` 可能不完整
+- 考慮提供更全面的依賴項清單
+- 在您的 README 中包含使用說明
 
-## Examples and Inspiration
+## 範例與靈感
 
-### Popular Template Patterns
+### 熱門模板模式
 
-**Data Science Agent:**
+**資料科學代理：**
 ```toml
 [tool.agent-starter-pack]
 base_template = "adk_base"
@@ -359,7 +359,7 @@ deployment_targets = ["cloud_run"]
 extra_dependencies = ["pandas", "numpy", "scikit-learn"]
 ```
 
-**Chat Bot Template:**
+**聊天機器人模板：**
 ```toml
 [tool.agent-starter-pack]
 base_template = "adk_base"
@@ -368,7 +368,7 @@ frontend_type = "adk_streamlit"
 deployment_targets = ["agent_engine", "cloud_run"]
 ```
 
-**Enterprise Template:**
+**企業模板：**
 ```toml
 [tool.agent-starter-pack]
 base_template = "adk_base"
@@ -378,13 +378,13 @@ deployment_targets = ["cloud_run"]
 include_data_ingestion = true
 ```
 
-### Official Examples
-- Browse [google/adk-samples](https://github.com/google/adk-samples) for production-ready examples
-- Use `uvx agent-starter-pack list --adk` to see available official templates
+### 官方範例
+- 瀏覽 [google/adk-samples](https://github.com/google/adk-samples) 以獲取可用於生產的範例
+- 使用 `uvx agent-starter-pack list --adk` 查看可用的官方模板
 
-## Next Steps
+## 後續步驟
 
-- **Start simple**: Begin with basic agent logic, add complexity gradually
-- **Study examples**: Examine successful templates in adk-samples
-- **Get feedback**: Share with the community and iterate based on usage
-- **Stay updated**: Follow starter pack updates for new features and best practices
+- **從簡單開始**：從基本的代理邏輯開始，逐步增加複雜性
+- **研究範例**：檢查 adk-samples 中的成功模板
+- **獲取回饋**：與社群分享並根據使用情況進行迭代
+- **保持更新**：關注入門套件的更新以獲取新功能和最佳實踐

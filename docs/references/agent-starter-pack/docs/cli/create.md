@@ -1,182 +1,182 @@
 # create
 
-Create new GCP-based AI agent projects from built-in agents or remote templates.
+從內建代理或遠端模板建立新的基於 GCP 的 AI 代理專案。
 
-## Usage
+## 使用方式
 
 ```bash
 uvx agent-starter-pack create PROJECT_NAME [OPTIONS]
 ```
 
-## Arguments
+## 參數
 
-- `PROJECT_NAME`: Name for your new agent project directory and base for resource naming.
-  *Note: This name will be converted to lowercase and must be 26 characters or less.*
+- `PROJECT_NAME`: 您的新代理專案目錄的名稱，以及資源命名的基礎。
+  *注意：此名稱將被轉換為小寫，且長度必須為 26 個字元或更少。*
 
-## Template Selection
+## 模板選擇
 
 ### `--agent`, `-a` TEMPLATE
-Specify which template to use for your agent:
+指定要用於您的代理的模板：
 
-**Built-in agents:**
+**內建代理：**
 ```bash
 uvx agent-starter-pack create my-agent -a adk_base
 uvx agent-starter-pack create my-agent -a chat_agent
 ```
 
-**Remote templates:**
+**遠端模板：**
 ```bash
-# Full GitHub URL
+# 完整的 GitHub URL
 uvx agent-starter-pack create my-agent -a https://github.com/user/repo
 
-# Shorthand notation  
+# 簡寫表示法
 uvx agent-starter-pack create my-agent -a github.com/user/repo@main
 
-# ADK samples shortcut
+# ADK 範例捷徑
 uvx agent-starter-pack create my-agent -a adk@gemini-fullstack
 
-# Use your existing project as source
+# 使用您現有的專案作為來源
 uvx agent-starter-pack create my-agent -a local@./path/to/project
 ```
 
-If omitted, you'll see an interactive list of available agents.
+如果省略，您將看到一個可用的代理互動式清單。
 
-## Deployment Options
+## 部署選項
 
 ### `--deployment-target`, `-d` TARGET
-Deployment target for your agent:
-- `cloud_run` - Deploy to Google Cloud Run
-- `agent_engine` - Deploy to Google Cloud Agent Engine
+您的代理的部署目標：
+- `cloud_run` - 部署到 Google Cloud Run
+- `agent_engine` - 部署到 Google Cloud Agent Engine
 
-### `--cicd-runner` RUNNER  
-CI/CD runner to use:
-- `google_cloud_build` - Use Google Cloud Build
-- `github_actions` - Use GitHub Actions
+### `--cicd-runner` RUNNER
+要使用的 CI/CD 執行器：
+- `google_cloud_build` - 使用 Google Cloud Build
+- `github_actions` - 使用 GitHub Actions
 
 ### `--region` REGION
-GCP region for deployment (default: `us-central1`)
+用於部署的 GCP 區域 (預設：`us-central1`)
 
-## Data & Storage Options
+## 資料與儲存選項
 
 ### `--include-data-ingestion`, `-i`
-Include data ingestion pipeline components in the project.
+在專案中包含資料擷取管線元件。
 
 ### `--datastore`, `-ds` DATASTORE
-Type of datastore for data ingestion (requires `--include-data-ingestion`):
+用於資料擷取的資料儲存庫類型 (需要 `--include-data-ingestion`)：
 - `vertex_ai_search`
-- `vertex_ai_vector_search` 
+- `vertex_ai_vector_search`
 - `alloydb`
 
 ### `--session-type` TYPE
-Session storage type (for Cloud Run deployment):
-- `in_memory` - Store sessions in memory
-- `alloydb` - Store sessions in AlloyDB
-- `agent_engine` - Use Agent Engine session management
+會話儲存類型 (用於 Cloud Run 部署)：
+- `in_memory` - 在記憶體中儲存會話
+- `alloydb` - 在 AlloyDB 中儲存會話
+- `agent_engine` - 使用 Agent Engine 會話管理
 
-## Project Creation Options
+## 專案建立選項
 
 ### `--output-dir`, `-o` DIRECTORY
-Output directory for the project (default: current directory)
+專案的輸出目錄 (預設：目前目錄)
 
 ### `--agent-directory`, `-dir` DIRECTORY
-Name of the agent directory (overrides template default, usually `app`). This determines where your agent code files will be located within the project structure.
+代理目錄的名稱 (覆寫模板預設值，通常是 `app`)。這決定了您的代理程式碼檔案在專案結構中的位置。
 
 ### `--in-folder`
-Create agent files directly in the current directory instead of creating a new project subdirectory.
+直接在目前目錄中建立代理檔案，而不是建立一個新的專案子目錄。
 
-**Standard behavior:**
+**標準行為：**
 ```bash
 uvx agent-starter-pack create my-agent -a template
-# Creates: ./my-agent/[project files]
+# 建立：./my-agent/[project files]
 ```
 
-**In-folder behavior:**
-```bash  
+**資料夾內行為：**
+```bash
 uvx agent-starter-pack create my-agent -a template --in-folder
-# Creates: ./[project files] (in current directory)
+# 建立：./[project files] (在目前目錄中)
 ```
 
-**Use cases:**
-- Adding agent capabilities to existing projects
-- Working within established repository structures
-- Containerized development environments
+**使用案例：**
+- 為現有專案新增代理功能
+- 在已建立的儲存庫結構中工作
+- 容器化的開發環境
 
-**Automatic Backup:** When using `--in-folder`, a complete backup of your directory is automatically created as `.backup_[dirname]_[timestamp]` before any changes are made.
+**自動備份：** 使用 `--in-folder` 時，在進行任何變更之前，會自動將您的目錄完整備份為 `.backup_[dirname]_[timestamp]`。
 
-## Automation Options
+## 自動化選項
 
 ### `--auto-approve`
-Skip interactive confirmation prompts for GCP credentials and region.
+跳過對 GCP 憑證和區域的互動式確認提示。
 
 ### `--skip-checks`
-Skip verification checks for GCP authentication and Vertex AI connection.
+跳過對 GCP 驗證和 Vertex AI 連線的驗證檢查。
 
 ### `--debug`
-Enable debug logging for troubleshooting.
+啟用除錯日誌以進行疑難排解。
 
-## Examples
+## 範例
 
-### Basic Usage
+### 基本用法
 
 ```bash
-# Create a new project interactively
+# 互動式地建立一個新專案
 uvx agent-starter-pack create my-agent-project
 
-# Create with specific built-in agent
+# 使用特定的內建代理建立
 uvx agent-starter-pack create my-agent -a adk_base -d cloud_run
 ```
 
-### Remote Templates
+### 遠端模板
 
 ```bash
-# Use ADK samples
+# 使用 ADK 範例
 uvx agent-starter-pack create my-agent -a adk@gemini-fullstack
 
-# Use GitHub repository
+# 使用 GitHub 儲存庫
 uvx agent-starter-pack create my-agent -a https://github.com/user/my-template
 
-# Use shorthand notation with branch
+# 使用帶有分支的簡寫表示法
 uvx agent-starter-pack create my-agent -a github.com/user/template@develop
 
-# Use your existing project  
+# 使用您現有的專案
 uvx agent-starter-pack create my-agent -a local@./my-project
 ```
 
-### Advanced Configuration
+### 進階設定
 
 ```bash
-# Include data ingestion with specific datastore
+# 包含具有特定資料儲存庫的資料擷取
 uvx agent-starter-pack create my-rag-agent -a adk_base -i -ds alloydb -d cloud_run
 
-# Create with custom region and CI/CD
+# 使用自訂區域和 CI/CD 建立
 uvx agent-starter-pack create my-agent -a template-url --region europe-west1 --cicd-runner github_actions
 
-# In-folder creation (add to existing project)
+# 資料夾內建立 (新增至現有專案)
 uvx agent-starter-pack create my-agent -a adk@data-science --in-folder
 
-# Customize agent directory name
+# 自訂代理目錄名稱
 uvx agent-starter-pack create my-agent -a adk_base --agent-directory chatbot
 
-# Skip all prompts for automation
+# 為自動化跳過所有提示
 uvx agent-starter-pack create my-agent -a template-url --auto-approve --skip-checks
 ```
 
-### Output Directory
+### 輸出目錄
 
 ```bash
-# Create in specific directory
+# 在特定目錄中建立
 uvx agent-starter-pack create my-agent -o ./projects/
 
-# Create in current directory with in-folder
+# 在目前目錄中使用資料夾內建立
 uvx agent-starter-pack create existing-project -a template-url --in-folder
 ```
 
-## Related Commands
+## 相關指令
 
-- [`enhance`](./enhance.md) - Add agent capabilities to existing projects (automatically uses `--in-folder`)
-- [`list`](./list.md) - List available templates and agents
+- [`enhance`](./enhance.md) - 為現有專案新增代理功能 (自動使用 `--in-folder`)
+- [`list`](./list.md) - 列出可用的模板和代理
 
-## See Also
+## 另請參閱
 
-- [Using Remote Templates](../remote-templates/using-remote-templates.md) - Complete guide for using remote templates
-- [Creating Remote Templates](../remote-templates/creating-remote-templates.md) - Guide for creating your own templates
+- [使用遠端模板](../remote-templates/using-remote-templates.md) - 使用遠端模板的完整指南
+- [建立遠端模板](../remote-templates/creating-remote-templates.md) - 建立您自己的模板的指南

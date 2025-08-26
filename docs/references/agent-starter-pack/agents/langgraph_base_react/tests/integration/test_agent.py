@@ -18,8 +18,8 @@ from {{cookiecutter.agent_directory}}.agent import agent
 
 def test_agent_stream() -> None:
     """
-    Integration test for the agent stream functionality.
-    Tests that the agent returns valid streaming responses.
+    代理串流功能的整合測試。
+    測試代理是否返回有效的串流回應。
     """
     input_dict = {
         "messages": [
@@ -33,13 +33,13 @@ def test_agent_stream() -> None:
         message for message, _ in agent.stream(input_dict, stream_mode="messages")
     ]
 
-    # Verify we get a reasonable number of messages
+    # 驗證我們是否收到合理數量的訊息
     assert len(events) > 0, "Expected at least one message"
 
-    # First message should be an AI message
+    # 第一則訊息應該是 AI 訊息
     assert events[0].type == "AIMessageChunk"
 
-    # At least one message should have content
+    # 至少有一則訊息應該有內容
     has_content = False
     for event in events:
         if hasattr(event, "content") and event.content:

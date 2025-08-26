@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-description: "A real-time multimodal RAG agent powered by Gemini Live API, supporting audio/video/text chat with vector DB-backed responses"
+description: "一個由 Gemini Live API 驅動的即時多模態 RAG 代理，支援音訊/視訊/文字聊天，並由向量資料庫支援回應"
 settings:
   requires_data_ingestion: false
   frontend_type: "live_api_react"
@@ -21,4 +21,4 @@ settings:
     "backoff~=2.2.1",
     "google-genai~=1.16.0",
   ]
-example_question: "What's the weather in San Francisco?"
+example_question: "舊金山的天氣如何？"

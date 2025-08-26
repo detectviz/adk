@@ -17,7 +17,7 @@ from langchain_core.prompts import (
 )
 
 format_docs = PromptTemplate.from_template(
-    """## Context provided:
+    """## 提供的上下文：
 {% for doc in docs%}
 <Document {{ loop.index0 }}>
 {{ doc.page_content | safe }}

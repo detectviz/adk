@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-description: "A base ReAct agent built with Google's Agent Development Kit (ADK)"
-example_question: "What's the weather in San Francisco?"
+description: "一個使用 Google 的代理開發套件 (Agent Development Kit, ADK) 建構的基礎 ReAct 代理"
+example_question: "舊金山的天氣如何？"
 settings:
   requires_data_ingestion: false
   requires_session: true

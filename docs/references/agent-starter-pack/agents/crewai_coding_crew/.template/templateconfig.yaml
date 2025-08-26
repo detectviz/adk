@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-description: "A multi-agent system implemented with CrewAI created to support coding activities"
+description: "一個使用 CrewAI 實現的多代理系統，旨在支援編碼活動"
 settings:
   requires_data_ingestion: false
   deployment_targets: ["agent_engine", "cloud_run"]
@@ -24,4 +24,4 @@ settings:
     "langgraph~=0.6.2",
     "crewai~=0.152.0"
   ]
-example_question: "How can I implement a function to sort a list in Python?"
+example_question: "我該如何在 Python 中實作一個函式來排序列表？"

@@ -29,8 +29,8 @@ from {{cookiecutter.agent_directory}}.agent import root_agent
 )
 def test_agent_stream(mock_retrieve: MagicMock) -> None:
     """
-    Integration test for the agent stream functionality.
-    Tests that the agent returns valid streaming responses.
+    代理串流功能的整合測試。
+    測試代理是否返回有效的串流回應。
     """
 
     session_service = InMemorySessionService()

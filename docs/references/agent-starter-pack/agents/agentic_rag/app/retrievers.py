@@ -33,10 +33,10 @@ def get_retriever(
     custom_embedding_ratio: float = 0.5,
 ) -> VertexAISearchRetriever:
     """
-    Creates and returns an instance of the retriever service.
+    建立並傳回檢索器服務的實例。
 
-    Uses mock service if the INTEGRATION_TEST environment variable is set to "TRUE",
-    otherwise initializes real Vertex AI retriever.
+    如果 INTEGRATION_TEST 環境變數設定為 "TRUE"，則使用模擬服務，
+    否則初始化真實的 Vertex AI 檢索器。
     """
     try:
         return VertexAISearchRetriever(
@@ -44,14 +44,14 @@ def get_retriever(
             data_store_id=data_store_id,
             location_id=data_store_region,
             engine_data_type=1,
-            # The following parameters are used when you want to search
-            # using custom embeddings in Agent Builder.
-            # The ratio is set to 0.5 by default to use a mix of custom
-            # embeddings but you can adapt the ratio as you need.
+            # 當您想在 Agent Builder 中使用自訂嵌入進行搜尋時，
+            # 會使用以下參數。
+            # 預設比例設定為 0.5，以混合使用自訂嵌入，
+            # 但您可以根據需要調整比例。
             custom_embedding_ratio=custom_embedding_ratio,
             custom_embedding=embedding,
             custom_embedding_field_path=embedding_column,
-            # Extracting 20 documents before re-rank.
+            # 在重新排序前擷取 20 個文件。
             max_documents=max_documents,
             beta=True,
         )
@@ -59,8 +59,8 @@ def get_retriever(
         retriever = MagicMock()
 
         def raise_exception(*args, **kwargs) -> None:
-            """Function that raises an exception when the retriever is not available."""
-            raise Exception("Retriever not available")
+            """當檢索器不可用時引發異常的函式。"""
+            raise Exception("檢索器不可用")
 
         retriever.invoke = raise_exception
         return retriever
@@ -79,7 +79,7 @@ def get_retriever(
     embedding: VertexAIEmbeddings,
 ) -> VectorStoreRetriever:
     """
-    Creates and returns an instance of the retriever service.
+    建立並傳回檢索器服務的實例。
     """
     try:
         aiplatform.init(
@@ -107,8 +107,8 @@ def get_retriever(
         retriever = MagicMock()
 
         def raise_exception(*args, **kwargs) -> None:
-            """Function that raises an exception when the retriever is not available."""
-            raise Exception("Retriever not available")
+            """當檢索器不可用時引發異常的函式。"""
+            raise Exception("檢索器不可用")
 
         retriever.invoke = raise_exception
         return retriever
@@ -116,7 +116,7 @@ def get_retriever(
 
 def get_compressor(project_id: str, top_n: int = 5) -> VertexAIRank:
     """
-    Creates and returns an instance of the compressor service.
+    建立並傳回壓縮器服務的實例。
     """
     try:
         return VertexAIRank(

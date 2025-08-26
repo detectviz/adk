@@ -21,7 +21,7 @@ from crewai.project import CrewBase, agent, crew, task
 
 @CrewBase
 class DevCrew:
-    """Developer crew"""
+    """開發團隊"""
 
     agents_config: dict[str, Any]
     tasks_config: dict[str, Any]
@@ -62,7 +62,7 @@ class DevCrew:
 
     @crew
     def crew(self) -> Crew:
-        """Creates the Dev Crew"""
+        """建立開發團隊"""
         return Crew(
             agents=self.agents,
             tasks=self.tasks,

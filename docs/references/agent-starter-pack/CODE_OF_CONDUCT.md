@@ -1,43 +1,24 @@
-# Contributor Code of Conduct
+# 貢獻者行為準則
 
-As contributors and maintainers of this project,
-and in the interest of fostering an open and welcoming community,
-we pledge to respect all people who contribute through reporting issues,
-posting feature requests, updating documentation,
-submitting pull requests or patches, and other activities.
+作為本專案的貢獻者和維護者，為了促進一個開放和熱情的社群，我們承諾尊重所有透過回報問題、提出功能請求、更新文件、提交拉取請求或補丁以及其他活動做出貢獻的人。
 
-We are committed to making participation in this project
-a harassment-free experience for everyone,
-regardless of level of experience, gender, gender identity and expression,
-sexual orientation, disability, personal appearance,
-body size, race, ethnicity, age, religion, or nationality.
+我們致力於讓參與本專案的每個人都能免於騷擾，無論其經驗水平、性別、性別認同和表達、性取向、身心障礙、個人外貌、身材、種族、族裔、年齡、宗教或國籍。
 
-Examples of unacceptable behavior by participants include:
+參與者不可接受的行為範例包括：
 
-- The use of sexualized language or imagery
-- Personal attacks
-- Trolling or insulting/derogatory comments
-- Public or private harassment
-- Publishing other's private information,
-  such as physical or electronic
-  addresses, without explicit permission
-- Other unethical or unprofessional conduct.
+- 使用與性相關的語言或圖像
+- 人身攻擊
+- 挑釁或侮辱/貶損性評論
+- 公開或私下的騷擾
+- 未經明確許可，發布他人的私人資訊，例如住址或電子郵件地址
+- 其他不道德或不專業的行為。
 
-Project maintainers have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions
-that are not aligned to this Code of Conduct.
-By adopting this Code of Conduct,
-project maintainers commit themselves to fairly and consistently
-applying these principles to every aspect of managing this project.
-Project maintainers who do not follow or enforce the Code of Conduct
-may be permanently removed from the project team.
+專案維護者有權利和責任移除、編輯或拒絕與本行為準則不符的評論、提交、程式碼、維基編輯、問題和其他貢獻。
+透過採用本行為準則，專案維護者承諾將這些原則公平且一致地應用於管理本專案的各個方面。
+不遵守或不執行本行為準則的專案維護者可能會被永久地從專案團隊中移除。
 
-This code of conduct applies both within project spaces and in public spaces
-when an individual is representing the project or its community.
+本行為準則適用於專案空間內以及當個人代表本專案或其社群時的公共空間。
 
-Instances of abusive, harassing, or otherwise unacceptable behavior
-may be reported by opening an issue
-or contacting one or more of the project maintainers.
+若有辱罵、騷擾或其他不可接受的行為，可以透過開啟一個 issue 或聯繫一位或多位專案維護者來回報。
 
-This Code of Conduct is adapted from the [Contributor Covenant](http://contributor-covenant.org), version 1.2.0,
-available at [http://contributor-covenant.org/version/1/2/0/](http://contributor-covenant.org/version/1/2/0/)
+本行為準則改編自 [Contributor Covenant](http://contributor-covenant.org) 1.2.0 版本，可在 [http://contributor-covenant.org/version/1/2/0/](http://contributor-covenant.org/version/1/2/0/) 取得。

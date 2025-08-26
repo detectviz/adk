@@ -26,41 +26,41 @@ os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "True")
 
 
 def get_weather(query: str) -> str:
-    """Simulates a web search. Use it get information on weather.
+    """模擬網路搜尋。用它來獲取天氣資訊。
 
     Args:
-        query: A string containing the location to get weather information for.
+        query: 一個包含要查詢天氣資訊地點的字串。
 
     Returns:
-        A string with the simulated weather information for the queried location.
+        一個包含所查詢地點模擬天氣資訊的字串。
     """
     if "sf" in query.lower() or "san francisco" in query.lower():
-        return "It's 60 degrees and foggy."
-    return "It's 90 degrees and sunny."
+        return "現在是華氏 60 度，有霧。"
+    return "現在是華氏 90 度，晴天。"
 
 
 def get_current_time(query: str) -> str:
-    """Simulates getting the current time for a city.
+    """模擬獲取一個城市的目前時間。
 
     Args:
-        city: The name of the city to get the current time for.
+        city: 要獲取目前時間的城市名稱。
 
     Returns:
-        A string with the current time information.
+        一個包含目前時間資訊的字串。
     """
     if "sf" in query.lower() or "san francisco" in query.lower():
         tz_identifier = "America/Los_Angeles"
     else:
-        return f"Sorry, I don't have timezone information for query: {query}."
+        return f"抱歉，我沒有關於 {query} 的時區資訊。"
 
     tz = ZoneInfo(tz_identifier)
     now = datetime.datetime.now(tz)
-    return f"The current time for query {query} is {now.strftime('%Y-%m-%d %H:%M:%S %Z%z')}"
+    return f"查詢 {query} 的目前時間是 {now.strftime('%Y-%m-%d %H:%M:%S %Z%z')}"
 
 
 root_agent = Agent(
     name="root_agent",
     model="gemini-2.5-flash",
-    instruction="You are a helpful AI assistant designed to provide accurate and useful information.",
+    instruction="你是一個樂於助人的 AI 助理，旨在提供準確且有用的資訊。",
     tools=[get_weather, get_current_time],
 )

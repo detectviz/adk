@@ -1,170 +1,170 @@
-# Agent Starter Pack - Coding Agent Guide
+# Agent Starter Pack - 程式開發代理指南
 
-This document provides essential guidance, architectural insights, and best practices for AI coding agents tasked with modifying the Google Cloud Agent Starter Pack. Adhering to these principles is critical for making safe, consistent, and effective changes.
+本文件為負責修改 Google Cloud Agent Starter Pack 的 AI 程式開發代理提供了必要的指導、架構見解和最佳實踐。遵循這些原則對於進行安全、一致且有效的變更是至關重要的。
 
-## Core Principles for AI Agents
+## AI 代理的核心原則
 
-1.  **Preserve and Isolate:** Your primary objective is surgical precision. Modify *only* the code segments directly related to the user's request. Preserve all surrounding code, comments, and formatting. Do not rewrite entire files or functions to make a small change.
-2.  **Follow Conventions:** This project relies heavily on established patterns. Before writing new code, analyze the surrounding files to understand and replicate existing conventions for naming, templating logic, and directory structure.
-3.  **Search Comprehensively:** A single change often requires updates in multiple places. When modifying configuration, variables, or infrastructure, you **must** search across the entire repository, including:
-    *   `src/base_template/` (the core template)
-    *   `src/deployment_targets/` (environment-specific overrides)
-    *   `.github/` and `.cloudbuild/` (CI/CD workflows)
-    *   `docs/` (user-facing documentation)
+1.  **保護與隔離：** 您的首要目標是精準操作。**僅**修改與使用者請求直接相關的程式碼片段。保留所有周圍的程式碼、註解和格式。不要為了做一個小小的變更而重寫整個檔案或函式。
+2.  **遵循慣例：** 本專案高度依賴既定模式。在撰寫新程式碼之前，請分析周圍的檔案，以理解並複製現有的命名、模板邏輯和目錄結構慣例。
+3.  **全面搜尋：** 一個變更通常需要在多個地方進行更新。在修改設定、變數或基礎設施時，您**必須**在整個儲存庫中進行搜尋，包括：
+    *   `src/base_template/` (核心模板)
+    *   `src/deployment_targets/` (特定環境的覆寫)
+    *   `.github/` 和 `.cloudbuild/` (CI/CD 工作流程)
+    *   `docs/` (使用者文件)
 
-## Project Architecture Overview
+## 專案架構概覽
 
-### Templating Engine: Cookiecutter + Jinja2
+### 模板引擎：Cookiecutter + Jinja2
 
-The starter pack uses **Cookiecutter** to generate project scaffolding from templates that are heavily customized with the **Jinja2** templating language. Understanding the rendering process is key to avoiding errors.
+本入門套件使用 **Cookiecutter** 從模板生成專案腳手架，這些模板使用 **Jinja2** 模板語言進行了大量客製化。理解渲染過程是避免錯誤的關鍵。
 
-**Multi-Phase Template Processing:**
+**多階段模板處理：**
 
-Templates are processed in a specific order. A failure at any stage will break the project generation.
+模板按特定順序處理。任何階段的失敗都會導致專案生成中斷。
 
-1.  **Cookiecutter Variable Substitution:** Simple replacement of `{{cookiecutter.variable_name}}` placeholders with values from `cookiecutter.json`.
-2.  **Jinja2 Logic Execution:** Conditional blocks (`{% if %}`), loops (`{% for %}`), and other logic are executed. This is the most complex and error-prone stage.
-3.  **File/Directory Name Templating:** File and directory names containing Jinja2 blocks are rendered. For example, `{% if cookiecutter.cicd_runner == 'github_actions' %}.github{% else %}unused_github{% endif %}`.
+1.  **Cookiecutter 變數替換：** 將 `{{cookiecutter.variable_name}}` 佔位符簡單替換為 `cookiecutter.json` 中的值。
+2.  **Jinja2 邏輯執行：** 執行條件區塊 (`{% if %}`), 迴圈 (`{% for %}`) 和其他邏輯。這是最複雜且最容易出錯的階段。
+3.  **檔案/目錄名稱模板化：** 渲染包含 Jinja2 區塊的檔案和目錄名稱。例如：`{% if cookiecutter.cicd_runner == 'github_actions' %}.github{% else %}unused_github{% endif %}`。
 
-### Key Directory Structures
+### 關鍵目錄結構
 
--   `src/base_template/`: This is the **core template**. Most changes that should apply to all generated projects should start here.
--   `src/deployment_targets/`: Contains files that **override or are added to** the `base_template` for a specific deployment target (e.g., `cloud_run`, `gke`, `agent_engine`). If a file exists in both `base_template` and a deployment target, the latter is typically used.
--   `agents/`: Contains pre-packaged, self-contained agent examples. Each has its own `.template/templateconfig.yaml` to define its specific variables and dependencies.
--   `src/cli/commands`: Contains the logic for the CLI commands, such as `create` and `setup-cicd`.
+-   `src/base_template/`: 這是**核心模板**。大多數應適用於所有生成專案的變更都應從這裡開始。
+-   `src/deployment_targets/`: 包含**覆寫或新增至** `base_template` 的檔案，用於特定的部署目標 (例如 `cloud_run`, `gke`, `agent_engine`)。如果一個檔案同時存在於 `base_template` 和部署目標中，通常會使用後者。
+-   `agents/`: 包含預先打包、自成一體的代理範例。每個範例都有自己的 `.template/templateconfig.yaml` 來定義其特定的變數和依賴項。
+-   `src/cli/commands`: 包含 CLI 命令的邏輯，例如 `create` 和 `setup-cicd`。
 
-### CLI Commands
+### CLI 命令
 
--   `create.py`: Handles the creation of new agent projects. It orchestrates the template processing, configuration merging, and deployment target selection.
--   `setup_cicd.py`: Automates the setup of the CI/CD pipeline. It interacts with `gcloud` and `gh` to configure GitHub repositories, Cloud Build triggers, and Terraform backend.
+-   `create.py`: 處理新代理專案的建立。它協調模板處理、設定合併和部署目標選擇。
+-   `setup_cicd.py`: 自動化 CI/CD 管線的設定。它與 `gcloud` 和 `gh` 互動，以設定 GitHub 儲存庫、Cloud Build 觸發器和 Terraform 後端。
 
-### Template Processing
+### 模板處理
 
--   `template.py`: Located in `src/cli/utils`, this script contains the core logic for processing the templates. It copies the base template, overlays the deployment target files, and then applies the agent-specific files.
+-   `template.py`: 位於 `src/cli/utils`，此腳本包含處理模板的核心邏輯。它複製基礎模板，覆蓋部署目標檔案，然後應用特定於代理的檔案。
 
-## Critical Jinja Templating Rules
+## 關鍵 Jinja 模板規則
 
-Failure to follow these rules is the most common source of project generation errors.
+不遵守這些規則是專案生成錯誤最常見的來源。
 
-### 1. Block Balancing
-**Every opening Jinja block must have a corresponding closing block.** This is the most critical rule.
+### 1. 區塊平衡
+**每個開啟的 Jinja 區塊必須有對應的關閉區塊。** 這是最關鍵的規則。
 
--   `{% if ... %}` requires `{% endif %}`
--   `{% for ... %}` requires `{% endfor %}`
--   `{% raw %}` requires `{% endraw %}`
+-   `{% if ... %}` 需要 `{% endif %}`
+-   `{% for ... %}` 需要 `{% endfor %}`
+-   `{% raw %}` 需要 `{% endraw %}`
 
-**Correct:**
+**正確：**
 ```jinja
 {% if cookiecutter.deployment_target == 'cloud_run' %}
-  # Cloud Run specific content
+  # Cloud Run 特定內容
 {% endif %}
 ```
 
-### 2. Variable Usage
-Distinguish between substitution and logic:
+### 2. 變數使用
+區分替換和邏輯：
 
--   **Substitution (in file content):** Use double curly braces: `{{ cookiecutter.project_name }}`
--   **Logic (in `if`/`for` blocks):** Use the variable directly: `{% if cookiecutter.use_alloydb %}`
+-   **替換 (在檔案內容中):** 使用雙大括號：`{{ cookiecutter.project_name }}`
+-   **邏輯 (在 `if`/`for` 區塊中):** 直接使用變數：`{% if cookiecutter.use_alloydb %}`
 
-### 3. Whitespace Control
-Jinja is sensitive to whitespace. Use hyphens to control newlines and prevent unwanted blank lines in rendered files.
+### 3. 空白控制
+Jinja 對空白很敏感。使用連字號來控制換行符並防止在渲染的檔案中出現不必要的空行。
 
--   `{%-` removes whitespace before the block.
--   `-%}` removes whitespace after the block.
+-   `{%-` 移除區塊前的空白。
+-   `-%}` 移除區塊後的空白。
 
-**Example:**
+**範例：**
 ```jinja
 {%- if cookiecutter.some_option %}
 option = true
 {%- endif %}
 ```
 
-## Terraform Best Practices
+## Terraform 最佳實踐
 
-### Unified Service Account (`app_sa`)
-The project uses a single, unified application service account (`app_sa`) across all deployment targets to simplify IAM management.
+### 統一的服務帳戶 (`app_sa`)
+本專案在所有部署目標中使用單一、統一的應用程式服務帳戶 (`app_sa`)，以簡化 IAM 管理。
 
--   **Do not** create target-specific service accounts (e.g., `cloud_run_sa`).
--   Define roles for this account in `app_sa_roles`.
--   Reference this account consistently in all Terraform and CI/CD files.
+-   **不要**建立特定於目標的服務帳戶 (例如 `cloud_run_sa`)。
+-   在 `app_sa_roles` 中定義此帳戶的角色。
+-   在所有 Terraform 和 CI/CD 檔案中一致地引用此帳戶。
 
-### Resource Referencing
-Use consistent and clear naming for Terraform resources. When referencing resources, especially those created conditionally or with `for_each`, ensure the reference is also correctly keyed.
+### 資源引用
+對 Terraform 資源使用一致且清晰的命名。在引用資源時，尤其是那些有條件或使用 `for_each` 建立的資源，請確保引用也正確地鍵入。
 
-**Example:**
+**範例：**
 ```hcl
-# Creation
+# 建立
 resource "google_service_account" "app_sa" {
-  for_each   = local.deploy_project_ids # e.g., {"staging" = "...", "prod" = "..."}
+  for_each   = local.deploy_project_ids # 例如 {"staging" = "...", "prod" = "..."}
   account_id = "${var.project_name}-app"
   # ...
 }
 
-# Correct Reference
-# In a Cloud Run module for the staging environment
+# 正確引用
+# 在用於預備環境的 Cloud Run 模組中
 service_account = google_service_account.app_sa["staging"].email
 ```
 
-## CI/CD Integration (GitHub Actions & Cloud Build)
+## CI/CD 整合 (GitHub Actions & Cloud Build)
 
-The project maintains parallel CI/CD implementations. **Any change to CI/CD logic must be applied to both.**
+本專案維護平行的 CI/CD 實作。**任何對 CI/CD 邏輯的變更都必須同時應用於兩者。**
 
--   **GitHub Actions:** Configured in `.github/workflows/`. Uses `${{ vars.VAR_NAME }}` for repository variables.
--   **Google Cloud Build:** Configured in `.cloudbuild/`. Uses `${_VAR_NAME}` for substitution variables.
+-   **GitHub Actions:** 在 `.github/workflows/` 中設定。使用 `${{ vars.VAR_NAME }}` 表示儲存庫變數。
+-   **Google Cloud Build:** 在 `.cloudbuild/` 中設定。使用 `${_VAR_NAME}` 表示替換變數。
 
-When adding a new variable or secret, ensure it is configured correctly for both systems in the Terraform scripts that manage them (e.g., `github_actions_variable` resource and Cloud Build trigger substitutions).
+在新增新變數或密鑰時，請確保在管理它們的 Terraform 腳本中為兩個系統都正確設定 (例如，`github_actions_variable` 資源和 Cloud Build 觸發器替換)。
 
-## Advanced Template System Patterns
+## 進階模板系統模式
 
-### 4-Layer Architecture
-Template processing follows this hierarchy (later layers override earlier ones):
-1. **Base Template** (`src/base_template/`) - Applied to ALL projects
-2. **Deployment Targets** (`src/deployment_targets/`) - Environment overrides  
-3. **Frontend Types** (`src/frontends/`) - UI-specific files
-4. **Agent Templates** (`agents/*/`) - Individual agent logic
+### 四層架構
+模板處理遵循此層次結構 (後面的層會覆寫前面的層)：
+1. **基礎模板** (`src/base_template/`) - 適用於所有專案
+2. **部署目標** (`src/deployment_targets/`) - 環境覆寫
+3. **前端類型** (`src/frontends/`) - UI 特定檔案
+4. **代理模板** (`agents/*/`) - 個別代理邏輯
 
-**Rule**: Always place changes in the correct layer. Check if deployment targets need corresponding updates.
+**規則**：始終將變更放在正確的層中。檢查部署目標是否需要相應的更新。
 
-### Template Processing Flow
-1. Variable resolution from `cookiecutter.json`
-2. File copying (base → overlays)
-3. Jinja2 rendering of content
-4. File/directory name rendering
+### 模板處理流程
+1. 從 `cookiecutter.json` 解析變數
+2. 檔案複製 (基礎 → 覆蓋)
+3. 內容的 Jinja2 渲染
+4. 檔案/目錄名稱渲染
 
-### Cross-File Dependencies
-Changes often require coordinated updates:
-- **Configuration**: `templateconfig.yaml` → `cookiecutter.json` → rendered templates
-- **CI/CD**: `.github/workflows/` ↔ `.cloudbuild/` (must stay in sync)
-- **Infrastructure**: Base terraform → deployment target overrides
+### 跨檔案依賴
+變更通常需要協調更新：
+- **設定**: `templateconfig.yaml` → `cookiecutter.json` → 渲染後的模板
+- **CI/CD**: `.github/workflows/` ↔ `.cloudbuild/` (必須保持同步)
+- **基礎設施**: 基礎 terraform → 部署目標覆寫
 
-### Conditional Logic Patterns
+### 條件邏輯模式
 ```jinja
 {%- if cookiecutter.agent_name == "live_api" %}
-# Agent-specific logic
+# 代理特定邏輯
 {%- elif cookiecutter.deployment_target == "cloud_run" %}
-# Deployment-specific logic  
+# 部署特定邏輯
 {%- endif %}
 ```
 
-### Testing Strategy
-Test changes across multiple dimensions:
-- Agent types (live_api, adk_base, etc.)
-- Deployment targets (cloud_run, agent_engine)
-- Feature combinations (data_ingestion, frontend_type)
+### 測試策略
+跨多個維度測試變更：
+- 代理類型 (live_api, adk_base 等)
+- 部署目標 (cloud_run, agent_engine)
+- 功能組合 (data_ingestion, frontend_type)
 
-### Common Pitfalls
-- **Hardcoded URLs**: Use relative paths for frontend connections
-- **Missing Conditionals**: Wrap agent-specific code in proper `{% if %}` blocks
-- **Dependency Conflicts**: Some agents lack certain extras (e.g., live_api + lint)
+### 常見陷阱
+- **硬式編碼的 URL**: 對前端連線使用相對路徑
+- **缺少條件式**: 將代理特定程式碼包在適當的 `{% if %}` 區塊中
+- **依賴衝突**: 某些代理缺少某些額外功能 (例如 live_api + lint)
 
-## File Modification Checklist
+## 檔案修改檢查清單
 
--   [ ] **Jinja Syntax:** All `{% if %}` and `{% for %}` blocks correctly closed?
--   [ ] **Variable Consistency:** `cookiecutter.` variables spelled correctly?
--   [ ] **Cross-Target Impact:** Base template changes checked against deployment targets?
--   [ ] **CI/CD Parity:** Changes applied to both GitHub Actions and Cloud Build?
--   [ ] **Multi-Agent Testing:** Tested with different agent types and configurations?
+-   [ ] **Jinja 語法：** 所有 `{% if %}` 和 `{% for %}` 區塊是否都已正確關閉？
+-   [ ] **變數一致性：** `cookiecutter.` 變數拼寫是否正確？
+-   [ ] **跨目標影響：** 基礎模板變更是否已對照部署目標進行檢查？
+-   [ ] **CI/CD 一致性：** 變更是否已同時應用於 GitHub Actions 和 Cloud Build？
+-   [ ] **多代理測試：** 是否已使用不同的代理類型和設定進行測試？
 
-### Key Tooling
+### 關鍵工具
 
--   **`uv` for Python:** Primary tool for dependency management and CLI execution
+-   **`uv` for Python：** 用於依賴管理和 CLI 執行的主要工具

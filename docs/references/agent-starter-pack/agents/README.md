@@ -1,7 +1,7 @@
-# Agent Templates
+# 代理模板
 
-This directory contains template implementations for various agents designed to work with the Agent Starter Pack templating system.
-Feel free to browse through these folders to preview what each template offers.
-Direct cloning of this repository isn't necessary to utilize these templates.
+此目錄包含各種代理的模板實作，這些代理旨在與 Agent Starter Pack 的模板系統協同工作。
+歡迎隨意瀏覽這些資料夾，以預覽每個模板提供的內容。
+無需直接複製此儲存庫即可使用這些模板。
 
-For setup instructions and getting started, please refer to the main [README](/README.md) which explains how to install and use the Agent Starter Pack.
+有關設定說明和入門指南，請參閱主要的 [README](/README.md)，其中解釋了如何安裝和使用 Agent Starter Pack。
