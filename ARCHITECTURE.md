@@ -111,6 +111,12 @@ graph TD
   - **Mimir/Prometheus**: 指標的長期存儲與查詢。
 - **認證服務 (Authentication)**: 採用基於 OAuth 2.0/OIDC 的標準化認證流程，與 Grafana 的認證機制整合。
 
+### 4.5 代理詳細資訊 (Agent Details)
+- **類型 (Type)**: Workflow Orchestrator
+- **框架 (Framework)**: Google Agent Development Kit (ADK)
+- **模型 (LLM)**: Gemini Pro / GPT-4
+- **部署目標 (Deployment)**: Kubernetes / Cloud Run / Local Docker
+
 ## 5. 技術棧 (Technology Stack)
 
 | 類別 | 技術選型 | 備註 |
@@ -142,6 +148,47 @@ graph TD
 - **通訊加密**: 所有外部通訊使用 TLS 1.3。服務間通訊（K8s 內部）將利用 Service Mesh (如 Istio) 實現 mTLS。
 - **秘密管理**: 所有密鑰、API Token 等敏感資訊都將存儲在 HashiCorp Vault 或雲提供商的 Secret Manager 中。
 - **數據安全**: 敏感數據在靜態時使用 AES-256 加密，並在日誌和追蹤中進行 PII 遮罩。
+- **稽核日誌 (Audit Logging)**: 所有代理執行的操作都有完整的稽核追蹤。
+- **合規性 (Compliance)**: 系統設計符合 SOC 2, GDPR, HIPAA 等規範。
+
+## 8. 部署與配置 (Deployment & Configuration)
+
+### 8.1 Grafana 插件安裝
+
+```bash
+grafana-cli plugins install sre-assistant-app
+systemctl restart grafana-server
+```
+
+### 8.2 配置範例 (Configuration Example)
+
+```yaml
+# config/production.yaml
+deployment:
+  platform: kubernetes
+  replicas: 3
+
+auth:
+  provider: oauth2
+  oidc_issuer: "https://accounts.google.com"
+
+memory:
+  backend: weaviate
+  weaviate_url: "https://weaviate.example.com"
+
+observability:
+  prometheus_url: "http://prometheus:9090"
+  loki_url: "http://loki:3100"
+
+agents:
+  incident_handler:
+    auto_remediation_threshold: "P2"
+    escalation_timeout: 300s
+
+  predictive_maintenance:
+    anomaly_detection_enabled: true
+    forecast_horizon: "7d"
+```
 
 ## 9. 韌性與故障處理 (Resilience and Fault Tolerance)
 

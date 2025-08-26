@@ -223,6 +223,35 @@ sre_assistant/
 
 ---
 
+## 支援與社群 (Support & Community)
+
+- **文件 (Documentation)**: https://docs.sre-assistant.io
+- **GitHub Issues**: https://github.com/your-org/sre-assistant/issues
+- **Slack 社群 (Slack Community)**: https://sre-assistant.slack.com
+- **辦公時間 (Office Hours)**: Thursdays 10am PST
+- **企業支援 (Enterprise Support)**: enterprise@sre-assistant.io
+
+## 如何引用 (Citation)
+
+```bibtex
+@software{sre_assistant_2025,
+  title = {SRE Assistant: Intelligent Site Reliability Engineering Agent},
+  author = {SRE Platform Team},
+  year = {2025},
+  url = {https://github.com/your-org/sre-assistant},
+  version = {1.0.0}
+}
+```
+
+## 專案標籤與狀態 (Project Tags & Status)
+
+- **標籤 (Tags)**: `sre`, `incident-response`, `grafana`, `monitoring`, `automation`, `google-adk`, `reliability`, `devops`, `aiops`, `observability`
+- **分類 (Category)**: Infrastructure & Operations
+- **成熟度 (Maturity)**: Production (Phase 1), Beta (Phase 2 features)
+- **核心依賴 (Dependencies)**: Google ADK, Grafana 10+, Python 3.11+, Kubernetes 1.26+
+
+---
+
 <div align="center">
   <b>打造下一代智能化 SRE 平台</b><br>
   <sub>Built with ❤️ by SRE Platform Team</sub>

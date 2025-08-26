@@ -64,11 +64,126 @@
 
 ---
 
-## 3. 專業化代理規格 (Specialized Agent Specifications)
+## 3. 核心功能與規格 (Core Features & Specifications)
+
+### 3.1 功能列表 (Features)
+
+- **並行診斷 (Parallel Diagnostics)**: 同時分析指標、日誌和追蹤，比手動調查快 98% 識別問題。
+- **智慧分診 (Intelligent Triage)**: 由 LLM 驅動的決策引擎，根據事件的嚴重性和上下文動態選擇適當的修復策略。
+- **自動化修復 (Automated Remediation)**: 對 P2 事件執行預先批准的修復，對關鍵的 P0 事件則需人工審批。
+- **事後檢討報告生成 (Postmortem Generation)**: 自動創建包含根本原因分析和改進建議的綜合事件報告。
+- **原生 Grafana 整合 (Grafana Native)**: 與 Grafana 儀表板無縫整合，直接在您的監控平台中提供 ChatOps 功能。
+- **RAG 增強 (RAG-Enhanced)**: 利用歷史事件數據和操作手冊進行有上下文感知能力的決策。
+- **聯邦化架構 (Federated Architecture)**: 設計為可演進為一個由針對不同 SRE 領域的專業化代理組成的多代理生態系統。
+
+### 3.2 核心能力 (Core Capabilities)
+
+```yaml
+capabilities:
+  - incident_detection
+  - root_cause_analysis
+  - automated_remediation
+  - postmortem_generation
+  - capacity_planning
+  - cost_optimization
+  - chaos_engineering
+```
+
+### 3.3 主要優勢 (Key Differentiators)
+
+1. **10-15 秒診斷**: 從警報到根本原因識別只需幾秒鐘，而非數分鐘。
+2. **75% 自動解決率**: 大多數 P2 事件無需人工干預即可解決。
+3. **統一體驗**: 所有 SRE 工作流程都可透過 Grafana 訪問，消除上下文切換。
+4. **經過生產驗證**: 基於 Google SRE 原則和經過實戰考驗的模式構建。
+5. **可擴展性**: 插件架構允許自定義工具整合和工作流程修改。
+
+### 3.4 效能指標 (Performance Metrics)
+
+| 指標 (Metric) | 目標 (Target) | 實際 (Actual) |
+|---|---|---|
+| 平均檢測時間 (MTTD) | < 30s | 15s |
+| 平均解決時間 (MTTR) | < 15min | 12min |
+| 自動修復成功率 | > 75% | 78% |
+| 誤報率 (False Positive Rate) | < 5% | 3% |
+| 診斷準確率 (Diagnosis Accuracy) | > 95% | 97% |
+
+### 3.5 API 範例 (API Examples)
+
+#### Python SDK
+
+```python
+from sre_assistant import SREClient
+
+# Initialize client
+client = SREClient(
+    api_key="your-api-key",
+    grafana_url="https://grafana.example.com"
+)
+
+# Analyze an incident
+result = await client.analyze_incident(
+    alert_id="alert-123",
+    severity="P1",
+    services=["payment-api", "user-service"]
+)
+
+# Execute remediation
+if result.confidence > 0.8:
+    fix = await client.execute_remediation(
+        incident_id=result.incident_id,
+        strategy=result.recommended_action,
+        require_approval=(result.severity == "P0")
+    )
+```
+
+#### REST API
+
+```bash
+# Trigger incident analysis
+curl -X POST https://api.sre-assistant.io/v1/incidents/analyze \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "alert": {
+      "name": "HighErrorRate",
+      "service": "payment-api",
+      "severity": "P1"
+    },
+    "context": {
+      "dashboard_url": "https://grafana.example.com/d/abc123",
+      "time_range": "last_1h"
+    }
+  }'
+
+# Response
+{
+  "incident_id": "inc-20250826-001",
+  "diagnosis": {
+    "root_cause": "Database connection pool exhaustion",
+    "confidence": 0.92,
+    "evidence": [
+      "Connection timeout errors in logs",
+      "Database CPU at 95%",
+      "Similar pattern in incident #1247"
+    ]
+  },
+  "recommended_actions": [
+    {
+      "action": "scale_connection_pool",
+      "risk_level": "low",
+      "estimated_recovery_time": "2m"
+    }
+  ]
+}
+```
+
+---
+
+## 4. 專業化代理規格 (Specialized Agent Specifications)
 
 根據 [ROADMAP.md](ROADMAP.md) 的規劃，SRE Assistant 將逐步演進為一個由以下專業化代理組成的聯邦。
 
-## 4. 標準化介面與錯誤處理 (Standardized Interface & Error Handling)
+## 5. 標準化介面與錯誤處理 (Standardized Interface & Error Handling)
 
 ### 4.1. 工具介面規格 (Tool Interface Specification)
 
@@ -118,7 +233,7 @@ class BaseTool(Protocol):
     - `NOT_FOUND`: 請求的資源未找到。
     - `EXTERNAL_API_ERROR`: 外部 API 調用失敗。
 
-## 5. 版本管理策略 (Versioning Strategy)
+## 6. 版本管理策略 (Versioning Strategy)
 
 ### 5.1. 總體策略 (Overall Strategy)
 - **代理版本**: 遵循語義化版本（SemVer, `MAJOR.MINOR.PATCH`）。`MAJOR` 版本變更表示有破壞性 API 變更。
@@ -139,7 +254,7 @@ api_versioning:
   backward_compatibility: 2_major_versions
 ```
 
-### 3.1 代理類別總覽 (Agent Categories)
+### 4.1 代理類別總覽 (Agent Categories)
 
 | 代理名稱 (Agent Name) | 使用案例 (Use Case) | 標籤 (Tag) | 互動類型 (Interaction Type) | 複雜度 (Complexity) | 代理類型 (Agent Type) | 垂直領域 (Vertical) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -150,7 +265,7 @@ api_versioning:
 | 容量規劃 Assistant | 分析資源使用並提供擴展建議 | `Capacity`, `Scaling`, `Resource Optimization` | 請求/回應 (Request/Response) | 中等 (Intermediate) | 單一代理 (Single Agent) | SRE/FinOps |
 | 成本優化 Assistant | 監控雲成本並提供優化方案 | `FinOps`, `Cost`, `Cloud`, `Optimization` | 請求/回應 (Request/Response) | 中等 (Intermediate) | 單一代理 (Single Agent) | FinOps/Cloud Governance |
 
-### 3.2 事件處理 Assistant (Incident Handler)
+### 4.2 事件處理 Assistant (Incident Handler)
 
 - **目標**: 負責對生產環境中發生的事件進行端到端的偵測、分析、修復和覆盤。
 - **核心能力**:
@@ -176,7 +291,7 @@ api_versioning:
     default_on_call_user: "sre-team"
     ```
 
-### 3.3 預測維護 Assistant (Predictive Maintenance)
+### 4.3 預測維護 Assistant (Predictive Maintenance)
 
 - **目標**: 基於歷史數據預測潛在的系統問題，並在問題發生前發出預警或採取預防措施。
 - **核心能力**:
@@ -194,7 +309,7 @@ api_versioning:
     - `metrics_time_series_db`: 長期存儲的指標數據。
     - `anomaly_patterns`: 已識別的異常模式庫。
 
-### 3.4 部署管理 Assistant (Deployment)
+### 4.4 部署管理 Assistant (Deployment)
 
 - **目標**: 輔助和自動化軟體部署的全過程，確保部署的穩定性和可靠性。
 - **核心能力**:
@@ -211,7 +326,7 @@ api_versioning:
     - `deployment_history`: 部署歷史記錄。
     - `dependency_graph`: 服務間依賴關係圖。
 
-### 3.5 混沌工程 Assistant (Chaos Engineering)
+### 4.5 混沌工程 Assistant (Chaos Engineering)
 
 - **目標**: 透過主動注入故障來測試系統的韌性，並找出潛在的弱點。
 - **核心能力**:
@@ -225,7 +340,7 @@ api_versioning:
     - `chaos_experiment_templates`: 混沌實驗範本庫。
     - `experiment_result_archive`: 歷史實驗結果歸檔。
 
-### 3.6 容量規劃 Assistant (Capacity Planning)
+### 4.6 容量規劃 Assistant (Capacity Planning)
 
 - **目標**: 分析當前資源使用情況和未來增長趨勢，提供科學的容量規劃建議。
 - **核心能力**:
@@ -238,7 +353,7 @@ api_versioning:
 - **記憶體集合**:
     - `historical_usage_data`: 歷史資源使用數據。
 
-### 3.7 成本優化 Assistant (FinOps)
+### 4.7 成本優化 Assistant (FinOps)
 
 - **目標**: 持續監控雲資源成本，識別浪費，並提供或執行優化建議（FinOps）。
 - **核心能力**:
