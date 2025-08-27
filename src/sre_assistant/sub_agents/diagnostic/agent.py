@@ -26,9 +26,16 @@ class DiagnosticAgent(LlmAgent):
     增強版本包含自動嚴重性評估
     """
 
-    def __init__(self, config=None, instruction=None, tools=None):
+    def __init__(self, config=None, instruction=None, tools=None, safety_settings=None, generation_config=None):
         """
         初始化診斷代理。
+
+        Args:
+            config (dict, optional): 代理的通用配置。
+            instruction (str, optional): 指向 LLM 的特定指令。
+            tools (list, optional): 此代理可使用的工具列表。
+            safety_settings (list, optional): 傳遞給 LLM 的安全設定。
+            generation_config (GenerationConfig, optional): 傳遞給 LLM 的生成設定。
         """
         # 增強的指令，包含嚴重性評估
         enhanced_instruction = (instruction or DIAGNOSTIC_PROMPT.base) + """
@@ -50,7 +57,9 @@ class DiagnosticAgent(LlmAgent):
             name="DiagnosticExpert",
             model="gemini-1.5-flash-001",
             tools=all_tools,
-            instruction=enhanced_instruction
+            instruction=enhanced_instruction,
+            safety_settings=safety_settings,
+            generation_config=generation_config,
         )
 
     def _create_severity_tool(self):
@@ -98,7 +107,7 @@ class DiagnosticAgent(LlmAgent):
         ]
 
     @classmethod
-    def create_metrics_analyzer(cls, config=None):
+    def create_metrics_analyzer(cls, config=None, safety_settings=None, generation_config=None):
         """工廠方法：建立專注於指標分析的診斷代理"""
         metrics_tools = [
             promql_query,
@@ -106,7 +115,7 @@ class DiagnosticAgent(LlmAgent):
             cls._create_metrics_severity_evaluator()  # 專門的指標嚴重性評估
         ]
 
-        instruction = DIAGNOSTIC_PROMPT.metrics_focus + """
+        instruction = DIAGNOSTICS_PROMPT.metrics_focus + """
 
         基於指標分析評估嚴重性時，重點關注：
         - 錯誤率 > 50% → P0
@@ -115,30 +124,40 @@ class DiagnosticAgent(LlmAgent):
         - 響應時間增加 > 2x → P2
         """
 
-        return cls(config=config, instruction=instruction, tools=metrics_tools)
+        return cls(
+            config=config,
+            instruction=instruction,
+            tools=metrics_tools,
+            safety_settings=safety_settings,
+            generation_config=generation_config
+        )
 
     @classmethod
-    def create_log_analyzer(cls, config=None):
+    def create_log_analyzer(cls, config=None, safety_settings=None, generation_config=None):
         """
         工廠方法：建立一個專注於**日誌分析**的診斷代理實例。
         """
         log_tools = [log_search]
         return cls(
             config=config,
-            instruction=DIAGNOSTIC_PROMPT.logs_focus,
-            tools=log_tools
+            instruction=DIAGNOSTICS_PROMPT.logs_focus,
+            tools=log_tools,
+            safety_settings=safety_settings,
+            generation_config=generation_config
         )
 
     @classmethod
-    def create_trace_analyzer(cls, config=None):
+    def create_trace_analyzer(cls, config=None, safety_settings=None, generation_config=None):
         """
         工廠方法：建立一個專注於**分散式追蹤分析**的診斷代理實例。
         """
         trace_tools = [trace_analysis]
         return cls(
             config=config,
-            instruction=DIAGNOSTIC_PROMPT.base,
-            tools=trace_tools
+            instruction=DIAGNOSTICS_PROMPT.base,
+            tools=trace_tools,
+            safety_settings=safety_settings,
+            generation_config=generation_config
         )
 
     @staticmethod

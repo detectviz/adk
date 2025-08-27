@@ -18,22 +18,32 @@ from google.adk.agents import BaseAgent, InvocationContext, LlmAgent, ParallelAg
 class RollbackRemediationAgent(LlmAgent):
     """專家代理：執行應用程式或基礎設施的回滾操作。"""
     def __init__(self, **kwargs):
-        super().__init__(name="RollbackExpert", instruction="執行回滾...", **kwargs)
+        # 使用 setdefault 確保即使外部未提供，也有預設的 name 和 instruction。
+        # 同時允許從外部傳入的 kwargs (如 safety_settings) 覆蓋或添加參數。
+        kwargs.setdefault("name", "RollbackExpert")
+        kwargs.setdefault("instruction", "執行回滾...")
+        super().__init__(**kwargs)
 
 class AutoScalingAgent(LlmAgent):
     """專家代理：調整服務的計算資源（例如，增加 Pod 數量）。"""
     def __init__(self, **kwargs):
-        super().__init__(name="ScalingExpert", instruction="調整資源規模...", **kwargs)
+        kwargs.setdefault("name", "ScalingExpert")
+        kwargs.setdefault("instruction", "調整資源規模...")
+        super().__init__(**kwargs)
 
 class ServiceRestartAgent(LlmAgent):
     """專家代理：安全地重啟一個或多個服務。"""
     def __init__(self, **kwargs):
-        super().__init__(name="RestartExpert", instruction="正在重啟服務...", **kwargs)
+        kwargs.setdefault("name", "RestartExpert")
+        kwargs.setdefault("instruction", "正在重啟服務...")
+        super().__init__(**kwargs)
 
 class ConfigurationFixAgent(LlmAgent):
     """專家代理：修復錯誤的服務配置。"""
     def __init__(self, **kwargs):
-        super().__init__(name="ConfigExpert", instruction="正在修復配置...", **kwargs)
+        kwargs.setdefault("name", "ConfigExpert")
+        kwargs.setdefault("instruction", "正在修復配置...")
+        super().__init__(**kwargs)
 
 
 # ==============================================================================
@@ -54,18 +64,31 @@ class SREIntelligentDispatcher(BaseAgent):
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
 
-        # 專家註冊表：將專家名稱映射到其實例。
-        self.expert_registry: Dict[str, BaseAgent] = {
-            "rollback_fix": RollbackRemediationAgent(),
-            "scaling_fix": AutoScalingAgent(),
-            "restart_fix": ServiceRestartAgent(),
-            "config_fix": ConfigurationFixAgent(),
+        # 從傳入的 kwargs 中提取上層工作流程傳遞過來的標準化設定。
+        safety_settings = kwargs.get("safety_settings")
+        generation_config = kwargs.get("generation_config")
+
+        # 將這些設定打包，以便統一傳遞給所有需要 LLM 的內部代理。
+        llm_agent_kwargs = {
+            "safety_settings": safety_settings,
+            "generation_config": generation_config,
         }
 
-        # LLM 決策引擎：用於從診斷數據中選擇專家。
+        # 專家註冊表：將專家名稱映射到其代理實例。
+        # 在實例化時，將繼承來的標準化設定傳遞下去。
+        self.expert_registry: Dict[str, BaseAgent] = {
+            "rollback_fix": RollbackRemediationAgent(**llm_agent_kwargs),
+            "scaling_fix": AutoScalingAgent(**llm_agent_kwargs),
+            "restart_fix": ServiceRestartAgent(**llm_agent_kwargs),
+            "config_fix": ConfigurationFixAgent(**llm_agent_kwargs),
+        }
+
+        # LLM 決策引擎：此分診器內部使用一個專用的 LLM 代理來做決策。
+        # 同樣，我們將標準化設定應用於此決策引擎。
         self.dispatcher_llm = LlmAgent(
             name="DecisionEngine",
-            instruction=self._build_dispatcher_instruction()
+            instruction=self._build_dispatcher_instruction(),
+            **llm_agent_kwargs,
         )
 
     def _build_dispatcher_instruction(self) -> str:

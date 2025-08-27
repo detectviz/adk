@@ -40,63 +40,56 @@ SRE Assistant 的核心是一個以 **Grafana 為統一操作介面**、由**�
 ```mermaid
 graph TD
     subgraph "使用者介面 (User Interface)"
-        GrafanaUI[Grafana OSS/Cloud<br/>統一儀表板]
-    end
-
-    subgraph "Grafana 插件 (Grafana Plugins)"
-        SREPlugin[SRE Assistant Plugin<br/>(ChatOps, Automation)]
-        GrafanaNative[原生功能<br/>(Dashboards, Alerting, Explore)]
+        User([User]) --> GrafanaUI[Grafana OSS/Cloud<br/>統一儀表板]
+        GrafanaUI --> SREPlugin[SRE Assistant Plugin<br/>(ChatOps, Automation)]
+        GrafanaUI --> GrafanaNative[原生功能<br/>(Dashboards, Alerting, Explore)]
     end
 
     subgraph "後端服務 (Backend Services)"
-        SREBackend[SRE Assistant API<br/>(Python / Google ADK)]
-        Orchestrator[聯邦協調器 (SREIntelligentDispatcher)<br/>(未來)]
-    end
+        SREPlugin -- API Request --> SREBackend[SRE Assistant API<br/>(Python / Google ADK)]
 
-    subgraph "專業化代理 (Specialized Agents) - 未來"
-        IncidentAgent[事件處理代理]
-        PredictiveAgent[預測維護代理]
-        CostAgent[成本優化代理]
-        VerificationAgent[驗證代理 (Self-Critic)]
-        OtherAgents[...]
+        subgraph SREBackend
+            direction LR
+            Workflow[SREWorkflow<br/>(BaseAgent Coordinator)]
+
+            subgraph Workflow
+                direction TB
+                AuthTools[1. Auth Tools<br/>(authenticate, check_authorization)]
+                MainSequence[2. Main Sequence<br/>(SequentialAgent)]
+            end
+
+            subgraph MainSequence
+                direction TB
+                Diagnostic[CitingParallelDiagnosticsAgent]
+                Dispatcher[SREIntelligentDispatcher]
+                Postmortem[PostmortemAgent]
+            end
+
+            AuthTools --> MainSequence
+        end
     end
 
     subgraph "數據與基礎設施 (Data & Infrastructure)"
-        subgraph "統一記憶庫 (Unified Memory)"
-            VectorDB[向量數據庫<br/>Weaviate / Vertex AI]
-            DocDB[關係型數據庫<br/>PostgreSQL]
-            Cache[快取<br/>Redis]
+        subgraph "ADK 原生擴展"
+            AuthProvider[AuthProvider<br/>(e.g., OAuth2, JWT)]
+            MemoryProvider[MemoryProvider<br/>(RAG via Weaviate)]
+            SessionProvider[SessionProvider<br/>(State via PostgreSQL)]
         end
         subgraph "可觀測性 (Observability) - LGTM Stack"
             Loki[Loki (日誌)]
             Tempo[Tempo (追蹤)]
             Mimir[Mimir (指標)]
         end
-        Auth[認證服務<br/>OAuth 2.0 Provider]
-        EventBus[事件總線<br/>(未來)]
     end
 
     %% Connections
-    User([User]) --> GrafanaUI
-    GrafanaUI --> SREPlugin
-    GrafanaUI --> GrafanaNative
+    SREBackend -- Uses --> AuthProvider
+    SREBackend -- Uses --> MemoryProvider
+    SREBackend -- Uses --> SessionProvider
 
-    SREPlugin -- WebSocket/REST --> SREBackend
-    GrafanaNative -- Queries --> Loki & Tempo & Mimir
+    Diagnostic -- Queries --> Loki & Mimir & Tempo
 
-    SREBackend --> VectorDB & DocDB & Cache
-    SREBackend --> Auth
-    SREBackend -- Telemetry --> Tempo & Loki
-
-    %% Future Connections
-    SREBackend -.-> Orchestrator
-    Orchestrator -. A2A Protocol .-> IncidentAgent
-    Orchestrator -. A2A Protocol .-> PredictiveAgent
-    Orchestrator -. A2A Protocol .-> CostAgent
-    Orchestrator -.-> VerificationAgent
-
-    IncidentAgent --> VectorDB & DocDB
-    PredictiveAgent --> Mimir
+    GrafanaNative -- Queries --> Loki & Mimir & Tempo
 ```
 
 此架構圖描繪了一個**分層模式 (Hierarchical Pattern)** 的多代理人系統，其中 `SREBackend`（或未來的 `Orchestrator`）作為中央協調器，將任務路由到下游的專業化代理。這種模式的詳細討論，以及其他如協作模式 (Collaborative Pattern) 和點對點模式 (Peer-to-Peer)，請參閱《代理人指南》。

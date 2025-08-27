@@ -1,0 +1,192 @@
+openapi: 3.0.3
+info:
+  title: SRE Assistant 工具 API
+  description: >-
+    本規格文件定義了 SRE Assistant 代理生態系統中所有可用工具的程式化介面。
+    遵循此規格可確保代理與工具之間的互操作性和可預測性。
+  version: 1.0.0
+  contact:
+    name: SRE Platform Team
+    email: sre-platform@example.com
+
+paths:
+  /tools/auth/authenticate:
+    post:
+      summary: 用戶認證
+      operationId: authenticate
+      description: >-
+        根據配置的認證提供者來驗證用戶憑證。這是保護工具訪問權限的主要入口點。
+        認證成功後，會在會話狀態 (session state) 中填充 `user_info` 物件。
+      tags:
+        - 認證 (Authentication)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                credentials:
+                  type: object
+                  description: >-
+                    包含憑證的字典。所需的鍵取決於認證提供者，
+                    例如 `{'token': '...'}` 或 `{'api_key': '...'}`。
+                  example:
+                    token: "user-jwt-token"
+      responses:
+        '200':
+          description: 認證嘗試的結果。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+        '400':
+          description: 無效的輸入。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tools/auth/check_authorization:
+    post:
+      summary: 用戶授權檢查
+      operationId: check_authorization
+      description: >-
+        檢查已認證的用戶（從會話狀態中讀取）是否有權限在給定資源上執行特定操作。
+      tags:
+        - 認證 (Authentication)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - resource
+                - action
+              properties:
+                resource:
+                  type: string
+                  description: 正在被存取的資源，例如 'deployment' 或 'metrics'。
+                  example: 'deployment'
+                action:
+                  type: string
+                  description: 正在執行的操作，例如 'restart' 或 'read'。
+                  example: 'restart'
+      responses:
+        '200':
+          description: 授權檢查的結果。
+          content:
+            application/json:
+              schema:
+                type: boolean
+                example: true
+        '403':
+          description: 授權被拒絕。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tools/observability/prometheus_query:
+    post:
+      summary: Prometheus 查詢
+      operationId: prometheus_query
+      description: 對 Prometheus API 執行一個 PromQL 查詢。
+      tags:
+        - 可觀測性 (Observability)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: PromQL 查詢字串。
+                  example: "sum(rate(http_requests_total{job='api-server'}[5m]))"
+                time_range:
+                  type: string
+                  description: "查詢的時間範圍 (可選)，例如 '1h', '5m'。"
+                  example: "1h"
+      responses:
+        '200':
+          description: 成功的查詢結果，格式遵循標準化的 ToolResult。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolResult'
+
+components:
+  schemas:
+    AuthenticationResponse:
+      type: array
+      description: 一個類元組 (tuple-like) 的陣列，格式為 `[成功狀態, 用戶資訊物件]`。
+      items:
+        oneOf:
+          - type: boolean
+          - type: object
+            properties:
+              user_id:
+                type: string
+              email:
+                type: string
+              roles:
+                type: array
+                items:
+                  type: string
+      example:
+        - true
+        - user_id: "dev-user"
+          email: "dev@localhost"
+          roles: ["admin"]
+
+    ToolResult:
+      type: object
+      description: 所有工具執行結果的標準化包裝器，定義於 SPEC.md 中。
+      properties:
+        success:
+          type: boolean
+          description: 表示工具執行是否成功。
+        data:
+          type: object
+          description: 工具返回的主要輸出數據。
+          additionalProperties: true
+        error:
+          $ref: '#/components/schemas/ToolError'
+        metadata:
+          type: object
+          description: 關於執行的額外元數據 (例如，時間戳、原始輸出)。
+          additionalProperties: true
+      required:
+        - success
+
+    ToolError:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 標準化的錯誤碼 (例如 'API_AUTH_ERROR')。
+          example: 'RATE_LIMIT_EXCEEDED'
+        message:
+          type: string
+          description: 人類可讀的錯誤訊息。
+          example: "使用者 dev@localhost 已超過速率限制"
+        details:
+          type: object
+          additionalProperties: true
+      required:
+        - code
+        - message
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: 錯誤的摘要訊息。
+      example:
+        error: "授權被拒絕"

@@ -24,7 +24,21 @@ class CitingParallelDiagnosticsAgent(BaseAgent):
     citation_formatter: SRECitationFormatter
 
     def __init__(self, config: Optional[Dict[str, Any]] = None, **kwargs):
+        """
+        初始化 CitingParallelDiagnosticsAgent。
+
+        這個建構函式的主要職責是：
+        1. 從傳入的 kwargs 中提取安全和生成設定。
+        2. 創建一個並行代理 (ParallelAgent)，該代理包含三個不同專業的診斷子代理
+           (指標、日誌、追蹤)。
+        3. 將安全和生成設定向下傳遞給這些診斷子代理。
+        4. 清理 kwargs，避免將不支援的參數傳遞給父類別 `BaseAgent`。
+        """
         agent_config = config or {}
+
+        # 從 kwargs 中提取設定，以便向下傳遞給子代理
+        safety_settings = kwargs.get("safety_settings")
+        generation_config = kwargs.get("generation_config")
 
         if 'name' not in kwargs:
             kwargs['name'] = "CitingParallelDiagnosticsAgent"
@@ -34,11 +48,30 @@ class CitingParallelDiagnosticsAgent(BaseAgent):
             kwargs['parallel_diagnostics'] = ParallelAgent(
                 name="ParallelDiagnostics",
                 sub_agents=[
-                    DiagnosticAgent.create_metrics_analyzer(config=agent_config),
-                    DiagnosticAgent.create_log_analyzer(config=agent_config),
-                    DiagnosticAgent.create_trace_analyzer(config=agent_config)
+                    DiagnosticAgent.create_metrics_analyzer(
+                        config=agent_config,
+                        safety_settings=safety_settings,
+                        generation_config=generation_config
+                    ),
+                    DiagnosticAgent.create_log_analyzer(
+                        config=agent_config,
+                        safety_settings=safety_settings,
+                        generation_config=generation_config
+                    ),
+                    DiagnosticAgent.create_trace_analyzer(
+                        config=agent_config,
+                        safety_settings=safety_settings,
+                        generation_config=generation_config
+                    )
                 ]
             )
+
+        # 從 kwargs 中移除已使用的設定，避免傳遞給不支援的 BaseAgent
+        if 'safety_settings' in kwargs:
+            del kwargs['safety_settings']
+        if 'generation_config' in kwargs:
+            del kwargs['generation_config']
+
         super().__init__(**kwargs)
 
     async def _run_async_impl(self, context: InvocationContext) -> None:

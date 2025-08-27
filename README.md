@@ -156,6 +156,37 @@ python -m sre_assistant.main --config=production
 - Grafana: http://localhost:3000 (admin/admin)
 - API Docs: http://localhost:8080/docs
 
+7. **執行第一個診斷 (Run Your First Diagnosis)**
+```bash
+# 使用 curl 向正在運行的 SRE Assistant Agent 發送請求
+# 這會觸發我們在 workflow.py 中重構的工作流程
+curl -X POST http://localhost:8080/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "context": {
+      "state": {
+        "credentials": {
+          "auth_method": "local"
+        },
+        "resource": "payment-gateway",
+        "action": "diagnose",
+        "incident_description": "Users are reporting timeouts when trying to complete payments."
+      }
+    },
+    "stream": false
+  }'
+
+# 預期輸出 (簡化):
+# {
+#   "state": {
+#     ...
+#     "remediation_status": "dispatcher_executed",
+#     "dispatcher_decision": "rollback_fix",
+#     ...
+#   }
+# }
+```
+
 ## 核心文檔
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - 系統架構設計
