@@ -20,41 +20,41 @@ SRE Assistant 是一個基於 **Google Agent Development Kit (ADK)** 構建的�
 
 ```mermaid
 graph TD
-    subgraph "使用者介面 (User Interface)"
+    subgraph "使用者介面<br/>User Interface"
         GrafanaUI[Grafana OSS/Cloud<br/>統一儀表板]
     end
 
-    subgraph "Grafana 插件 (Grafana Plugins)"
-        SREPlugin[SRE Assistant Plugin<br/>(ChatOps, Automation)]
-        GrafanaNative[原生功能<br/>(Dashboards, Alerting, Explore)]
+    subgraph "Grafana 插件<br/>Grafana Plugins"
+        SREPlugin[SRE Assistant Plugin<br/>ChatOps, Automation]
+        GrafanaNative[原生功能<br/>Dashboards, Alerting, Explore]
     end
 
-    subgraph "後端服務 (Backend Services)"
-        SREBackend[SRE Assistant API<br/>(Python / Google ADK)]
-        Orchestrator[聯邦協調器 (SREIntelligentDispatcher)<br/>(未來)]
+    subgraph "後端服務<br/>Backend Services"
+        SREBackend[SRE Assistant API<br/>Python / Google ADK]
+        Orchestrator[聯邦協調器<br/>SREIntelligentDispatcher<br/>未來]
     end
 
-    subgraph "專業化代理 (Specialized Agents) - 未來"
+    subgraph "專業化代理<br/>Specialized Agents - 未來"
         IncidentAgent[事件處理代理]
         PredictiveAgent[預測維護代理]
         CostAgent[成本優化代理]
-        VerificationAgent[驗證代理 (Self-Critic)]
+        VerificationAgent[驗證代理<br/>Self-Critic]
         OtherAgents[...]
     end
 
-    subgraph "數據與基礎設施 (Data & Infrastructure)"
-        subgraph "統一記憶庫 (Unified Memory)"
+    subgraph "數據與基礎設施<br/>Data & Infrastructure"
+        subgraph "統一記憶庫<br/>Unified Memory"
             VectorDB[向量數據庫<br/>Weaviate / Vertex AI]
             DocDB[關係型數據庫<br/>PostgreSQL]
             Cache[快取<br/>Redis]
         end
-        subgraph "可觀測性 (Observability) - LGTM Stack"
-            Loki[Loki (日誌)]
-            Tempo[Tempo (追蹤)]
-            Mimir[Mimir (指標)]
+        subgraph "可觀測性<br/>Observability - LGTM Stack"
+            Loki[Loki<br/>日誌]
+            Tempo[Tempo<br/>追蹤]
+            Mimir[Mimir<br/>指標]
         end
         Auth[認證服務<br/>OAuth 2.0 Provider]
-        EventBus[事件總線<br/>(未來)]
+        EventBus[事件總線<br/>未來]
     end
 
     %% Connections
