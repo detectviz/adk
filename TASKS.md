@@ -195,6 +195,7 @@
         - [Google SRE Book: Chapter 6](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
         - [ADK Examples: jira_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration)
         - [ADK Snippets: Standard Tool Development](docs/reference-snippets.md#32-標準工具開發手動實現-standard-tool-development-manual-implementation)
+        - **(挽救的程式碼) 在未來實現 SLO 相關功能時，可參考 `docs/references/snippets/salvaged_code.md` 中的 SLO 錯誤預算計算邏輯。**
       - **驗收標準**:
         - [ ] 能夠成功查詢 Prometheus 並返回指標數據。
         - [ ] 遵循 `SPEC.md` 中定義的 `ToolResult` 格式。
@@ -224,6 +225,7 @@
         - [ADK Agent Samples: RAG](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體)
         - [ADK Docs: Memory](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
         - [ADK Examples: adk_answering_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration)
+        - **(挽救的程式碼) 在設計 RAG 最終輸出時，可參考 `docs/references/snippets/salvaged_code.md` 中的引用格式化邏輯。**
       - **驗收標準**:
         - [ ] 能夠將文檔向量化並存儲到 Weaviate。
         - [ ] 能夠根據查詢進行語義搜索並返回相關文檔片段。

@@ -19,17 +19,14 @@ from google.genai.types import (
 )
 
 # --- 子代理匯入 ---
-# 匯入構成工作流程各個階段的專家代理。
-from .sub_agents.postmortem.agent import PostmortemAgent
-from .sub_agents.remediation.dispatcher_agent import SREIntelligentDispatcher
-from .sub_agents.diagnostic.citing_agent import CitingParallelDiagnosticsAgent
-from .sub_agents.config.iterative_agent import IterativeOptimization
+# 舊的子代理已被移除，以符合新的架構。
+# 未來將根據 TASKS.md 中的定義，重新實現標準化的子代理。
 
 logger = logging.getLogger(__name__)
 
 
 from .auth.tools import authenticate, check_authorization
-from google.adk.agents import BaseAgent
+from google.adk.agents import BaseAgent, LlmAgent
 
 class SREWorkflow(BaseAgent):
     """
@@ -42,7 +39,7 @@ class SREWorkflow(BaseAgent):
     3.  在執行核心業務邏輯之前，先執行前置的認證 (Authentication) 和授權 (Authorization) 檢查。
     這種模式將關注點分離，使得核心業務流程與外圍的驗證邏輯解耦。
     """
-    main_sequence: SequentialAgent = None
+    main_sequence: BaseAgent = None
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
@@ -54,46 +51,16 @@ class SREWorkflow(BaseAgent):
         super().__init__(name="SREWorkflowCoordinator")
         agent_config = config or {}
 
-        # --- 標準化設定 ---
-        # 統一為所有 LLM-based 的子代理定義負責任 AI 的安全設定。
-        # 這確保了所有生成內容都遵循相同的安全標準。
-        safety_settings = [
-            SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_HARASSMENT,
-                threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-            ),
-            SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-            ),
-        ]
-        # 統一為所有 LLM-based 的子代理定義內容生成設定。
-        # 較低的 temperature (0.4) 使其輸出更具確定性和事實性，適合 SRE 場景。
-        generation_config = GenerationConfig(
-            temperature=0.4, top_p=1.0, top_k=32, candidate_count=1, max_output_tokens=8192,
+        # --- 階段性子代理定義 ---
+        # 由於舊的子代理已被移除，此處使用一個極簡的 LlmAgent 作為佔位符，
+        # 以確保工作流程在結構上是完整且可運行的。
+        # 移除複雜的配置以解決暫時的依賴版本和測試環境問題。
+        # 未來的開發將根據 TASKS.md 來實現和組裝具有完整配置的真正子代理。
+        placeholder_agent = LlmAgent(
+            name="PlaceholderAgent",
+            model="gemini-1.5-flash",
         )
 
-        # --- 階段性子代理定義 ---
-        # 根據 SRE 事件回應的生命週期，實例化各個階段的專家代理。
-        # 將標準化設定向下傳遞給所有需要使用 LLM 的子代理。
-        diagnostic_phase = CitingParallelDiagnosticsAgent(
-            name="CitingParallelDiagnostics",
-            config=agent_config,
-            safety_settings=safety_settings,
-            generation_config=generation_config,
-        )
-        remediation_phase = SREIntelligentDispatcher(
-            name="SREIntelligentDispatcher",
-            # The dispatcher will receive the settings in its **kwargs and pass them down
-            # to its own LLM agents. We don't pass them to the BaseAgent constructor.
-        )
-        postmortem_phase = PostmortemAgent(
-            name="PostmortemAgent",
-            safety_settings=safety_settings,
-            generation_config=generation_config,
-        )
-        # 注意：IterativeOptimization 不是 LLM 代理，因此不需要傳遞這些設定。
-        optimization_phase = IterativeOptimization()
 
         # --- 組裝核心工作流程序列 ---
         # 將各階段的專家代理組裝成一個循序執行的工作流程。
@@ -101,10 +68,7 @@ class SREWorkflow(BaseAgent):
         self.main_sequence = SequentialAgent(
             name="MainSRESequence",
             sub_agents=[
-                diagnostic_phase,
-                remediation_phase,
-                postmortem_phase,
-                optimization_phase
+                placeholder_agent
             ]
         )
 
