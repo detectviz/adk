@@ -27,8 +27,8 @@
 - **主題**: 根據 ADK 首席架構師的審查 (`review.md`)，立即修正對系統穩定性和安全性影響最高的 P0 級技術債，確保專案建立在穩固的基礎之上。
 - **主要成果**:
     - ✅ **AuthManager 重構**: 將有狀態的 `AuthManager` 重構為符合 ADK 規範的無狀態 `AuthenticationTool`，以提高可測試性和可靠性。
-    - ✅ **標準化 HITL**: 使用 ADK 的 `LongRunningFunctionTool` 重新實現「人類介入」審批流程，確保與框架的無縫整合。
-    - ✅ **結構化輸出**: 為核心的 `DiagnosticAgent` 實現 Pydantic `output_schema`，確保輸出格式的穩定性和可靠性。
+    - [ ] **標準化 HITL**: 使用 ADK 的 `LongRunningFunctionTool` 重新實現「人類介入」審批流程，確保與框架的無縫整合。
+    - [ ] **結構化輸出**: 為核心的 `DiagnosticAgent` 實現 Pydantic `output_schema`，確保輸出格式的穩定性和可靠性。
 
 ---
 

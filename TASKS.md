@@ -87,59 +87,57 @@
 │       ├── contracts.py        # Pydantic 資料模型
 │       ├── prompts.py          # Prompt 模板
 │       ├── tool_registry.py    # 共享工具註冊表
+│       ├── main.py             # 應用程式主入口點 (FastAPI 伺服器)
 │       ├── auth/               # 認證提供者模組
 │       │   ├── __init__.py
 │       │   ├── auth_factory.py         # 根據配置創建 AuthProvider
-│       │   └── auth_manager.py         # 統一管理認證流程
+│       │   └── tools.py                # 無狀態的認證與授權工具
 │       ├── config/                     # 應用程式自身的設定管理
+│       │   ├── __init__.py
 │       │   ├── config_manager.py
 │       │   └── environments/
 │       │       ├── development.yaml
 │       │       └── production.yaml
 │       ├── memory/                     # 長期記憶體 (RAG) 提供者模組
+│       │   ├── __init__.py
 │       │   └── backend_factory.py      # 根據配置創建 MemoryProvider
 │       ├── session/                    # 會話 (短期記憶體) 提供者模組
+│       │   ├── __init__.py
 │       │   └── backend_factory.py      # 根據配置創建 SessionProvider
 │       └── sub_agents/                 # 未來的專業化子代理 (聯邦化階段)
-│           ├── __init__.py
-│           ├── incident_handler/       # 事件處理 Assistant
-│           │   ├── __init__.py
-│           │   ├── agent.py
-│           │   ├── prompts.py
-│           │   └── tools.py            # incident_handler 專用工具
-│           └── predictive_maintenance/ # 預測維護 Assistant
-│               ├── __init__.py
-│               ├── agent.py
-│               └── ...
-
+│           └── __init__.py
+│
 └── tests/                              # 測試套件 (應與 src 平行)
     ├── __init__.py
-    ├── test_workflow.py
-    └── ...
+    ├── test_agent.py
+    ├── test_contracts.py
+    ├── test_session.py
+    └── test_tools.py
 ```
 
 ### 關鍵元件
 
-- **`src/sre_assistant/workflow.py`**: 這是系統的主入口點和**核心協調器**。它定義了主工作流程（例如，一個 `SequentialAgent` 或 `Workflow`），負責接收使用者請求，並按順序調用不同的工具或子代理來完成診斷、修復和報告等任務。
+- **`src/sre_assistant/main.py`**: 這是應用程式的主入口點，負責啟動 FastAPI 伺服器並處理 A2A 請求。
+- **`src/sre_assistant/workflow.py`**: 這是系統的**核心協調器**。它定義了主工作流程，負責接收使用者請求，並按順序調用不同的工具或子代理來完成診斷、修復和報告等任務。
     
 - **`src/sre_assistant/tool_registry.py`**: 這裡定義了所有**共享工具**。例如 `PrometheusQueryTool`、`LokiLogQueryTool`、`GitHubTool` 等。遵循「代理即工具 (Agent-as-Tool)」的原則，未來的子代理也會被封裝成 `AgentTool` 並在此處註冊。
     
 - **`src/sre_assistant/contracts.py`**: 定義了專案中所有標準化的資料結構，主要使用 Pydantic 模型。例如，`ToolResult`、`IncidentReport` 等，確保各元件間的資料交換有固定的格式。
     
-- **`src/sre_assistant/auth/`**: 實現了 ADK 的 `AuthProvider`。根據設定（例如 `config/production.yaml`），`auth_factory.py` 會建立並返回一個合適的認證提供者（例如 `None` 用於本地測試，`OAuth2` 用於生產環境）。
+- **`src/sre_assistant/auth/`**: 實現了 ADK 的 `AuthProvider`。`auth_factory.py` 會根據設定建立並返回一個合適的認證提供者，而 `tools.py` 中則包含了無狀態的認證與授權工具函式。
     
 - **`src/sre_assistant/memory/`**: 實現了 ADK 的 `MemoryProvider`，負責**長期記憶體**和 RAG。它連接到向量資料庫（如 Weaviate），提供從歷史事件和文件中進行語義搜索的能力。
     
 - **`src/sre_assistant/session/`**: 實現了 ADK 的 `session_service_builder`，負責**短期記憶體**（會話狀態）。它連接到持久化儲存（如 Redis 或 PostgreSQL），確保在多實例部署或服務重啟時，用戶的對話上下文不會遺失。
     
-- **`src/sre_assistant/sub_agents/`**: 這是未來**聯邦化架構**的基礎。每個子目錄都代表一個專業化的代理（例如 `incident_handler`），它有自己的 `agent.py`、`prompts.py` 和專用工具。
+- **`src/sre_assistant/sub_agents/`**: 這是未來**聯邦化架構**的基礎。每個子目錄都代表一個專業化的代理。
     
 
 ### 開發與測試流程
 
 - **本地開發**: 使用根目錄的 `docker-compose.yml` 啟動所有本地依賴（例如 PostgreSQL, Weaviate）。
-- **互動測試**: 使用 `adk web` 指令啟動本地 API 伺服器和前端 UI，進行快速的互動式除錯。
-- **單元與整合測試**: 所有測試都位於 `tests/` 目錄下，使用 `pytest` 執行。CI/CD 流程會自動運行這些測試。
+- **互動測試**: 執行 `python -m src.sre_assistant.main` 啟動本地 FastAPI 伺服器。
+- **單元與整合測試**: 所有測試都位於 `tests/` 目錄下，使用 `poetry run pytest` 執行。CI/CD 流程會自動運行這些測試。
 - **評估**: 程式化的評估腳本位於 `eval/` 目錄下，用於衡量 Agent 的端到端表現和品質。
 
 ---
@@ -193,9 +191,9 @@
     - [ ] **TASK-P1-TOOL-01**: 實現 `PrometheusQueryTool`
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
+        - **基礎實現模式**: [ADK Examples: bigquery](docs/references/adk-examples/bigquery/)
         - **領域知識**: [SRE 的四大黃金訊號](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals), [Google SRE Book: Chapter 6](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
-        - **架構模式**: [ADK Agent Samples: fomc-research](docs/reference-adk-agent-samples.md#18-韌性與時間序列分析-resilience--time-series-analysis) (查詢時間序列數據與韌性模式)
-        - **基礎實現**: [ADK Docs: Creating a tool](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions), [ADK Snippets: Standard Tool Development](docs/reference-snippets.md#32-標準工具開發手動實現-standard-tool-development-manual-implementation)
+        - **進階架構模式**: [ADK Agent Samples: fomc-research](docs/reference-adk-agent-samples.md#18-韌性與時間序列分析-resilience--time-series-analysis) (查詢時間序列數據與韌性模式)
         - **(挽救的程式碼) 在未來實現 SLO 相關功能時，可參考 `docs/references/snippets/salvaged_code.md` 中的 SLO 錯誤預算計算邏輯。**
       - **驗收標準**:
         - [ ] 能夠成功查詢 Prometheus 並返回指標數據。
@@ -271,13 +269,8 @@
 
 ### P1 - 重構 (Refactoring)
 
-- [✅] **TASK-P1-REFACTOR-01**: AuthManager 狀態管理
-    - **來源**: `REFACTOR_PLAN.md`
-    - **任務**: 將 `AuthManager` 重構為無狀態服務，所有狀態透過 `InvocationContext` 讀寫，並由 `SessionService` 持久化。
-    - **依賴**: 無 (已完成)
-    - **驗收標準**:
-        - [ ] `AuthManager` 內部不再持有 `_auth_cache` 或 `_rate_limits` 等實例變數。
-        - [ ] 狀態讀寫均通過 `InvocationContext`。
+- [✅] **TASK-P1-REFACTOR-01**: **(已移除)** ~~AuthManager 狀態管理~~
+    - **說明**: 此任務已與 `TASK-P0-REFACTOR-01` 合併，因為它們都涉及將舊的 AuthManager 重構為無狀態工具。
 
 ### P1 - 技術債 (Technical Debt)
 
@@ -316,7 +309,10 @@
           - [ADK Agent Samples: navigoAI_voice_agent_adk](docs/reference-adk-agent-samples.md#17-即時-ui-串流-real-time-ui-streaming)
           - [Gemini Cloud Assist with Personalized Service Health](https://cloud.google.com/blog/products/devops-sre/gemini-cloud-assist-integrated-with-personalized-service-health)
     - [ ] **TASK-P2-PLUGIN-03**: 實現插件與後端服務的 WebSocket / RESTful 安全通訊。
-        - **參考**: [ADK Agent Samples: navigoAI_voice_agent_adk](docs/reference-adk-agent-samples.md#17-即時-ui-串流-real-time-ui-streaming), [ADK Examples: live_bidi_streaming_tools_agent](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration)
+        - **參考**:
+          - [ADK Agent Samples: navigoAI_voice_agent_adk](docs/reference-adk-agent-samples.md#17-即時-ui-串流-real-time-ui-streaming) (WebSocket 最佳實踐)
+          - [ADK Examples: live_bidi_streaming_tools_agent](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration) (用於串流最終結果)
+          - [ADK Examples: live_tool_callbacks_agent](docs/references/adk-examples/live_tool_callbacks_agent/) (用於串流中間進度)
 - **Grafana 整合 (Deep Integration)**
     - [ ] **TASK-P2-INTEG-01**: 實現 `GrafanaIntegrationTool` 的 `embed_panel` 功能，並在聊天中提供對應指令。
         - **參考**: [ADK Snippets: OpenAPI Toolset](docs/reference-snippets.md#31-加速工具開發openapi-規格優先-accelerated-tool-development-openapi-spec-first)
@@ -345,11 +341,13 @@
         - **參考**:
           - [Application monitoring in Google Cloud](https://cloud.google.com/blog/products/management-tools/get-to-know-cloud-observability-application-monitoring)
           - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
+          - [ADK Examples: jira_agent](docs/references/adk-examples/jira_agent/) (REST API 工具的最佳實踐範本)
     - [ ] **TASK-P2-TOOL-05**: **實現 GoogleCloudHealthTool**
         - **描述**: 實現一個工具，用於查詢 Google Cloud 的 Personalized Service Health (PSH) API。在診斷流程開始時，應首先調用此工具，以檢查是否存在已知的、可能影響當前專案的 Google Cloud 平台事件。
         - **參考**:
           - [Personalized Service Health integrated with Gemini Cloud Assist](https://cloud.google.com/blog/products/devops-sre/gemini-cloud-assist-integrated-with-personalized-service-health)
           - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
+          - [ADK Examples: jira_agent](docs/references/adk-examples/jira_agent/) (REST API 工具的最佳實踐範本)
 
 ### P2 - 重構 (Refactoring)
 

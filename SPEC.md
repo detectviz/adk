@@ -205,6 +205,7 @@ curl -X POST https://api.sre-assistant.io/v1/incidents/analyze \
 
 > **[實施狀態註記]**
 > 此標準化介面 (`ToolResult`, `ToolError`) 是**重構的目標**。目前的工具尚未遵循此格式，這是 Phase 1 的一項已知技術債 (詳見 `TASKS.md`)。
+> 儘管如此，核心的認證工具 (`auth/tools.py`) 已經被重構為無狀態的函式，為將來實現此標準化輸出奠定了良好基礎。
 
 所有工具的 `execute` 方法都**必須**遵循以下標準化輸入與輸出格式，以確保系統的穩定性和可預測性。
 

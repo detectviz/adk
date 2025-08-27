@@ -76,6 +76,13 @@ helm install sre-assistant sre-assistant/sre-assistant \
     - 使用類型提示 (Type Hinting)。
 - **提交訊息**:
     - 遵循 [Conventional Commits](https://www.conventionalcommits.org/) 規範。
+    - Commit 訊息本身需使用繁體中文撰寫。
+- **註解**:
+    - 程式碼或是設定檔皆需添加函式級的繁體中文註解，以幫助使用者更好地理解範例的用法和內部邏輯。
+- **現代化與重構**:
+    - **避免使用棄用函式**: 應主動將已棄用 (deprecated) 的函式或寫法，重構為官方建議的現代化版本。
+    - **範例 1 (Pydantic)**: 使用 Pydantic V2+ 的 `@field_validator` 取代已棄用的 V1 `@validator`。
+    - **範例 2 (datetime)**: 使用 `datetime.now(timezone.utc)` 取代已棄用的 `datetime.utcnow()`。
 
 ---
 

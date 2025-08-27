@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional, Tuple
 
 from google.adk.agents.invocation_context import InvocationContext
@@ -57,7 +57,7 @@ def _check_rate_limit(ctx: InvocationContext, user_info: Dict, auth_config) -> b
     user_id = user_info.get('user_id', user_info.get('email', 'anonymous'))
     rate_limit_key = f"user:rate_limit_timestamps_{user_id}"
 
-    now = datetime.utcnow().timestamp()
+    now = datetime.now(timezone.utc).timestamp()
     # 從上下文中讀取該用戶的所有請求時間戳
     timestamps = ctx.session.state.get(rate_limit_key, [])
 
@@ -99,7 +99,7 @@ async def authenticate(ctx: InvocationContext, credentials: Dict[str, Any]) -> T
     # 步驟 1: 檢查 InvocationContext 中是否存在有效的快取
     cache_key = _get_cache_key(credentials)
     cached = ctx.session.state.get(cache_key)
-    if cached and cached.get('expires') > datetime.utcnow().timestamp():
+    if cached and cached.get('expires') > datetime.now(timezone.utc).timestamp():
         logger.info(f"認證快取命中，使用者: {cached['user_info'].get('user_id')}")
         # 如果上下文中沒有 user_info，則從快取中補上，以供後續步驟使用
         if "user_info" not in ctx.session.state:
@@ -113,7 +113,7 @@ async def authenticate(ctx: InvocationContext, credentials: Dict[str, Any]) -> T
     if success and user_info:
         ctx.session.state[cache_key] = {
             'user_info': user_info,
-            'expires': (datetime.utcnow() + timedelta(minutes=5)).timestamp()
+            'expires': (datetime.now(timezone.utc) + timedelta(minutes=5)).timestamp()
         }
         ctx.session.state["user_info"] = user_info  # 確保 user_info 存在於 state 的頂層
         logger.info(f"認證成功，結果已快取。使用者: {user_info.get('user_id')}")
