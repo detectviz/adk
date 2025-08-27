@@ -1,4 +1,4 @@
-# src/sre_assistant/test/test_concurrent_sessions.py
+# test/test_concurrent_sessions.py
 # 說明：此檔案包含 SRE Assistant 的並發測試。
 # 根據技術債務清單，需要添加 50 個並發會話的測試，
 # 以確保系統在生產負載下的穩定性和可靠性。

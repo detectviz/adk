@@ -1,4 +1,4 @@
-# src/sre_assistant/tests/test_citation.py
+# tests/test_citation.py
 import pytest
 import asyncio
 from unittest.mock import AsyncMock

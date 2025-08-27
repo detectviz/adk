@@ -1,4 +1,4 @@
-# src/sre_assistant/tests/test_session.py
+# tests/test_session.py
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from datetime import datetime, timezone

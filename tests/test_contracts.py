@@ -1,4 +1,4 @@
-# src/sre_assistant/tests/test_contracts.py
+# tests/test_contracts.py
 # 說明：此檔案包含對 Pydantic 資料契約的屬性測試。
 # 使用 Hypothesis 函式庫自動生成各種有效的輸入資料，
 # 以確保模型的穩健性和邊界條件的正確性。
