@@ -41,21 +41,21 @@ SRE Assistant 的核心是一個以 **Grafana 為統一操作介面**、由**�
 graph TD
     subgraph "使用者介面 (User Interface)"
         User([User]) --> GrafanaUI[Grafana OSS/Cloud<br/>統一儀表板]
-        GrafanaUI --> SREPlugin[SRE Assistant Plugin<br/>(ChatOps, Automation)]
-        GrafanaUI --> GrafanaNative[原生功能<br/>(Dashboards, Alerting, Explore)]
+        GrafanaUI --> SREPlugin[SRE Assistant Plugin<br/>ChatOps, Automation]
+        GrafanaUI --> GrafanaNative[原生功能<br/>Dashboards, Alerting, Explore]
     end
 
     subgraph "後端服務 (Backend Services)"
-        SREPlugin -- API Request --> SREBackend[SRE Assistant API<br/>(Python / Google ADK)]
+        SREPlugin -- API Request --> SREBackend[SRE Assistant API<br/>Python / Google ADK]
 
         subgraph SREBackend
             direction LR
-            Workflow[SREWorkflow<br/>(BaseAgent Coordinator)]
+            Workflow[SREWorkflow<br/>BaseAgent Coordinator]
 
             subgraph Workflow
                 direction TB
-                AuthTools[1. Auth Tools<br/>(authenticate, check_authorization)]
-                MainSequence[2. Main Sequence<br/>(SequentialAgent)]
+                AuthTools[1. Auth Tools<br/>authenticate, check_authorization]
+                MainSequence[2. Main Sequence<br/>SequentialAgent]
             end
 
             subgraph MainSequence
@@ -71,14 +71,14 @@ graph TD
 
     subgraph "數據與基礎設施 (Data & Infrastructure)"
         subgraph "ADK 原生擴展"
-            AuthProvider[AuthProvider<br/>(e.g., OAuth2, JWT)]
-            MemoryProvider[MemoryProvider<br/>(RAG via Weaviate)]
-            SessionProvider[SessionProvider<br/>(State via PostgreSQL)]
+            AuthProvider[AuthProvider<br/>e.g., OAuth2, JWT]
+            MemoryProvider[MemoryProvider<br/>RAG via Weaviate]
+            SessionProvider[SessionProvider<br/>State via PostgreSQL]
         end
         subgraph "可觀測性 (Observability) - LGTM Stack"
-            Loki[Loki (日誌)]
-            Tempo[Tempo (追蹤)]
-            Mimir[Mimir (指標)]
+            Loki[Loki<br/>日誌]
+            Tempo[Tempo<br/>追蹤]
+            Mimir[Mimir<br/>指標]
         end
     end
 
@@ -88,7 +88,6 @@ graph TD
     SREBackend -- Uses --> SessionProvider
 
     Diagnostic -- Queries --> Loki & Mimir & Tempo
-
     GrafanaNative -- Queries --> Loki & Mimir & Tempo
 ```
 
