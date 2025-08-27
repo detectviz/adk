@@ -144,36 +144,28 @@ vi .env
 
 5. **啟動服務**
 ```bash
-# 開發模式（無認證）
-python -m sre_assistant.main --auth=none
-
-# 生產模式
-python -m sre_assistant.main --config=production
+# 該應用程式會自動載入開發配置 (development.yaml)
+python -m src.sre_assistant.main
 ```
 
-6. **訪問介面**
-- ADK Web UI: http://localhost:8080
-- Grafana: http://localhost:3000 (admin/admin)
-- API Docs: http://localhost:8080/docs
-
-7. **執行第一個診斷 (Run Your First Diagnosis)**
+6. **運行測試**
 ```bash
-# 使用 curl 向正在運行的 SRE Assistant Agent 發送請求
-# 這會觸發我們在 workflow.py 中重構的工作流程
-curl -X POST http://localhost:8080/run \
+# 執行完整的測試套件
+poetry run pytest
+```
+
+7. **訪問介面**
+- API Docs (Swagger UI): http://localhost:8080/docs
+- Grafana: http://localhost:3000 (admin/admin)
+
+
+8. **執行第一個診斷 (Run Your First Diagnosis)**
+```bash
+# 使用 curl 向正在運行的 SRE Assistant Agent 發送一個模擬請求
+curl -X POST http://localhost:8080/execute \
   -H "Content-Type: application/json" \
   -d '{
-    "context": {
-      "state": {
-        "credentials": {
-          "auth_method": "local"
-        },
-        "resource": "payment-gateway",
-        "action": "diagnose",
-        "incident_description": "Users are reporting timeouts when trying to complete payments."
-      }
-    },
-    "stream": false
+    "query": "Users are reporting timeouts when trying to complete payments."
   }'
 
 # 預期輸出 (簡化):
@@ -199,36 +191,42 @@ curl -X POST http://localhost:8080/run \
 ```bash
 sre-assistant/
 .
-├── .github/              # CI/CD 工作流程 (例如 GitHub Actions)
+├── .github/
 ├── .gitignore
 ├── AGENT.md
 ├── ARCHITECTURE.md
-├── Dockerfile            # 用於將最終應用程式容器化
-├── LICENSE               # 專案授權條款
-├── Makefile              # 用於自動化常用指令 (例如 setup, test, run)
+├── Dockerfile
+├── LICENSE
+├── Makefile
 ├── README.md
 ├── ROADMAP.md
 ├── SPEC.md
 ├── TASKS.md
-├── config/               # 外部基礎設施設定 (例如 Prometheus, Grafana)
-├── deployment/           # 部署相關設定 (例如 Kubernetes, Cloud Run)
-├── docker-compose.yml    # 用於一鍵啟動本地開發環境
-├── docs/                 # 專案文件
-├── eval/                 # 程式化的評估腳本
-├── pyproject.toml        # Python 專案定義與依賴管理
-├── src/sre_assistant/    # 主要的原始碼目錄
-│   ├── __init__.py
-│   ├── workflow.py       # 核心工作流程協調器
-│   ├── contracts.py      # Pydantic 資料模型
-│   ├── prompts.py        # Prompt 模板
-│   ├── tool_registry.py  # 共享工具註冊表
-│   ├── auth/             # 認證提供者模組
-│   ├── config/           # 應用程式自身的設定管理
-│   ├── memory/           # 長期記憶體 (RAG) 提供者模組
-│   ├── session/          # 會話 (短期記憶體) 提供者模組
-│   └── sub_agents/       # 未來的專業化子代理 (聯邦化階段)
-└── tests/                # 測試套件 (應與 src 平行)
- 
+├── config/
+├── deployment/
+├── docker-compose.yml
+├── docs/
+├── eval/
+├── pyproject.toml
+├── src/
+│   └── sre_assistant/
+│       ├── __init__.py
+│       ├── auth/
+│       ├── config/
+│       ├── contracts.py
+│       ├── main.py
+│       ├── memory/
+│       ├── prompts.py
+│       ├── session/
+│       ├── sub_agents/
+│       ├── tool_registry.py
+│       └── workflow.py
+└── tests/
+    ├── __init__.py
+    ├── test_agent.py
+    ├── test_contracts.py
+    ├── test_session.py
+    └── test_tools.py
 ```
 
 ## 技術棧
@@ -261,10 +259,10 @@ sre-assistant/
 
 ## 發展路線圖
 
-### Phase 0: 優先技術債修正 (近期) 修正中
-- [ ] AuthManager 重構為無狀態 ADK Tool
+### Phase 0: 優先技術債修正 (已完成) ✅
+- [x] AuthManager 重構為無狀態 ADK Tool
+- [x] 為核心代理實現結構化輸出
 - [ ] 實現標準化的 HITL (Human-in-the-Loop)
-- [ ] 為核心代理實現結構化輸出
 
 ### Phase 1: MVP (當前) 🚧
 - [x] 核心 Agent 服務

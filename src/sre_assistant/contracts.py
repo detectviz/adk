@@ -1,8 +1,8 @@
-# src/sre_assistant/contracts.py - v1.2.1 標準化 API 契約
+# src/sre_assistant/contracts.py
 # 說明：此檔案定義了 SRE Assistant 所有介面的資料模型（契約），
 # 使用 Pydantic 進行類型驗證，確保資料的一致性和可靠性。
 # 這些模型被用於 API 請求/回應、代理之間的資料傳遞以及狀態管理。
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Dict, List, Optional, Union, Literal, Any
 from datetime import datetime
 from enum import Enum
@@ -37,8 +37,9 @@ class SRERequest(BaseModel):
     session_id: Optional[str] = Field(None, description="用於保持對話狀態的會話 ID。")
     trace_id: Optional[str] = Field(None, description="用於分散式追蹤的追蹤 ID。")
 
-    @validator('affected_services')
-    def validate_services(cls, v):
+    @field_validator('affected_services')
+    @classmethod
+    def validate_services(cls, v: List[str]) -> List[str]:
         """驗證受影響服務的數量不超過限制"""
         if len(v) > 50:  # 避免過大的請求
             raise ValueError('受影響服務的數量不能超過 50 個')
@@ -59,7 +60,7 @@ class SLOStatus(BaseModel):
 
     def to_dict(self) -> Dict[str, Any]:
         """將模型轉換為字典，方便序列化。"""
-        return self.dict()
+        return self.model_dump()
 
 class ErrorBudgetStatus(BaseModel):
     """錯誤預算狀態模型 (Pydantic Model)
@@ -75,7 +76,7 @@ class ErrorBudgetStatus(BaseModel):
 
     def to_dict(self) -> Dict[str, Any]:
         """將模型轉換為字典，方便序列化。"""
-        return self.dict()
+        return self.model_dump()
 
 class SREResponse(BaseModel):
     """標準化 SRE 回應模型 (Pydantic Model)
@@ -90,7 +91,7 @@ class SREResponse(BaseModel):
     error_budget_consumed: float = Field(0.0, ge=0.0, description="本次操作消耗的錯誤預算。")
     mttr_contribution: Optional[float] = Field(None, description="本次操作對平均修復時間 (MTTR) 的貢獻（秒）。")
 
-    # v1.2.1 回應品質指標
+    # 回應品質指標
     response_quality_score: float = Field(0.0, ge=0.0, le=1.0, description="模型回應的品質分數。")
     factual_accuracy: Optional[float] = Field(None, ge=0.0, le=1.0, description="回應內容的事實準確性評分。")
     hallucination_detected: bool = Field(False, description="是否在回應中檢測到幻覺。")
@@ -162,8 +163,9 @@ class SREConfigSchema(BaseModel):
     # 監控配置
     monitoring_config: Dict[str, Any] = Field(description="監控系統的端點和認證配置。")
 
-    @validator('slo_targets')
-    def validate_slo_targets(cls, v):
+    @field_validator('slo_targets')
+    @classmethod
+    def validate_slo_targets(cls, v: Dict[str, float]) -> Dict[str, float]:
         """驗證是否包含所有必要的 SLO 目標"""
         required_targets = ['availability', 'latency_p95', 'error_rate']
         missing = [t for t in required_targets if t not in v]

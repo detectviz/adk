@@ -1,47 +1,15 @@
 # tests/test_contracts.py
-# 說明：此檔案包含對 Pydantic 資料契約的屬性測試。
-# 使用 Hypothesis 函式庫自動生成各種有效的輸入資料，
-# 以確保模型的穩健性和邊界條件的正確性。
-# 參考 ARCHITECTURE.md 第 16.1 節的測試策略。
+"""
+此檔案包含對 Pydantic 資料契約的屬性測試。
+
+使用 Hypothesis 函式庫自動生成各種有效的輸入資料，
+以確保模型的穩健性和邊界條件的正確性。
+"""
 
 import pytest
 from hypothesis import given, strategies as st
-import sys
-import os
-import importlib.util
 
-# --- 動態導入 contracts 模組 ---
-# 說明：與 test_agent.py 相同，我們需要動態載入模組
-# 以處理 'sre_assistant' 目錄名稱中的連字號。
-SRERequest = None
-SeverityLevel = None
-import_error = None
-
-try:
-    # 設置路徑以允許從 sre_assistant 導入
-    current_dir = os.path.dirname(__file__)
-    project_root = os.path.abspath(os.path.join(current_dir, '..'))
-    sys.path.insert(0, os.path.abspath(os.path.join(project_root, '..')))
-
-    contracts_module_path = os.path.join(project_root, "contracts.py")
-    spec = importlib.util.spec_from_file_location("sre_assistant.contracts", contracts_module_path)
-    contracts_module = importlib.util.module_from_spec(spec)
-
-    # 模擬套件結構
-    if 'sre_assistant' not in sys.modules:
-        sys.modules["sre_assistant"] = importlib.util.module_from_spec(
-            importlib.util.spec_from_file_location('sre_assistant', os.path.join(project_root, '__init__.py'))
-        )
-    sys.modules["sre_assistant.contracts"] = contracts_module
-
-    spec.loader.exec_module(contracts_module)
-
-    # 從已載入的模組中獲取我們需要的類別
-    SRERequest = contracts_module.SRERequest
-    SeverityLevel = contracts_module.SeverityLevel
-
-except Exception as e:
-    import_error = e
+from sre_assistant.contracts import SRERequest, SeverityLevel
 
 # --- Hypothesis 策略定義 ---
 
@@ -62,7 +30,6 @@ sre_request_strategy = st.builds(
 
 # --- 測試案例 ---
 
-@pytest.mark.skipif(SRERequest is None, reason=f"Failed to import SRERequest: {import_error if 'import_error' in locals() else 'Unknown error'}")
 @given(request_data=sre_request_strategy)
 def test_sre_request_contract_validation(request_data: SRERequest):
     """

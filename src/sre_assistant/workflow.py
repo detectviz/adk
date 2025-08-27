@@ -18,10 +18,6 @@ from google.genai.types import (
     GenerationConfig,
 )
 
-# --- 子代理匯入 ---
-# 舊的子代理已被移除，以符合新的架構。
-# 未來將根據 TASKS.md 中的定義，重新實現標準化的子代理。
-
 logger = logging.getLogger(__name__)
 
 
@@ -51,20 +47,14 @@ class SREWorkflow(BaseAgent):
         super().__init__(name="SREWorkflowCoordinator")
         agent_config = config or {}
 
-        # --- 階段性子代理定義 ---
-        # 由於舊的子代理已被移除，此處使用一個極簡的 LlmAgent 作為佔位符，
-        # 以確保工作流程在結構上是完整且可運行的。
-        # 移除複雜的配置以解決暫時的依賴版本和測試環境問題。
+        # 使用一個極簡的 LlmAgent 作為佔位符，確保工作流程在結構上是可運行的。
         # 未來的開發將根據 TASKS.md 來實現和組裝具有完整配置的真正子代理。
         placeholder_agent = LlmAgent(
             name="PlaceholderAgent",
             model="gemini-1.5-flash",
         )
 
-
-        # --- 組裝核心工作流程序列 ---
         # 將各階段的專家代理組裝成一個循序執行的工作流程。
-        # self.main_sequence 屬性持有了這個核心業務邏輯。
         self.main_sequence = SequentialAgent(
             name="MainSRESequence",
             sub_agents=[
