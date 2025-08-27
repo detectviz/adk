@@ -6,7 +6,8 @@
 """
 from typing import Optional, Callable, Any
 
-from google.adk.agents import LlmAgent, LoopAgent, InvocationContext
+from google.adk.agents import LlmAgent, LoopAgent
+from google.adk.agents.invocation_context import InvocationContext
 
 
 class SLOTuningAgent(LlmAgent):
@@ -37,4 +38,4 @@ class IterativeOptimization(LoopAgent):
         if self.sub_agent is None:
             self.sub_agent = SLOTuningAgent()
         if self.termination_condition is None:
-            self.termination_condition = lambda ctx: ctx.state.get("slo_met", False)
+            self.termination_condition = lambda ctx: ctx.session.state.get("slo_met", False)

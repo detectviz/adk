@@ -31,7 +31,7 @@ def test_create_sre_workflow_instance():
         # 使用繁體中文註解：實例化工作流程
         workflow = SREWorkflow()
         assert workflow is not None, "工作流程實例不應為 None"
-        assert isinstance(workflow, SequentialAgent), "工作流程應為 SequentialAgent 的一個實例"
+        assert isinstance(workflow.main_sequence, SequentialAgent), "工作流程的 main_sequence 屬性應為 SequentialAgent 的一個實例"
         print("SREWorkflow 實例化成功。")
     except Exception as e:
         pytest.fail(f"無法實例化 SREWorkflow: {e}")
@@ -47,6 +47,7 @@ def test_create_workflow_factory():
         workflow = create_workflow()
         assert workflow is not None, "從工廠創建的代理不應為 None"
         assert isinstance(workflow, SREWorkflow), "從工廠創建的代理應為 SREWorkflow 的一個實例"
+        assert isinstance(workflow.main_sequence, SequentialAgent), "工作流程的 main_sequence 屬性應為 SequentialAgent 的一個實例"
         print("已透過工廠函數成功創建代理。")
     except Exception as e:
         pytest.fail(f"工廠函數 create_workflow() 失敗: {e}")

@@ -6,9 +6,40 @@
 import pytest
 import asyncio
 from unittest.mock import patch, MagicMock, AsyncMock
+import uuid
 
 from google.adk.agents.invocation_context import InvocationContext
+from google.adk.sessions import BaseSessionService, Session
+from google.adk.agents.base_agent import BaseAgent
 from sre_assistant.auth.tools import authenticate, check_authorization
+
+# Mock classes to satisfy Pydantic validation for InvocationContext
+class MockSessionService(BaseSessionService):
+    async def create_session(self, **kwargs): pass
+    async def get_session(self, **kwargs): pass
+    async def update_session(self, **kwargs): pass
+    async def delete_session(self, **kwargs): pass
+    async def list_sessions(self, **kwargs): return []
+
+class MockAgent(BaseAgent):
+    async def run_async(self, **kwargs): pass
+
+class MockSession(Session):
+    def __init__(self):
+        super().__init__(
+            id="mock_session_id",
+            appName="mock_app",
+            userId="mock_user"
+        )
+
+def create_mock_context() -> InvocationContext:
+    """Creates a valid mock InvocationContext for testing."""
+    return InvocationContext(
+        session_service=MockSessionService(),
+        invocation_id=f"inv-{uuid.uuid4()}",
+        agent=MockAgent(name="MockAgent"),
+        session=MockSession()
+    )
 
 # 將此檔案中的所有測試標記為異步執行
 pytestmark = pytest.mark.asyncio
@@ -33,7 +64,7 @@ async def test_authenticate_success_and_cache(mock_config_manager, mock_auth_fac
     mock_auth_factory.create.return_value = mock_provider
 
     # 準備測試用的輸入資料
-    ctx = InvocationContext()
+    ctx = create_mock_context()
     credentials = {'token': 'valid-token'}
 
     # --- 執行階段 (Act) ---
@@ -48,11 +79,11 @@ async def test_authenticate_success_and_cache(mock_config_manager, mock_auth_fac
     mock_provider.authenticate.assert_called_once_with(credentials)
 
     # 3. 檢查上下文狀態是否被正確更新
-    assert "user_info" in ctx.state
-    assert ctx.state["user_info"] == {'user_id': 'test-user', 'roles': ['viewer']}
+    assert "user_info" in ctx.session.state
+    assert ctx.session.state["user_info"] == {'user_id': 'test-user', 'roles': ['viewer']}
 
     # 4. 檢查結果是否被快取（透過檢查 state 中是否存在符合格式的鍵）
-    assert any(key.startswith('user:auth_cache_') for key in ctx.state.keys())
+    assert any(key.startswith('user:auth_cache_') for key in ctx.session.state.keys())
 
     # --- 第二次執行：測試快取是否生效 ---
     await authenticate(ctx, credentials)
@@ -80,8 +111,8 @@ async def test_check_authorization_success(mock_config_manager, mock_auth_factor
     mock_auth_factory.create.return_value = mock_provider
 
     # 準備一個已包含 `user_info` 的上下文
-    ctx = InvocationContext()
-    ctx.state['user_info'] = {'user_id': 'test-user', 'roles': ['sre-operator']}
+    ctx = create_mock_context()
+    ctx.session.state['user_info'] = {'user_id': 'test-user', 'roles': ['sre-operator']}
     resource = 'deployment'
     action = 'restart'
 
@@ -106,7 +137,7 @@ async def test_check_authorization_failure_no_user_info(mock_config_manager, moc
               能否優雅地失敗並返回 `False`，且不應觸發任何提供者呼叫。
     """
     # --- 準備階段 (Arrange) ---
-    ctx = InvocationContext() # 故意不設置 user_info
+    ctx = create_mock_context() # 故意不設置 user_info
     resource = 'deployment'
     action = 'restart'
 

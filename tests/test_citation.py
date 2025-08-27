@@ -14,9 +14,14 @@ class MockEvent:
         self.content = content
         self.type = type
 
+class MockSession:
+    def __init__(self):
+        self.state = {}
+
 class MockInvocationContext:
     def __init__(self):
         self.history: List[MockEvent] = []
+        self.session = MockSession()
 
 # --- End Mock ADK components ---
 
@@ -50,7 +55,11 @@ async def test_citing_parallel_diagnostics_agent_formats_citations():
         role="assistant",
         content="Diagnosis: The database is slow."
     )
-    inner_agent_mock.run_async.return_value = final_result_event
+
+    async def mock_run_async_gen(context):
+        yield final_result_event
+
+    inner_agent_mock.run_async = mock_run_async_gen
     citing_agent.parallel_diagnostics = inner_agent_mock
 
     # 2. Prepare Context
@@ -69,19 +78,20 @@ async def test_citing_parallel_diagnostics_agent_formats_citations():
     ])
 
     # 3. Execute
-    await citing_agent._run_async_impl(context)
+    async for _ in citing_agent._run_async_impl(context):
+        pass
 
     # 4. Assert
-    final_content = final_result_event.content
+    # The agent now writes the citations to the context state.
+    assert "diagnostic_citations" in context.session.state
 
-    assert final_content is not None
-    assert "Diagnosis: The database is slow." in final_content
-    assert "References:" in final_content
-    assert "[Log] Source: database-1" in final_content
-    assert "[Config] File: /etc/db.conf" in final_content
-    assert "1. " in final_content
-    assert "2. " in final_content
+    formatted_citations = context.session.state["diagnostic_citations"]
+    assert "References:" in formatted_citations
+    assert "[Log] Source: database-1" in formatted_citations
+    assert "[Config] File: /etc/db.conf" in formatted_citations
+    assert "1. " in formatted_citations
+    assert "2. " in formatted_citations
 
     print("\n--- Test Result ---")
-    print(final_content)
+    print(formatted_citations)
     print("--- End Test Result ---")

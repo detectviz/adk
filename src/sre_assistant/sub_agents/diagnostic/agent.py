@@ -18,8 +18,6 @@ from .prompts import DIAGNOSTIC_PROMPT
 from ...citation_manager import SRECitationFormatter
 from typing import List, Dict, Any, AsyncGenerator
 import json
-from google.adk.tools.agent_tool import agent_tool
-
 class DiagnosticAgent(LlmAgent):
     """
     診斷專家：整合多源數據進行根因分析
@@ -53,19 +51,26 @@ class DiagnosticAgent(LlmAgent):
         severity_tool = self._create_severity_tool()
         all_tools = (tools or self._load_all_tools()) + [severity_tool]
 
+        from google.genai.types import GenerateContentConfig
+
         super().__init__(
             name="DiagnosticExpert",
             model="gemini-1.5-flash-001",
             tools=all_tools,
             instruction=enhanced_instruction,
-            safety_settings=safety_settings,
-            generation_config=generation_config,
+            generate_content_config=GenerateContentConfig(
+                safety_settings=safety_settings,
+                temperature=generation_config.temperature if generation_config else 0.4,
+                top_p=generation_config.top_p if generation_config else 1.0,
+                top_k=generation_config.top_k if generation_config else 32,
+                candidate_count=generation_config.candidate_count if generation_config else 1,
+                max_output_tokens=generation_config.max_output_tokens if generation_config else 8192,
+            ) if safety_settings or generation_config else None
         )
 
     def _create_severity_tool(self):
         """創建用於設置嚴重性的工具"""
 
-        @agent_tool
         def set_severity(
             severity: str,
             reason: str,
@@ -115,7 +120,7 @@ class DiagnosticAgent(LlmAgent):
             cls._create_metrics_severity_evaluator()  # 專門的指標嚴重性評估
         ]
 
-        instruction = DIAGNOSTICS_PROMPT.metrics_focus + """
+        instruction = DIAGNOSTIC_PROMPT.metrics_focus + """
 
         基於指標分析評估嚴重性時，重點關注：
         - 錯誤率 > 50% → P0
@@ -140,7 +145,7 @@ class DiagnosticAgent(LlmAgent):
         log_tools = [log_search]
         return cls(
             config=config,
-            instruction=DIAGNOSTICS_PROMPT.logs_focus,
+            instruction=DIAGNOSTIC_PROMPT.logs_focus,
             tools=log_tools,
             safety_settings=safety_settings,
             generation_config=generation_config
@@ -154,7 +159,7 @@ class DiagnosticAgent(LlmAgent):
         trace_tools = [trace_analysis]
         return cls(
             config=config,
-            instruction=DIAGNOSTICS_PROMPT.base,
+            instruction=DIAGNOSTIC_PROMPT.base,
             tools=trace_tools,
             safety_settings=safety_settings,
             generation_config=generation_config
@@ -164,7 +169,6 @@ class DiagnosticAgent(LlmAgent):
     def _create_metrics_severity_evaluator():
         """創建基於指標的嚴重性自動評估工具"""
 
-        @agent_tool
         def evaluate_metrics_severity(
             error_rate: float,
             response_time_ms: float,

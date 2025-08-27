@@ -5,7 +5,8 @@ to dynamically select an expert remediation agent based on diagnostic data.
 """
 from typing import Dict, Any, List
 
-from google.adk.agents import BaseAgent, InvocationContext, LlmAgent, ParallelAgent
+from google.adk.agents import BaseAgent, LlmAgent, ParallelAgent
+from google.adk.agents.invocation_context import InvocationContext
 
 # ==============================================================================
 #  專家修復代理 (佔位符)
@@ -15,6 +16,24 @@ from google.adk.agents import BaseAgent, InvocationContext, LlmAgent, ParallelAg
 # 每一個都將會是一個功能齊全的代理，能夠執行具體的修復操作。
 # 目前，我們使用簡單的 LlmAgent 作為佔位符。
 
+from google.genai.types import GenerateContentConfig
+
+def _prepare_llm_agent_kwargs(kwargs):
+    """Helper to wrap safety/generation configs for LlmAgent."""
+    safety_settings = kwargs.pop("safety_settings", None)
+    generation_config = kwargs.pop("generation_config", None)
+
+    if safety_settings or generation_config:
+        kwargs["generate_content_config"] = GenerateContentConfig(
+            safety_settings=safety_settings,
+            temperature=generation_config.temperature if generation_config else 0.4,
+            top_p=generation_config.top_p if generation_config else 1.0,
+            top_k=generation_config.top_k if generation_config else 32,
+            candidate_count=generation_config.candidate_count if generation_config else 1,
+            max_output_tokens=generation_config.max_output_tokens if generation_config else 8192,
+        )
+    return kwargs
+
 class RollbackRemediationAgent(LlmAgent):
     """專家代理：執行應用程式或基礎設施的回滾操作。"""
     def __init__(self, **kwargs):
@@ -22,28 +41,28 @@ class RollbackRemediationAgent(LlmAgent):
         # 同時允許從外部傳入的 kwargs (如 safety_settings) 覆蓋或添加參數。
         kwargs.setdefault("name", "RollbackExpert")
         kwargs.setdefault("instruction", "執行回滾...")
-        super().__init__(**kwargs)
+        super().__init__(**_prepare_llm_agent_kwargs(kwargs))
 
 class AutoScalingAgent(LlmAgent):
     """專家代理：調整服務的計算資源（例如，增加 Pod 數量）。"""
     def __init__(self, **kwargs):
         kwargs.setdefault("name", "ScalingExpert")
         kwargs.setdefault("instruction", "調整資源規模...")
-        super().__init__(**kwargs)
+        super().__init__(**_prepare_llm_agent_kwargs(kwargs))
 
 class ServiceRestartAgent(LlmAgent):
     """專家代理：安全地重啟一個或多個服務。"""
     def __init__(self, **kwargs):
         kwargs.setdefault("name", "RestartExpert")
         kwargs.setdefault("instruction", "正在重啟服務...")
-        super().__init__(**kwargs)
+        super().__init__(**_prepare_llm_agent_kwargs(kwargs))
 
 class ConfigurationFixAgent(LlmAgent):
     """專家代理：修復錯誤的服務配置。"""
     def __init__(self, **kwargs):
         kwargs.setdefault("name", "ConfigExpert")
         kwargs.setdefault("instruction", "正在修復配置...")
-        super().__init__(**kwargs)
+        super().__init__(**_prepare_llm_agent_kwargs(kwargs))
 
 
 # ==============================================================================
@@ -60,6 +79,8 @@ class SREIntelligentDispatcher(BaseAgent):
     3. 從一個專家代理註冊表中，選擇一個或多個最適合處理當前問題的專家。
     4. 動態地執行選定的專家代理（如果選擇了多個，則並行執行）。
     """
+    expert_registry: Dict[str, BaseAgent] = None
+    dispatcher_llm: LlmAgent = None
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
@@ -76,11 +97,11 @@ class SREIntelligentDispatcher(BaseAgent):
 
         # 專家註冊表：將專家名稱映射到其代理實例。
         # 在實例化時，將繼承來的標準化設定傳遞下去。
-        self.expert_registry: Dict[str, BaseAgent] = {
-            "rollback_fix": RollbackRemediationAgent(**llm_agent_kwargs),
-            "scaling_fix": AutoScalingAgent(**llm_agent_kwargs),
-            "restart_fix": ServiceRestartAgent(**llm_agent_kwargs),
-            "config_fix": ConfigurationFixAgent(**llm_agent_kwargs),
+        self.expert_registry = {
+            "rollback_fix": RollbackRemediationAgent(**llm_agent_kwargs.copy()),
+            "scaling_fix": AutoScalingAgent(**llm_agent_kwargs.copy()),
+            "restart_fix": ServiceRestartAgent(**llm_agent_kwargs.copy()),
+            "config_fix": ConfigurationFixAgent(**llm_agent_kwargs.copy()),
         }
 
         # LLM 決策引擎：此分診器內部使用一個專用的 LLM 代理來做決策。
@@ -88,7 +109,7 @@ class SREIntelligentDispatcher(BaseAgent):
         self.dispatcher_llm = LlmAgent(
             name="DecisionEngine",
             instruction=self._build_dispatcher_instruction(),
-            **llm_agent_kwargs,
+            **_prepare_llm_agent_kwargs(llm_agent_kwargs.copy())
         )
 
     def _build_dispatcher_instruction(self) -> str:
@@ -105,13 +126,13 @@ class SREIntelligentDispatcher(BaseAgent):
     def _summarize_diagnostics(self, ctx: InvocationContext) -> str:
         """從上下文中提取並格式化診斷資訊，以供 LLM 分析。"""
         summary_parts = []
-        if metrics := ctx.state.get("metrics_analysis"):
+        if metrics := ctx.session.state.get("metrics_analysis"):
             summary_parts.append(f"Metrics Analysis: {metrics}")
-        if logs := ctx.state.get("logs_analysis"):
+        if logs := ctx.session.state.get("logs_analysis"):
             summary_parts.append(f"Logs Analysis: {logs}")
-        if traces := ctx.state.get("traces_analysis"):
+        if traces := ctx.session.state.get("traces_analysis"):
             summary_parts.append(f"Traces Analysis: {traces}")
-        if citations := ctx.state.get("diagnostic_citations"):
+        if citations := ctx.session.state.get("diagnostic_citations"):
             summary_parts.append(f"Citations: {citations}")
 
         return "\n".join(summary_parts) if summary_parts else "No diagnostic data available."
@@ -132,17 +153,17 @@ class SREIntelligentDispatcher(BaseAgent):
 
         # 1. 產生診斷摘要
         diagnostic_summary = self._summarize_diagnostics(ctx)
-        ctx.state["dispatcher_prompt"] = diagnostic_summary # 儲存 prompt 以便除錯
+        ctx.session.state["dispatcher_prompt"] = diagnostic_summary # 儲存 prompt 以便除錯
 
         # 2. 呼叫 LLM 進行決策
         decision = await self.dispatcher_llm.run_async(prompt=diagnostic_summary)
-        ctx.state["dispatcher_decision"] = decision # 儲存 LLM 回應
+        ctx.session.state["dispatcher_decision"] = decision # 儲存 LLM 回應
 
         # 3. 解析 LLM 回應並選擇專家
         selected_experts = self._parse_expert_selection(decision)
 
         if not selected_experts:
-            ctx.state["remediation_status"] = "failed_no_expert_selected"
+            ctx.session.state["remediation_status"] = "failed_no_expert_selected"
             print("Dispatcher failed: No valid expert was selected by the LLM.")
             return
 
@@ -157,5 +178,5 @@ class SREIntelligentDispatcher(BaseAgent):
         # 執行選定的修復工作流程
         await workflow.run_async(ctx)
 
-        ctx.state["remediation_status"] = "dispatcher_executed"
+        ctx.session.state["remediation_status"] = "dispatcher_executed"
         print(f"Dispatcher executed experts: {[agent.name for agent in selected_experts]}")

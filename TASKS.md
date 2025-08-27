@@ -28,21 +28,21 @@
         - [ ] 有對應的單元測試。
 
 ### P0 - 重構 (Refactoring)
-- [ ] **TASK-P0-REFACTOR-01**: **重構 AuthManager 為無狀態工具**
+- [✅] **TASK-P0-REFACTOR-01**: **重構 AuthManager 為無狀態工具**
     - **來源**: `review.md` (P0)
     - **任務**: 將 `src/sre_assistant/auth/auth_manager.py` 重構為一個或多個符合 ADK 規範的、無狀態的 `FunctionTool`。
-    - **依賴**: 無
+    - **依賴**: 無 (已完成)
     - **驗收標準**:
-        - [ ] 新的 `AuthenticationTool` 是無狀態的。
-        - [ ] 憑證和令牌等狀態通過 `tool_context.session_state` 進行管理。
-        - [ ] 舊的 `AuthManager` 被移除。
-- [ ] **TASK-P0-REFACTOR-02**: **為關鍵代理實現結構化輸出**
+        - [✅] 新的 `AuthenticationTool` 是無狀態的。
+        - [✅] 憑證和令牌等狀態通過 `tool_context.session_state` 進行管理。
+        - [✅] 舊的 `AuthManager` 被移除。
+- [✅] **TASK-P0-REFACTOR-02**: **為關鍵代理實現結構化輸出**
     - **來源**: `review.md` (P2, 提升為 P0)
     - **任務**: 為核心的診斷代理（如 `MetricsAnalyzer`, `LogAnalyzer`）定義 Pydantic `output_schema`。
-    - **依賴**: 無
+    - **依賴**: 無 (已完成)
     - **驗收標準**:
-        - [ ] 代理的輸出是可預測的、有固定結構的 Pydantic 模型。
-        - [ ] `SREWorkflow` 中的下游代理可以安全地依賴此結構。
+        - [✅] 代理的輸出是可預測的、有固定結構的 Pydantic 模型。
+        - [✅] `SREWorkflow` 中的下游代理可以安全地依賴此結構。
 
 ---
 
@@ -228,8 +228,9 @@
         - [ ] 能夠將文檔向量化並存儲到 Weaviate。
         - [ ] 能夠根據查詢進行語義搜索並返回相關文檔片段。
         - [ ] 有整合測試驗證 RAG 流程。
-    - [ ] **TASK-P1-CORE-02**: 實現 `session_service_builder` (持久化會話)
+    - [ ] **TASK-P1-CORE-02**: **實現 `session_service_builder` (PostgreSQL 持久化會話)**
       - **依賴**: [TASK-P1-INFRA-01]
+      - **任務**: 實現一個 `session_service_builder`，它能根據配置返回一個基於 `DatabaseSessionService` 的 **PostgreSQL** 會話提供者。
       - **參考**:
         - [Remember this: Agent state and memory with ADK](https://cloud.google.com/blog/topics/developers-practitioners/remember-this-agent-state-and-memory-with-adk)
         - [ADK Agent Samples: customer-service](docs/reference-adk-agent-samples.md#9-領域特定工作流程-domain-specific-workflows)
@@ -237,8 +238,8 @@
         - [ADK Docs: Sessions](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
         - [ADK Examples: history_management](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience)
       - **驗收標準**:
-        - [ ] 多輪對話的上下文能夠被正確保存和讀取。
-        - [ ] 服務重啟後，可以從 Redis/Postgres 中恢復會話狀態。
+        - [ ] 多輪對話的上下文能夠被正確保存和讀取到 PostgreSQL。
+        - [ ] 服務重啟後，可以從 PostgreSQL 中恢復會話狀態。
         - [ ] 有整合測試驗證會話持久化。
     - [ ] **TASK-P1-CORE-03**: 實現 `AuthProvider` (OAuth 2.0)
       - **依賴**: [TASK-P1-SVC-01]
@@ -284,6 +285,14 @@
     - **驗收標準**:
         - [ ] `pytest --cov` 報告顯示核心模組測試覆蓋率 > 80%。
         - [ ] CI 流水線中包含測試覆蓋率檢查步驟。
+- [ ] **TASK-P1-DEBT-02**: **重構工具以實現標準化輸出**
+    - **來源**: `SPEC.md` (Section 4.1)
+    - **任務**: 重構所有現有的工具 (例如 `PrometheusQueryTool`, `LokiLogQueryTool`)，使其返回 `SPEC.md` 中定義的標準化 `ToolResult` Pydantic 模型，而不是臨時的元組。
+    - **依賴**: [TASK-P1-TOOL-01], [TASK-P1-TOOL-02]
+    - **驗收標準**:
+        - [ ] 專案中定義了 `ToolResult` 和 `ToolError` Pydantic 模型。
+        - [ ] 所有工具的 `execute` 方法簽名都符合 `BaseTool` 協議。
+        - [ ] 成功和失敗的工具調用都能返回結構化的 `ToolResult`。
 
 ---
 

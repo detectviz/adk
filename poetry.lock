@@ -56,14 +56,14 @@ tests-mypy = ["mypy (>=1.11.1) ; platform_python_implementation == \"CPython\" a
 
 [[package]]
 name = "authlib"
-version = "1.6.2"
+version = "1.6.3"
 description = "The ultimate Python library in building OAuth and OpenID Connect servers and clients."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "authlib-1.6.2-py2.py3-none-any.whl", hash = "sha256:2dd5571013cacf6b15f7addce03ed057ffdf629e9e81bacd9c08455a190e9b57"},
-    {file = "authlib-1.6.2.tar.gz", hash = "sha256:3bde83ac0392683eeef589cd5ab97e63cbe859e552dd75dca010548e79202cb1"},
+    {file = "authlib-1.6.3-py2.py3-none-any.whl", hash = "sha256:7ea0f082edd95a03b7b72edac65ec7f8f68d703017d7e37573aee4fc603f2a48"},
+    {file = "authlib-1.6.3.tar.gz", hash = "sha256:9f7a982cc395de719e4c2215c5707e7ea690ecf84f1ab126f28c053f4219e610"},
 ]
 
 [package.dependencies]
@@ -1620,14 +1620,14 @@ files = [
 
 [[package]]
 name = "hypothesis"
-version = "6.138.2"
+version = "6.138.3"
 description = "A library for property-based testing"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "hypothesis-6.138.2-py3-none-any.whl", hash = "sha256:2886c5e7569437781d1dc42973021f70f7facb7e410249dcb899b0edb249e5b8"},
-    {file = "hypothesis-6.138.2.tar.gz", hash = "sha256:82e3b2ac709ee3edda4aba2f4b11becfe764f51d104fcdb3e9f95aff1ac81595"},
+    {file = "hypothesis-6.138.3-py3-none-any.whl", hash = "sha256:19291d3ba478527155c34704b038a21ba86b2f31d36673446f981a67f705b3f4"},
+    {file = "hypothesis-6.138.3.tar.gz", hash = "sha256:9bffd1382b99e67c46512dac45ec013bae4b39d3d0ef98f0d87535f06d8efc9e"},
 ]
 
 [package.dependencies]
@@ -1636,10 +1636,10 @@ exceptiongroup = {version = ">=1.0.0", markers = "python_version < \"3.11\""}
 sortedcontainers = ">=2.1.0,<3.0.0"
 
 [package.extras]
-all = ["black (>=20.8b0)", "click (>=7.0)", "crosshair-tool (>=0.0.93)", "django (>=4.2)", "dpcontracts (>=0.4)", "hypothesis-crosshair (>=0.0.24)", "lark (>=0.10.1)", "libcst (>=0.3.16)", "numpy (>=1.19.3)", "pandas (>=1.1)", "pytest (>=4.6)", "python-dateutil (>=1.4)", "pytz (>=2014.1)", "redis (>=3.0.0)", "rich (>=9.0.0)", "tzdata (>=2025.2) ; sys_platform == \"win32\" or sys_platform == \"emscripten\"", "watchdog (>=4.0.0)"]
+all = ["black (>=20.8b0)", "click (>=7.0)", "crosshair-tool (>=0.0.95)", "django (>=4.2)", "dpcontracts (>=0.4)", "hypothesis-crosshair (>=0.0.25)", "lark (>=0.10.1)", "libcst (>=0.3.16)", "numpy (>=1.19.3)", "pandas (>=1.1)", "pytest (>=4.6)", "python-dateutil (>=1.4)", "pytz (>=2014.1)", "redis (>=3.0.0)", "rich (>=9.0.0)", "tzdata (>=2025.2) ; sys_platform == \"win32\" or sys_platform == \"emscripten\"", "watchdog (>=4.0.0)"]
 cli = ["black (>=20.8b0)", "click (>=7.0)", "rich (>=9.0.0)"]
 codemods = ["libcst (>=0.3.16)"]
-crosshair = ["crosshair-tool (>=0.0.93)", "hypothesis-crosshair (>=0.0.24)"]
+crosshair = ["crosshair-tool (>=0.0.95)", "hypothesis-crosshair (>=0.0.25)"]
 dateutil = ["python-dateutil (>=1.4)"]
 django = ["django (>=4.2)"]
 dpcontracts = ["dpcontracts (>=0.4)"]
@@ -3737,14 +3737,14 @@ uvicorn = ["uvicorn (>=0.34.0)"]
 
 [[package]]
 name = "starlette"
-version = "0.47.2"
+version = "0.47.3"
 description = "The little ASGI library that shines."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "starlette-0.47.2-py3-none-any.whl", hash = "sha256:c5847e96134e5c5371ee9fac6fdf1a67336d5815e09eb2a01fdb57a351ef915b"},
-    {file = "starlette-0.47.2.tar.gz", hash = "sha256:6ae9aa5db235e4846decc1e7b79c4f346adf41e9777aebeb49dfd09bbd7023d8"},
+    {file = "starlette-0.47.3-py3-none-any.whl", hash = "sha256:89c0778ca62a76b826101e7c709e70680a1699ca7da6b44d38eb0a7e61fe4b51"},
+    {file = "starlette-0.47.3.tar.gz", hash = "sha256:6bc94f839cc176c4858894f1f8908f0ab79dfec1a6b8402f6da9be26ebea52e9"},
 ]
 
 [package.dependencies]
@@ -3815,14 +3815,14 @@ files = [
 
 [[package]]
 name = "typing-extensions"
-version = "4.14.1"
+version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "typing_extensions-4.14.1-py3-none-any.whl", hash = "sha256:d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76"},
-    {file = "typing_extensions-4.14.1.tar.gz", hash = "sha256:38b39f4aeeab64884ce9f74c94263ef78f3c22467c8724005483154c26648d36"},
+    {file = "typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"},
+    {file = "typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466"},
 ]
 markers = {dev = "python_version < \"3.11\""}
 
