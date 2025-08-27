@@ -14,7 +14,7 @@ authors = ["Jules <jules@example.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 # 核心框架
-google-adk = "1.2.1"
+google-adk = "^1.12.0"
 # 用於資料契約
 pydantic = "^2.7"
 # 用於 Prometheus 工具

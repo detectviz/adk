@@ -123,6 +123,7 @@ class VersionedToolRegistry(ToolRegistry):
         self.register_versioned_tool(LogSearchTool(), "1.5.0")
         self.register_versioned_tool(K8sRolloutRestartTool(), "3.0.0")
 
+
         # 設置每個工具的默認使用版本
         self.set_default("promql_query", "2.1.0")
         self.set_default("log_search", "1.5.0")
