@@ -10,8 +10,8 @@
 
 本文件是 SRE Assistant 專案的**唯一真實來源 (Single Source of Truth)**，用於追蹤所有開發任務。它根據 [ROADMAP.md](ROADMAP.md) 的階段進行組織，並整合了所有新功能、重構計畫和已知的技術債。
 
-開發團隊在執行任務時，應優先參考以下高階指南以尋找相關的程式碼範例與實作教學：
-- **核心參考**: [25+ 份面向企業的頂級新一代 AI 操作指南](https://cloud.google.com/blog/products/ai-machine-learning/top-gen-ai-how-to-guides-for-enterprise)
+開發團隊在執行任務時，應優先參考以下專案內部的高階指南以尋找相關的程式碼範例與實作教學：
+- **核心參考**: **[SRE Assistant 參考資料庫 (docs/README.md)](docs/README.md)**
 
 ---
 
@@ -22,6 +22,9 @@
     - **來源**: `review.md` (P0)
     - **任務**: 根據 `SPEC.md` 的定義，使用 ADK 的 `LongRunningFunctionTool` 實現 `HumanApprovalTool`。
     - **依賴**: 無
+    - **參考**:
+        - [ADK Examples: human_in_loop](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration)
+        - [ADK Snippets: human_in_the_loop.py](docs/reference-snippets.md#23-安全的自動化修復模式-safe-automated-remediation-pattern)
     - **驗收標準**:
         - [ ] 工具能夠暫停工作流程，等待外部回調。
         - [ ] 能夠正確處理批准、拒絕和超時三種情況。
@@ -167,9 +170,9 @@
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
         - **主要藍圖**: `review.md` 中的 `EnhancedSREWorkflow` 程式碼範例。
-        - [How to build a simple multi-agentic system using Google’s ADK](https://cloud.google.com/blog/products/ai-machine-learning/build-multi-agentic-systems-using-google-adk)
-        - [ADK Examples: simple_sequential_agent](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook)
-        - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
+        - **進階模式**: [ADK Examples: workflow_agent_seq](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (展示狀態傳遞)
+        - **並行診斷**: [ADK Examples: parallel_functions](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (實現並行工具調用)
+        - **宏觀架構**: [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
       - **驗收標準**:
         - [ ] 服務能成功啟動並監聽指定端口。
         - [ ] `SREWorkflow` 的結構遵循 `EnhancedSREWorkflow` 的模式，包含並行診斷、自定義聚合、條件回呼等。
@@ -190,11 +193,9 @@
     - [ ] **TASK-P1-TOOL-01**: 實現 `PrometheusQueryTool`
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
-        - [SRE 的四大黃金訊號](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)
-        - [ADK Docs: Creating a tool](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
-        - [Google SRE Book: Chapter 6](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
-        - [ADK Examples: jira_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration)
-        - [ADK Snippets: Standard Tool Development](docs/reference-snippets.md#32-標準工具開發手動實現-standard-tool-development-manual-implementation)
+        - **領域知識**: [SRE 的四大黃金訊號](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals), [Google SRE Book: Chapter 6](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
+        - **架構模式**: [ADK Agent Samples: fomc-research](docs/reference-adk-agent-samples.md#18-韌性與時間序列分析-resilience--time-series-analysis) (查詢時間序列數據與韌性模式)
+        - **基礎實現**: [ADK Docs: Creating a tool](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions), [ADK Snippets: Standard Tool Development](docs/reference-snippets.md#32-標準工具開發手動實現-standard-tool-development-manual-implementation)
         - **(挽救的程式碼) 在未來實現 SLO 相關功能時，可參考 `docs/references/snippets/salvaged_code.md` 中的 SLO 錯誤預算計算邏輯。**
       - **驗收標準**:
         - [ ] 能夠成功查詢 Prometheus 並返回指標數據。
@@ -222,9 +223,10 @@
     - [ ] **TASK-P1-CORE-01**: 實現 `MemoryProvider` (RAG)
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
-        - [ADK Agent Samples: RAG](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體)
-        - [ADK Docs: Memory](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
-        - [ADK Examples: adk_answering_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration)
+        - **主要藍圖**: [ADK Agent Samples: RAG](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體)
+        - **理論基礎**: [ADK Docs: Memory](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
+        - **整合範例**: [ADK Examples: adk_answering_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration)
+        - **擴展用例**: [ADK Agent Samples: llama_index_file_chat](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體) (用於臨時文件分析)
         - **(挽救的程式碼) 在設計 RAG 最終輸出時，可參考 `docs/references/snippets/salvaged_code.md` 中的引用格式化邏輯。**
       - **驗收標準**:
         - [ ] 能夠將文檔向量化並存儲到 Weaviate。
@@ -234,11 +236,11 @@
       - **依賴**: [TASK-P1-INFRA-01]
       - **任務**: 實現一個 `session_service_builder`，它能根據配置返回一個基於 `DatabaseSessionService` 的 **PostgreSQL** 會話提供者。
       - **參考**:
-        - [Remember this: Agent state and memory with ADK](https://cloud.google.com/blog/topics/developers-practitioners/remember-this-agent-state-and-memory-with-adk)
-        - [ADK Agent Samples: customer-service](docs/reference-adk-agent-samples.md#9-領域特定工作流程-domain-specific-workflows)
-        - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
-        - [ADK Docs: Sessions](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
-        - [ADK Examples: history_management](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience)
+        - **概念部落格**: [Remember this: Agent state and memory with ADK](https://cloud.google.com/blog/topics/developers-practitioners/remember-this-agent-state-and-memory-with-adk)
+        - **主要藍圖**: [ADK Agent Samples: customer-service](docs/reference-adk-agent-samples.md#9-領域特定工作流程-domain-specific-workflows)
+        - **理論基礎**: [ADK Docs: Sessions](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
+        - **應用層實踐**: [ADK Examples: history_management](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience) (如何使用歷史)
+        - **狀態管理**: [ADK Examples: session_state_agent](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook) (如何讀寫自定義狀態)
       - **驗收標準**:
         - [ ] 多輪對話的上下文能夠被正確保存和讀取到 PostgreSQL。
         - [ ] 服務重啟後，可以從 PostgreSQL 中恢復會話狀態。
@@ -247,8 +249,9 @@
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
         - **核心實踐**: `review.md` 關於 AuthManager 的重構建議。
-        - [ADK Agent Samples: headless_agent_auth](docs/reference-adk-agent-samples.md#4-安全與認證-security--authentication)
-        - [ADK Docs: Auth](docs/reference-adk-docs.md#核心框架與自訂擴證-core-framework--custom-extensions)
+        - **主要藍圖**: [ADK Agent Samples: headless_agent_auth](docs/reference-adk-agent-samples.md#4-安全與認證-security--authentication)
+        - **工具層實踐**: [ADK Examples: oauth_calendar_agent](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (展示工具如何使用憑證)
+        - **理論基礎**: [ADK Docs: Auth](docs/reference-adk-docs.md#核心框架與自訂擴證-core-framework--custom-extensions)
       - **驗收標準**:
         - [ ] 實現一個**無狀態**的 `AuthProvider`，而不是一個有狀態的管理器。
         - [ ] 能夠與一個 OIDC Provider (如 Google) 完成認證流程。
@@ -260,11 +263,11 @@
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
           - `review.md` 中的 `_workflow_pre_check` 和 `_workflow_post_process` 範例。
-          - [ADK Docs: Callbacks](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
-          - [ADK Snippets: callback_basic.py](docs/reference-snippets.md#23-回呼與生命週期-callbacks--lifecycle)
+          - **進階模式**: [ADK Examples: live_tool_callbacks_agent](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience) (用於即時串流進度)
+          - **理論基礎**: [ADK Docs: Callbacks](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
       - **驗收標準**:
           - [ ] 前置檢查失敗時，能夠提前終止工作流程。
-          - [ ] 工作流程結束後，能夠觸發後處理邏輯。
+          - [ ] 工作流程結束後，能夠觸發後處理 logique。
 
 ### P1 - 重構 (Refactoring)
 
@@ -291,6 +294,8 @@
     - **來源**: `SPEC.md` (Section 4.1)
     - **任務**: 重構所有現有的工具 (例如 `PrometheusQueryTool`, `LokiLogQueryTool`)，使其返回 `SPEC.md` 中定義的標準化 `ToolResult` Pydantic 模型，而不是臨時的元組。
     - **依賴**: [TASK-P1-TOOL-01], [TASK-P1-TOOL-02]
+    - **參考**:
+        - **直接實現**: [ADK Examples: output_schema_with_tools](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook)
     - **驗收標準**:
         - [ ] 專案中定義了 `ToolResult` 和 `ToolError` Pydantic 模型。
         - [ ] 所有工具的 `execute` 方法簽名都符合 `BaseTool` 協議。
@@ -353,8 +358,9 @@
     - **任務**: 根據 `ARCHITECTURE.md` 中 `IntelligentDispatcher` 的定義，使用基於 LLM 的路由器替換靜態的條件判斷邏輯，以動態選擇最合適的專家代理。
     - **參考**:
         - `review.md` 中的 `IntelligentDispatcher` 類別範例。
-        - [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration)
-        - [ADK Examples: workflow_triage](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references)
+        - **真實世界藍圖**: [ADK Agent Samples: brand-search-optimization](docs/reference-adk-agent-samples.md#16-進階工作流程與整合-advanced-workflows--integrations)
+        - **基礎模式**: [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration)
+        - **輕量化實現**: [ADK Examples: workflow_triage](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references)
     - **驗收標準**: 系統能夠根據診斷摘要，動態調度在 `SPEC.md` 中定義的專家代理。
 
 ### P2 - 技術債 (Technical Debt)
