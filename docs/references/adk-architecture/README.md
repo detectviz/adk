@@ -1,5 +1,9 @@
 # ARCHITECTURE 參考
 
+## 架構文件
+
+- [ADK 架構文件模板](./adk-architecture-doc.md)
+
 ## 參考連結：
 - [官方文檔目錄](https://google.github.io/adk-docs/get-started/about/#key-capabilities)
 - [基於代理程式的解決方案](https://codelabs.developers.google.com/instavibe-adk-multi-agents/instructions)
@@ -61,14 +65,6 @@
 
 https://codelabs.developers.google.com/instavibe-adk-multi-agents/instructions
 
-- **A Agent**:
-
-- **B Agent**:
-
-- **C Agent**:
-
-- **Orchestrator Agent**: 
-
 ---
 
 ## ADK Architecture Overview
@@ -80,13 +76,3 @@ https://codelabs.developers.google.com/instavibe-adk-multi-agents/instructions
 ## 關鍵建築元素和技術 Key Architectural Elements and Technologies
 
 ![ADK 關鍵建築元素和技術圖](./adk-key-architectural-elements-and-technologies.png)
-
-Platform Overview:
-
-- **Models**: 
-
-- **Tools**: 
-
-- **Orchestrator**: 
-
-- **Callbacks**: 
