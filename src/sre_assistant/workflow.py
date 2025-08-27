@@ -10,7 +10,8 @@ from typing import Optional, Dict, Any, AsyncGenerator
 
 from google.adk.events import Event
 from google.adk.agents.invocation_context import InvocationContext
-from google.adk.agents import SequentialAgent
+from google.adk.agents import SequentialAgent, LlmAgent, BaseAgent
+from google.adk.tools import FunctionTool, LongRunningFunctionTool
 from google.genai.types import (
     SafetySetting,
     HarmCategory,
@@ -22,102 +23,88 @@ logger = logging.getLogger(__name__)
 
 
 from .auth.tools import authenticate, check_authorization
-from google.adk.agents import BaseAgent, LlmAgent
+from .tool_registry import tool_registry
+
+
+# 步驟 1: 定義代表高風險操作和人工審批的 Python 函數。
+# 這遵循 `human_in_the_loop.py` 程式碼片段的模式。
+
+@FunctionTool
+def execute_high_risk_remediation(reason: str) -> Dict[str, Any]:
+    """一個模擬的工具，代表一個高風險的修復操作。"""
+    logger.warning(f"正在執行高風險操作: {reason}")
+    return {"status": "completed", "action": reason}
+
+def ask_for_approval(reason: str, amount: float) -> dict[str, Any]:
+    """請求核准報銷。此函數將由 LongRunningFunctionTool 包裝。"""
+    logger.info(f"發出人工審批請求，原因: {reason}, 金額: {amount}")
+    return {'status': 'pending', 'approver': 'sre-lead@example.com', 'reason' : reason, 'amount': amount}
+
+# 使用 LongRunningFunctionTool 包裝審批函數
+human_approval_tool = LongRunningFunctionTool(func=ask_for_approval)
+
 
 class SREWorkflow(BaseAgent):
     """
     主要的 SRE 自動化工作流程協調器 (已重構)。
 
-    這個類別是整個 SRE Assistant 的核心入口點。它不再是一個簡單的循序代理，
-    而是一個高階的協調器 (`BaseAgent`)。它的主要職責是：
-    1.  初始化整個工作流程中所有子代理所需的標準化設定 (安全、模型生成)。
-    2.  組裝核心的業務邏輯，即一個由多個專家子代理組成的 `SequentialAgent`。
-    3.  在執行核心業務邏輯之前，先執行前置的認證 (Authentication) 和授權 (Authorization) 檢查。
-    這種模式將關注點分離，使得核心業務流程與外圍的驗證邏輯解耦。
+    這個類別現在主要作為一個工廠，用於構建一個包含正確 HITL 流程的
+    `SequentialAgent`。外部的運行器 (Runner) 將負責處理事件循環和
+    回饋響應，以符合 ADK 的長時運行工具模式。
     """
-    main_sequence: BaseAgent = None
+    main_sequence: BaseAgent
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
         透過組裝其組成的子代理來初始化 SRE 工作流程。
-
-        Args:
-            config (Optional[Dict[str, Any]]): 一個可選的配置字典，用於傳遞給子代理。
         """
-        super().__init__(name="SREWorkflowCoordinator")
-        agent_config = config or {}
-
-        # 使用一個極簡的 LlmAgent 作為佔位符，確保工作流程在結構上是可運行的。
-        # 未來的開發將根據 TASKS.md 來實現和組裝具有完整配置的真正子代理。
-        placeholder_agent = LlmAgent(
-            name="PlaceholderAgent",
+        # 步驟 1: 提前構建子代理。
+        approval_requester_agent = LlmAgent(
+            name="ApprovalRequester",
             model="gemini-1.5-flash",
+            tools=[human_approval_tool],
+            instruction="""
+            你是一個安全流程協調員。
+            你需要為一個高風險操作請求人工批准。
+            請調用 ask_for_approval 工具，原因為 '重啟生產資料庫'，金額為 500。
+            """
         )
-
-        # 將各階段的專家代理組裝成一個循序執行的工作流程。
-        self.main_sequence = SequentialAgent(
+        remediation_executor_agent = LlmAgent(
+            name="RemediationExecutor",
+            model="gemini-1.5-flash",
+            tools=[execute_high_risk_remediation],
+            instruction="""
+            你是一個自動化操作執行器。
+            請檢查上一步 (ask_for_approval) 的輸出。
+            如果 'status' 字段為 'approved'，請調用 execute_high_risk_remediation 工具，
+            並將原因設置為 '由Manager批准後執行'。
+            如果 'status' 字段為 'rejected'，請輸出 '操作已被取消' 並停止。
+            """
+        )
+        main_sequence_agent = SequentialAgent(
             name="MainSRESequence",
             sub_agents=[
-                placeholder_agent
+                approval_requester_agent,
+                remediation_executor_agent
             ]
         )
 
+        # 步驟 2: 在調用 super().__init__ 時，將 main_sequence 作為參數傳入。
+        # 這符合 Pydantic V2 的初始化和驗證模型。
+        super().__init__(name="SREWorkflowCoordinator", main_sequence=main_sequence_agent)
+
     async def _run_async_impl(self, ctx: InvocationContext) -> AsyncGenerator[Event, None]:
         """
-        執行包含認證和授權的完整工作流程。
+        執行核心的 SRE 工作流程。
 
-        這是此代理的執行入口點。它首先執行安全檢查，然後才執行核心的業務邏輯。
-        此方法假定 `ctx.session.state` 中已包含 'credentials', 'resource', 和 'action' 等
-        從外部傳入的參數。
-
-        Args:
-            ctx (InvocationContext): ADK 的核心上下文對象，用於在代理執行過程中傳遞狀態。
-
-        Yields:
-            Event: 從子代理產生的事件。
+        注意：此方法現在只代理到 `main_sequence`。所有複雜的事件循環、
+        認證和回饋邏輯都已移至外部的運行器 (Runner) 或測試循環中，
+        以符合 `human_in_the_loop.py` 範例揭示的模式。
         """
-        # 步驟 1: 從上下文中提取執行工作流程所需的參數。
-        # 這種設計使得工作流程本身是無狀態的，所有執行所需的狀態都由外部提供。
-        credentials = ctx.session.state.get("credentials")
-        resource = ctx.session.state.get("resource")
-        action = ctx.session.state.get("action")
-
-        if not all([credentials, resource, action]):
-            missing = [k for k in ['credentials', 'resource', 'action'] if not ctx.session.state.get(k)]
-            # 產生一個錯誤事件而不是引發異常，讓框架可以優雅地處理
-            yield Event(
-                author="SREWorkflowCoordinator",
-                error_message=f"Context is missing required keys: {missing}"
-            )
-            return
-
-        # 步驟 2: 使用重構後的 `authenticate` 工具執行認證。
-        # 這是取代舊 `AuthManager` 的無狀態方法。
-        auth_success, user_info = await authenticate(ctx, credentials)
-        if not auth_success:
-            # 認證失敗時，在上下文中記錄失敗狀態並終止執行。
-            ctx.session.state["workflow_status"] = "failed_authentication"
-            ctx.session.state["error_message"] = "Authentication failed."
-            yield Event(author="SREWorkflowCoordinator", error_message="Authentication failed.")
-            logger.error("Workflow terminated: Authentication failed.")
-            return
-
-        # 步驟 3: 使用重構後的 `check_authorization` 工具執行授權。
-        authz_success = await check_authorization(ctx, resource, action)
-        if not authz_success:
-            # 授權失敗時，同樣記錄狀態並終止。
-            ctx.session.state["workflow_status"] = "failed_authorization"
-            ctx.session.state["error_message"] = f"User not authorized for action '{action}' on resource '{resource}'."
-            yield Event(author="SREWorkflowCoordinator", error_message="Authorization failed.")
-            logger.error(f"Workflow terminated: Authorization failed for user {user_info.get('email')}.")
-            return
-
-        # 步驟 4: 執行核心的 SRE 工作流程。
-        # 只有在認證和授權都成功後，才會執行 `self.main_sequence`。
-        logger.info(f"User {user_info.get('email')} authorized. Starting main SRE sequence.")
+        logger.info("SREWorkflowCoordinator: 正在啟動主序列...")
         async for event in self.main_sequence.run_async(ctx):
             yield event
-        ctx.session.state["workflow_status"] = "completed_successfully"
+        logger.info("SREWorkflowCoordinator: 主序列已完成。")
 
 
 def create_workflow(config: Optional[Dict[str, Any]] = None) -> SREWorkflow:
