@@ -6,10 +6,12 @@ SREWorkflow 是一個 SequentialAgent，負責協調不同的專家子代理，
 以完成 SRE 事件回應的各個階段。
 """
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, AsyncGenerator
 
-from google.adk.agents import InvocationContext, SequentialAgent
-from google.generativeai.types import (
+from google.adk.events import Event
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.agents import SequentialAgent
+from google.genai.types import (
     SafetySetting,
     HarmCategory,
     HarmBlockThreshold,
@@ -40,6 +42,7 @@ class SREWorkflow(BaseAgent):
     3.  在執行核心業務邏輯之前，先執行前置的認證 (Authentication) 和授權 (Authorization) 檢查。
     這種模式將關注點分離，使得核心業務流程與外圍的驗證邏輯解耦。
     """
+    main_sequence: SequentialAgent = None
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
@@ -81,8 +84,8 @@ class SREWorkflow(BaseAgent):
         )
         remediation_phase = SREIntelligentDispatcher(
             name="SREIntelligentDispatcher",
-            safety_settings=safety_settings,
-            generation_config=generation_config,
+            # The dispatcher will receive the settings in its **kwargs and pass them down
+            # to its own LLM agents. We don't pass them to the BaseAgent constructor.
         )
         postmortem_phase = PostmortemAgent(
             name="PostmortemAgent",
@@ -105,35 +108,43 @@ class SREWorkflow(BaseAgent):
             ]
         )
 
-    async def _run_async_impl(self, ctx: InvocationContext) -> None:
+    async def _run_async_impl(self, ctx: InvocationContext) -> AsyncGenerator[Event, None]:
         """
         執行包含認證和授權的完整工作流程。
 
         這是此代理的執行入口點。它首先執行安全檢查，然後才執行核心的業務邏輯。
-        此方法假定 `ctx.state` 中已包含 'credentials', 'resource', 和 'action' 等
+        此方法假定 `ctx.session.state` 中已包含 'credentials', 'resource', 和 'action' 等
         從外部傳入的參數。
 
         Args:
             ctx (InvocationContext): ADK 的核心上下文對象，用於在代理執行過程中傳遞狀態。
+
+        Yields:
+            Event: 從子代理產生的事件。
         """
         # 步驟 1: 從上下文中提取執行工作流程所需的參數。
         # 這種設計使得工作流程本身是無狀態的，所有執行所需的狀態都由外部提供。
-        credentials = ctx.state.get("credentials")
-        resource = ctx.state.get("resource")
-        action = ctx.state.get("action")
+        credentials = ctx.session.state.get("credentials")
+        resource = ctx.session.state.get("resource")
+        action = ctx.session.state.get("action")
 
         if not all([credentials, resource, action]):
-            missing = [k for k in ['credentials', 'resource', 'action'] if not ctx.state.get(k)]
-            raise ValueError(f"Context is missing required keys for workflow execution: {missing}")
+            missing = [k for k in ['credentials', 'resource', 'action'] if not ctx.session.state.get(k)]
+            # 產生一個錯誤事件而不是引發異常，讓框架可以優雅地處理
+            yield Event(
+                author="SREWorkflowCoordinator",
+                error_message=f"Context is missing required keys: {missing}"
+            )
+            return
 
         # 步驟 2: 使用重構後的 `authenticate` 工具執行認證。
         # 這是取代舊 `AuthManager` 的無狀態方法。
         auth_success, user_info = await authenticate(ctx, credentials)
         if not auth_success:
             # 認證失敗時，在上下文中記錄失敗狀態並終止執行。
-            # 這種方式比直接引發異常更為優雅，便於上層呼叫者處理。
-            ctx.state["workflow_status"] = "failed_authentication"
-            ctx.state["error_message"] = "Authentication failed."
+            ctx.session.state["workflow_status"] = "failed_authentication"
+            ctx.session.state["error_message"] = "Authentication failed."
+            yield Event(author="SREWorkflowCoordinator", error_message="Authentication failed.")
             logger.error("Workflow terminated: Authentication failed.")
             return
 
@@ -141,16 +152,18 @@ class SREWorkflow(BaseAgent):
         authz_success = await check_authorization(ctx, resource, action)
         if not authz_success:
             # 授權失敗時，同樣記錄狀態並終止。
-            ctx.state["workflow_status"] = "failed_authorization"
-            ctx.state["error_message"] = f"User not authorized for action '{action}' on resource '{resource}'."
+            ctx.session.state["workflow_status"] = "failed_authorization"
+            ctx.session.state["error_message"] = f"User not authorized for action '{action}' on resource '{resource}'."
+            yield Event(author="SREWorkflowCoordinator", error_message="Authorization failed.")
             logger.error(f"Workflow terminated: Authorization failed for user {user_info.get('email')}.")
             return
 
         # 步驟 4: 執行核心的 SRE 工作流程。
         # 只有在認證和授權都成功後，才會執行 `self.main_sequence`。
         logger.info(f"User {user_info.get('email')} authorized. Starting main SRE sequence.")
-        await self.main_sequence.run_async(ctx)
-        ctx.state["workflow_status"] = "completed_successfully"
+        async for event in self.main_sequence.run_async(ctx):
+            yield event
+        ctx.session.state["workflow_status"] = "completed_successfully"
 
 
 def create_workflow(config: Optional[Dict[str, Any]] = None) -> SREWorkflow:

@@ -1,24 +1,24 @@
-# Tool Testing Guide
+# 工具測試指南
 
-This document outlines the best practices for testing tools within the SRE Assistant project. Adhering to these guidelines is crucial for ensuring the reliability, predictability, and maintainability of our agent ecosystem.
+本文件概述了在 SRE Assistant 專案中測試工具的最佳實踐。遵守這些指南對於確保我們代理生態系統的可靠性、可預測性和可維護性至關重要。
 
-## Core Philosophy: Test Tools in Isolation
+## 核心理念：獨立測試工具
 
-As per the official Google ADK guidelines, **tools must be tested locally and in isolation**. A tool is a self-contained unit of business logic. Its correctness should not depend on the LLM or the full agent workflow.
+根據 Google ADK 的官方指南，**工具必須在本地進行隔離測試**。工具是一個獨立的業務邏輯單元，其正確性不應依賴於大型語言模型 (LLM) 或完整的代理工作流程。
 
-Unit tests for tools should focus on a single responsibility:
-- Does the tool correctly process its inputs?
-- Does it produce the expected outputs for successful cases?
-- Does it handle errors and edge cases gracefully?
-- Does it interact with external dependencies (like APIs or databases) as expected? (These dependencies should be **mocked**).
+工具的單元測試應專注於單一職責：
+- 工具是否能正確處理其輸入？
+- 在成功的情況下，它是否能產生預期的輸出？
+- 它是否能優雅地處理錯誤和邊界情況？
+- 它是否如預期般與外部依賴（如 API 或資料庫）互動？（這些依賴應該被**模擬**）。
 
-## How to Write a Tool Test
+## 如何撰寫工具測試
 
-We use `pytest` as our testing framework and `pytest-asyncio` for asynchronous code. All tool tests should be placed in the `tests/` directory, mirroring the structure of the `src/` directory. For example, tests for tools in `src/sre_assistant/auth/tools.py` should be in `tests/test_auth_tools.py`.
+我們使用 `pytest` 作為我們的測試框架，並使用 `pytest-asyncio` 來處理異步程式碼。所有的工具測試都應放置在 `tests/` 目錄下，並鏡像 `src/` 目錄的結構。例如，`src/sre_assistant/auth/tools.py` 中工具的測試應位於 `tests/test_auth_tools.py`。
 
-### Example: Testing the `authenticate` Tool
+### 範例：測試 `authenticate` 工具
 
-Let's look at the test for our `authenticate` tool in `tests/test_tools.py`. This serves as a template for all future tool tests.
+讓我們看看 `tests/test_tools.py` 中對我們 `authenticate` 工具的測試。這可作為未來所有工具測試的模板。
 
 ```python
 # tests/test_tools.py
@@ -29,7 +29,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from google.adk.agents.invocation_context import InvocationContext
 from src.sre_assistant.auth.tools import authenticate
 
-# Mark all tests in this file as asyncio
+# 將此檔案中的所有測試標記為異步
 pytestmark = pytest.mark.asyncio
 
 
@@ -37,11 +37,11 @@ pytestmark = pytest.mark.asyncio
 @patch('src.sre_assistant.auth.tools.config_manager')
 async def test_authenticate_success_and_cache(mock_config_manager, mock_auth_factory):
     """
-    Tests that the authenticate tool successfully authenticates a user,
-    returns the correct user info, and caches the result in the context.
+    測試 authenticate 工具是否能成功驗證使用者、
+    返回正確的使用者資訊，並將結果快取到上下文中。
     """
-    # 1. Arrange: Set up all mocks and test data
-    # Mock external dependencies to isolate the tool.
+    # 1. 準備 (Arrange): 設定所有模擬物件和測試資料
+    # 模擬外部依賴以隔離工具。
     mock_auth_config = MagicMock()
     mock_config_manager.get_auth_config.return_value = mock_auth_config
 
@@ -49,40 +49,40 @@ async def test_authenticate_success_and_cache(mock_config_manager, mock_auth_fac
     mock_provider.authenticate.return_value = (True, {'user_id': 'test-user'})
     mock_auth_factory.create.return_value = mock_provider
 
-    # Create a clean InvocationContext for the test.
+    # 為測試創建一個乾淨的 InvocationContext。
     ctx = InvocationContext()
     credentials = {'token': 'valid-token'}
 
-    # 2. Act: Call the tool function with the test data.
+    # 2. 執行 (Act): 使用測試資料呼叫工具函式。
     success, user_info = await authenticate(ctx, credentials)
 
-    # 3. Assert: Verify the results.
-    # Check the direct output of the tool.
+    # 3. 斷言 (Assert): 驗證結果。
+    # 檢查工具的直接輸出。
     assert success is True
     assert user_info == {'user_id': 'test-user'}
 
-    # Check that mocked dependencies were called as expected.
+    # 檢查模擬的依賴是否被如期呼叫。
     mock_provider.authenticate.assert_called_once_with(credentials)
 
-    # Check for side effects (e.g., changes to the context state).
+    # 檢查副作用（例如，對上下文狀態的更改）。
     assert "user_info" in ctx.state
     assert any(key.startswith('user:auth_cache_') for key in ctx.state.keys())
 
-    # You can even test more complex behavior, like caching.
-    # Act again and assert that the mocked dependency was NOT called again.
+    # 您甚至可以測試更複雜的行為，例如快取。
+    # 再次執行並斷言模擬的依賴沒有被再次呼叫。
     await authenticate(ctx, credentials)
     assert mock_provider.authenticate.call_count == 1
 ```
 
-### Key Principles Illustrated
+### 關鍵原則說明
 
-1.  **Use `@patch` Decorators**: The `@patch` decorator from `unittest.mock` is used to replace external dependencies (`AuthFactory`, `config_manager`) with mock objects. This is the most important step for isolating your tool.
-2.  **Arrange, Act, Assert**: Structure your tests clearly using this pattern. It makes the test's purpose easy to understand.
-3.  **Test One Thing**: Each test function should have a single, clear purpose. In the example, we test the success and caching path. A separate test should be written for authentication failure.
-4.  **Mock Asynchronously**: When mocking asynchronous functions or methods, use `AsyncMock`.
-5.  **Check Inputs, Outputs, and Side Effects**: A good test verifies three things:
-    - **Outputs**: Are the return values correct?
-    - **Dependency Calls**: Was the mocked dependency called with the correct arguments? (`.assert_called_once_with(...)`)
-    - **Side Effects**: Did the tool modify the `InvocationContext` state as expected?
+1.  **使用 `@patch` 裝飾器**：`unittest.mock` 中的 `@patch` 裝飾器用於將外部依賴（`AuthFactory`、`config_manager`）替換為模擬物件。這是隔離您的工具最重要的一步。
+2.  **準備、執行、斷言 (Arrange, Act, Assert)**：使用此模式清晰地組織您的測試。這使得測試的目的易於理解。
+3.  **一次只測試一件事**：每個測試函式都應該有一個單一、明確的目的。在範例中，我們測試了成功和快取路徑。應為身份驗證失敗編寫一個單獨的測試。
+4.  **異步模擬**：在模擬異步函式或方法時，請使用 `AsyncMock`。
+5.  **檢查輸入、輸出和副作用**：一個好的測試會驗證三件事：
+    - **輸出**：返回值是否正確？
+    - **依賴呼叫**：模擬的依賴是否被用正確的參數呼叫？（`.assert_called_once_with(...)`）
+    - **副作用**：工具是否如預期般修改了 `InvocationContext` 的狀態？
 
-By following this template, we can build a robust suite of tests for our tools, which is the foundation of a reliable SRE Assistant.
+遵循此模板，我們可以為我們的工具建立一個強健的測試套件，這是一個可靠的 SRE Assistant 的基礎。

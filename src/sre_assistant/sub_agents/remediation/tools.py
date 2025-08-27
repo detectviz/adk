@@ -34,10 +34,7 @@ def _poll_k8s_rollout_restart(operation_id: str) -> Dict[str, Any]:
 # 將啟動和輪詢函數包裝成一個 LongRunningFunctionTool
 # 這是 ADK 中處理需要時間完成的操作的標準模式。
 k8s_rollout_restart = LongRunningFunctionTool(
-    start_func=_start_k8s_rollout_restart,
-    poll_func=_poll_k8s_rollout_restart,
-    # 這裡的 docstring 會被 LLM 用來理解工具的用途。
-    description="安全地對 Kubernetes Deployment 執行滾動重啟以解決 Pod 問題。這是一個長時間運行的操作，會返回一個操作ID供後續查詢狀態。"
+    _start_k8s_rollout_restart
 )
 
 def scale_deployment(namespace: str, deployment: str, replicas: int) -> Dict[str, Any]:

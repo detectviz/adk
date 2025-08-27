@@ -102,6 +102,9 @@ graph TD
   - **職責**: 提供 ChatOps 介面、自動化工作流觸發器、與 Grafana 原生功能（如圖表嵌入、註解創建）的深度整合。
   - **技術**: TypeScript, React, Grafana Plugin SDK。
 
+#### 5.1.1 即時互動模式 (Real-time Interaction Patterns)
+- **雙向串流 (Bidirectional Streaming)**: 除了傳統的請求/回應模式，ADK 也支援基於 WebSocket 或 gRPC 的雙向串流。這允許前端（如 Grafana 插件）與後端代理之間建立一個持久的、低延遲的通訊渠道，實現如即時語音輸入、工具執行狀態的即時更新等進階互動體驗。
+
 ### 5.2 後端服務層 (Backend Service Layer)
 - **SRE Assistant API**: 系統的核心大腦，一個無狀態的後端服務。
   - **職責**: 處理來自 Grafana 插件的請求，執行核心業務邏輯（診斷、修復、覆盤），管理工具，協調對記憶庫的訪問。
@@ -127,6 +130,7 @@ graph TD
 - **統一記憶庫 (Unified Memory)**: 為所有代理提供短期、長期、程序和語義記憶。
   - **短期記憶體 (會話狀態)**: 採用 ADK 的 `DatabaseSessionService`，後端使用 PostgreSQL，以支持生產環境下的多實例部署和可靠性。這確保了在單一調查流程中的上下文不會因服務重啟而丟失。
   - **長期記憶體 (知識庫)**: 採用類似 `VertexAIMemoryBankService` 的模式，將歷史事件、解決方案和文檔存儲在 Weaviate 向量數據庫中，用於 RAG。
+  - **構件管理 (Artifact Management)**: 代理在執行過程中可能會產生或需要處理非結構化數據，如圖片、CSV 文件或 PDF 報告。ADK 的 `ArtifactService` 提供了一個標準化的方式來處理這些「構件」，將其上傳到如 Google Cloud Storage 等對象存儲中，並在會話狀態中保存一個可引用的 URI。
   - **快取**: Redis 用於高速快取常用數據和短期會話資訊。
 - **可觀測性 (Observability)**: 採用 Grafana LGTM Stack。
   - **Loki**: 集中化日誌聚合。

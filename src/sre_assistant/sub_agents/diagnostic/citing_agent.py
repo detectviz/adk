@@ -6,9 +6,11 @@
 確保可追溯性。
 """
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, AsyncGenerator
 
-from google.adk.agents import BaseAgent, InvocationContext, ParallelAgent
+from google.adk.agents import BaseAgent, ParallelAgent
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.events import Event
 
 from .agent import DiagnosticAgent
 from ...citation_manager import SRECitationFormatter
@@ -74,23 +76,32 @@ class CitingParallelDiagnosticsAgent(BaseAgent):
 
         super().__init__(**kwargs)
 
-    async def _run_async_impl(self, context: InvocationContext) -> None:
+    async def _run_async_impl(self, context: InvocationContext) -> AsyncGenerator[Event, None]:
         """運行並行診斷，收集引用，並推斷嚴重性。"""
-
         # 運行底層的並行診斷代理
-        await self.parallel_diagnostics.run_async(context)
+        async for event in self.parallel_diagnostics.run_async(context):
+            yield event
 
         # 確保在上下文中設置了嚴重性級別
-        if "severity" not in context.state:
+        if "severity" not in context.session.state:
             severity = self._infer_severity_from_results(context)
-            context.state["severity"] = severity
+            context.session.state["severity"] = severity
             logger.warning(f"診斷代理未設置嚴重性，已推斷為: {severity}")
 
         # 從歷史記錄中的工具輸出收集並格式化引用
         citations = self._collect_citations(context)
         if citations:
             formatted_citations = self.citation_formatter.format_citations(citations)
-            context.state["diagnostic_citations"] = formatted_citations
+            context.session.state["diagnostic_citations"] = formatted_citations
+
+            # 將引用附加到最後一個助理訊息中
+            # Find the last event from the assistant and append the citations
+            for event in reversed(context.history):
+                if event.role == "assistant" and isinstance(event.content, str):
+                    event.content += "\n\n" + formatted_citations
+                    # Yield the modified event so the change is propagated
+                    yield event
+                    break
 
     def _collect_citations(self, context: InvocationContext) -> list:
         """從對話歷史的工具輸出中收集引用數據。"""
@@ -104,9 +115,9 @@ class CitingParallelDiagnosticsAgent(BaseAgent):
 
     def _infer_severity_from_results(self, context: InvocationContext) -> str:
         """從各種診斷代理的輸出中推斷出最高的嚴重性級別。"""
-        metrics_analysis = context.state.get("metrics_analysis", {})
-        logs_analysis = context.state.get("logs_analysis", {})
-        traces_analysis = context.state.get("traces_analysis", {})
+        metrics_analysis = context.session.state.get("metrics_data", {})
+        logs_analysis = context.session.state.get("logs_data", {})
+        traces_analysis = context.session.state.get("traces_analysis", {})
 
         severities = []
 

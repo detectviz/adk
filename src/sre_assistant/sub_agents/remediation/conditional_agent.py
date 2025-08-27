@@ -49,7 +49,7 @@ class ConditionalRemediation(BaseAgent):
     async def _run_async_impl(self, ctx: InvocationContext) -> None:
         """執行帶有錯誤處理和重試機制的條件修復邏輯。"""
 
-        retry_count = ctx.state.get("remediation_retry_count", 0)
+        retry_count = ctx.session.state.get("remediation_retry_count", 0)
 
         try:
             # 1. 獲取並驗證嚴重性
@@ -66,8 +66,8 @@ class ConditionalRemediation(BaseAgent):
                 await agent.run_async(ctx)
 
                 # 成功後清除重試計數器
-                ctx.state["remediation_retry_count"] = 0
-                ctx.state["remediation_status"] = "success"
+                ctx.session.state["remediation_retry_count"] = 0
+                ctx.session.state["remediation_status"] = "success"
 
             except Exception as agent_error:
                 logger.error(f"修復代理執行失敗: {agent_error}")
@@ -81,7 +81,7 @@ class ConditionalRemediation(BaseAgent):
 
     def _get_validated_severity(self, ctx: InvocationContext) -> str:
         """從上下文中獲取並驗證嚴重性級別。"""
-        severity = ctx.state.get("severity")
+        severity = ctx.session.state.get("severity")
 
         # 如果嚴重性不存在，則嘗試從診斷結果中推斷
         if not severity:
@@ -98,8 +98,8 @@ class ConditionalRemediation(BaseAgent):
 
     def _infer_severity_from_diagnostics(self, ctx: InvocationContext) -> str:
         """從上下文中的診斷結果推斷嚴重性。"""
-        metrics_analysis = ctx.state.get("metrics_analysis", {})
-        logs_analysis = ctx.state.get("logs_analysis", {})
+        metrics_analysis = ctx.session.state.get("metrics_analysis", {})
+        logs_analysis = ctx.session.state.get("logs_analysis", {})
 
         error_rate = metrics_analysis.get("error_rate", 0)
         critical_errors = logs_analysis.get("critical_errors", 0)
@@ -121,7 +121,7 @@ class ConditionalRemediation(BaseAgent):
     ) -> BaseAgent:
         """根據嚴重性和重試次數選擇修復代理。"""
 
-        agent_config = ctx.state.get("config", {})
+        agent_config = ctx.session.state.get("config", {})
 
         # 如果重試次數超過降級閾值，則強制使用 HITL
         if retry_count >= self.fallback_threshold:
@@ -164,11 +164,11 @@ class ConditionalRemediation(BaseAgent):
         """處理代理執行失敗。"""
 
         retry_count += 1
-        ctx.state["remediation_retry_count"] = retry_count
+        ctx.session.state["remediation_retry_count"] = retry_count
 
         if retry_count < self.max_retries:
             logger.info(f"修復失敗，第 {retry_count}/{self.max_retries} 次重試")
-            ctx.state["remediation_status"] = "retrying"
+            ctx.session.state["remediation_status"] = "retrying"
 
             # 增加指數退避延遲以避免快速連續失敗
             import asyncio
@@ -178,7 +178,7 @@ class ConditionalRemediation(BaseAgent):
             await self._run_async_impl(ctx)
         else:
             logger.error(f"嚴重性 {severity} 的問題已達到最大重試次數")
-            ctx.state["remediation_status"] = "failed"
+            ctx.session.state["remediation_status"] = "failed"
             await self._escalate_to_manual(ctx, error)
 
     async def _escalate_to_manual(self, ctx: InvocationContext, error: Exception) -> None:
@@ -188,7 +188,7 @@ class ConditionalRemediation(BaseAgent):
         await self._send_escalation_alert(ctx, error)
 
         hitl_agent = HITLRemediationAgent(
-            config=ctx.state.get("config", {}),
+            config=ctx.session.state.get("config", {}),
             reason="automated_remediation_failed",
             original_error=str(error)
         )
@@ -203,8 +203,8 @@ class ConditionalRemediation(BaseAgent):
         """作為最後手段執行緊急協議。"""
         logger.critical(f"緊急協議已啟動: {error}")
 
-        ctx.state["remediation_status"] = "emergency"
-        ctx.state["emergency_reason"] = str(error)
+        ctx.session.state["remediation_status"] = "emergency"
+        ctx.session.state["emergency_reason"] = str(error)
 
         await self._notify_all_stakeholders(ctx, error)
         await self._create_emergency_ticket(ctx, error)
@@ -220,11 +220,11 @@ class ConditionalRemediation(BaseAgent):
         """為審計目的記錄修復決策。"""
         audit_log = {
             "timestamp": datetime.utcnow().isoformat(),
-            "incident_id": ctx.state.get("incident_id"),
+            "incident_id": ctx.session.state.get("incident_id"),
             "severity": severity,
             "retry_count": retry_count,
             "decision": "selecting_remediation_agent",
-            "context_keys": list(ctx.state.keys())
+            "context_keys": list(ctx.session.state.keys())
         }
         logger.info(f"修復決策審計: {json.dumps(audit_log)}")
 
@@ -249,8 +249,8 @@ class ConditionalRemediation(BaseAgent):
         dump_data = {
             "timestamp": datetime.utcnow().isoformat(),
             "error": str(error),
-            "state": dict(ctx.state),
+            "state": dict(ctx.session.state),
             "history_length": len(ctx.history) if hasattr(ctx, 'history') else 0
         }
-        dump_file = f"emergency_dump_{ctx.state.get('incident_id', 'unknown')}_{datetime.utcnow().timestamp()}.json"
+        dump_file = f"emergency_dump_{ctx.session.state.get('incident_id', 'unknown')}_{datetime.utcnow().timestamp()}.json"
         logger.critical(f"上下文已轉儲至 {dump_file}: {json.dumps(dump_data, indent=2)}")

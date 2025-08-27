@@ -69,6 +69,7 @@
     - **ADK 實現**: **必須**使用 `LongRunningFunctionTool` 來實現，以符合 ADK 的非同步操作模式。
     - **功能**: `request_approval(reason: str, approvers: list[str], timeout: int) -> bool`
     - **配置**: 通知機制（如 Slack Webhook, Email API）。
+    - **實施狀態**: **(Phase 2)** 此為 Phase 2 規劃實現的工具 (見 `TASKS.md`)。
 
 ---
 
@@ -116,6 +117,9 @@ capabilities:
 | 診斷準確率 (Diagnosis Accuracy) | > 95% | 97% |
 
 ### 3.5 API 範例 (API Examples)
+
+> **[實施狀態註記]**
+> 以下 API 範例代表了專案的**長期設計目標**。目前的 MVP (Phase 1) 階段主要透過 ADK Web UI 進行互動，尚未實現對外的 REST API 或 Python SDK。
 
 #### Python SDK
 
@@ -198,6 +202,9 @@ curl -X POST https://api.sre-assistant.io/v1/incidents/analyze \
 ## 4. 標準化介面、錯誤處理與版本管理
 
 ### 4.1. 工具介面規格 (Tool Interface Specification)
+
+> **[實施狀態註記]**
+> 此標準化介面 (`ToolResult`, `ToolError`) 是**重構的目標**。目前的工具尚未遵循此格式，這是 Phase 1 的一項已知技術債 (詳見 `TASKS.md`)。
 
 所有工具的 `execute` 方法都**必須**遵循以下標準化輸入與輸出格式，以確保系統的穩定性和可預測性。
 
@@ -391,7 +398,7 @@ class BaseTool(Protocol):
 - **核心原則**: 系統必須明確區分「短期記憶體（會話狀態）」和「長期記憶體（知識庫）」。
 - **短期記憶體 (Session State)**:
     - **用途**: 用於在單一對話流程中，追蹤任務進度、臨時變數和上下文。它扮演著代理的「臨時記事本」角色。
-    - **技術實現**: 必須使用持久化的 `SessionService`。根據 ADK 的最佳實踐，我們將採用 `DatabaseSessionService`，並以後端 PostgreSQL 作為儲存，以支援生產環境下的多實例部署和服務重啟。此決策直接支持 `TASK-P1-CORE-02`。
+    - **技術實現**: **必須**透過 ADK 的 **Provider 模型** (`session_service_builder`) 實現，以確保後端的可擴展性和可替換性。目前的**首選方案**是實現一個基於 `DatabaseSessionService` 的提供者，並以 **PostgreSQL** 作為後端儲存，以支援生產環境下的多實例部署和服務重啟。此決策直接支持 `TASK-P1-CORE-02`。
 - **長期記憶體 (Long-term Memory)**:
     - **用途**: 存儲跨會話的、具有長期價值的資訊，如事件歷史、解決方案、SOPs 等。這是 RAG 功能的核心。
     - **技術實現**: 透過自定義的 `MemoryProvider` 實現，後端對接 Weaviate 向量數據庫。數據的寫入可參考 `VertexAIMemoryBankService` 的模式，使用 `after-agent` 回呼函式 (Callback) 自動、異步地將有價值的對話資訊存入長期記憶體。
@@ -416,6 +423,9 @@ class BaseTool(Protocol):
         - **描述**: 對於需要品質保證的任務（如覆盤報告生成、修復方案建議），應建立一個「審查者」代理（如 `VerificationCriticAgent`），對「生成者」代理的輸出進行評估和驗證。此模式透過共享的會話 `state` 實現。
 
 ### 7.3 核心診斷策略 (Core Diagnostic Strategy)
+
+> **[實施狀態註記]**
+> 此處定義的診斷策略是**目標設計**。目前的實作使用較通用的診斷工具 (`PrometheusQueryTool`, `LokiLogQueryTool`)，尚未實現 `GoogleCloudHealthTool` 和 `AppHubTool`。
 
 - **核心原則**: 所有自動化診斷流程都必須基於一個結構化的、可預測的框架，以確保結果的可靠性和一致性。
 - **診斷流程**:

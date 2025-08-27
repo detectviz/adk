@@ -12,7 +12,6 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, Tuple
 
-from google.adk.agents import agent_tool
 from google.adk.agents.invocation_context import InvocationContext
 
 from ..config.config_manager import config_manager
@@ -60,7 +59,7 @@ def _check_rate_limit(ctx: InvocationContext, user_info: Dict, auth_config) -> b
 
     now = datetime.utcnow().timestamp()
     # 從上下文中讀取該用戶的所有請求時間戳
-    timestamps = ctx.state.get(rate_limit_key, [])
+    timestamps = ctx.session.state.get(rate_limit_key, [])
 
     # 清理掉一分鐘前過期的時間戳
     minute_ago = now - 60
@@ -72,13 +71,12 @@ def _check_rate_limit(ctx: InvocationContext, user_info: Dict, auth_config) -> b
 
     # 添加當前時間戳並寫回上下文
     valid_timestamps.append(now)
-    ctx.state[rate_limit_key] = valid_timestamps
+    ctx.session.state[rate_limit_key] = valid_timestamps
     return True
 
 
 # --- ADK Agent 工具 ---
 
-@agent_tool
 async def authenticate(ctx: InvocationContext, credentials: Dict[str, Any]) -> Tuple[bool, Optional[Dict]]:
     """
     使用配置的提供者對用戶進行認證，並將結果快取。
@@ -100,12 +98,12 @@ async def authenticate(ctx: InvocationContext, credentials: Dict[str, Any]) -> T
 
     # 步驟 1: 檢查 InvocationContext 中是否存在有效的快取
     cache_key = _get_cache_key(credentials)
-    cached = ctx.state.get(cache_key)
+    cached = ctx.session.state.get(cache_key)
     if cached and cached.get('expires') > datetime.utcnow().timestamp():
         logger.info(f"認證快取命中，使用者: {cached['user_info'].get('user_id')}")
         # 如果上下文中沒有 user_info，則從快取中補上，以供後續步驟使用
-        if "user_info" not in ctx.state:
-            ctx.state["user_info"] = cached['user_info']
+        if "user_info" not in ctx.session.state:
+            ctx.session.state["user_info"] = cached['user_info']
         return True, cached['user_info']
 
     # 步驟 2: 如果沒有快取，則使用提供者執行實際的認證
@@ -113,11 +111,11 @@ async def authenticate(ctx: InvocationContext, credentials: Dict[str, Any]) -> T
 
     # 步驟 3: 如果認證成功，將結果寫入 InvocationContext 的 state 和快取中
     if success and user_info:
-        ctx.state[cache_key] = {
+        ctx.session.state[cache_key] = {
             'user_info': user_info,
             'expires': (datetime.utcnow() + timedelta(minutes=5)).timestamp()
         }
-        ctx.state["user_info"] = user_info  # 確保 user_info 存在於 state 的頂層
+        ctx.session.state["user_info"] = user_info  # 確保 user_info 存在於 state 的頂層
         logger.info(f"認證成功，結果已快取。使用者: {user_info.get('user_id')}")
 
     # 步驟 4: 記錄審計日誌
@@ -135,7 +133,6 @@ async def authenticate(ctx: InvocationContext, credentials: Dict[str, Any]) -> T
     return success, user_info
 
 
-@agent_tool
 async def check_authorization(ctx: InvocationContext, resource: str, action: str) -> bool:
     """
     檢查用戶是否有權限在指定資源上執行特定操作。
@@ -152,7 +149,7 @@ async def check_authorization(ctx: InvocationContext, resource: str, action: str
     Returns:
         bool: 一個布林值，表示操作是否被授權。
     """
-    user_info = ctx.state.get("user_info")
+    user_info = ctx.session.state.get("user_info")
     if not user_info:
         logger.error("授權檢查失敗: 在上下文中找不到 user_info。是否已先呼叫 authenticate？")
         return False
