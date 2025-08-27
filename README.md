@@ -234,7 +234,6 @@ sre-assistant/
 ### 核心框架
 - **[Google ADK](https://github.com/google/genkit)** - Agent 開發框架
 - **[Gemini Pro](https://ai.google.dev/)** - LLM 引擎
-- **[LangChain](https://langchain.com/)** - 輔助工具鏈
 
 ### 可觀測性 (LGTM Stack)
 - **[Grafana](https://grafana.com/)** - 統一儀表板
