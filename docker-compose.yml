@@ -47,7 +47,56 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - prometheus
+      - loki
     restart: unless-stopped
+
+  # 4. Loki 日誌聚合服務
+  loki:
+    image: grafana/loki:3.1.0
+    container_name: sre_assistant_loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+
+  # 5. Redis 快取服務
+  redis:
+    image: redis:7-alpine
+    container_name: sre_assistant_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # 6. Weaviate 向量資料庫
+  weaviate:
+    image: semitechnologies/weaviate:1.25.4
+    container_name: sre_assistant_weaviate
+    ports:
+      - "8080:8080"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'text2vec-transformers'
+      ENABLE_MODULES: 'text2vec-transformers'
+      TRANSFORMERS_INFERENCE_API: 'http://text2vec-transformers:8080'
+      CLUSTER_HOSTNAME: 'node1'
+    depends_on:
+      - text2vec-transformers
+    restart: unless-stopped
+
+  # 6a. Weaviate 的文字向量化模組
+  text2vec-transformers:
+    image: semitechnologies/transformers-inference:sentence-transformers-multi-qa-MiniLM-L6-cos-v1
+    container_name: sre_assistant_transformers
+    environment:
+      ENABLE_CUDA: '0'
+    restart: unless-stopped
+
 
 volumes:
   postgres_data:
@@ -56,3 +105,7 @@ volumes:
     name: sre_assistant_promdata
   grafana_data:
     name: sre_assistant_grafanadata
+  redis_data:
+    name: sre_assistant_redisdata
+  weaviate_data:
+    name: sre_assistant_weaviatedata

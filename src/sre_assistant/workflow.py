@@ -1,131 +1,186 @@
-# file: src/sre_assistant/workflow.py
-import asyncio
-import time
-from typing import Any
-from google.adk.agents import LlmAgent, SequentialAgent
-from google.adk.tools import LongRunningFunctionTool, FunctionTool
-from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
+# src/sre_assistant/workflow.py
+"""
+SRE Assistant - 核心工作流程
+
+本檔案定義了 SRE Assistant 的核心業務邏輯，遵循 `EnhancedSREWorkflow` 設計模式。
+"""
+
+from typing import Dict, Any, List, Optional
+
+from google.adk.agents import (
+    LlmAgent,
+    SequentialAgent,
+    ParallelAgent,
+    BaseAgent
+)
+from google.adk.agents.callback_context import CallbackContext
+from google.adk.agents.invocation_context import InvocationContext
 from google.genai import types
-from google.adk.events import Event
+from pydantic import BaseModel, Field
 
-APP_NAME = "detectviz_sre"
-USER_ID = "sre_bot"
-SESSION_ID = "sre_session_1"
 
-# 1) domain functions / tools
-def ask_for_approval(action: str, reason: str) -> dict[str, Any]:
-    """建立審批 ticket 並通知決策者。回傳初始狀態（pending 與 ticket id）。"""
-    ticket_id = f"ticket-{int(time.time())}"
-    # 在此可呼叫外部 ticket 系統 / webhook / slack
-    return {"status": "pending", "ticket-id": ticket_id, "approver": "oncall@example.com", "action": action, "reason": reason}
+# --- 1. 定義結構化輸出 (Pydantic Models) ---
 
-def perform_remediation(action: str) -> dict[str, Any]:
-    """實際 remediation 的同步函式範例。"""
-    # 這邊放真正執行 remediation 邏輯或呼叫 orchestration 平台
-    return {"status": "ok", "action": action}
+class DispatchDecision(BaseModel):
+    """
+    定義智能分診器 (IntelligentDispatcher) 的決策輸出格式。
+    這確保了 LLM 的輸出是可預測和可用的。
+    """
+    selected_experts: List[str] = Field(description="根據診斷結果，選擇最合適的專家代理名稱列表。")
+    reasoning: str = Field(description="解釋為什麼選擇這些專家代理的簡要理由。")
+    confidence: float = Field(description="對此決策的信心指數 (0.0 到 1.0)。")
 
-# 2) 工具包裝
-approval_tool = LongRunningFunctionTool(func=ask_for_approval)
-remediate_tool = FunctionTool(func=perform_remediation)
 
-# 3) SREWorkflow builder
-class SREWorkflowFactory:
-    def __init__(self, model: str = "gemini-2.0-flash"):
-        self.model = model
+# --- 2. 定義各階段的佔位符代理 (Placeholder Agents) ---
+# 在後續的開發任務中，這些簡單的 LlmAgent 將被替換為功能完備的真實代理。
 
-    def build(self) -> SequentialAgent:
+def _create_placeholder_agent(name: str, instruction: str) -> LlmAgent:
+    """一個用於創建簡單佔位符代理的輔助函式。"""
+    return LlmAgent(
+        name=name,
+        instruction=instruction,
+        model="gemini-1.5-flash"  # 使用一個快速且經濟的模型
+    )
+
+MetricsAnalyzer = _create_placeholder_agent(
+    "MetricsAnalyzer", "分析指標數據並總結發現。"
+)
+LogAnalyzer = _create_placeholder_agent(
+    "LogAnalyzer", "分析日誌數據並找出異常錯誤。"
+)
+TraceAnalyzer = _create_placeholder_agent(
+    "TraceAnalyzer", "分析追蹤數據以確定延遲瓶頸。"
+)
+
+# 專家代理的佔位符
+KubernetesRemediationAgent = _create_placeholder_agent(
+    "KubernetesRemediationAgent", "執行 Kubernetes 相關的修復操作。"
+)
+DatabaseRemediationAgent = _create_placeholder_agent(
+    "DatabaseRemediationAgent", "執行資料庫相關的修復操作。"
+)
+
+# 驗證代理的佔位符
+HealthCheckAgent = _create_placeholder_agent(
+    "HealthCheckAgent", "執行服務健康檢查。"
+)
+SLOValidationAgent = _create_placeholder_agent(
+    "SLOValidationAgent", "驗證服務的 SLO 是否恢復正常。"
+)
+
+
+# --- 3. 實現核心工作流程 (Core Workflow) ---
+
+class EnhancedSREWorkflow(SequentialAgent):
+    """
+    符合 ADK 最佳實踐的 SRE 工作流程。
+    這是一個由多個階段性子代理組成的序列，用於處理從診斷到修復的完整流程。
+    """
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        # 步驟 1: 創建工作流程的各個階段
+        diagnostic_phase = self._create_diagnostic_phase()
+        remediation_phase = self._create_remediation_phase()
+        verification_phase = self._create_verification_phase()
+
+        # 步驟 2: 使用父類別 `SequentialAgent` 的構造函式來串聯這些階段
+        super().__init__(
+            name="EnhancedSREWorkflow",
+            sub_agents=[
+                diagnostic_phase,
+                remediation_phase,
+                verification_phase
+            ],
+            # 註冊整個工作流程開始前和完成後的回呼函式
+            before_agent_callback=self._workflow_pre_check,
+            after_agent_callback=self._workflow_post_process
+        )
+        print("EnhancedSREWorkflow initialized.")
+
+    def _create_diagnostic_phase(self) -> ParallelAgent:
         """
-        建立一個 SequentialAgent：
-         - Step A: 用 LlmAgent 呼叫 LongRunningFunctionTool(ask_for_approval)
-         - Step B: 用 LlmAgent 根據 approval 結果決定是否呼叫 perform_remediation
+        創建並行診斷階段。
+        此階段會同時運行多個分析代理，以最快速度收集資訊。
         """
-        approver = LlmAgent(
-            name="SRE_ApprovalRequester",
-            model=self.model,
-            instruction=(
-                "判斷是否需要人工審批。若需，呼叫 ask_for_approval(action, reason)。"
-                "將工具回傳的物件儲存為 output key 'approval'."
-            ),
-            tools=[approval_tool],
-            output_key="approval"
+        print("Creating DiagnosticPhase...")
+        # TODO: The 'EnhancedSREWorkflow' blueprint from salvaged_code.md uses
+        #       parameters (aggregation_strategy, etc.) not available in the
+        #       current ADK version (^1.12.0). Reverting to a simpler ParallelAgent
+        #       for now and will revisit advanced parallel execution patterns later.
+        return ParallelAgent(
+            name="DiagnosticPhase",
+            sub_agents=[
+                MetricsAnalyzer,
+                LogAnalyzer,
+                TraceAnalyzer,
+            ],
         )
 
-        executor = LlmAgent(
-            name="SRE_RemediationExecutor",
-            model=self.model,
+    def _aggregate_diagnostics(self, results: List[Dict]) -> Dict:
+        """
+        自定義的聚合函式，用於將多個診斷代理的輸出整合成一個全面的報告。
+        """
+        print("Aggregating diagnostic results...")
+        # 在真實場景中，這裡會有更複雜的邏輯來融合和去重資訊
+        combined_details = "\n".join([str(r) for r in results])
+        return {"summary": "綜合診斷報告", "details": combined_details}
+
+    def _create_remediation_phase(self) -> LlmAgent:
+        """
+        創建智能分診修復階段。
+        此階段使用一個 LLM 來根據診斷結果，動態地選擇合適的修復專家。
+        """
+        print("Creating RemediationPhase (IntelligentDispatcher)...")
+        # 這裡我們使用一個 LlmAgent 來模擬分診器
+        return LlmAgent(
+            name="IntelligentDispatcher",
             instruction=(
-                "讀取上一步的 {approval}。若 approval.status == 'approved'，呼叫 perform_remediation(action)。"
-                "否則回報已中止。"
+                "請仔細分析來自 {aggregated_diagnosis} 的診斷報告。"
+                "根據報告內容，從['KubernetesRemediationAgent', 'DatabaseRemediationAgent']中選擇最合適的專家來解決問題。"
+                "請使用 DispatchDecision 格式來提供你的答案。"
             ),
-            tools=[remediate_tool],
-            output_key="remediation_result"
+            output_schema=DispatchDecision,
+            output_key="remediation_decision"
         )
 
-        return SequentialAgent(name="SRE_HITL_Workflow", sub_agents=[approver, executor])
+    def _create_verification_phase(self) -> SequentialAgent:
+        """
+        創建修復後驗證階段。
+        這是一個循序代理，用於執行一系列檢查來確認問題是否已解決。
+        """
+        print("Creating VerificationPhase...")
+        return SequentialAgent(
+            name="VerificationPhase",
+            sub_agents=[
+                HealthCheckAgent,
+                SLOValidationAgent,
+            ],
+            after_agent_callback=self._check_verification_status
+        )
 
-# 4) Runner 端範例：執行、偵測 long-running 呼叫、並回填人工審批結果
-async def run_sre_workflow_and_simulate_human(action: str, reason: str):
-    factory = SREWorkflowFactory()
-    workflow_agent = factory.build()
+    def _workflow_pre_check(self, context: CallbackContext) -> Optional[types.Content]:
+        """在整個工作流程開始前執行的回呼函式。"""
+        print(f"Workflow '{self.name}' pre-check triggered for user query: {context.user_query}")
+        # 可以在此處添加如權限檢查、參數驗證等邏輯
+        return None  # 返回 None 表示繼續執行
 
-    session_service = InMemorySessionService()
-    session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
-    runner = Runner(agent=workflow_agent, app_name=APP_NAME, session_service=session_service)
-
-    def get_long_running_function_call(event: Event) -> types.FunctionCall | None:
-        if not event.long_running_tool_ids or not event.content or not event.content.parts:
-            return None
-        for part in event.content.parts:
-            if part and part.function_call and part.function_call.id in event.long_running_tool_ids:
-                return part.function_call
+    def _workflow_post_process(self, context: CallbackContext) -> Optional[types.Content]:
+        """在整個工作流程完成後執行的回呼函式。"""
+        print(f"Workflow '{self.name}' post-process triggered. Final state: {context.state}")
+        # 可以在此處添加如發送通知、記錄日誌等邏輯
         return None
 
-    def get_function_response(event: Event, function_call_id: str) -> types.FunctionResponse | None:
-        if not event.content or not event.content.parts:
-            return None
-        for part in event.content.parts:
-            if part and part.function_response and part.function_response.id == function_call_id:
-                return part.function_response
-        return None
+    def _check_verification_status(self, context: CallbackContext):
+        """
+        在驗證階段完成後的回呼，用於檢查驗證是否通過。
+        這模擬了 self-criticism 模式。
+        """
+        print("Checking verification status...")
+        # 假設驗證代理會將結果寫入 state
+        if not context.state.get("verification_passed", True): # 默認為 True 以便測試
+            self._trigger_rollback(context)
 
-    user_content = types.Content(role="user", parts=[types.Part(text=f"請執行 action={action}，原因={reason}")])
-    events_async = runner.run_async(user_id=USER_ID, session_id=session.id, new_message=user_content)
-
-    long_running_call = None
-    long_running_function_response = None
-
-    async for event in events_async:
-        # 印出 agent 回應（簡化）
-        if event.content and event.content.parts:
-            text = "".join(part.text or "" for part in event.content.parts)
-            if text:
-                print(f"[{event.author}] {text}")
-
-        if not long_running_call:
-            long_running_call = get_long_running_function_call(event)
-            if long_running_call:
-                print("Detected long running function call:", long_running_call.name, long_running_call.id)
-        else:
-            # 嘗試抓取 tool 的初始回應（包含 ticket-id）
-            fr = get_function_response(event, long_running_call.id)
-            if fr:
-                long_running_function_response = fr
-                print("Received initial FunctionResponse:", fr.response)
-
-    # 模擬人工審批（可改成呼叫 UI / webhook 等）
-    if long_running_function_response:
-        updated = long_running_function_response.model_copy(deep=True)
-        # 實際情境會查 ticket 狀態，這裡直接模擬 approve
-        updated.response = {"status": "approved", "ticket-id": long_running_function_response.response.get("ticket-id")}
-        # 將人工決策回填給 runner，讓 agent 繼續執行後續步驟
-        async for event in runner.run_async(session_id=session.id, user_id=USER_ID,
-                                            new_message=types.Content(parts=[types.Part(function_response=updated)], role="user")):
-            if event.content and event.content.parts:
-                text = "".join(part.text or "" for part in event.content.parts)
-                if text:
-                    print(f"[{event.author}] {text}")
-
-# Helper for sync run convenience
-def run_demo():
-    asyncio.run(run_sre_workflow_and_simulate_human(action="restart-service", reason="OOM spike"))
+    def _trigger_rollback(self, context: CallbackContext):
+        """模擬觸發回滾的機制。"""
+        print("CRITICAL: Verification failed! Triggering rollback procedures.")
+        context.state["rollback_required"] = True

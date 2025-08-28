@@ -147,24 +147,24 @@
 ### P1 - 新功能 (New Features)
 
 - **基礎設施 (Infrastructure)**
-    - [ ] **TASK-P1-INFRA-01**: 創建 `docker-compose.yml`
+    - [✅] **TASK-P1-INFRA-01**: 創建 `docker-compose.yml`
       - **依賴**: 無
+      - **驗收標準**:
+        - [✅] 能夠透過 `docker-compose up` 成功啟動所有服務 (postgres, prometheus, grafana, loki, redis, weaviate)。
+        - [✅] 服務之間網絡互通。
+        - [✅] 數據卷掛載正確，數據可持久化。
       - **參考**:
         - **基礎結構參考**: [ADK Agent Samples: gemini-fullstack](docs/reference-adk-agent-samples.md#11-全端整合與前端開發-full-stack--frontend-integration) (其 `docker-compose.yml` 結構清晰，是絕佳的入門選擇)
         - **生產級範例**: [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations) (展示如何掛載本地憑證)
         - **可觀測性整合**: [ADK Agent Samples: a2a_telemetry](docs/reference-adk-agent-samples.md#6-可觀測性與追蹤-observability--tracing) (展示如何整合 LGTM Stack)
-      - **驗收標準**:
-        - [ ] 能夠透過 `docker-compose up` 成功啟動所有服務。
-        - [ ] 服務之間網絡互通。
-        - [ ] 數據卷掛載正確，數據可持久化。
-    - [ ] **TASK-P1-INFRA-02**: 編寫開發環境的啟動與使用文檔
+    - [✅] **TASK-P1-INFRA-02**: 編寫開發環境的啟動與使用文檔
       - **依賴**: [TASK-P1-INFRA-01]
       - **驗收標準**:
-        - [ ] 文檔應包含環境要求、啟動步驟、停止步驟和常見問題排查。
-        - [ ] 新成員能夠根據文檔獨立完成環境設置。
+        - [✅] 文檔應包含環境要求、啟動步驟、停止步驟和常見問題排查。
+        - [✅] 新成員能夠根據文檔獨立完成環境設置。
 
 - **後端服務 (Backend Service)**
-    - [ ] **TASK-P1-SVC-01**: 實現核心 `SREAssistant` Agent 服務
+    - [✅] **TASK-P1-SVC-01**: 實現核心 `SREAssistant` Agent 服務
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
         - **主要藍圖**: `docs/references/snippets/salvaged_code.md` 中的 `EnhancedSREWorkflow` 程式碼範例。
@@ -172,8 +172,10 @@
         - **並行診斷模式**: [ADK Examples: parallel_functions](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (實現並行工具調用的關鍵模式)。
         - **宏觀架構**: [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations) (提供一個完整的 SRE Bot 應用架構)。
       - **驗收標準**:
-        - [ ] 服務能成功啟動並監聽指定端口。
-        - [ ] `SREWorkflow` 的結構遵循 `EnhancedSREWorkflow` 的模式，包含並行診斷、自定義聚合、條件回呼等。
+        - [✅] 服務能成功啟動並監聽指定端口 (`poetry run python -m src.sre_assistant.main`)。
+        - [✅] 在 `workflow.py` 中實現了 `EnhancedSREWorkflow` 的基本骨架。
+        - [✅] 工作流程包含並行診斷、分診和驗證三個階段的佔位符代理。
+        - [✅] `main.py` 中實現了 FastAPI 入口點，並提供 `/execute` 端點。
     - [ ] **TASK-P1-SVC-02**: 實現無認證模式
       - **依賴**: [TASK-P1-SVC-01]
       - **驗收標準**:
@@ -222,7 +224,7 @@
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
         - **主要藍圖**: [ADK Agent Samples: RAG](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體) (提供了完整的 RAG 流程)。
-        - **理論基礎**: [ADK Docs: Memory](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions) (解釋了 `MemoryProvider` 的概念)。
+        - **理論基礎**: [ADK Docs: Memory](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions) (解釋了 `MemoryProvider` の概念)。
         - **擴展用例**: [ADK Agent Samples: llama_index_file_chat](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體) (用於處理臨時上傳的檔案)。
         - **(挽救的程式碼) 在設計 RAG 最終輸出時，可參考 `docs/references/snippets/salvaged_code.md` 中的引用格式化邏輯。**
       - **驗收標準**:

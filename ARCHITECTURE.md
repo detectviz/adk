@@ -120,6 +120,9 @@ graph TD
 
 ### 5.3 核心工作流程代理 (Core Workflow Agents)
 
+> **[實施狀態註記]**
+> 以下章節描述的是 `EnhancedSREWorkflow` 的**目標架構**。在目前的 Phase 1 實作中 (`src/sre_assistant/workflow.py`)，我們已經搭建了此工作流程的骨架，但所有專業化的子代理（如 `MetricsAnalyzer`, `IntelligentDispatcher`）目前暫時使用簡單的 `LlmAgent` 作為佔位符 (placeholder)。這些佔位符將在後續的開發任務中被逐步替換為功能完備的真實代理。
+
 根據 `review.md` 的建議，SRE Assistant 的核心工作流程將由以下關鍵的、符合 ADK 最佳實踐的代理組成：
 
 - **`IntelligentDispatcher` (智能分診器)**:
