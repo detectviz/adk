@@ -99,6 +99,3 @@ Thumbs.db
 # VS Code
 .vscode/
 *.code-workspace
-
-# GitHub Actions
-.github/
