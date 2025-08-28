@@ -94,89 +94,108 @@ graph TD
 - **💰 成本優化**：FinOps 自動化建議
 - **🌐 聯邦化架構**：多代理協同的智能生態系統
 
-## 快速開始
+## 本地開發環境設置 (Local Development Setup)
 
-### 前置要求
+本節提供在您的本地機器上設置、運行和測試 SRE Assistant 所需的完整指南。
 
-- Python 3.11+
-- Docker & Docker Compose
-- Google Cloud 帳號（可選，用於 Vertex AI）
-- Grafana 實例（用於 Phase 2）
+### 1. 先決條件 (Prerequisites)
 
-### 本地開發環境
+在開始之前，請確保您的系統已安裝以下軟體：
+- **Python**: 版本 `3.9` 或更高。
+- **Poetry**: 用於管理 Python 依賴項。請參考[官方文檔](https://python-poetry.org/docs/#installation)進行安裝。
+- **Docker**: 用於運行容器化的背景服務。請安裝 [Docker Desktop](https://www.docker.com/products/docker-desktop/) 或 Docker Engine。
 
-1. **克隆專案**
+### 2. 安裝與啟動 (Installation & Startup)
+
+按照以下步驟來啟動完整的開發環境：
+
+**步驟一：取得程式碼**
 ```bash
+# 克隆此程式碼庫到您的本地機器
 git clone https://github.com/your-org/sre-assistant.git
 cd sre-assistant
 ```
 
-2. **啟動基礎設施**
+**步驟二：安裝 Python 依賴項**
 ```bash
-# 一鍵啟動所有依賴服務
-docker-compose up -d
-
-# 服務包含：
-# - PostgreSQL (資料庫)
-# - Redis (快取)
-# - Weaviate (向量資料庫)
-# - Grafana (監控平台)
-# - Loki (日誌聚合)
-```
-
-3. **安裝依賴**
-```bash
-# 使用 Poetry（推薦）
+# 此指令會讀取 pyproject.toml 和 poetry.lock 文件，
+# 並在虛擬環境中安裝所有必要的函式庫。
 poetry install
-
-# 或使用 pip
-pip install -r requirements.txt
 ```
 
-4. **配置環境**
+**步驟三：啟動背景服務**
 ```bash
-# 複製環境配置模板
-cp .env.example .env
-
-# 編輯配置（可選）
-vi .env
+# 此指令會使用 docker-compose.yml 文件來啟動所有依賴的服務。
+# -d 參數會讓它們在背景 (detached mode) 運行。
+docker compose up -d
 ```
+啟動的服務包括：
+- PostgreSQL (資料庫)
+- Redis (快取)
+- Weaviate (向量資料庫)
+- Grafana (監控平台)
+- Loki (日誌聚合)
+- Prometheus (指標監控)
 
-5. **啟動服務**
+### 3. 驗證環境 (Verification)
+
+**步驟一：檢查 Docker 容器**
 ```bash
-# 該應用程式會自動載入開發配置 (development.yaml)
-python -m src.sre_assistant.main
+# 查看所有容器的狀態
+docker compose ps
 ```
+如果成功，您應該會看到所有 7 個服務的狀態 (`STATUS`) 均為 `running` 或 `up`。
 
-6. **運行測試**
+**步驟二：運行單元測試**
 ```bash
-# 執行完整的測試套件
+# 執行測試套件以確保核心邏輯正常
 poetry run pytest
 ```
+預期結果應為 `5 passed, 6 skipped`。被跳過的測試需要與真實雲端服務對接，在本地開發階段可以安全忽略。
 
-7. **訪問介面**
-- API Docs (Swagger UI): http://localhost:8080/docs
-- Grafana: http://localhost:3000 (admin/admin)
+### 4. 停止環境 (Shutdown)
 
-
-8. **執行第一個診斷 (Run Your First Diagnosis)**
+當您完成開發工作後，可以使用以下指令來停止並移除所有由 Docker Compose 啟動的容器：
 ```bash
-# 使用 curl 向正在運行的 SRE Assistant Agent 發送一個模擬請求
-curl -X POST http://localhost:8080/execute \
+docker compose down
+```
+
+### 5. 執行第一個診斷 (Run Your First Diagnosis)
+
+在 `docker compose` 和 `poetry run pytest` 都成功後，您可以在一個**新的終端機**中啟動 SRE Assistant 的 FastAPI 服務：
+```bash
+poetry run python -m src.sre_assistant.main
+```
+服務啟動後，打開**另一個終端機**，使用 `curl` 向正在運行的 SRE Assistant Agent 發送一個模擬請求：
+```bash
+curl -X POST http://localhost:8000/execute \
   -H "Content-Type: application/json" \
   -d '{
-    "action": "restart-service",
-    "reason": "Users are reporting timeouts when trying to complete payments."
+    "user_query": "The payment API is experiencing high error rates and latency spikes. Please investigate."
   }'
 
 # 預期輸出:
-# {
-#   "status": "execution_started",
-#   "action": "restart-service",
-#   "reason": "Users are reporting timeouts when trying to complete payments."
-# }
-# 接著，您會在運行服務的終端機中看到 HITL 工作流程的詳細輸出。
+# {"status":"accepted","session_id":"default_session","message":"SRE workflow has been accepted and is running in the background."}
 ```
+接著，您會在運行服務的終端機中看到 `EnhancedSREWorkflow` 的詳細執行日誌。
+
+### 5. 常見問題排查 (Troubleshooting)
+
+- **問題**: `docker-compose: command not found`
+  - **原因**: 您的 Docker 版本較新，使用的是 V2 版的指令。
+  - **解決方案**: 請使用帶有空格的 `docker compose` 而不是帶有連字號的 `docker-compose`。
+
+- **問題**: `permission denied while trying to connect to the Docker daemon socket`
+  - **原因**: 您當前的用戶沒有權限訪問 Docker 服務。
+  - **解決方案**: 在 Docker 指令前加上 `sudo`。例如：`sudo docker compose up -d`。
+
+- **問題**: `toomanyrequests: You have reached your unauthenticated pull rate limit`
+  - **原因**: 在短時間內（尤其是在沒有登入的情況下）從 Docker Hub 下載了過多映像檔，觸發了速率限制。
+  - **解決方案**: 使用您的 Docker Hub 帳號登入：`docker login`。這會提供更高的下載額度。如果沒有帳號，則需要等待數小時讓限制自動解除。
+
+- **問題**: 啟動時出現 `Error starting userland proxy: listen tcp4 0.0.0.0:3000: bind: address already in use`
+  - **原因**: 您本地機器的某個端口（例如 `3000`, `9090`, `8080`）已經被其他應用程式佔用。
+  - **解決方案**: 找出並停止正在使用該端口的應用程式，或者修改 `docker-compose.yml` 文件，將衝突的端口映射到一個新的端口（例如，將 `3000:3000` 改為 `3001:3000`）。
 
 ## 核心文檔
 

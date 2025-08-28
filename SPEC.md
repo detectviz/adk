@@ -151,41 +151,19 @@ if result.confidence > 0.8:
 #### REST API
 
 ```bash
-# Trigger incident analysis
-curl -X POST https://api.sre-assistant.io/v1/incidents/analyze \
-  -H "Authorization: Bearer $API_KEY" \
+# 觸發 SRE 工作流程
+curl -X POST http://localhost:8000/execute \
   -H "Content-Type: application/json" \
   -d '{
-        "alert": {
-        "name": "HighErrorRate",
-        "service": "payment-api",
-        "severity": "P1"
-        },
-        "context": {
-        "dashboard_url": "https://grafana.example.com/d/abc123",
-        "time_range": "last_1h"
-        }
-      }'
+    "user_query": "The payment API is experiencing high error rates and latency spikes. Please investigate."
+  }'
 
-# Response
+# 預期回應:
+# API 會立即接受請求並在背景處理，因此返回狀態確認。
 {
-  "incident_id": "inc-20250826-001",
-  "diagnosis": {
-    "root_cause": "Database connection pool exhaustion",
-    "confidence": 0.92,
-    "evidence": [
-      "Connection timeout errors in logs",
-      "Database CPU at 95%",
-      "Similar pattern in incident #1247"
-    ]
-  },
-  "recommended_actions": [
-    {
-      "action": "scale_connection_pool",
-      "risk_level": "low",
-      "estimated_recovery_time": "2m"
-    }
-  ]
+  "status": "accepted",
+  "session_id": "default_session",
+  "message": "SRE workflow has been accepted and is running in the background."
 }
 ```
 
@@ -420,6 +398,7 @@ class BaseTool(Protocol):
         - **描述**: 代理人之間可以直接交接任務，特別是在它們偵測到上游協調器發生路由錯誤時。這為系統增加了彈性和韌性。
     - **並行執行 (Parallel Execution)**:
         - **描述**: 對於無依賴關係的診斷任務（例如，同時查詢指標、日誌和追蹤），應使用 ADK 的 `ParallelAgent` 來並行執行，以最大限度地縮短診斷時間 (MTTD)。
+        - **[實施狀態註記]** `EnhancedSREWorkflow` 藍圖中展示的進階 `ParallelAgent` 功能（如 `aggregation_strategy`, `timeout_seconds`）在當前的 ADK `v1.12.0` 版本中不可用。目前的實作採用了較基礎的 `ParallelAgent`，此為一個已知的技術債，待 ADK 框架更新後可望解決。
     - **回饋循環 (Feedback Loop / Reviewer-Generator)**:
         - **描述**: 對於需要品質保證的任務（如覆盤報告生成、修復方案建議），應建立一個「審查者」代理（如 `VerificationCriticAgent`），對「生成者」代理的輸出進行評估和驗證。此模式透過共享的會話 `state` 實現。
 
