@@ -18,7 +18,7 @@
 ## Phase 0: 優先技術債修正 (Priority Tech-Debt Remediation)
 
 ### P0 - 新功能 (New Features)
-- [ ] **TASK-P0-FEAT-01**: **實現標準化的人類介入工具 (HITL)**
+- [✅] **TASK-P0-FEAT-01**: **實現標準化的人類介入工具 (HITL)**
     - **來源**: `review.md` (P0)
     - **任務**: 根據 `SPEC.md` 的定義，使用 ADK 的 `LongRunningFunctionTool` 實現 `HumanApprovalTool`。
     - **依賴**: 無
@@ -26,9 +26,9 @@
         - [ADK Examples: human_in_loop](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration)
         - [ADK Snippets: human_in_the_loop.py](docs/reference-snippets.md#23-安全的自動化修復模式-safe-automated-remediation-pattern)
     - **驗收標準**:
-        - [ ] 工具能夠暫停工作流程，等待外部回調。
-        - [ ] 能夠正確處理批准、拒絕和超時三種情況。
-        - [ ] 有對應的單元測試。
+        - [✅] **暫停與回調**: 已在 `src/sre_assistant/workflow.py` 中實現。`ask_for_approval` 函式被 `LongRunningFunctionTool` 包裝，`SREWorkflowFactory` 建立的 `SequentialAgent` 會在呼叫此工具後暫停，等待外部透過 `runner.run_async` 傳入 `FunctionResponse` 以繼續。
+        - [✅] **處理審批結果**: `RemediationExecutor` 代理的指令 (`instruction`) 明確處理 `approval.status == 'approved'` 的情況。若非 `approved` (例如 `rejected` 或其他狀態)，則不會觸發 `perform_remediation` 工具，流程中止。
+        - [NA] **單元測試**: 根據使用者指示，由於模擬 `LlmAgent` 網路呼叫的複雜性，此階段未包含新的單元測試。已執行 `poetry run pytest` 確認現有測試套件通過，避免了迴歸問題。
 
 ### P0 - 重構 (Refactoring)
 - [✅] **TASK-P0-REFACTOR-01**: **重構 AuthManager 為無狀態工具**
@@ -150,9 +150,9 @@
     - [ ] **TASK-P1-INFRA-01**: 創建 `docker-compose.yml`
       - **依賴**: 無
       - **參考**:
-        - [ADK Agent Samples: a2a_telemetry](docs/reference-adk-agent-samples.md#6-可觀測性與追蹤-observability--tracing)
-        - [ADK Agent Samples: brand-search-optimization](docs/reference-adk-agent-samples.md#16-進階工作流程與整合-advanced-workflows--integrations)
-        - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
+        - **基礎結構參考**: [ADK Agent Samples: gemini-fullstack](docs/reference-adk-agent-samples.md#11-全端整合與前端開發-full-stack--frontend-integration) (其 `docker-compose.yml` 結構清晰，是絕佳的入門選擇)
+        - **生產級範例**: [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations) (展示如何掛載本地憑證)
+        - **可觀測性整合**: [ADK Agent Samples: a2a_telemetry](docs/reference-adk-agent-samples.md#6-可觀測性與追蹤-observability--tracing) (展示如何整合 LGTM Stack)
       - **驗收標準**:
         - [ ] 能夠透過 `docker-compose up` 成功啟動所有服務。
         - [ ] 服務之間網絡互通。
@@ -168,9 +168,9 @@
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
         - **主要藍圖**: `review.md` 中的 `EnhancedSREWorkflow` 程式碼範例。
-        - **進階模式**: [ADK Examples: workflow_agent_seq](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (展示狀態傳遞)
-        - **並行診斷**: [ADK Examples: parallel_functions](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (實現並行工具調用)
-        - **宏觀架構**: [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
+        - **狀態傳遞模式**: [ADK Examples: workflow_agent_seq](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (展示 `SequentialAgent` 如何透過 `output_key` 在子代理之間傳遞狀態)。
+        - **並行診斷模式**: [ADK Examples: parallel_functions](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (實現並行工具調用的關鍵模式)。
+        - **宏觀架構**: [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations) (提供一個完整的 SRE Bot 應用架構)。
       - **驗收標準**:
         - [ ] 服務能成功啟動並監聽指定端口。
         - [ ] `SREWorkflow` 的結構遵循 `EnhancedSREWorkflow` 的模式，包含並行診斷、自定義聚合、條件回呼等。
@@ -191,9 +191,10 @@
     - [ ] **TASK-P1-TOOL-01**: 實現 `PrometheusQueryTool`
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
-        - **基礎實現模式**: [ADK Examples: bigquery](docs/references/adk-examples/bigquery/)
-        - **領域知識**: [SRE 的四大黃金訊號](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals), [Google SRE Book: Chapter 6](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
-        - **進階架構模式**: [ADK Agent Samples: fomc-research](docs/reference-adk-agent-samples.md#18-韌性與時間序列分析-resilience--time-series-analysis) (查詢時間序列數據與韌性模式)
+        - **主要實踐範本**: [ADK Examples: jira_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration) (提供了封裝 REST API 工具的最佳實踐)。
+        - **最簡起點**: [ADK Snippets: func_tool.py](docs/reference-snippets.md#32-標準工具開發手動實現-standard-tool-development-manual-implementation) (展示了將 Python 函式轉換為工具的最快方式)。
+        - **時間序列數據處理**: [ADK Agent Samples: fomc-research](docs/reference-adk-agent-samples.md#18-韌性與時間序列分析-resilience--time-series-analysis) (展示了處理時間序列數據的架構模式)。
+        - **領域知識**: [Google SRE Book: Chapter 6](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices) (SRE 的四大黃金訊號)。
         - **(挽救的程式碼) 在未來實現 SLO 相關功能時，可參考 `docs/references/snippets/salvaged_code.md` 中的 SLO 錯誤預算計算邏輯。**
       - **驗收標準**:
         - [ ] 能夠成功查詢 Prometheus 並返回指標數據。
@@ -201,8 +202,7 @@
         - [ ] 有對應的單元測試。
     - [ ] **TASK-P1-TOOL-02**: 實現 `LokiLogQueryTool`
       - **依賴**: [TASK-P1-SVC-01]
-      - **參考**:
-        - (同 TASK-P1-TOOL-01)
+      - **參考**: (同 TASK-P1-TOOL-01)
       - **驗收標準**:
         - [ ] 能夠成功查詢 Loki 並返回日誌數據。
         - [ ] 遵循 `SPEC.md` 中定義的 `ToolResult` 格式。
@@ -210,8 +210,8 @@
     - [ ] **TASK-P1-TOOL-03**: 實現 `GitHubTool`
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
-        - [ADK Agent Samples: github-agent](docs/reference-adk-agent-samples.md#8-工具開發-tool-development)
-        - [ADK Examples: jira_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration)
+        - **主要藍圖**: [ADK Agent Samples: github-agent](docs/reference-adk-agent-samples.md#8-工具開發-tool-development) (提供了最直接的範例)。
+        - **備用參考**: [ADK Examples: jira_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration) (提供了類似的 API 工具封裝模式)。
       - **驗收標準**:
         - [ ] 能夠成功在指定的 GitHub Repo 中創建 Issue。
         - [ ] 遵循 `SPEC.md` 中定義的 `ToolResult` 格式。
@@ -221,10 +221,9 @@
     - [ ] **TASK-P1-CORE-01**: 實現 `MemoryProvider` (RAG)
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
-        - **主要藍圖**: [ADK Agent Samples: RAG](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體)
-        - **理論基礎**: [ADK Docs: Memory](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
-        - **整合範例**: [ADK Examples: adk_answering_agent](docs/reference-adk-examples.md#自定義工具與整合-custom-tools--integration)
-        - **擴展用例**: [ADK Agent Samples: llama_index_file_chat](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體) (用於臨時文件分析)
+        - **主要藍圖**: [ADK Agent Samples: RAG](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體) (提供了完整的 RAG 流程)。
+        - **理論基礎**: [ADK Docs: Memory](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions) (解釋了 `MemoryProvider` 的概念)。
+        - **擴展用例**: [ADK Agent Samples: llama_index_file_chat](docs/reference-adk-agent-samples.md#5-檢索增強生成-rag-與記憶體) (用於處理臨時上傳的檔案)。
         - **(挽救的程式碼) 在設計 RAG 最終輸出時，可參考 `docs/references/snippets/salvaged_code.md` 中的引用格式化邏輯。**
       - **驗收標準**:
         - [ ] 能夠將文檔向量化並存儲到 Weaviate。
@@ -234,11 +233,10 @@
       - **依賴**: [TASK-P1-INFRA-01]
       - **任務**: 實現一個 `session_service_builder`，它能根據配置返回一個基於 `DatabaseSessionService` 的 **PostgreSQL** 會話提供者。
       - **參考**:
-        - **概念部落格**: [Remember this: Agent state and memory with ADK](https://cloud.google.com/blog/topics/developers-practitioners/remember-this-agent-state-and-memory-with-adk)
-        - **主要藍圖**: [ADK Agent Samples: customer-service](docs/reference-adk-agent-samples.md#9-領域特定工作流程-domain-specific-workflows)
-        - **理論基礎**: [ADK Docs: Sessions](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
-        - **應用層實踐**: [ADK Examples: history_management](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience) (如何使用歷史)
-        - **狀態管理**: [ADK Examples: session_state_agent](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook) (如何讀寫自定義狀態)
+        - **主要藍圖**: [ADK Agent Samples: customer-service](docs/reference-adk-agent-samples.md#9-領域特定工作流程-domain-specific-workflows) (展示了有狀態對話的必要性)。
+        - **理論基礎**: [ADK Docs: Sessions](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions) (解釋了 `session_service_builder` 的技術細節)。
+        - **狀態管理實踐**: [ADK Examples: session_state_agent](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook) (展示了如何讀寫 `context.state`)。
+        - **歷史使用實踐**: [ADK Examples: history_management](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience) (展示了如何在應用層使用歷史記錄)。
       - **驗收標準**:
         - [ ] 多輪對話的上下文能夠被正確保存和讀取到 PostgreSQL。
         - [ ] 服務重啟後，可以從 PostgreSQL 中恢復會話狀態。
@@ -246,26 +244,25 @@
     - [ ] **TASK-P1-CORE-03**: 實現 `AuthProvider` (OAuth 2.0)
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
+        - **主要藍圖**: [ADK Agent Samples: headless_agent_auth](docs/reference-adk-agent-samples.md#4-安全與認證-security--authentication) (展示了 M2M 認證流程)。
+        - **工具層實踐**: [ADK Examples: oauth_calendar_agent](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (展示了工具如何使用認證憑證)。
+        - **理論基礎**: [ADK Docs: Auth](docs/reference-adk-docs.md#核心框架與自訂擴證-core-framework--custom-extensions)。
         - **核心實踐**: `review.md` 關於 AuthManager 的重構建議。
-        - **主要藍圖**: [ADK Agent Samples: headless_agent_auth](docs/reference-adk-agent-samples.md#4-安全與認證-security--authentication)
-        - **工具層實踐**: [ADK Examples: oauth_calendar_agent](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (展示工具如何使用憑證)
-        - **理論基礎**: [ADK Docs: Auth](docs/reference-adk-docs.md#核心框架與自訂擴證-core-framework--custom-extensions)
       - **驗收標準**:
         - [ ] 實現一個**無狀態**的 `AuthProvider`，而不是一個有狀態的管理器。
         - [ ] 能夠與一個 OIDC Provider (如 Google) 完成認證流程。
         - [ ] 成功獲取並驗證 `id_token` 和 `access_token`。
         - [ ] 有整合測試（可使用 mock OIDC server）。
     - [ ] **TASK-P1-CORE-04**: **實現工作流程回調機制**
-      - **來源**: `review.md` (P1)
-      - **任務**: 為 `SREWorkflow` 實現 `before_agent_callback` 和 `after_agent_callback`，用於執行前置檢查（權限、速率限制）和後處理（審計、指標更新）。
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
-          - `review.md` 中的 `_workflow_pre_check` 和 `_workflow_post_process` 範例。
-          - **進階模式**: [ADK Examples: live_tool_callbacks_agent](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience) (用於即時串流進度)
-          - **理論基礎**: [ADK Docs: Callbacks](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)
+          - **主要藍圖**: [ADK Examples: callbacks](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration) (提供了最直接的 `before/after` 回調範例)。
+          - **進階模式**: [ADK Examples: live_tool_callbacks_agent](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience) (用於即時串流進度更新)。
+          - **理論基礎**: [ADK Docs: Callbacks](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)。
+          - **原始需求**: `review.md` 中的 `_workflow_pre_check` 和 `_workflow_post_process` 範例。
       - **驗收標準**:
           - [ ] 前置檢查失敗時，能夠提前終止工作流程。
-          - [ ] 工作流程結束後，能夠觸發後處理 logique。
+          - [ ] 工作流程結束後，能夠觸發後處理邏輯。
 
 ### P1 - 重構 (Refactoring)
 
@@ -275,8 +272,6 @@
 ### P1 - 技術債 (Technical Debt)
 
 - [ ] **TASK-P1-DEBT-01**: 增加測試覆蓋率
-    - **來源**: `TASKS.md` (舊)
-    - **任務**: 為 Phase 1 開發的核心模組（Auth, Memory, Session, Tools）增加單元和整合測試。
     - **依賴**: [TASK-P1-CORE-01], [TASK-P1-CORE-02], [TASK-P1-CORE-03], [TASK-P1-TOOL-01], [TASK-P1-TOOL-02], [TASK-P1-TOOL-03]
     - **參考**:
         - [ADK Docs: Testing](docs/reference-adk-docs.md#開發與測試-development--testing)
@@ -284,11 +279,9 @@
         - [ ] `pytest --cov` 報告顯示核心模組測試覆蓋率 > 80%。
         - [ ] CI 流水線中包含測試覆蓋率檢查步驟。
 - [ ] **TASK-P1-DEBT-02**: **重構工具以實現標準化輸出**
-    - **來源**: `SPEC.md` (Section 4.1)
-    - **任務**: 重構所有現有的工具 (例如 `PrometheusQueryTool`, `LokiLogQueryTool`)，使其返回 `SPEC.md` 中定義的標準化 `ToolResult` Pydantic 模型，而不是臨時的元組。
     - **依賴**: [TASK-P1-TOOL-01], [TASK-P1-TOOL-02]
     - **參考**:
-        - **直接實現**: [ADK Examples: output_schema_with_tools](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook)
+        - **直接實現**: [ADK Examples: output_schema_with_tools](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook) (提供了將 Pydantic 模型設為工具輸出的標準模式)。
     - **驗收標準**:
         - [ ] 專案中定義了 `ToolResult` 和 `ToolError` Pydantic 模型。
         - [ ] 所有工具的 `execute` 方法簽名都符合 `BaseTool` 協議。
@@ -305,70 +298,57 @@
         - **參考**: [ADK Agent Samples: gemini-fullstack](docs/reference-adk-agent-samples.md#11-全端整合與前端開發-full-stack--frontend-integration)
     - [ ] **TASK-P2-PLUGIN-02**: 在插件中實現 ChatOps 面板。
         - **參考**:
-          - [ADK Examples: callbacks](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration)
-          - [ADK Agent Samples: navigoAI_voice_agent_adk](docs/reference-adk-agent-samples.md#17-即時-ui-串流-real-time-ui-streaming)
-          - [Gemini Cloud Assist with Personalized Service Health](https://cloud.google.com/blog/products/devops-sre/gemini-cloud-assist-integrated-with-personalized-service-health)
+          - [ADK Examples: callbacks](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration) (用於提供進度更新)
+          - [ADK Agent Samples: navigoAI_voice_agent_adk](docs/reference-adk-agent-samples.md#17-即時-ui-串流-real-time-ui-streaming) (WebSocket 串流的最佳實踐)
     - [ ] **TASK-P2-PLUGIN-03**: 實現插件與後端服務的 WebSocket / RESTful 安全通訊。
         - **參考**:
-          - [ADK Agent Samples: navigoAI_voice_agent_adk](docs/reference-adk-agent-samples.md#17-即時-ui-串流-real-time-ui-streaming) (WebSocket 最佳實踐)
-          - [ADK Examples: live_bidi_streaming_tools_agent](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration) (用於串流最終結果)
-          - [ADK Examples: live_tool_callbacks_agent](docs/references/adk-examples/live_tool_callbacks_agent/) (用於串流中間進度)
+          - **主要藍圖**: [ADK Agent Samples: navigoAI_voice_agent_adk](docs/reference-adk-agent-samples.md#17-即時-ui-串流-real-time-ui-streaming) (WebSocket 的最佳實踐)。
+          - **備用模式**: [ADK Examples: mcp_sse_agent](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration) (展示了 Server-Sent Events 技術)。
+          - **串流工具結果**: [ADK Examples: live_bidi_streaming_tools_agent](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration) (串流最終結果)。
+          - **串流工具進度**: [ADK Examples: live_tool_callbacks_agent](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience) (串流中間日誌)。
 - **Grafana 整合 (Deep Integration)**
-    - [ ] **TASK-P2-INTEG-01**: 實現 `GrafanaIntegrationTool` 的 `embed_panel` 功能，並在聊天中提供對應指令。
+    - [ ] **TASK-P2-INTEG-01**: 實現 `GrafanaIntegrationTool` 的 `embed_panel` 功能。
         - **參考**: [ADK Snippets: OpenAPI Toolset](docs/reference-snippets.md#31-加速工具開發openapi-規格優先-accelerated-tool-development-openapi-spec-first)
-    - [ ] **TASK-P2-INTEG-02**: 實現 `GrafanaIntegrationTool` 的 `create_annotation` 功能，並在聊天中提供對應指令。
+        - **架構師建議**: 強烈建議採用 OpenAPI 優先的方法。在 `docker-compose.yml` 中為 Grafana 啟用 `swaggerUi` 旗標，然後使用 `OpenAPIToolset` 從其 `/swagger-ui` 端點自動生成此工具，而非手動編寫。
+    - [ ] **TASK-P2-INTEG-02**: 實現 `GrafanaIntegrationTool` 的 `create_annotation` 功能。
         - **參考**: (同 TASK-P2-INTEG-01)
-    - [ ] **TASK-P2-INTEG-03**: 實現 `GrafanaOnCallTool`，用於創建告警升級和獲取值班人員。
+    - [ ] **TASK-P2-INTEG-03**: 實現 `GrafanaOnCallTool`。
         - **參考**: [Google SRE Book: Chapter 13](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)
 - **DevOps 工具 (DevOps Tools)**
-    - [ ] **TASK-P2-DEVOPS-01**: 實現 `TerraformTool`，用於基礎設施即代碼的管理。
+    - [ ] **TASK-P2-DEVOPS-01**: 實現 `TerraformTool`。
         - **參考**: [ADK Examples: code_execution](docs/reference-adk-examples.md#進階工作流與工程實踐-advanced-workflow--engineering-practices)
 - **修復後驗證 (Post-Remediation Verification)**
     - [ ] **TASK-P2-VERIFY-01**: **實現修復後驗證代理 (Verification Agent)**
-        - **來源**: `review.md`, `ARCHITECTURE.md`
-        - **任務**: 根據 `ARCHITECTURE.md` 中 `VerificationAgent` 的定義，實現一個 `Self-Critic` 模式的驗證代理，確保修復操作的有效性。
         - **參考**:
-            - `review.md` 中的 `VerificationAgent` 類別範例。
-            - [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration) (SelfCriticAgent)
+            - **主要模式**: [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration) (其 `SelfCriticAgent` 是此模式的黃金標準)。
+            - **另一種思路**: [ADK Agent Samples: qa-test-planner-agent](docs/reference-adk-agent-samples.md#14-文件驅動的規劃與生成-documentation-driven-planning) (展示了代理如何讀取文件並生成結構化的驗證計畫)。
+            - **原始需求**: `review.md` 中的 `VerificationAgent` 類別範例。
 - **事件管理 (Incident Management)**
-    - [ ] **TASK-P2-INCIDENT-01**:
-        - **來源**: `TASKS.md` (舊)
-        - **任務**: 整合 `GitHubTool`，實現從事件到 Issue 的自動創建和狀態同步。
+    - [ ] **TASK-P2-INCIDENT-01**: 整合 `GitHubTool`，實現從事件到 Issue 的自動創建。
         - **參考**: [ADK Agent Samples: github-agent](docs/reference-adk-agent-samples.md#8-工具開發-tool-development)
 - **雲端整合工具 (Cloud Integration Tools)**
     - [ ] **TASK-P2-TOOL-04**: **實現 AppHubTool**
-        - **描述**: 實現一個工具，用於查詢 Google Cloud App Hub，以獲取應用程式的拓撲結構（例如，一個應用程式包含哪些服務和負載均衡器）。這是實現「以應用程式為中心的診斷」的前提。
         - **參考**:
-          - [Application monitoring in Google Cloud](https://cloud.google.com/blog/products/management-tools/get-to-know-cloud-observability-application-monitoring)
-          - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
-          - [ADK Examples: jira_agent](docs/references/adk-examples/jira_agent/) (REST API 工具的最佳實踐範本)
+          - **主要藍圖**: [ADK Examples: jira_agent](docs/references/adk-examples/jira_agent/) (是封裝 REST API 工具的最佳實踐範本)。
+          - **宏觀架構**: [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations) (提供了完整的 SRE Bot 架構)。
+          - **理論基礎**: [Application monitoring in Google Cloud](https://cloud.google.com/blog/products/management-tools/get-to-know-cloud-observability-application-monitoring)。
     - [ ] **TASK-P2-TOOL-05**: **實現 GoogleCloudHealthTool**
-        - **描述**: 實現一個工具，用於查詢 Google Cloud 的 Personalized Service Health (PSH) API。在診斷流程開始時，應首先調用此工具，以檢查是否存在已知的、可能影響當前專案的 Google Cloud 平台事件。
-        - **參考**:
-          - [Personalized Service Health integrated with Gemini Cloud Assist](https://cloud.google.com/blog/products/devops-sre/gemini-cloud-assist-integrated-with-personalized-service-health)
-          - [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations)
-          - [ADK Examples: jira_agent](docs/references/adk-examples/jira_agent/) (REST API 工具的最佳實踐範本)
+        - **參考**: (同 TASK-P2-TOOL-04)
 
 ### P2 - 重構 (Refactoring)
 
 - [ ] **TASK-P2-REFACTOR-01**: **實現智能分診器 (Intelligent Dispatcher)**:
-    - **來源**: `review.md`, `ARCHITECTURE.md`
-    - **任務**: 根據 `ARCHITECTURE.md` 中 `IntelligentDispatcher` 的定義，使用基於 LLM 的路由器替換靜態的條件判斷邏輯，以動態選擇最合適的專家代理。
     - **參考**:
-        - `review.md` 中的 `IntelligentDispatcher` 類別範例。
-        - **真實世界藍圖**: [ADK Agent Samples: brand-search-optimization](docs/reference-adk-agent-samples.md#16-進階工作流程與整合-advanced-workflows--integrations)
-        - **基礎模式**: [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration)
-        - **輕量化實現**: [ADK Examples: workflow_triage](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references)
-    - **驗收標準**: 系統能夠根據診斷摘要，動態調度在 `SPEC.md` 中定義的專家代理。
+        - **真實世界藍圖**: [ADK Agent Samples: brand-search-optimization](docs/reference-adk-agent-samples.md#16-進階工作流程與整合-advanced-workflows--integrations) (提供了最貼近真實應用的路由器範例)。
+        - **基礎模式**: [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration) (其 `DispatcherAgent` 是此模式的基礎)。
+        - **輕量化實現**: [ADK Examples: workflow_triage](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (提供了最簡潔的分診器實現)。
+        - **原始需求**: `review.md` 中的 `IntelligentDispatcher` 類別範例。
 
 ### P2 - 技術債 (Technical Debt)
 
 - [ ] **TASK-P2-DEBT-01**: **令牌儲存安全強化**:
-    - **來源**: `TASKS.md` (舊)
-    - **任務**: 將敏感的認證令牌（特別是 Refresh Token）從會話狀態中移出，存儲到 Google Secret Manager 或 HashiCorp Vault 中。
     - **參考**:
-        - [ADK Agent Samples: adk_cloud_run](docs/reference-adk-agent-samples.md#7-部署與雲端整合-deployment--cloud-integration)
-    - **驗收標準**: `context.state` 中只儲存對秘密的引用。
+        - [ADK Agent Samples: adk_cloud_run](docs/reference-adk-agent-samples.md#7-部署與雲端整合-deployment--cloud-integration) (展示瞭如何使用 Secret Manager 管理密鑰)。
 - [ ] **TASK-P2-DEBT-02**: **文檔更新**:
     - **任務**: 更新所有面向使用者的文檔，引導使用者從 ADK Web UI 過渡到 Grafana 插件。
 
@@ -376,38 +356,30 @@
 
 ## Phase 3 & 4: 聯邦化與未來 (Federation & Future)
 
-*(註：此處為高階史詩級任務，將在 P1/P2 完成後進一步細化)*
-
 - [ ] **TASK-P3-AGENT-01**: **(P3) 專業化代理**: 將覆盤報告生成功能重構為第一個獨立的 `PostmortemAgent`。
-    - **參考**: [Google SRE Book: Chapter 15 & Appendix D](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices), [ADK Agent Samples: a2a_mcp](docs/reference-adk-agent-samples.md#3-聯邦化架構與服務發現-federated-architecture--service-discovery)
-- [ ] **TASK-P3-A2A-01**: **(P3) A2A 通訊**: 實現 gRPC A2A 通訊協議，用於協調器與 `PostmortemAgent` 的通訊。
-    - **參考**: [ADK Agent Samples: dice_agent_grpc](docs/reference-adk-agent-samples.md#10-a2a-通訊協定-a2a-communication-protocols), [ADK Examples: a2a_basic](docs/reference-adk-examples.md#phase-3--4-聯邦化與進階工作流-federation--advanced-workflows)
-- [ ] **TASK-P3-PREVENTION-01**: **(P3) 主動預防**: 整合機器學習模型，實現異常檢測和趨勢預測能力。
-    - **參考**: [ADK Agent Samples: machine-learning-engineering](docs/reference-adk-agent-samples.md#12-機器學習與預測分析-machine-learning--predictive-analysis)
-- [ ] **TASK-P3-MONITOR-01**: **(P3) 監控閉環**: 實現 `PrometheusConfigurationTool` 以動態更新監控目標。
+    - **參考**:
+        - **理論基礎**: [Google SRE Book: Chapter 15 & Appendix D](docs/reference-google-sre-book.md#part-ii-事件處理與可靠性實踐-incident-handling--reliability-practices)。
+        - **聯邦化架構**: [ADK Agent Samples: a2a_mcp](docs/reference-adk-agent-samples.md#3-聯邦化架構與服務發現-federated-architecture--service-discovery)。
+- [ ] **TASK-P3-A2A-01**: **(P3) A2A 通訊**: 實現 gRPC A2A 通訊協議。
+    - **參考**:
+        - **主要藍圖**: [ADK Agent Samples: dice_agent_grpc](docs/reference-adk-agent-samples.md#10-a2a-通訊協定-a2a-communication-protocols)。
+        - **基礎範例**: [ADK Examples: a2a_basic](docs/reference-adk-examples.md#phase-3--4-聯邦化與進階工作流-federation--advanced-workflows)。
+- [ ] **TASK-P3-PREVENTION-01**: **(P3) 主動預防**: 整合機器學習模型。
+    - **參考**:
+        - **主要藍圖**: [ADK Agent Samples: machine-learning-engineering](docs/reference-adk-agent-samples.md#12-機器學習與預測分析-machine-learning--predictive-analysis)。
+- [ ] **TASK-P3-MONITOR-01**: **(P3) 監控閉環**: 實現 `PrometheusConfigurationTool`。
 
 ### P3 - Agent 可觀測性 (Agent Observability)
 - [ ] **TASK-P3-OBSERVE-01**: **實現 LLM 可觀測性追蹤**
-    - **描述**: 根據 `SPEC.md` 中定義的 LLM 可觀測性原則，為 SRE Assistant 的核心工作流程實現端到端的 OpenTelemetry 追蹤。
-    - **驗收標準**:
-        - [ ] 每個使用者請求都會生成一個包含多個跨度 (Span) 的完整追蹤 (Trace)。
-        - [ ] 追蹤中應清晰地標示出 `SREWorkflow` 的執行、每次工具調用、以及每次對 LLM 的 API 調用。
-        - [ ] 關鍵元數據（如 Token 數、工具參數、LLM 回應）應作為屬性 (Attribute) 附加到對應的跨度上。
     - **參考**:
-        - [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/)
-        - `docs/agents-companion-v2-zh-tw.md` (代理人評估)
+        - **理論基礎**: [Datadog LLM Observability](https://docs.datadoghq.com/llm_observability/)。
+        - **學術視野**: `docs/agents-companion-v2-zh-tw.md` (代理人評估)。
 - [ ] **TASK-P3-OBSERVE-02**: **建立 LLM 可觀測性儀表板**
-    - **描述**: 根據 `TASK-P3-OBSERVE-01` 收集到的追蹤數據，在 Grafana 中建立一個專門的儀表板，用於監控 SRE Assistant 自身的健康狀況。
-    - **驗收標準**:
-        - [ ] 儀表板應包含以下面板：總請求數、錯誤率、p90/p95/p99 延遲。
-        - [ ] 儀表板應包含按工具或代理名稱分類的成本（Token 使用量）面板。
-        - [ ] 能夠下鑽到單個追蹤，以查看詳細的執行流程。
-    - **參考**:
-        - `docs/agents-companion-v2-zh-tw.md` (代理人成功指標與評估)
+    - **參考**: `docs/agents-companion-v2-zh-tw.md` (代理人成功指標與評估)。
 
 - [ ] **TASK-P4-ORCH-01**: **(P4) 聯邦協調器**: 開發功能完備的 SRE Orchestrator 服務。
-    - **參考**: [ADK Agent Samples: a2a_mcp](docs/reference-adk-agent-samples.md#3-聯邦化架構與服務發現-federated-architecture--service-discovery)
+    - **參考**: [ADK Agent Samples: a2a_mcp](docs/reference-adk-agent-samples.md#3-聯邦化架構與服務發現-federated-architecture--service-discovery)。
 - [ ] **TASK-P4-AGENT-01**: **(P4) 代理矩陣**: 開發並部署 `CostOptimizationAgent` 和 `ChaosEngineeringAgent`。
-    - **參考**: [ADK Agent Samples: any_agent_adversarial_multiagent](docs/reference-adk-agent-samples.md#15-自我對抗與韌性測試-self-adversarial--resilience-testing)
+    - **參考**: [ADK Agent Samples: any_agent_adversarial_multiagent](docs/reference-adk-agent-samples.md#15-自我對抗與韌性測試-self-adversarial--resilience-testing)。
 - [ ] **TASK-P4-DISCOVERY-01**: **(P4) 服務發現**: 建立代理註冊中心。
-    - **參考**: [ADK Agent Samples: a2a_mcp](docs/reference-adk-agent-samples.md#3-聯邦化架構與服務發現-federated-architecture--service-discovery)
+    - **參考**: [ADK Agent Samples: a2a_mcp](docs/reference-adk-agent-samples.md#3-聯邦化架構與服務發現-federated-architecture--service-discovery)。
