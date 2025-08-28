@@ -19,7 +19,7 @@
 
 ### P0 - 新功能 (New Features)
 - [✅] **TASK-P0-FEAT-01**: **實現標準化的人類介入工具 (HITL)**
-    - **來源**: `review.md` (P0)
+    - **來源**: `docs/references/snippets/salvaged_code.md` (P0)
     - **任務**: 根據 `SPEC.md` 的定義，使用 ADK 的 `LongRunningFunctionTool` 實現 `HumanApprovalTool`。
     - **依賴**: 無
     - **參考**:
@@ -32,7 +32,7 @@
 
 ### P0 - 重構 (Refactoring)
 - [✅] **TASK-P0-REFACTOR-01**: **重構 AuthManager 為無狀態工具**
-    - **來源**: `review.md` (P0)
+    - **來源**: `docs/references/snippets/salvaged_code.md` (P0)
     - **任務**: 將 `src/sre_assistant/auth/auth_manager.py` 重構為一個或多個符合 ADK 規範的、無狀態的 `FunctionTool`。
     - **依賴**: 無 (已完成)
     - **驗收標準**:
@@ -40,7 +40,7 @@
         - [✅] 憑證和令牌等狀態通過 `tool_context.session_state` 進行管理。
         - [✅] 舊的 `AuthManager` 被移除。
 - [✅] **TASK-P0-REFACTOR-02**: **為關鍵代理實現結構化輸出**
-    - **來源**: `review.md` (P2, 提升為 P0)
+    - **來源**: `docs/references/snippets/salvaged_code.md` (P2, 提升為 P0)
     - **任務**: 為核心的診斷代理（如 `MetricsAnalyzer`, `LogAnalyzer`）定義 Pydantic `output_schema`。
     - **依賴**: 無 (已完成)
     - **驗收標準**:
@@ -167,7 +167,7 @@
     - [ ] **TASK-P1-SVC-01**: 實現核心 `SREAssistant` Agent 服務
       - **依賴**: [TASK-P1-INFRA-01]
       - **參考**:
-        - **主要藍圖**: `review.md` 中的 `EnhancedSREWorkflow` 程式碼範例。
+        - **主要藍圖**: `docs/references/snippets/salvaged_code.md` 中的 `EnhancedSREWorkflow` 程式碼範例。
         - **狀態傳遞模式**: [ADK Examples: workflow_agent_seq](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (展示 `SequentialAgent` 如何透過 `output_key` 在子代理之間傳遞狀態)。
         - **並行診斷模式**: [ADK Examples: parallel_functions](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (實現並行工具調用的關鍵模式)。
         - **宏觀架構**: [ADK Agent Samples: sre-bot](docs/reference-adk-agent-samples.md#19-sre-實踐與整合-sre-practices--integrations) (提供一個完整的 SRE Bot 應用架構)。
@@ -247,7 +247,7 @@
         - **主要藍圖**: [ADK Agent Samples: headless_agent_auth](docs/reference-adk-agent-samples.md#4-安全與認證-security--authentication) (展示了 M2M 認證流程)。
         - **工具層實踐**: [ADK Examples: oauth_calendar_agent](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (展示了工具如何使用認證憑證)。
         - **理論基礎**: [ADK Docs: Auth](docs/reference-adk-docs.md#核心框架與自訂擴證-core-framework--custom-extensions)。
-        - **核心實踐**: `review.md` 關於 AuthManager 的重構建議。
+        - **核心實踐**: `docs/references/snippets/salvaged_code.md` 關於 AuthManager 的重構建議。
       - **驗收標準**:
         - [ ] 實現一個**無狀態**的 `AuthProvider`，而不是一個有狀態的管理器。
         - [ ] 能夠與一個 OIDC Provider (如 Google) 完成認證流程。
@@ -259,7 +259,7 @@
           - **主要藍圖**: [ADK Examples: callbacks](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration) (提供了最直接的 `before/after` 回調範例)。
           - **進階模式**: [ADK Examples: live_tool_callbacks_agent](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience) (用於即時串流進度更新)。
           - **理論基礎**: [ADK Docs: Callbacks](docs/reference-adk-docs.md#核心框架與自訂擴展-core-framework--custom-extensions)。
-          - **原始需求**: `review.md` 中的 `_workflow_pre_check` 和 `_workflow_post_process` 範例。
+          - **原始需求**: `docs/references/snippets/salvaged_code.md` 中的 `_workflow_pre_check` 和 `_workflow_post_process` 範例。
       - **驗收標準**:
           - [ ] 前置檢查失敗時，能夠提前終止工作流程。
           - [ ] 工作流程結束後，能夠觸發後處理邏輯。
@@ -279,7 +279,7 @@
         - [ ] `pytest --cov` 報告顯示核心模組測試覆蓋率 > 80%。
         - [ ] CI 流水線中包含測試覆蓋率檢查步驟。
 - [ ] **TASK-P1-DEBT-02**: **重構工具以實現標準化輸出**
-    - **來源**: `review.md`, `SPEC.md`
+    - **來源**: `docs/references/snippets/salvaged_code.md`, `SPEC.md`
     - **依賴**: [TASK-P1-TOOL-01], [TASK-P1-TOOL-02]
     - **參考**:
         - **直接實現**: [ADK Examples: output_schema_with_tools](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook) (提供了將 Pydantic 模型設為工具輸出的標準模式)。
@@ -290,7 +290,7 @@
         - [ ] 所有工具的 `execute` 方法簽名都符合 `BaseTool` 協議，並返回 `ToolResult`。
         - [ ] 成功和失敗的工具調用都能返回結構化的 `ToolResult`，包含清晰的 `error.code`。
 - [ ] **TASK-P1-DEBT-03**: **實現工具與代理的版本化管理**
-    - **來源**: `review.md`
+    - **來源**: `docs/references/snippets/salvaged_code.md`
     - **依賴**: 無
     - **參考**:
         - **規格定義**: `SPEC.md` 中的「版本管理策略」章節。
@@ -334,7 +334,7 @@
         - **參考**:
             - **主要模式**: [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration) (其 `SelfCriticAgent` 是此模式的黃金標準)。
             - **另一種思路**: [ADK Agent Samples: qa-test-planner-agent](docs/reference-adk-agent-samples.md#14-文件驅動的規劃與生成-documentation-driven-planning) (展示了代理如何讀取文件並生成結構化的驗證計畫)。
-            - **原始需求**: `review.md` 中的 `VerificationAgent` 類別範例。
+            - **原始需求**: `docs/references/snippets/salvaged_code.md` 中的 `VerificationAgent` 類別範例。
 - **事件管理 (Incident Management)**
     - [ ] **TASK-P2-INCIDENT-01**: 整合 `GitHubTool`，實現從事件到 Issue 的自動創建。
         - **參考**: [ADK Agent Samples: github-agent](docs/reference-adk-agent-samples.md#8-工具開發-tool-development)
@@ -350,10 +350,10 @@
 ### P2 - 新功能 (New Features)
 - **Agent 評估 (Agent Evaluation)**
     - [ ] **TASK-P2-EVAL-01**: **整合 ADK 評估框架**
-        - **來源**: `review.md`, `review-2.md`
+        - **來源**: `docs/references/snippets/salvaged_code.md`
         - **依賴**: [TASK-P1-SVC-01]
         - **參考**:
-            - **主要藍圖**: `review.md` 中的「實現 ADK 評估框架」程式碼範例。
+            - **主要藍圖**: `docs/references/snippets/salvaged_code.md` 中的「實現 ADK 評估框架」程式碼範例。
             - **理論基礎**: `SPEC.md` 中的「代理可靠性評估」和「代理人評估策略」章節。
         - **驗收標準**:
             - [ ] `eval/` 目錄下包含一個基於 `google.adk.eval.EvaluationFramework` 的評估腳本。
@@ -364,17 +364,17 @@
 ### P2 - 重構 (Refactoring)
 
 - [ ] **TASK-P2-REFACTOR-01**: **實現智能分診器 (Intelligent Dispatcher)**:
-    - **來源**: `review.md`, `review-2.md`
+    - **來源**: `docs/references/snippets/salvaged_code.md`
     - **參考**:
         - **真實世界藍圖**: [ADK Agent Samples: brand-search-optimization](docs/reference-adk-agent-samples.md#16-進階工作流程與整合-advanced-workflows--integrations) (提供了最貼近真實應用的路由器範例)。
         - **基礎模式**: [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration) (其 `DispatcherAgent` 是此模式的基礎)。
         - **輕量化實現**: [ADK Examples: workflow_triage](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (提供了最簡潔的分診器實現)。
-        - **原始需求**: `review.md` 中的 `IntelligentDispatcher` 類別範例。
+        - **原始需求**: `docs/references/snippets/salvaged_code.md` 中的 `IntelligentDispatcher` 類別範例。
 - [ ] **TASK-P2-REFACTOR-02**: **實現增強型 SRE 工作流程 (Enhanced SRE Workflow)**
-    - **來源**: `review.md`, `review-2.md`
+    - **來源**: `docs/references/snippets/salvaged_code.md`
     - **依賴**: [TASK-P1-SVC-01], [TASK-P2-REFACTOR-01], [TASK-P2-VERIFY-01]
     - **參考**:
-        - **主要藍圖**: `review.md` 中的 `EnhancedSREWorkflow` 程式碼範例。
+        - **主要藍圖**: `docs/references/snippets/salvaged_code.md` 中的 `EnhancedSREWorkflow` 程式碼範例。
         - **理論基礎**: `ARCHITECTURE.md` 中的「核心工作流程代理」章節。
     - **驗收標準**:
         - [ ] `SREWorkflow` 被重構為 `EnhancedSREWorkflow`。
