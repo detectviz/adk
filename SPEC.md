@@ -67,9 +67,9 @@
 - **`HumanApprovalTool`**:
     - **描述**: 根據 `review.md` 的建議，這是一個實現**人類介入 (Human-in-the-Loop)** 審批流程的標準工具。它用於在執行高風險操作（如生產環境變更）前，暫停工作流程並請求人類用戶的明確批准。
     - **ADK 實現**: **必須**使用 `LongRunningFunctionTool` 來實現，以符合 ADK 的非同步操作模式。
-    - **功能**: `request_approval(reason: str, approvers: list[str], timeout: int) -> bool`
+    - **功能**: `ask_for_approval(action: str, reason: str) -> dict`
     - **配置**: 通知機制（如 Slack Webhook, Email API）。
-    - **實施狀態**: **(Phase 2)** 此為 Phase 2 規劃實現的工具 (見 `TASKS.md`)。
+    - **實施狀態**: **(已在 Phase 0 完成第一版)** 此工具的核心模式已在 `TASK-P0-FEAT-01` 中實現，詳見 `src/sre_assistant/workflow.py`。
 
 ---
 

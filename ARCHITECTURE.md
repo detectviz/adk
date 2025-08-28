@@ -9,7 +9,7 @@
 SRE Assistant 的核心是一個以 **Grafana 為統一操作介面**、由**多個專業化智能代理協同工作**的**聯邦化 SRE 生態系統**。我們的目標是打造一個不僅能自動化解決問題，更能預測和預防未來故障的智能平台。
 
 - **程式碼優先 (Code-First)**: 所有代理、工具和工作流程都在 Python 程式碼中定義。
-- **模組化與聯邦化 (Modularity & Federation)**: 複雜的 SRE 工作流程由一個主協調器 (`SREWorkflow`) 調用多個小型、專業的子代理來完成。
+- **模組化與聯邦化 (Modularity & Federation)**: 複雜的 SRE 工作流程由一個主協調器 (透過 `SREWorkflowFactory` 構建的 `SequentialAgent`) 調用多個小型、專業的子代理來完成。
 - **可擴展的服務 (Extensible Services)**: 認證、記憶體和會話管理等核心服務被設計為可插拔的提供者 (Provider) 模式，以適應不同的生產環境。
 
 ## 2. 架構願景 (Architectural Vision)

@@ -165,18 +165,17 @@ poetry run pytest
 curl -X POST http://localhost:8080/execute \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "Users are reporting timeouts when trying to complete payments."
+    "action": "restart-service",
+    "reason": "Users are reporting timeouts when trying to complete payments."
   }'
 
-# 預期輸出 (簡化):
+# 預期輸出:
 # {
-#   "state": {
-#     ...
-#     "remediation_status": "dispatcher_executed",
-#     "dispatcher_decision": "rollback_fix",
-#     ...
-#   }
+#   "status": "execution_started",
+#   "action": "restart-service",
+#   "reason": "Users are reporting timeouts when trying to complete payments."
 # }
+# 接著，您會在運行服務的終端機中看到 HITL 工作流程的詳細輸出。
 ```
 
 ## 核心文檔
@@ -261,7 +260,7 @@ sre-assistant/
 ### Phase 0: 優先技術債修正 (已完成) ✅
 - [x] AuthManager 重構為無狀態 ADK Tool
 - [x] 為核心代理實現結構化輸出
-- [ ] 實現標準化的 HITL (Human-in-the-Loop)
+- [x] 實現標準化的 HITL (Human-in-the-Loop)
 
 ### Phase 1: MVP (當前) 🚧
 - [x] 核心 Agent 服務
