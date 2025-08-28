@@ -148,3 +148,214 @@ def format_citations(sources: List[Dict[str, Any]]) -> str:
 
     return "引用來源:\n" + "\n".join(formatted_list)
 ```
+
+---
+
+## 3. ADK 架構模式範例 (ADK Architectural Patterns)
+
+- **來源 (Source):** `review.md`, `review-2.md`
+- **上下文 (Context):** 以下程式碼片段是從 ADK 首席架構師的審查報告中提取的核心範例。它們展示了實現 SRE Assistant 進階功能的最佳實踐，應作為 `TASKS.md` 中相關重構任務的主要藍圖。
+
+### 3.1 增強型 SRE 工作流程 (Enhanced SRE Workflow)
+```python
+# sre_assistant/workflow_enhanced.py
+"""增強版 SRE Workflow - 符合 ADK 最佳實踐"""
+
+from typing import Dict, Any, List, Optional
+from google.adk.agents import (
+    SequentialAgent,
+    ParallelAgent,
+    LoopAgent,
+    InvocationContext,
+    BeforeAgentCallback,
+    AfterAgentCallback
+)
+from google.adk.agents.callback_context import CallbackContext
+from google.genai import types
+from pydantic import BaseModel
+
+class EnhancedSREWorkflow(SequentialAgent):
+    """符合 ADK 最佳實踐的 SRE 工作流程實現"""
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        diagnostic_phase = self._create_diagnostic_phase()
+        remediation_phase = self._create_remediation_phase()
+        verification_phase = self._create_verification_phase()
+
+        super().__init__(
+            name="EnhancedSREWorkflow",
+            sub_agents=[
+                diagnostic_phase,
+                remediation_phase,
+                verification_phase
+            ],
+            before_agent_callback=self._workflow_pre_check,
+            after_agent_callback=self._workflow_post_process
+        )
+
+    def _create_diagnostic_phase(self) -> ParallelAgent:
+        """創建符合最佳實踐的並行診斷階段"""
+        return ParallelAgent(
+            name="DiagnosticPhase",
+            sub_agents=[
+                # MetricsAnalyzer(), LogAnalyzer(), TraceAnalyzer(), ...
+            ],
+            aggregation_strategy="custom",
+            aggregation_function=self._aggregate_diagnostics,
+            timeout_seconds=30,
+            allow_partial_failure=True
+        )
+
+    def _aggregate_diagnostics(self, results: List[Dict]) -> Dict:
+        """自定義診斷結果聚合邏輯"""
+        # ... 聚合邏輯 ...
+        print("Aggregating diagnostic results...")
+        return {"aggregated_diagnosis": "...details..."}
+
+    def _create_remediation_phase(self) -> 'IntelligentDispatcher':
+        """創建智能分診修復階段"""
+        return IntelligentDispatcher(
+            name="RemediationPhase",
+            expert_registry={
+                # "k8s_issues": KubernetesRemediationAgent(), ...
+            },
+            before_agent_callback=self._check_remediation_safety
+        )
+
+    def _create_verification_phase(self) -> 'VerificationAgent':
+        """創建修復後驗證階段 - ADK self-critic 模式"""
+        return VerificationAgent(
+            name="VerificationPhase",
+            sub_agents=[
+                # HealthCheckAgent(), SLOValidationAgent(), ...
+            ],
+            on_failure_callback=self._trigger_rollback
+        )
+
+    def _workflow_pre_check(self, context: CallbackContext) -> Optional[types.Content]:
+        """工作流程開始前的檢查"""
+        print("Performing workflow pre-check...")
+        return None
+
+    def _workflow_post_process(self, context: CallbackContext) -> Optional[types.Content]:
+        """工作流程完成後的處理"""
+        print("Performing workflow post-process...")
+        return None
+
+    def _check_remediation_safety(self, context: CallbackContext) -> Optional[types.Content]:
+        """修復前的安全檢查"""
+        print("Checking remediation safety...")
+        # 移至 HumanApprovalTool
+        return None
+
+    def _trigger_rollback(self, context: CallbackContext):
+        """觸發回滾機制"""
+        print("Verification failed, triggering rollback...")
+        context.state["rollback_required"] = True
+
+# --- 輔助代理與模型 ---
+
+class DispatchDecision(BaseModel):
+    """分診決策的結構化輸出"""
+    selected_experts: List[str]
+    reasoning: str
+    confidence: float
+
+class IntelligentDispatcher(LlmAgent):
+    """智能分診器 - 動態選擇專家代理"""
+    def __init__(self, expert_registry: Dict[str, BaseAgent], **kwargs):
+        super().__init__(
+            name="IntelligentDispatcher",
+            instruction="Analyze the diagnosis and select the best expert(s) to fix the issue.",
+            output_schema=DispatchDecision,
+            **kwargs
+        )
+        self.expert_registry = expert_registry
+
+    async def run_async(self, context: InvocationContext):
+        decision = await super().run_async(context)
+        # ... 根據 decision 執行對應的專家代理 ...
+        print(f"Dispatcher decided to run: {decision.selected_experts}")
+        return {"status": "dispatched"}
+
+class VerificationAgent(SequentialAgent):
+    """修復後驗證代理 - 實現 ADK self-critic 模式"""
+    def __init__(self, on_failure_callback=None, **kwargs):
+        self.on_failure_callback = on_failure_callback
+        super().__init__(**kwargs)
+
+    async def run_async(self, context: InvocationContext):
+        result = await super().run_async(context)
+        # 假設驗證結果儲存在 state 中
+        if not context.state.get("verification_passed", False):
+            if self.on_failure_callback:
+                self.on_failure_callback(context)
+        return result
+```
+
+### 3.2 標準化工具模式 (Standardized Tool Patterns)
+
+```python
+from google.adk.tools import FunctionTool, LongRunningFunctionTool
+from google.adk.tools.types import ToolContext, ToolResult, ToolEvent
+from typing import Dict, Any, AsyncIterator
+
+# --- 無狀態認證工具 ---
+@FunctionTool
+async def verify_token(
+    token: str,
+    tool_context: ToolContext
+) -> ToolResult:
+    """無狀態的認證工具，狀態由 session state 管理"""
+    # 驗證邏輯...
+    user_id = "user-123"
+    tool_context.session_state["user_id"] = user_id
+    return ToolResult(success=True, data={"user_id": user_id})
+
+# --- 標準化人類介入 (HITL) 工具 ---
+class HumanApprovalTool(LongRunningFunctionTool):
+    """使用 ADK 的長時間運行工具實現 HITL"""
+    async def run(self, request: Dict[str, Any]) -> AsyncIterator[ToolEvent]:
+        # 1. 發送審批請求
+        request_id = "req-abc-123"
+        print(f"Human approval requested for action: {request.get('action')}. Request ID: {request_id}")
+        yield ToolEvent(type="pending", data={"request_id": request_id})
+
+        # 2. 在實際應用中，此處會等待外部回調
+        #    此處為模擬，等待 5 秒後自動批准
+        # await asyncio.sleep(5)
+        approval_result = {"status": "approved", "approver": "system"}
+
+        # 3. 返回最終結果
+        yield ToolEvent(type="completed", data=approval_result)
+```
+
+### 3.3 ADK 評估框架整合 (Evaluation Framework Integration)
+```python
+from google.adk.eval import EvaluationFramework
+
+def setup_evaluation():
+    """設置 ADK 評估框架的範例"""
+
+    # 假設 sre_workflow 是已實例化的 EnhancedSREWorkflow
+    sre_workflow = EnhancedSREWorkflow()
+
+    # 從 JSONL 文件加載黃金測試案例
+    # test_cases = load_test_cases_from_jsonl("eval/golden_dataset.jsonl")
+    test_cases = [
+        {"input": "API server is down", "expected_output": "k8s_issues"},
+        {"input": "Database latency is high", "expected_output": "database_issues"},
+    ]
+
+    evaluator = EvaluationFramework(
+        agent=sre_workflow,
+        test_cases=test_cases,
+        metrics=["accuracy", "latency", "cost"]
+    )
+
+    # 運行評估
+    # results = evaluator.run()
+    # print(results)
+
+    return evaluator
+```
