@@ -279,13 +279,25 @@
         - [ ] `pytest --cov` 報告顯示核心模組測試覆蓋率 > 80%。
         - [ ] CI 流水線中包含測試覆蓋率檢查步驟。
 - [ ] **TASK-P1-DEBT-02**: **重構工具以實現標準化輸出**
+    - **來源**: `review.md`, `SPEC.md`
     - **依賴**: [TASK-P1-TOOL-01], [TASK-P1-TOOL-02]
     - **參考**:
         - **直接實現**: [ADK Examples: output_schema_with_tools](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook) (提供了將 Pydantic 模型設為工具輸出的標準模式)。
+        - **規格定義**: `SPEC.md` 中的「標準化介面、錯誤處理與版本管理」章節。
     - **驗收標準**:
-        - [ ] 專案中定義了 `ToolResult` 和 `ToolError` Pydantic 模型。
-        - [ ] 所有工具的 `execute` 方法簽名都符合 `BaseTool` 協議。
-        - [ ] 成功和失敗的工具調用都能返回結構化的 `ToolResult`。
+        - [ ] 在 `contracts.py` 中定義了 `ToolResult` 和 `ToolError` Pydantic 模型。
+        - [ ] 專案中定義了 `BaseTool` 協議 (Protocol)。
+        - [ ] 所有工具的 `execute` 方法簽名都符合 `BaseTool` 協議，並返回 `ToolResult`。
+        - [ ] 成功和失敗的工具調用都能返回結構化的 `ToolResult`，包含清晰的 `error.code`。
+- [ ] **TASK-P1-DEBT-03**: **實現工具與代理的版本化管理**
+    - **來源**: `review.md`
+    - **依賴**: 無
+    - **參考**:
+        - **規格定義**: `SPEC.md` 中的「版本管理策略」章節。
+    - **驗收標準**:
+        - [ ] 專案的 `__init__.py` 或 `_version.py` 中定義了總體版本號。
+        - [ ] 核心代理與工具的日誌或元數據中包含其版本號。
+        - [ ] `CHANGELOG.md` 被建立並記錄了版本變更。
 
 ---
 
@@ -335,14 +347,41 @@
     - [ ] **TASK-P2-TOOL-05**: **實現 GoogleCloudHealthTool**
         - **參考**: (同 TASK-P2-TOOL-04)
 
+### P2 - 新功能 (New Features)
+- **Agent 評估 (Agent Evaluation)**
+    - [ ] **TASK-P2-EVAL-01**: **整合 ADK 評估框架**
+        - **來源**: `review.md`, `review-2.md`
+        - **依賴**: [TASK-P1-SVC-01]
+        - **參考**:
+            - **主要藍圖**: `review.md` 中的「實現 ADK 評估框架」程式碼範例。
+            - **理論基礎**: `SPEC.md` 中的「代理可靠性評估」和「代理人評估策略」章節。
+        - **驗收標準**:
+            - [ ] `eval/` 目錄下包含一個基於 `google.adk.eval.EvaluationFramework` 的評估腳本。
+            - [ ] 專案包含一個 `eval/golden_dataset.jsonl` 黃金數據集。
+            - [ ] 評估腳本能夠運行並輸出準確性、延遲、成本等核心指標。
+            - [ ] CI/CD 流程中包含一個可選的、用於執行評估的步驟。
+
 ### P2 - 重構 (Refactoring)
 
 - [ ] **TASK-P2-REFACTOR-01**: **實現智能分診器 (Intelligent Dispatcher)**:
+    - **來源**: `review.md`, `review-2.md`
     - **參考**:
         - **真實世界藍圖**: [ADK Agent Samples: brand-search-optimization](docs/reference-adk-agent-samples.md#16-進階工作流程與整合-advanced-workflows--integrations) (提供了最貼近真實應用的路由器範例)。
         - **基礎模式**: [ADK Agent Samples: google-adk-workflows](docs/reference-adk-agent-samples.md#2-工作流程與協調模式-workflow--orchestration) (其 `DispatcherAgent` 是此模式的基礎)。
         - **輕量化實現**: [ADK Examples: workflow_triage](docs/reference-adk-examples.md#開發團隊補充建議參考-additional-team-proposed-references) (提供了最簡潔的分診器實現)。
         - **原始需求**: `review.md` 中的 `IntelligentDispatcher` 類別範例。
+- [ ] **TASK-P2-REFACTOR-02**: **實現增強型 SRE 工作流程 (Enhanced SRE Workflow)**
+    - **來源**: `review.md`, `review-2.md`
+    - **依賴**: [TASK-P1-SVC-01], [TASK-P2-REFACTOR-01], [TASK-P2-VERIFY-01]
+    - **參考**:
+        - **主要藍圖**: `review.md` 中的 `EnhancedSREWorkflow` 程式碼範例。
+        - **理論基礎**: `ARCHITECTURE.md` 中的「核心工作流程代理」章節。
+    - **驗收標準**:
+        - [ ] `SREWorkflow` 被重構為 `EnhancedSREWorkflow`。
+        - [ ] 並行診斷階段 (`ParallelAgent`) 使用了 `aggregation_strategy="custom"`。
+        - [ ] 工作流程實現了 `before_agent_callback` 和 `after_agent_callback` 進行前置檢查和後處理。
+        - `LoopAgent` 階段有明確的 `max_iterations` 和 `termination_condition`。
+        - [ ] 工作流程中整合了 `VerificationAgent` 進行修復後驗證。
 
 ### P2 - 技術債 (Technical Debt)
 
