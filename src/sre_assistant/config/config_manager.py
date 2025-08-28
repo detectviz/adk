@@ -140,18 +140,19 @@ class AuthProvider(str, Enum):
     """
     定義可用的認證提供者選項。
     """
+    NONE = "none"  # 無認證，用於本地開發
     GOOGLE_IAM = "google_iam"
     OAUTH2 = "oauth2"
     API_KEY = "api_key"
     JWT = "jwt"
     MTLS = "mtls"
-    LOCAL = "local"  # 開發用
+    LOCAL = "local"
 
 class AuthConfig(BaseModel):
     """
     定義與認證和授權相關的所有配置。
     """
-    provider: AuthProvider
+    provider: AuthProvider = AuthProvider.NONE
 
     # Google IAM 配置
     service_account_path: Optional[str] = None

@@ -18,6 +18,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime, timedelta, timezone
+from .no_auth_provider import NoAuthProvider
 import jwt
 import httpx
 from google.auth import default
@@ -739,9 +740,17 @@ class AuthFactory:
             "jwt": JWTProvider,
             "api_key": APIKeyProvider,
             "mtls": MTLSProvider,
-            "local": LocalAuthProvider
+            "local": LocalAuthProvider,
+            "none": NoAuthProvider,
         }
-        provider_class = provider_map.get(config.provider.value)
+
+        # 處理 config.provider 為 None 的情況，或其 .value 為 'none'
+        provider_key = "none"
+        if config and hasattr(config, 'provider') and config.provider:
+            provider_key = config.provider.value
+
+        provider_class = provider_map.get(provider_key)
+
         if not provider_class:
-            raise ValueError(f"Unsupported auth provider: {config.provider}")
+            raise ValueError(f"Unsupported auth provider: {provider_key}")
         return provider_class(config)
