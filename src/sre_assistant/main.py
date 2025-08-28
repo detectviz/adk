@@ -59,17 +59,17 @@ async def run_workflow_in_background(request: ExecuteRequest):
     這避免了阻塞 API 回應。
     """
     print(f"Received request for session '{request.session_id}'. Query: '{request.user_query}'")
-
+    
     # 創建或獲取會話
     session = await session_service.get_or_create_session(
         app_name=runner.app_name,
         user_id=request.user_id,
         session_id=request.session_id
     )
-
+    
     # 創建 ADK 的內容物件
     user_content = types.Content(role="user", parts=[types.Part(text=request.user_query)])
-
+    
     # 異步執行並迭代事件（實際的執行發生在此處）
     # 在真實應用中，可以將這些事件推送到 WebSocket 或日誌系統
     final_response = ""
@@ -93,7 +93,7 @@ async def execute_workflow(request: ExecuteRequest, background_tasks: Background
     此端點會立即回傳，而實際的工作流程會在背景執行。
     """
     background_tasks.add_task(run_workflow_in_background, request)
-
+    
     return ExecuteResponse(
         status="accepted",
         session_id=request.session_id,
@@ -111,9 +111,9 @@ def read_root():
 def start():
     """使用 uvicorn 啟動 FastAPI 應用程式。"""
     uvicorn.run(
-        "sre_assistant.main:app",
-        host="0.0.0.0",
-        port=8000,
+        "sre_assistant.main:app", 
+        host="0.0.0.0", 
+        port=8000, 
         reload=True
     )
 
