@@ -377,10 +377,10 @@ class BaseTool(Protocol):
 - **核心原則**: 系統必須明確區分「短期記憶體（會話狀態）」和「長期記憶體（知識庫）」。
 - **短期記憶體 (Session State)**:
     - **用途**: 用於在單一對話流程中，追蹤任務進度、臨時變數和上下文。它扮演著代理的「臨時記事本」角色。
-    - **技術實現**: **必須**透過 ADK 的 **Provider 模型** (`session_service_builder`) 實現，以確保後端的可擴展性和可替換性。目前的**首選方案**是實現一個基於 `DatabaseSessionService` 的提供者，並以 **PostgreSQL** 作為後端儲存，以支援生產環境下的多實例部署和服務重啟。此決策直接支持 `TASK-P1-CORE-02`。
+    - **技術實現**: **已透過** ADK 的 **Provider 模型** (`session_service_builder`) 實現。系統使用一個工廠 (`SessionFactory`)，根據配置提供基於 `DatabaseSessionService` 的 **PostgreSQL** 持久化會話，以支援生產環境下的多實例部署和服務重啟。
 - **長期記憶體 (Long-term Memory)**:
     - **用途**: 存儲跨會話的、具有長期價值的資訊，如事件歷史、解決方案、SOPs 等。這是 RAG 功能的核心。
-    - **技術實現**: 透過自定義的 `MemoryProvider` 實現，後端對接 Weaviate 向量數據庫。數據的寫入可參考 `VertexAIMemoryBankService` 的模式，使用 `after-agent` 回呼函式 (Callback) 自動、異步地將有價值的對話資訊存入長期記憶體。
+    - **技術實現**: **已透過**自定義的 `MemoryProvider` (`ChromaBackend`) 實現，後端在本地開發環境中使用 **ChromaDB**，並可配置為在生產環境中使用 Weaviate。
 
 ### 7.2 多代理互動模式 (Multi-Agent Interaction Patterns)
 

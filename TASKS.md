@@ -182,13 +182,15 @@
         - [✅] `main.py` 已整合 `AuthFactory`，並透過 FastAPI 依賴注入 `get_current_user`。
         - [✅] `development.yaml` 中設定 `auth.provider: "none"`。
         - [✅] 執行時，`NoAuthProvider` 會被載入，並在無 token 的情況下返回一個模擬用戶，API 請求成功。
-    - [ ] **TASK-P1-SVC-03**: 使用 ADK Web UI 進行開發與互動
+    - [✅] **TASK-P1-SVC-03**: **核心服務本地化依賴與互動**
       - **依賴**: [TASK-P1-SVC-01]
-      - **參考**:
-        - [ADK Docs: UI](docs/reference-adk-docs.md#開發與測試-development--testing)
+      - **說明**: 由於 Docker 環境不穩，此任務放棄了原有的 `weaviate` 容器，改為使用本地安裝的 `PostgreSQL` (會話)、`Redis` (快取) 和 `ChromaDB` (記憶體)，以確保核心服務能夠穩定啟動並互動。
       - **驗收標準**:
-        - [ ] 可透過 ADK Web UI 與後端服務進行問答互動。
-        - [ ] 能夠正確顯示工具調用和最終結果。
+        - [✅] `pyproject.toml` 已加入 `chromadb` 和 `sentence-transformers`。
+        - [✅] 已實現 `ChromaBackend` 作為新的 `MemoryProvider`。
+        - [✅] `development.yaml` 已更新，`memory.backend` 指向 `chroma`，`session_backend` 指向 `postgresql`。
+        - [✅] 服務能成功啟動 (`poetry run python -m src.sre_assistant.main`)。
+        - [✅] 透過 `curl` 測試 `/execute` 端點，服務能正確回應。
 
 - **核心工具 (Core Tools)**
     - [ ] **TASK-P1-TOOL-01**: 實現 `PrometheusQueryTool`

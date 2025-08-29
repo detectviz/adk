@@ -18,6 +18,7 @@ import asyncpg
 from redis import Redis
 from google.cloud.aiplatform.matching_engine import MatchingEngineIndexEndpoint
 from ..config.config_manager import MemoryConfig
+from .chroma_backend import ChromaBackend
 
 class VectorBackend(ABC):
     """
@@ -398,7 +399,8 @@ class MemoryBackendFactory:
             "weaviate": WeaviateBackend,
             "postgresql": PostgreSQLBackend,
             "vertex_ai": VertexAIBackend,
-            "memory": InMemoryBackend
+            "memory": InMemoryBackend,
+            "chroma": ChromaBackend
         }
         backend_class = backend_map.get(config.backend.value)
         if not backend_class:
