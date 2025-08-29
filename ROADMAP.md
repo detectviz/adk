@@ -53,11 +53,11 @@
 
 ### 主要交付物 (Key Deliverables):
 - **1.1. 基礎設施即代碼 (Infrastructure as Code)**:
-    - ✅ 📦 提供 `docker-compose.yml` 文件，用於一鍵在本地啟動包含所有依賴（PostgreSQL, Redis, Weaviate, Grafana, Loki）的完整開發環境。
+    - ✅ 📦 提供 `docker-compose.yml` 文件，用於啟動可觀測性服務 (Grafana, Prometheus, Loki)。核心服務 (PostgreSQL, Redis) 則直接在本地運行，以提高穩定性。
 - **1.2. SRE Assistant 後端服務 v0.1**:
     - ✅ 🤖 實現基於 Google ADK 的核心 Agent 服務 (已完成服務骨架)。
     - 🛠️ 整合基本的診斷工具（如：Prometheus 查詢、日誌關鍵字搜索）。
-    - 🧠 實現基於 `MemoryProvider` 的 RAG 檢索能力。
+    - ✅ 🧠 **(已實現)** 實現了基於 `MemoryProvider` 的 RAG 檢索能力，後端使用 `ChromaDB`。
 - **1.3. 核心服務實現**:
     - ✅ 🔐 **認證框架**: 實現了基於 `AuthProvider` 的可插拔認證框架，並整合至 API 層。預設使用 `none` 提供者，為後續實現 OAuth 2.0 奠定基礎。
     - ✅ 📝 **持久化會話**: 實現了基於 `session_service_builder` 的持久化會話管理，後端使用 PostgreSQL。

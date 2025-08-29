@@ -24,6 +24,10 @@ PyYAML = "^6.0.1"
 # 用於版本號比較
 packaging = "^24.0"
 pyjwt = "^2.10.1"
+# 用於本地向量數據庫
+chromadb = "^0.5.0"
+# 用於文本嵌入
+sentence-transformers = "^2.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
