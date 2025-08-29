@@ -37,6 +37,7 @@ data/
 *.log
 logs/
 
+
 # Binaries
 bin/
 
