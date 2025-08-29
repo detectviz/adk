@@ -59,8 +59,8 @@
     - 🛠️ 整合基本的診斷工具（如：Prometheus 查詢、日誌關鍵字搜索）。
     - 🧠 實現基於 `MemoryProvider` 的 RAG 檢索能力。
 - **1.3. 核心服務實現**:
-    - 🔐 實現基於 `AuthProvider` 的 OAuth 2.0 認證流程。
-    - 📝 實現基於 `session_service_builder` 的持久化會話管理。
+    - ✅ 🔐 **認證框架**: 實現了基於 `AuthProvider` 的可插拔認證框架，並整合至 API 層。預設使用 `none` 提供者，為後續實現 OAuth 2.0 奠定基礎。
+    - ✅ 📝 **持久化會話**: 實現了基於 `session_service_builder` 的持久化會話管理，後端使用 PostgreSQL。
 - **1.4. 功能驗證**:
     - 🎯 可透過 **ADK Web UI** 提交查詢，執行基本的事件診斷流程，並獲得包含 RAG 引用來源的答案。
 
