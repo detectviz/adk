@@ -6,10 +6,11 @@
 模擬的用戶資訊，讓開發者可以專注於測試代理的核心邏輯。
 """
 from typing import Dict, Any, Optional, Tuple
+from .auth_factory import AuthProvider, AuthConfig
 
-class NoAuthProvider:
+class NoAuthProvider(AuthProvider):
     """
-    一個用於開發的無認證提供者。
+    一個用於開發的無認證提供者，它符合 AuthProvider 介面。
     """
 
     MOCK_USER_INFO = {
@@ -18,6 +19,13 @@ class NoAuthProvider:
         "name": "Local Developer",
         "roles": ["admin", "developer"]
     }
+
+    def __init__(self, config: AuthConfig):
+        """
+        初始化 NoAuthProvider。
+        此處的 config 參數是為了符合工廠的調用簽名，但未使用。
+        """
+        pass
 
     async def authenticate(self, credentials: Optional[Dict[str, Any]] = None) -> Tuple[bool, Dict[str, Any]]:
         """
@@ -28,5 +36,17 @@ class NoAuthProvider:
     async def authorize(self, user_info: Dict[str, Any], resource: str, action: str) -> bool:
         """
         在無認證模式下，總是授權所有操作。
+        """
+        return True
+
+    async def refresh_token(self, refresh_token: str) -> Optional[str]:
+        """
+        無認證模式下無需刷新令牌。
+        """
+        return None
+
+    async def health_check(self) -> bool:
+        """
+        無認證提供者總是健康的。
         """
         return True

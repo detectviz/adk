@@ -63,7 +63,7 @@ graph TD
 
     subgraph "數據與基礎設施<br/>Data & Infrastructure"
         subgraph "統一記憶庫<br/>Unified Memory"
-            VectorDB[向量數據庫<br/>Weaviate / Vertex AI]
+        VectorDB[向量數據庫<br/>ChromaDB / Weaviate]
             DocDB[關係型數據庫<br/>PostgreSQL]
             Cache[快取<br/>Redis]
         end
@@ -143,7 +143,7 @@ graph TD
 ### 5.4 數據與基礎設施層 (Data & Infrastructure Layer)
 - **統一記憶庫 (Unified Memory)**: 為所有代理提供短期、長期、程序和語義記憶。
   - **短期記憶體 (會話狀態)**: 採用 ADK 的 `DatabaseSessionService`，後端使用 PostgreSQL，以支持生產環境下的多實例部署和可靠性。這確保了在單一調查流程中的上下文不會因服務重啟而丟失。
-  - **長期記憶體 (知識庫)**: 採用類似 `VertexAIMemoryBankService` 的模式，將歷史事件、解決方案和文檔存儲在 Weaviate 向量數據庫中，用於 RAG。
+  - **長期記憶體 (知識庫)**: 採用 ADK 的 `MemoryProvider` 模式，後端使用 `ChromaDB` 進行本地開發，並可配置為在生產環境中使用 `Weaviate`。此服務負責將歷史事件、解決方案和文檔向量化，以支持 RAG。
   - **構件管理 (Artifact Management)**: 代理在執行過程中可能會產生或需要處理非結構化數據，如圖片、CSV 文件或 PDF 報告。ADK 的 `ArtifactService` 提供了一個標準化的方式來處理這些「構件」，將其上傳到如 Google Cloud Storage 等對象存儲中，並在會話狀態中保存一個可引用的 URI。
   - **快取**: Redis 用於高速快取常用數據和短期會話資訊。
 - **可觀測性 (Observability)**: 採用 Grafana LGTM Stack。
@@ -167,7 +167,7 @@ graph TD
 | **後端語言** | Python 3.11+ | |
 | **LLM** | Gemini Pro / GPT-4 | 可配置 |
 | **可觀測性** | Grafana (OSS / Cloud), Loki, Tempo, Mimir | LGTM Stack |
-| **向量數據庫** | Weaviate / Vertex AI Vector Search | |
+| **向量數據庫** | ChromaDB (本地) / Weaviate | |
 | **關係型數據庫** | PostgreSQL | |
 | **快取** | Redis / InMemory | 支援記憶體快取以簡化本地開發 |
 | **容器化** | Docker, Kubernetes | |
@@ -184,7 +184,7 @@ graph TD
 
 - **`MemoryProvider` (長期記憶體 / RAG)**: 這是實現**可擴展的長期記憶體**的標準模式。
     - **問題**: 將 RAG 邏輯直接寫在代理內部會導致程式碼耦合，難以測試和替換。
-    - **解決方案**: 我們將實現一個自定義的 `MemoryProvider`，它橋接到 Weaviate 或 Vertex AI Vector Search。此提供者將模仿 `VertexAIMemoryBankService` 的行為模式，允許代理透過標準化的 `search_memory` 接口，從過去的事件和文檔中學習，同時將記憶體管理的複雜性與代理的核心邏輯分離。
+    - **解決方案**: 系統**已實現**一個自定義的 `MemoryProvider` (`ChromaBackend`)，它橋接到 `ChromaDB`。此提供者允許代理透過標準化的 `search_memory` 接口，從過去的事件和文檔中學習，同時將記憶體管理的複雜性與代理的核心邏輯分離。
 
 - **`AuthProvider` (認證)**: 這是**整合認證**的標準介面。
     - **問題**: 自行實現的認證邏輯（如 `review.md` 中指出的舊版 `AuthManager`）容易出錯，且無法與 ADK 的生態系統（如 UI、工具）無縫協作。

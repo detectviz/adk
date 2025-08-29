@@ -8,10 +8,9 @@
 符合 ADK `SessionService` 協議的實例（例如 `DatabaseSessionService`
 或 `InMemorySessionService`）。
 
-此任務對應於 `TASKS.md` 中的 `TASK-P1-CORE-02`。
 """
 
-from google.adk.sessions import SessionService, InMemorySessionService, DatabaseSessionService
+from google.adk.sessions import BaseSessionService, InMemorySessionService, DatabaseSessionService
 from ..config.config_manager import config_manager, SessionBackend
 
 class SessionFactory:
@@ -20,7 +19,7 @@ class SessionFactory:
     """
 
     @staticmethod
-    def create() -> SessionService:
+    def create() -> BaseSessionService:
         """
         根據應用程式配置，創建並返回一個會話服務實例。
 
@@ -28,7 +27,7 @@ class SessionFactory:
             ValueError: 如果配置了不受支援的會話後端。
 
         Returns:
-            SessionService: 一個符合 ADK SessionService 協議的實例。
+            BaseSessionService: 一個符合 ADK SessionService 協議的實例。
         """
         session_backend = config_manager.config.session_backend
 
