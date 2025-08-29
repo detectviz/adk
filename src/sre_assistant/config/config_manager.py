@@ -8,7 +8,7 @@
 """
 
 from typing import Dict, Any, Optional, List
-from pydantic import BaseModel, Field, field_validator, ValidationInfo
+from pydantic import BaseModel, Field, field_validator, model_validator, ValidationInfo
 from enum import Enum
 import os
 import yaml
@@ -208,6 +208,7 @@ class SessionBackend(str, Enum):
     """
     定義可用的會話後端選項 (用於短期記憶體)。
     """
+    POSTGRESQL = "postgresql"
     FIRESTORE = "firestore"
     IN_MEMORY = "in_memory"
 
@@ -226,6 +227,16 @@ class SREAssistantConfig(BaseModel):
     # Firestore 特定配置
     firestore_project_id: Optional[str] = None
     firestore_collection: str = "sre_assistant_sessions"
+
+    @model_validator(mode='after')
+    def check_postgres_session_dependency(self) -> 'SREAssistantConfig':
+        """
+        確保在使用 PostgreSQL 會話後端時，連接字串已提供。
+        """
+        if self.session_backend == SessionBackend.POSTGRESQL:
+            if not self.memory or not self.memory.postgres_connection_string:
+                raise ValueError("postgres_connection_string is required for PostgreSQL session backend")
+        return self
 
     # LLM 相關配置
     llm_model: str = "gemini-1.5-pro-latest"

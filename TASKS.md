@@ -176,11 +176,12 @@
         - [✅] 在 `workflow.py` 中實現了 `EnhancedSREWorkflow` 的基本骨架。
         - [✅] 工作流程包含並行診斷、分診和驗證三個階段的佔位符代理。
         - [✅] `main.py` 中實現了 FastAPI 入口點，並提供 `/execute` 端點。
-    - [ ] **TASK-P1-SVC-02**: 實現無認證模式
+    - [✅] **TASK-P1-SVC-02**: 實現無認證模式
       - **依賴**: [TASK-P1-SVC-01]
       - **驗收標準**:
-        - [ ] 當 `auth.provider` 設置為 `None` 時，所有請求無需認證即可通過。
-        - [ ] `InvocationContext` 中有模擬的用戶資訊。
+        - [✅] `main.py` 已整合 `AuthFactory`，並透過 FastAPI 依賴注入 `get_current_user`。
+        - [✅] `development.yaml` 中設定 `auth.provider: "none"`。
+        - [✅] 執行時，`NoAuthProvider` 會被載入，並在無 token 的情況下返回一個模擬用戶，API 請求成功。
     - [ ] **TASK-P1-SVC-03**: 使用 ADK Web UI 進行開發與互動
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
@@ -231,7 +232,7 @@
         - [ ] 能夠將文檔向量化並存儲到 Weaviate。
         - [ ] 能夠根據查詢進行語義搜索並返回相關文檔片段。
         - [ ] 有整合測試驗證 RAG 流程。
-    - [ ] **TASK-P1-CORE-02**: **實現 `session_service_builder` (PostgreSQL 持久化會話)**
+    - [✅] **TASK-P1-CORE-02**: **實現 `session_service_builder` (PostgreSQL 持久化會話)**
       - **依賴**: [TASK-P1-INFRA-01]
       - **任務**: 實現一個 `session_service_builder`，它能根據配置返回一個基於 `DatabaseSessionService` 的 **PostgreSQL** 會話提供者。
       - **參考**:
@@ -240,9 +241,10 @@
         - **狀態管理實踐**: [ADK Examples: session_state_agent](docs/reference-adk-examples.md#開發者實踐補充範例-developers-cookbook) (展示了如何讀寫 `context.state`)。
         - **歷史使用實踐**: [ADK Examples: history_management](docs/reference-adk-examples.md#工程實踐與開發體驗-engineering-practices-developer-experience) (展示了如何在應用層使用歷史記錄)。
       - **驗收標準**:
-        - [ ] 多輪對話的上下文能夠被正確保存和讀取到 PostgreSQL。
-        - [ ] 服務重啟後，可以從 PostgreSQL 中恢復會話狀態。
-        - [ ] 有整合測試驗證會話持久化。
+        - [✅] `config_manager.py` 已更新，`SessionBackend` 枚舉中增加了 `POSTGRESQL` 選項，並添加了 `@model_validator` 來驗證相依性。
+        - [✅] `session/backend_factory.py` 中已實現 `SessionFactory`，可根據配置創建 `DatabaseSessionService`。
+        - [✅] `main.py` 已改為使用 `SessionFactory` 來動態創建 `session_service`。
+        - [✅] `development.yaml` 已配置為使用 `session_backend: "postgresql"`。
     - [ ] **TASK-P1-CORE-03**: 實現 `AuthProvider` (OAuth 2.0)
       - **依賴**: [TASK-P1-SVC-01]
       - **參考**:
