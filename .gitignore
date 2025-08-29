@@ -33,6 +33,11 @@ deploy/.env
 deploy/data/
 data/
 
+# Logs
+*.log
+logs/
+
+
 # Binaries
 bin/
 
