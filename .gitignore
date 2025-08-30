@@ -105,3 +105,8 @@ Thumbs.db
 # VS Code
 .vscode/
 *.code-workspace
+
+# Ignore all files in the data directory
+data/
+
+control-plane/
