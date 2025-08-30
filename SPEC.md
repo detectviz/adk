@@ -69,7 +69,7 @@
     - **ADK 實現**: **必須**使用 `LongRunningFunctionTool` 來實現，以符合 ADK 的非同步操作模式。
     - **功能**: `ask_for_approval(action: str, reason: str) -> dict`
     - **配置**: 通知機制（如 Slack Webhook, Email API）。
-    - **實施狀態**: **(已在 Phase 0 完成第一版)** 此工具的核心模式已在 `TASK-P0-FEAT-01` 中實現，詳見 `src/sre_assistant/workflow.py`。
+    - **實施狀態**: **(已實現)** 此工具已在 `src/sre_assistant/tools/human_approval_tool.py` 中實現，並已整合至 `src/sre_assistant/workflow.py` 的核心工作流程中。
 
 ---
 

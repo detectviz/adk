@@ -238,6 +238,9 @@ sre-assistant/
 │       ├── prompts.py
 │       ├── session/
 │       ├── sub_agents/
+│       ├── tools/
+│       │   ├── __init__.py
+│       │   └── human_approval_tool.py
 │       ├── tool_registry.py
 │       └── workflow.py
 └── tests/

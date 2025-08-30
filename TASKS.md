@@ -26,9 +26,9 @@
         - [ADK Examples: human_in_loop](docs/reference-adk-examples.md#phase-1--2-核心能力與-grafana-整合-core-capabilities--grafana-integration)
         - [ADK Snippets: human_in_the_loop.py](docs/reference-snippets.md#23-安全的自動化修復模式-safe-automated-remediation-pattern)
     - **驗收標準**:
-        - [✅] **暫停與回調**: 已在 `src/sre_assistant/workflow.py` 中實現。`ask_for_approval` 函式被 `LongRunningFunctionTool` 包裝，`SREWorkflowFactory` 建立的 `SequentialAgent` 會在呼叫此工具後暫停，等待外部透過 `runner.run_async` 傳入 `FunctionResponse` 以繼續。
-        - [✅] **處理審批結果**: `RemediationExecutor` 代理的指令 (`instruction`) 明確處理 `approval.status == 'approved'` 的情況。若非 `approved` (例如 `rejected` 或其他狀態)，則不會觸發 `perform_remediation` 工具，流程中止。
-        - [NA] **單元測試**: 根據使用者指示，由於模擬 `LlmAgent` 網路呼叫的複雜性，此階段未包含新的單元測試。已執行 `poetry run pytest` 確認現有測試套件通過，避免了迴歸問題。
+        - [✅] **暫停與回調**: `HumanApprovalTool` 已在 `src/sre_assistant/tools/human_approval_tool.py` 中實現，並繼承 `LongRunningFunctionTool`。
+        - [✅] **處理審批結果**: `RemediationExecutor` 代理已在 `workflow.py` 中實現，其指令要求檢查審批狀態，並已將 `HumanApprovalTool` 作為其工具。
+        - [✅] **整合**: 新的 `RemediationExecutor` 代理已整合至 `EnhancedSREWorkflow` 的執行序列中。
 
 ### P0 - 重構 (Refactoring)
 - [✅] **TASK-P0-REFACTOR-01**: **重構 AuthManager 為無狀態工具**
